@@ -1,0 +1,13 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+users:
+  - name: ubuntu
+    groups: [sudo, docker]
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-ed25519 REPLACE_WITH_YOUR_PUBLIC_KEY
+runcmd:
+  - [ bash, -lc, 'curl -fsSL https://raw.githubusercontent.com/YOURORG/afruheritage/main/scripts/bootstrap_runner.sh -o /tmp/bootstrap_runner.sh' ]
+  - [ bash, -lc, 'chmod +x /tmp/bootstrap_runner.sh && /tmp/bootstrap_runner.sh' ]
