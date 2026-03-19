@@ -37,10 +37,17 @@ That command is embedded in `app/services/fleetbase_provisioner.py` and is the r
 
 ```bash
 cp .env.example .env
+# Edit .env and replace ALL placeholder values (especially SECRET_KEY and DATABASE_URL)
 mkdir -p secrets
 chmod 700 secrets
-# place your private key at secrets/runner_key or update RUNNER_DEFAULT_SSH_KEY_PATH
+# Place your runner SSH private key at secrets/runner_key (or update HOST_SSH_KEY_PATH in .env)
 docker compose up --build -d
+```
+
+Run database migrations (required before first use):
+
+```bash
+make migrate
 ```
 
 Create the first admin:
@@ -48,6 +55,20 @@ Create the first admin:
 ```bash
 make bootstrap-admin
 ```
+
+After the first admin account is created, set `ENABLE_BOOTSTRAP_ADMIN=false` in your `.env` and restart the API service.
+
+### Running migrations
+
+Schema changes are managed exclusively through Alembic migrations. Do not use manual DDL.
+
+| Command | Purpose |
+|---------|---------|
+| `make migrate` | Apply all pending migrations to the running postgres container |
+| `make create-migration MSG="describe change"` | Generate a new revision file after model changes |
+| `alembic upgrade head` | Same as `make migrate` (run inside the container) |
+| `alembic downgrade -1` | Roll back the last migration |
+
 
 ## 4. Bootstrap a runner node
 

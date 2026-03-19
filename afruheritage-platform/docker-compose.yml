@@ -4,39 +4,69 @@ services:
     container_name: afruheritage-api
     env_file:
       - .env
+    environment:
+      # Always use the container-side mounted path for the SSH key
+      RUNNER_DEFAULT_SSH_KEY_PATH: /run/secrets/afruheritage_runner_key
     volumes:
-      - ./:/app
-      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+      - ${HOST_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   worker:
     build: .
     container_name: afruheritage-worker
-    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO --concurrency=2
     env_file:
       - .env
+    environment:
+      RUNNER_DEFAULT_SSH_KEY_PATH: /run/secrets/afruheritage_runner_key
     volumes:
-      - ./:/app
-      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+      - ${HOST_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.tasks.celery_app.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   postgres:
     image: postgres:16
     container_name: afruheritage-postgres
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: afruheritage
       POSTGRES_USER: afruheritage
-      POSTGRES_PASSWORD: afruheritage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-afruheritage}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U afruheritage -d afruheritage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   redis:
     image: redis:7
@@ -46,6 +76,12 @@ services:
       - redis_data:/data
     ports:
       - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

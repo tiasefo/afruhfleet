@@ -7,11 +7,17 @@ WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential openssh-client curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r afruheritage && useradd -r -g afruheritage -d /app afruheritage
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
+
+# Ensure the app directory is owned by the non-root user
+RUN chown -R afruheritage:afruheritage /app
+
+USER afruheritage
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

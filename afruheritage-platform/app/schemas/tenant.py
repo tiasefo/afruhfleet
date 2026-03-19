@@ -44,6 +44,12 @@ class JobResponse(BaseModel):
     status: str
     details: str | None
     task_id: str | None
+    current_step: str | None
+    retry_count: int
+    started_at: datetime | None
+    finished_at: datetime | None
+    last_error: str | None
+    log_excerpt: str | None
     created_at: datetime
     updated_at: datetime
 
