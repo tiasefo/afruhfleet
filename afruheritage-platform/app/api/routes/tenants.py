@@ -1,5 +1,5 @@
 from slugify import slugify
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,8 +9,12 @@ from app.models.tenant import DomainType, LaunchStatus, ProvisioningJob, Tenant
 from app.models.user import User
 from app.schemas.tenant import ApprovalRequest, JobResponse, LaunchRequest, TenantCreate, TenantResponse
 from app.services.audit_service import record_audit_event
+from app.services.notification_service import get_notification_service
 from app.services.runner_selection import select_runner_for_tenant
+from app.services.tenant_ai_service import ensure_tenant_ai_settings
+from app.services.tenant_branding_service import ensure_tenant_branding
 from app.tasks.provisioning import provision_tenant
+from app.middleware.rate_limit import rate_limit
 
 router = APIRouter(prefix='/tenants', tags=['tenants'])
 
@@ -22,7 +26,11 @@ def create_tenant(
     current_user: User = Depends(require_superuser),
 ) -> Tenant:
     slug = slugify(payload.company_name)
-    if db.scalar(select(Tenant).where((Tenant.slug == slug) | (Tenant.contact_email == payload.contact_email.lower()) | (Tenant.requested_domain == payload.requested_domain.lower()))):
+    if db.scalar(select(Tenant).where(
+        (Tenant.slug == slug) |
+        (Tenant.contact_email == payload.contact_email.lower()) |
+        (Tenant.requested_domain == payload.requested_domain.lower())
+    )):
         raise HTTPException(status_code=409, detail='Tenant already exists with same slug, email, or domain')
 
     try:
@@ -67,11 +75,25 @@ def approve_tenant(
     db.commit()
     db.refresh(tenant)
     record_audit_event(db, current_user, 'tenant.approved', 'tenant', str(tenant.id), {'notes': payload.verification_notes})
+
+    try:
+        notification_service = get_notification_service(db)
+        notification_service.send_tenant_approved_email(
+            to=tenant.contact_email,
+            company_name=tenant.company_name,
+            login_url="https://app.afruheritage.com/login"
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("afruheritage.notifications").error("Failed to send approval email: %s", e)
+
     return tenant
 
 
 @router.post('/{tenant_id}/launch', response_model=JobResponse)
-def launch_tenant(
+@rate_limit(category="admin", rule="provision")
+async def launch_tenant(
+    request: Request,
     tenant_id: str,
     payload: LaunchRequest,
     db: Session = Depends(get_db),
@@ -94,6 +116,9 @@ def launch_tenant(
     db.add(job)
     db.commit()
     db.refresh(job)
+
+    ensure_tenant_ai_settings(db, tenant_id=str(tenant.id), tenant_slug=tenant.slug, company_name=tenant.company_name)
+    ensure_tenant_branding(db, tenant_id=str(tenant.id), company_name=tenant.company_name, contact_email=tenant.contact_email)
 
     async_result = provision_tenant.delay(str(job.id))
     job.task_id = async_result.id

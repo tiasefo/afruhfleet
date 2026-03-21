@@ -1,0 +1,618 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Afruheritage Platform Feature Matrix</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 24px;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 { margin-bottom: 8px; }
+    .meta { margin-bottom: 16px; color: #475569; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      box-shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      background: #0f172a;
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+    .legend {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0 20px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    .green { background: #dcfce7; }
+    .yellow { background: #fef9c3; }
+    .orange { background: #fed7aa; }
+    .red { background: #fecaca; }
+    .gray { background: #e5e7eb; }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 8px 0 0;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Afruheritage Platform Feature Matrix</h1>
+  <div class="meta">Generated from codebase scan at: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform</div>
+  
+    <div class="legend">
+      <span class="pill green">Aligned</span>
+      <span class="pill yellow">Backend only</span>
+      <span class="pill orange">Frontend only</span>
+      <span class="pill red">Missing / not implemented</span>
+      <span class="pill gray">Fleetbase capability not used</span>
+    </div>
+    
+  <table>
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>Feature</th>
+        <th>Source</th>
+        <th>Backend</th>
+        <th>Frontend</th>
+        <th>Status</th>
+        <th>Unused Fleetbase</th>
+        <th>Evidence</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+            <tr style="background:#dcfce7">
+              <td>AI</td>
+              <td>AI Chat API</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/ai_instructionsfile.md :: /api/v1/ai/chat
+- app/api/routes/ai_widget.py :: /api/v1/ai/chat
+- app/api/routes/ai.py :: app/api/routes/ai.py
+- app/schemas/ai.py :: /api/v1/ai/chat
+- app/ai/ollama_client.py :: app/ai/ollama_client.py
+- app/ai/retriever.py :: app/ai/retriever.py
+- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/chat
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat
+- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/chat
+
+Frontend:
+- app/static/widget/embed.js :: /static/widget/embed.js</pre></details></td>
+              <td>RAG-backed chat endpoint.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>AI</td>
+              <td>Floating AI Widget</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config
+- app/api/routes/ai_widget.py :: app/api/routes/ai_widget.py
+- app/static/widget/embed.js :: /api/v1/ai/widget/config
+- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/widget/config
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config
+- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/widget/config
+
+Frontend:
+- app/static/widget/embed.js :: app/static/widget/embed.js</pre></details></td>
+              <td>Floating chatbot for control plane and tenant pages.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Billing</td>
+              <td>Billing Plans</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/billing.py :: billing_plans
+- app/api/routes/billing.py :: app/api/routes/billing.py
+- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/plans
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans
+- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/plans
+
+Frontend:
+- app/templates/tenant/portal.html :: billing
+- app/templates/auth/dashboard.html :: billing</pre></details></td>
+              <td>Plan catalog: free_trial, professional, business.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Billing</td>
+              <td>Credit Wallet</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/billing.py :: billing_wallets
+- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/wallets
+- scripts/audit/platform_feature_matrix.py :: billing_wallets
+- scripts/scaffold/02_billing_subscription.sh :: billing_wallets</pre></details></td>
+              <td>Credits for AI usage and document processing.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Billing</td>
+              <td>Paystack Payment Integration</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/services/paystack_client.py :: PAYSTACK_SECRET_KEY
+- app/services/platform_payment_service.py :: PAYSTACK_SECRET_KEY
+- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/payments/init
+- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY
+- scripts/scaffold/02_billing_subscription.sh :: PAYSTACK_SECRET_KEY
+
+Frontend:
+- app/templates/tenant/portal.html :: payments
+- app/templates/auth/dashboard.html :: billing</pre></details></td>
+              <td>Backend-only payment initialization and verification.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Billing</td>
+              <td>Subscriptions</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/billing.py :: billing_subscriptions
+- app/api/routes/billing.py :: create_trial_subscription
+- app/services/billing_service.py :: create_trial_subscription
+- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/subscriptions
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions
+- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/subscriptions
+
+Frontend:
+- app/templates/tenant/portal.html :: subscription</pre></details></td>
+              <td>Trial, activation, read-only enforcement foundation.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>CRM</td>
+              <td>CRM Accounts &amp; Contacts</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/support_crm.py :: crm_accounts
+- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/accounts
+- scripts/audit/platform_feature_matrix.py :: crm_accounts
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_accounts
+
+Frontend:
+- app/templates/tenant/portal.html :: contact
+- app/templates/auth/register.html :: contact
+- app/templates/auth/login.html :: account
+- app/templates/emails/base.html :: account</pre></details></td>
+              <td>Tenant CRM base.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>CRM</td>
+              <td>Opportunities</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/support_crm.py :: crm_opportunities
+- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/opportunities
+- scripts/audit/platform_feature_matrix.py :: crm_opportunities
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities</pre></details></td>
+              <td>Sales pipeline foundation.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>CRM</td>
+              <td>Quotes</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/support_crm.py :: crm_quotes
+- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/quotes
+- scripts/audit/platform_feature_matrix.py :: crm_quotes
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes</pre></details></td>
+              <td>Quote generation foundation.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Core Platform</td>
+              <td>Authentication &amp; Admin Bootstrap</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/api/routes/auth.py :: app/api/routes/auth.py
+- app/templates/auth/login.html :: /api/v1/auth/login
+- scripts/bootstrap_admin.sh :: /api/v1/auth/bootstrap
+- scripts/audit/platform_feature_matrix.py :: /api/v1/auth/bootstrap
+
+Frontend:
+- app/templates/tenant/portal.html :: login
+- app/templates/auth/register.html :: login
+- app/templates/auth/login.html :: auth/login
+- app/templates/auth/dashboard.html :: login</pre></details></td>
+              <td>Admin bootstrap and login flow.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Core Platform</td>
+              <td>Tenant Management</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: tenant
+- app/locales/en.json :: tenant
+- app/models/__init__.py :: tenant
+- app/models/tenant_ai_settings.py :: tenant
+- app/models/shipment.py :: tenant
+- app/models/tenant.py :: tenant
+- app/models/payment.py :: tenant
+- app/models/vendor.py :: tenant
+- app/models/tenant_branding.py :: tenant
+- app/models/notification_preferences.py :: tenant
+
+Frontend:
+- app/static/widget/embed.js :: tenant
+- app/templates/tenant/portal.html :: tenant
+- app/templates/auth/register.html :: tenant
+- app/templates/auth/login.html :: tenant
+- app/templates/auth/dashboard.html :: tenant</pre></details></td>
+              <td>Tenant CRUD, approval, lifecycle.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Domains</td>
+              <td>Cloudflare Domain Integration</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/services/cloudflare_domains.py :: app/services/cloudflare_domains.py
+- docs/CUSTOM_DOMAIN_INTEGRATION.md :: CLOUDFLARE_API_TOKEN
+- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py
+- scripts/scaffold/04_custom_domains.sh :: CLOUDFLARE_API_TOKEN
+
+Frontend:
+- app/templates/tenant/portal.html :: domain
+- app/templates/auth/login.html :: domain</pre></details></td>
+              <td>Cloudflare for SaaS style hostname orchestration.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Domains</td>
+              <td>Custom Domain Requests</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: custom_domains
+- app/models/custom_domains.py :: custom_domains
+- app/api/routes/custom_domains.py :: custom_domains
+- app/services/tenant_creation_service.py :: custom_domains
+- app/services/custom_domain_service.py :: custom_domains
+- app/tasks/domain_verification.py :: custom_domains
+- app/schemas/custom_domains.py :: custom_domains
+- docs/CUSTOM_DOMAIN_INTEGRATION.md :: /api/v1/domains/request
+- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request
+- scripts/scaffold/04_custom_domains.sh :: /api/v1/domains/request
+
+Frontend:
+- app/templates/tenant/portal.html :: domain
+- app/templates/auth/login.html :: domain</pre></details></td>
+              <td>Customer subdomain/apex domain foundation.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Contacts / Entities</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/locales/en.json :: entity
+- app/models/audit.py :: entity
+- app/models/tenant.py :: fleetbase
+- app/models/payment.py :: entity
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/models/support_crm.py :: contacts
+- app/core/errors.py :: entity
+- app/core/config.py :: fleetbase</pre></details></td>
+              <td>Potential Fleetbase data objects not yet visibly wired.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Dispatch Dashboard</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/models/tenant.py :: fleetbase
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/middleware/rate_limit.py :: dispatch
+- app/core/config.py :: fleetbase
+- app/core/structured_logging.py :: dispatch
+- app/core/middleware.py :: dispatch
+- app/api/routes/tenants.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+
+Frontend:
+- app/templates/tenant/portal.html :: console
+- app/templates/auth/dashboard.html :: console</pre></details></td>
+              <td>Dispatch and operations console via Fleetbase.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Drivers</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/locales/en.json :: driver
+- app/locales/zh.json :: driver
+- app/models/tenant.py :: fleetbase
+- app/models/vendor.py :: driver
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/api/routes/tenants.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase</pre></details></td>
+              <td>Driver management capability from Fleetbase.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Extensions / CLI Install</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/core/config.py :: @fleetbase/cli
+- app/services/fleetbase_runtime_service.py :: @fleetbase/cli
+- app/services/fleetbase_provisioner.py :: flb install-fleetbase
+- docs/DEPLOYMENT.md :: flb install-fleetbase
+- infra/runner/bootstrap_runner.sh :: @fleetbase/cli
+- scripts/bootstrap_runner.sh :: @fleetbase/cli
+- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli</pre></details></td>
+              <td>CLI/runtime installation capability.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Orders</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/models/tenant.py :: fleetbase
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/api/routes/runners.py :: order
+- app/api/routes/tenants.py :: order
+- app/api/routes/fleetbase_runtime.py :: order
+- app/api/routes/custom_domains.py :: order
+- app/api/routes/support_crm.py :: order</pre></details></td>
+              <td>Operational order lifecycle from Fleetbase engine.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Real-time Tracking</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/locales/en.json :: tracking
+- app/locales/zh.json :: tracking
+- app/models/shipment.py :: tracking
+- app/models/tenant.py :: fleetbase
+- app/models/tenant_branding.py :: tracking
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/models/support_crm.py :: tracking
+- app/middleware/rate_limit.py :: tracking
+
+Frontend:
+- app/templates/tenant/portal.html :: tracking
+- app/templates/auth/register.html :: tracking
+- app/templates/auth/dashboard.html :: tracking</pre></details></td>
+              <td>Native Fleetbase operational tracking capability.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Engine</td>
+              <td>Fleetbase Vehicles</td>
+              <td>fleetbase</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: fleetbase
+- app/locales/en.json :: vehicle
+- app/locales/zh.json :: vehicle
+- app/models/tenant.py :: fleetbase
+- app/models/vendor.py :: vehicle
+- app/models/runner.py :: fleetbase
+- app/models/fleetbase_runtime.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/api/routes/vendors.py :: vehicle
+- app/api/routes/tenants.py :: fleetbase</pre></details></td>
+              <td>Vehicle management capability from Fleetbase.</td>
+            </tr>
+            
+            <tr style="background:#fef9c3">
+              <td>Fleetbase Runtime</td>
+              <td>Fleetbase Runtime Orchestration</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td><strong>Backend only</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/api/routes/fleetbase_runtime.py :: app/api/routes/fleetbase_runtime.py
+- app/services/fleetbase_runtime_service.py :: app/services/fleetbase_runtime_service.py
+- app/services/runner_executor.py :: RunnerExecutor
+- docs/FLEETBASE_RUNTIME_DEPLOYER.md :: /api/v1/fleetbase-runtime
+- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime</pre></details></td>
+              <td>Runner registration and install orchestration layer.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Support</td>
+              <td>GLPI Sync</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/support_crm.py :: support_sync_logs
+- app/services/glpi_client.py :: app/services/glpi_client.py
+- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: GLPI_BASE_URL
+- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py
+- scripts/scaffold/03_support_glpi_crm.sh :: support_sync_logs
+
+Frontend:
+- app/templates/tenant/portal.html :: support
+- app/templates/auth/login.html :: support
+- app/templates/auth/dashboard.html :: support</pre></details></td>
+              <td>Shared GLPI backend with tenant separation.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Support</td>
+              <td>Public Support Ticket Intake</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/models/support_crm.py :: support_tickets
+- app/api/routes/support_crm.py :: public_token
+- app/services/support_crm_service.py :: public_token
+- app/schemas/support_crm.py :: public_token
+- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/public/tickets
+- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets
+- scripts/scaffold/03_support_glpi_crm.sh :: /api/v1/support-crm/public/tickets
+
+Frontend:
+- app/templates/tenant/portal.html :: support
+- app/templates/auth/login.html :: support
+- app/templates/auth/dashboard.html :: support</pre></details></td>
+              <td>Customers can create tickets without login.</td>
+            </tr>
+            
+            <tr style="background:#dcfce7">
+              <td>Tracking</td>
+              <td>Tracking Engine (CSV / Customer Mapping)</td>
+              <td>in_house</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
+              <td>No</td>
+              <td><details><summary>Evidence</summary><pre>Backend:
+- app/main.py :: shipment
+- app/locales/en.json :: tracking
+- app/locales/zh.json :: tracking
+- app/models/shipment.py :: tracking
+- app/models/payment.py :: shipment
+- app/models/vendor.py :: shipment
+- app/models/tenant_branding.py :: tracking
+- app/models/notification_preferences.py :: shipment
+- app/models/support_crm.py :: tracking
+- app/middleware/rate_limit.py :: tracking
+
+Frontend:
+- app/templates/tenant/portal.html :: tracking
+- app/templates/auth/register.html :: tracking
+- app/templates/auth/dashboard.html :: tracking</pre></details></td>
+              <td>Desired next module; likely not scaffolded yet.</td>
+            </tr>
+            
+    </tbody>
+  </table>
+</body>
+</html>

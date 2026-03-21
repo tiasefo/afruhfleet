@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Access - Afruheritage Freight Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .country-flag {
+            width: 24px;
+            height: 16px;
+            margin-right: 8px;
+        }
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+        }
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            background: #fff;
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            border-radius: 50%;
+            bottom: -75px;
+            left: -75px;
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-indicator.active {
+            background-color: rgb(147, 51, 234);
+            color: white;
+        }
+        .step-indicator.completed {
+            background-color: rgb(34, 197, 94);
+            color: white;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Floating shapes background -->
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <!-- Multi-step registration container -->
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass-effect rounded-2xl shadow-2xl w-full max-w-4xl relative z-10">
+            <!-- Header -->
+            <div class="text-center p-8 border-b border-gray-200">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+                    <i class="fas fa-shipping-fast text-2xl text-purple-600"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">Request Access to Afruheritage</h1>
+                <p class="text-gray-600 text-sm">Join the leading freight forwarding platform in Africa and Asia</p>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="px-8 py-6">
+                <div class="flex items-center justify-between mb-8">
+                    <div class="flex items-center">
+                        <div id="step1" class="step-indicator active w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-900">Company Info</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                    <div class="flex items-center">
+                        <div id="step2" class="step-indicator w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium">2</div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-500">Contact Details</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 h-px bg-gray-300 mx-4"></div>
+                    <div class="flex items-center">
+                        <div id="step3" class="step-indicator w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium">3</div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-500">Operations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-step form -->
+                <form id="registrationForm" class="space-y-6">
+                    <!-- Step 1: Company Information -->
+                    <div id="step1Content" class="step-content">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-6">Company Information</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="companyName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Company Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    id="companyName"
+                                    name="companyName"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Your company name"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label for="businessType" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Type *
+                                </label>
+                                <select
+                                    id="businessType"
+                                    name="businessType"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="">Select business type</option>
+                                    <option value="freight_forwarder">Freight Forwarder</option>
+                                    <option value="logistics_provider">Logistics Provider</option>
+                                    <option value="trading_company">Trading Company</option>
+                                    <option value="manufacturer">Manufacturer</option>
+                                    <option value="ecommerce">E-commerce</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="country" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Country of Operation *
+                                </label>
+                                <select
+                                    id="country"
+                                    name="country"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="">Select country</option>
+                                    <option value="ghana">🇬🇭 Ghana</option>
+                                    <option value="china">🇨🇳 China</option>
+                                    <option value="nigeria">🇳🇬 Nigeria</option>
+                                    <option value="kenya">🇰🇪 Kenya</option>
+                                    <option value="south_africa">🇿🇦 South Africa</option>
+                                    <option value="usa">🇺🇸 United States</option>
+                                    <option value="uk">🇬🇧 United Kingdom</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+                                    City *
+                                </label>
+                                <input
+                                    type="text"
+                                    id="city"
+                                    name="city"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Your city"
+                                >
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Business Address *
+                                </label>
+                                <textarea
+                                    id="address"
+                                    name="address"
+                                    required
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Complete business address"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Contact Details -->
+                    <div id="step2Content" class="step-content hidden">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-6">Contact Details</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="contactName" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Contact Person Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    id="contactName"
+                                    name="contactName"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Full name"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address *
+                                </label>
+                                <input
+                                    type="email"
+                                    id="contactEmail"
+                                    name="contactEmail"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="your@email.com"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number *
+                                </label>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="+233 20 000 0000"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label for="website" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Website
+                                </label>
+                                <input
+                                    type="url"
+                                    id="website"
+                                    name="website"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="https://yourcompany.com"
+                                >
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Additional Information
+                                </label>
+                                <textarea
+                                    id="message"
+                                    name="message"
+                                    rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Tell us about your logistics needs..."
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Operations -->
+                    <div id="step3Content" class="step-content hidden">
+                        <h2 class="text-lg font-semibold text-gray-800 mb-6">Operations & Requirements</h2>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Monthly Shipment Volume *
+                                </label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="radio" name="volume" value="1-10" class="mr-2" required>
+                                        <span class="text-sm">1-10</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="radio" name="volume" value="11-50" class="mr-2">
+                                        <span class="text-sm">11-50</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="radio" name="volume" value="51-200" class="mr-2">
+                                        <span class="text-sm">51-200</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="radio" name="volume" value="200+" class="mr-2">
+                                        <span class="text-sm">200+</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">
+                                    Services Needed *
+                                </label>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="air_freight" class="mr-2">
+                                        <span class="text-sm">Air Freight</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="sea_freight" class="mr-2">
+                                        <span class="text-sm">Sea Freight</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="customs_clearance" class="mr-2">
+                                        <span class="text-sm">Customs Clearance</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="warehousing" class="mr-2">
+                                        <span class="text-sm">Warehousing</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="tracking" class="mr-2">
+                                        <span class="text-sm">Real-time Tracking</span>
+                                    </label>
+                                    <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-purple-50">
+                                        <input type="checkbox" name="services" value="insurance" class="mr-2">
+                                        <span class="text-sm">Cargo Insurance</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="timeline" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Expected Timeline *
+                                </label>
+                                <select
+                                    id="timeline"
+                                    name="timeline"
+                                    required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                    <option value="">Select timeline</option>
+                                    <option value="immediate">Immediate (within 1 week)</option>
+                                    <option value="2_weeks">2 weeks</option>
+                                    <option value="1_month">1 month</option>
+                                    <option value="3_months">3 months</option>
+                                    <option value="exploring">Just exploring</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-start">
+                                    <input type="checkbox" id="terms" name="terms" required class="mt-1 mr-2">
+                                    <span class="text-sm text-gray-600">
+                                        I agree to the Terms of Service and Privacy Policy. I understand that this is a request for access and may require approval.
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between pt-6 border-t border-gray-200">
+                        <button
+                            type="button"
+                            id="prevBtn"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 hidden"
+                            onclick="changeStep(-1)"
+                        >
+                            Previous
+                        </button>
+                        <div class="flex space-x-3 ml-auto">
+                            <button
+                                type="button"
+                                id="nextBtn"
+                                class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                                onclick="changeStep(1)"
+                            >
+                                Next
+                            </button>
+                            <button
+                                type="submit"
+                                id="submitBtn"
+                                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden"
+                            >
+                                Submit Request
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Success Message -->
+                <div id="successMessage" class="hidden text-center py-12">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                        <i class="fas fa-check text-green-600 text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Request Submitted!</h2>
+                    <p class="text-gray-600 mb-6">Thank you for your interest. We'll review your application and get back to you within 48 hours.</p>
+                    <button
+                        onclick="window.location.href='/login'"
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                        Back to Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 3;
+
+        function changeStep(direction) {
+            // Hide current step
+            document.getElementById(`step${currentStep}Content`).classList.add('hidden');
+            
+            // Update step indicators
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            document.getElementById(`step${currentStep}`).classList.add('completed');
+            
+            // Change step
+            currentStep += direction;
+            
+            // Show new step
+            document.getElementById(`step${currentStep}Content`).classList.remove('hidden');
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update buttons
+            updateButtons();
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Previous button
+            if (currentStep === 1) {
+                prevBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+            }
+            
+            // Next/Submit button
+            if (currentStep === totalSteps) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Collect form data
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Handle checkboxes
+                const services = formData.getAll('services');
+                data.services = services;
+                
+                // Send request
+                const response = await fetch('/api/v1/tenants/register-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    // Show success message
+                    document.getElementById('registrationForm').classList.add('hidden');
+                    document.getElementById('successMessage').classList.remove('hidden');
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Submission failed');
+                }
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Auto-detect country based on timezone
+        function detectCountry() {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const countrySelect = document.getElementById('country');
+            
+            if (timezone.includes('Accra')) {
+                countrySelect.value = 'ghana';
+            } else if (timezone.includes('Shanghai') || timezone.includes('Beijing') || timezone.includes('Hongkong')) {
+                countrySelect.value = 'china';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateButtons();
+            detectCountry();
+        });
+    </script>
+</body>
+</html>

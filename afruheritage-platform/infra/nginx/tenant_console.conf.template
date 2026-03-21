@@ -7,5 +7,11 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Inject Afruheritage AI widget into every tenant HTML page
+        proxy_set_header Accept-Encoding "";
+        sub_filter_once off;
+        sub_filter_types text/html;
+        sub_filter '</body>' '<script src="https://app.afruheritage.com/static/widget/embed.js" data-api-base="https://app.afruheritage.com"></script></body>';
     }
 }

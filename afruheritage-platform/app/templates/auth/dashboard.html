@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Afruheritage Freight Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .country-flag {
+            width: 20px;
+            height: 14px;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-shipping-fast text-white text-2xl mr-3"></i>
+                        <span class="text-white font-bold text-xl">Afruheritage</span>
+                    </div>
+                    <div class="hidden md:ml-6 md:flex md:space-x-8">
+                        <a href="#" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <a href="#" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Shipments</a>
+                        <a href="#" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Tracking</a>
+                        <a href="#" class="text-white hover:text-gray-200 px-3 py-2 rounded-md text-sm font-medium">Billing</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <button class="text-white hover:text-gray-200 p-2">
+                            <i class="fas fa-bell"></i>
+                            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400"></span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-purple-600 text-sm"></i>
+                        </div>
+                        <div class="hidden md:block">
+                            <p class="text-white text-sm font-medium" id="userName">Loading...</p>
+                            <p class="text-gray-200 text-xs" id="tenantName">Loading...</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="text-white hover:text-gray-200 p-2">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Header with region indicator -->
+        <div class="mb-8">
+            <div class="glass-effect rounded-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                        <p class="text-gray-600 mt-1">Welcome back! Here's your logistics overview</p>
+                    </div>
+                    <div id="regionIndicator" class="text-right">
+                        <div class="text-sm text-gray-500">Your Region</div>
+                        <div class="text-lg font-semibold text-purple-600" id="regionName">Detecting...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Active Shipments -->
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-500 rounded-lg p-3">
+                        <i class="fas fa-box text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Active Shipments</p>
+                        <p class="text-2xl font-bold text-gray-900" id="activeShipments">0</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm">
+                        <span class="text-green-600 font-medium">+12%</span>
+                        <span class="text-gray-500 ml-2">from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In Transit -->
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-yellow-500 rounded-lg p-3">
+                        <i class="fas fa-truck text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">In Transit</p>
+                        <p class="text-2xl font-bold text-gray-900" id="inTransit">0</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm">
+                        <span class="text-green-600 font-medium">+8%</span>
+                        <span class="text-gray-500 ml-2">from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivered -->
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-500 rounded-lg p-3">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Delivered</p>
+                        <p class="text-2xl font-bold text-gray-900" id="delivered">0</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm">
+                        <span class="text-green-600 font-medium">+23%</span>
+                        <span class="text-gray-500 ml-2">from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue -->
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-purple-500 rounded-lg p-3">
+                        <i class="fas fa-dollar-sign text-white"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Revenue</p>
+                        <p class="text-2xl font-bold text-gray-900" id="revenue">₵0</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center text-sm">
+                        <span class="text-green-600 font-medium">+18%</span>
+                        <span class="text-gray-500 ml-2">from last month</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Shipment Trends Chart -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Shipment Trends</h2>
+                    <p class="text-sm text-gray-600">Monthly overview of your shipping activity</p>
+                </div>
+                <canvas id="shipmentChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Recent Activity</h2>
+                    <p class="text-sm text-gray-600">Latest shipment updates</p>
+                </div>
+                <div id="recentActivity" class="space-y-4">
+                    <!-- Activity items will be loaded here -->
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                        <p>Loading activity...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <button class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition duration-200">
+                    <i class="fas fa-plus-circle text-2xl text-purple-600 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700">New Shipment</span>
+                </button>
+                <button class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition duration-200">
+                    <i class="fas fa-search text-2xl text-purple-600 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700">Track Package</span>
+                </button>
+                <button class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition duration-200">
+                    <i class="fas fa-file-invoice text-2xl text-purple-600 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700">Billing</span>
+                </button>
+                <button class="flex flex-col items-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition duration-200">
+                    <i class="fas fa-headset text-2xl text-purple-600 mb-2"></i>
+                    <span class="text-sm font-medium text-gray-700">Support</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Get auth token
+        function getAuthToken() {
+            return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('authToken');
+            sessionStorage.removeItem('authToken');
+            window.location.href = '/login';
+        }
+
+        // Detect region and update UI
+        function detectRegion() {
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const regionName = document.getElementById('regionName');
+            
+            if (timezone.includes('Accra')) {
+                regionName.innerHTML = '<span class="country-flag">🇬🇭</span> Ghana';
+                updateCurrency('GHS', '₵');
+            } else if (timezone.includes('Shanghai') || timezone.includes('Beijing') || timezone.includes('Hongkong')) {
+                regionName.innerHTML = '<span class="country-flag">🇨🇳</span> China';
+                updateCurrency('CNY', '¥');
+            } else {
+                regionName.innerHTML = '<span class="country-flag">🌍</span> Global';
+                updateCurrency('USD', '$');
+            }
+        }
+
+        // Update currency display
+        function updateCurrency(currency, symbol) {
+            const revenueElement = document.getElementById('revenue');
+            const currentValue = parseFloat(revenueElement.textContent.replace(/[^0-9.-]/g, '') || '0');
+            revenueElement.textContent = symbol + currentValue.toLocaleString();
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            const token = getAuthToken();
+            if (!token) {
+                logout();
+                return;
+            }
+
+            try {
+                // Get user info
+                const userResponse = await fetch('/api/v1/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    document.getElementById('userName').textContent = userData.email;
+                    document.getElementById('tenantName').textContent = userData.tenant_name || 'Tenant';
+                }
+
+                // Load shipment statistics (mock data for now)
+                loadMockData();
+
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                // Load mock data on error
+                loadMockData();
+            }
+        }
+
+        // Load mock data for demonstration
+        function loadMockData() {
+            // Update stats with mock data
+            document.getElementById('activeShipments').textContent = '24';
+            document.getElementById('inTransit').textContent = '18';
+            document.getElementById('delivered').textContent = '156';
+            document.getElementById('revenue').textContent = '₵45,230';
+
+            // Load recent activity
+            const recentActivity = document.getElementById('recentActivity');
+            recentActivity.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">AFR-2024-001 delivered</p>
+                        <p class="text-xs text-gray-500">Accra to Kumasi • 2 hours ago</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">AFR-2024-002 in transit</p>
+                        <p class="text-xs text-gray-500">Tema to Takoradi • 5 hours ago</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">AFR-2024-003 picked up</p>
+                        <p class="text-xs text-gray-500">Kumasi to Accra • 1 day ago</p>
+                    </div>
+                </div>
+            `;
+
+            // Initialize chart
+            initializeChart();
+        }
+
+        // Initialize shipment trends chart
+        function initializeChart() {
+            const ctx = document.getElementById('shipmentChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Active Shipments',
+                        data: [12, 19, 15, 25, 22, 30],
+                        borderColor: 'rgb(147, 51, 234)',
+                        backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                        tension: 0.3
+                    }, {
+                        label: 'Delivered',
+                        data: [8, 12, 10, 18, 16, 24],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            detectRegion();
+            loadDashboardData();
+        });
+    </script>
+</body>
+</html>

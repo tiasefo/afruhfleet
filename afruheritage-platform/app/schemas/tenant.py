@@ -30,6 +30,46 @@ class TenantResponse(BaseModel):
         from_attributes = True
 
 
+class TenantCreationRequest(BaseModel):
+    """Request model for creating a new tenant"""
+    company_name: str = Field(min_length=2, max_length=255, description="Company name")
+    contact_email: EmailStr = Field(description="Contact email address")
+    contact_name: str = Field(min_length=2, max_length=255, description="Contact person name")
+    business_type: str = Field(description="Type of business (freight_forwarder, logistics_provider, etc.)")
+    country: str = Field(min_length=2, max_length=100, description="Country of operation")
+    city: str = Field(min_length=2, max_length=100, description="City of operation")
+    address: str = Field(min_length=10, max_length=500, description="Business address")
+    phone: str = Field(min_length=10, max_length=20, description="Phone number")
+    website: str | None = Field(None, description="Company website")
+    plan: str = Field(default="free_trial", description="Subscription plan")
+
+
+class TenantCreationResponse(BaseModel):
+    """Response model for tenant creation"""
+    tenant_id: str
+    subdomain: str
+    company_name: str
+    portal_url: str
+    status: str
+    message: str
+
+
+class TenantStatusResponse(BaseModel):
+    """Response model for tenant status"""
+    tenant_id: str
+    subdomain: str
+    company_name: str
+    status: str
+    launch_status: str
+    plan: str
+    portal_url: str
+    console_url: str | None
+    api_url: str | None
+    custom_domain: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
 class ApprovalRequest(BaseModel):
     verification_notes: str | None = None
 
