@@ -30,6 +30,22 @@ import {
 } from 'lucide-react'
 
 export default function ShipmentDetailPage({ params }: { params: { id: string } }) {
+    // Status transition loading state
+    const [isTransitioning, setIsTransitioning] = useState(false)
+
+    // Helper for status transitions
+    const handleStatusTransition = async (nextStatus: string) => {
+      setIsTransitioning(true)
+      try {
+        await shipmentsAPI.transitionStatus(params.id, nextStatus)
+        await loadShipment()
+      } catch (err) {
+        alert('Failed to update status')
+        console.error('Status transition error:', err)
+      } finally {
+        setIsTransitioning(false)
+      }
+    }
   const { user } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
@@ -236,7 +252,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
         </div>
       </div>
 
-      {/* Status Badges */}
+      {/* Status Badges & Actions */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-4">
@@ -246,6 +262,49 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
             <Badge className={`${getPaymentStatusBadgeClass(shipment.payment_status)} text-lg px-4 py-2`}>
               {shipment.payment_status.replace('_', ' ').toUpperCase()}
             </Badge>
+            {/* Status Transition Actions */}
+            <div className="flex space-x-2 ml-6">
+              {shipment.status === 'draft' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('booked')}>
+                  Mark as Booked
+                </Button>
+              )}
+              {shipment.status === 'booked' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('picked_up')}>
+                  Mark as Picked Up
+                </Button>
+              )}
+              {shipment.status === 'picked_up' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('in_transit')}>
+                  Mark as In Transit
+                </Button>
+              )}
+              {shipment.status === 'in_transit' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('at_customs')}>
+                  Mark as At Customs
+                </Button>
+              )}
+              {shipment.status === 'at_customs' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('customs_cleared')}>
+                  Mark as Customs Cleared
+                </Button>
+              )}
+              {shipment.status === 'customs_cleared' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('out_for_delivery')}>
+                  Mark as Out for Delivery
+                </Button>
+              )}
+              {shipment.status === 'out_for_delivery' && (
+                <Button size="sm" disabled={isTransitioning} onClick={() => handleStatusTransition('delivered')}>
+                  Mark as Delivered
+                </Button>
+              )}
+              {shipment.status !== 'delivered' && shipment.status !== 'cancelled' && (
+                <Button size="sm" variant="destructive" disabled={isTransitioning} onClick={() => handleStatusTransition('cancelled')}>
+                  Cancel Shipment
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

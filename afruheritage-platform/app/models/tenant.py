@@ -40,6 +40,9 @@ class Tenant(Base):
     live_console_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     live_api_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     fleetbase_install_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    subdomain: Mapped[str | None] = mapped_column(String(120), unique=False, index=True, nullable=True)
+    custom_domain: Mapped[str | None] = mapped_column(String(255), unique=False, nullable=True)
+    custom_domain_verified: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     runner = relationship('RunnerNode')

@@ -24,17 +24,14 @@ from app.schemas.billing import (
 from app.services.billing_service import (
     activate_or_upgrade_subscription,
     admin_adjust_credits,
-    consume_credits,
-    ensure_subscription,
     ensure_wallet,
-    get_or_create_subscription,
     get_plans,
-    get_wallet,
-    initialize_payment,
     mark_payment_verified,
     set_payment_initialized,
     set_subscription_read_only,
     write_audit_log,
+    consume_wallet_credits,
+    admin_assign_plan as admin_assign_plan_service,
 )
 from app.services.paystack_client import initialize_transaction, verify_transaction
 from app.middleware.rate_limit import rate_limit
@@ -287,7 +284,7 @@ def admin_assign_plan(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
 ):
-    sub = activate_or_upgrade_subscription(
+    sub = admin_assign_plan_service(
         db,
         tenant_id=request.tenant_id,
         plan_code=request.plan_code,

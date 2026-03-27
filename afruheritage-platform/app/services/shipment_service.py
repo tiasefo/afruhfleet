@@ -166,12 +166,26 @@ def add_shipment_event(
     db.add(event)
     db.commit()
     db.refresh(event)
-    
-    # Send notification for important status changes
+
+    # Automate shipment status transitions based on event_type
     shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
     if shipment:
+        status_map = {
+            ShipmentStatus.PICKED_UP.value: ShipmentStatus.PICKED_UP,
+            ShipmentStatus.IN_TRANSIT.value: ShipmentStatus.IN_TRANSIT,
+            ShipmentStatus.AT_CUSTOMS.value: ShipmentStatus.AT_CUSTOMS,
+            ShipmentStatus.CUSTOMS_CLEARED.value: ShipmentStatus.CUSTOMS_CLEARED,
+            ShipmentStatus.OUT_FOR_DELIVERY.value: ShipmentStatus.OUT_FOR_DELIVERY,
+            ShipmentStatus.DELIVERED.value: ShipmentStatus.DELIVERED,
+            ShipmentStatus.RETURNED.value: ShipmentStatus.RETURNED,
+            ShipmentStatus.CANCELLED.value: ShipmentStatus.CANCELLED,
+        }
+        if event_type in status_map and shipment.status != status_map[event_type]:
+            shipment.status = status_map[event_type]
+            db.commit()
+            db.refresh(shipment)
+
         tenant = db.query(Tenant).filter(Tenant.id == shipment.tenant_id).first()
-        
         # Notify for delivered status
         if event_type == ShipmentStatus.DELIVERED.value and tenant:
             try:

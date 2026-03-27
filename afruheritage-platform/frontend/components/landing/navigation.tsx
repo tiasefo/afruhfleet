@@ -33,6 +33,7 @@ const navLinks = [
       { label: 'Real-time Tracking', href: '/track' },
       { label: 'Document Management', href: '#documents' },
       { label: 'API Integration', href: '#api' },
+      { label: 'KYC Verification', href: '/kyc/test-full-pipeline' },
     ]
   },
   { label: 'For Vendors', href: '/vendors' },

@@ -87,6 +87,9 @@ export const shipmentsAPI = {
   
   publicTrack: (trackingNumber: string) => 
     api.get(`/shipments/public/track/${tenantId}/${trackingNumber}`),
+
+  transitionStatus: (id: string, status: string) =>
+    api.post(`/shipments/${tenantId}/${id}/transition?status=${status}`),
 }
 
 export const membersAPI = {

@@ -1,3 +1,6 @@
+from app.api.routes.analytics import router as analytics_router
+from app.api.routes.kyc import router as kyc_router
+from app.api.routes.whatsapp_bot import router as whatsapp_bot_router
 import logging
 from contextlib import asynccontextmanager
 
@@ -16,6 +19,10 @@ from app.core.structured_logging import configure_structured_logging, Structured
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler, RateLimitMiddleware
 
 from app.api.routes import auth, auth_pages, runners, tenants, tenant_creation, tenant_requests
+from app.api.routes.navigator import router as navigator_router
+from app.api.routes.storefront import router as storefront_router
+from app.api.routes.pallet import router as pallet_router
+from app.api.routes.customer_portal import router as customer_portal_router
 from app.api.routes.ai import router as ai_router
 from app.api.routes.ai_widget import router as ai_widget_router
 from app.api.routes.billing import router as billing_router
@@ -45,6 +52,7 @@ import app.models.tenant_ai_settings  # noqa: F401
 import app.models.shipment  # noqa: F401
 import app.models.tenant_branding  # noqa: F401
 import app.models.vendor  # noqa: F401
+import app.models.kyc  # noqa: F401
 
 setup_logging(level="INFO")
 configure_structured_logging()
@@ -91,7 +99,9 @@ app.include_router(auth_pages.router)
 app.include_router(tenant_requests.router, prefix=settings.api_v1_prefix)
 app.include_router(tenant_creation.router, prefix=settings.api_v1_prefix)
 app.include_router(payments.router, prefix=settings.api_v1_prefix)
+from app.api.routes.whatsapp_csv import router as whatsapp_csv_router
 app.include_router(whatsapp.router, prefix=settings.api_v1_prefix)
+app.include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)
 app.include_router(runners.router, prefix=settings.api_v1_prefix)
 app.include_router(tenants.router, prefix=settings.api_v1_prefix)
 app.include_router(ai_router, prefix=settings.api_v1_prefix)
@@ -102,9 +112,16 @@ app.include_router(custom_domains_router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)
 app.include_router(shipments_router, prefix=settings.api_v1_prefix)
 app.include_router(i18n_router, prefix=settings.api_v1_prefix)
+
+app.include_router(navigator_router, prefix=settings.api_v1_prefix)
+app.include_router(storefront_router, prefix=settings.api_v1_prefix)
+app.include_router(pallet_router, prefix=settings.api_v1_prefix)
+app.include_router(customer_portal_router, prefix=settings.api_v1_prefix)
 app.include_router(branding_router, prefix=settings.api_v1_prefix)
 app.include_router(geo_router, prefix=settings.api_v1_prefix)
+
 app.include_router(vendors_router, prefix=settings.api_v1_prefix)
+app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health")

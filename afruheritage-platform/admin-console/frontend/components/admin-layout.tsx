@@ -29,12 +29,17 @@ interface AdminUser {
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: Server },
   { href: '/dashboard/tenants', label: 'Tenants', icon: Building2 },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/runners', label: 'Runners', icon: Server },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/domains', label: 'Domains', icon: Globe },
   { href: '/dashboard/runtimes', label: 'Runtimes', icon: Container },
+  { href: '/dashboard/kyc', label: 'KYC', icon: Shield },
+  { href: '/dashboard/tracking', label: 'Tracking', icon: Truck },
+  { href: '/dashboard/vendor-actions', label: 'Vendor Actions', icon: Building2 },
+  { href: '/dashboard/tickets', label: 'Tickets', icon: CreditCard },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

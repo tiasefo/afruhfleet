@@ -1,3 +1,19 @@
+# ── KYC ─────────────────────────────────────────────────────
+
+def list_kyc_submissions(cp_token: str) -> list[dict]:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/kyc/admin/list"), headers=_headers(cp_token))
+        return _handle(resp)
+
+def approve_kyc_submission(cp_token: str, kyc_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/kyc/admin/approve/{kyc_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+def revoke_kyc_submission(cp_token: str, kyc_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/kyc/admin/revoke/{kyc_id}"), headers=_headers(cp_token))
+        return _handle(resp)
 from __future__ import annotations
 
 import logging

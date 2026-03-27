@@ -1,4 +1,26 @@
+
 from __future__ import annotations
+# Assign a plan to a tenant (admin action)
+def admin_assign_plan(db: Session, tenant_id: str, plan_code: str, currency: str = "GHS") -> Subscription:
+    """Assign or change a tenant's plan as an admin."""
+    sub = activate_or_upgrade_subscription(db, tenant_id=tenant_id, plan_code=plan_code, currency=currency)
+    return sub
+
+# Restore get_plans for /plans route
+def get_plans(db: Session) -> list[Plan]:
+    seed_default_plans(db)
+    return db.query(Plan).filter(Plan.active == True).all()  # noqa: E712
+
+# Restore get_or_create_subscription for subscription logic
+def get_or_create_subscription(db: Session, tenant_id: str, currency: str = "GHS") -> Subscription:
+    sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_id).first()
+    if sub:
+        return sub
+    return create_trial_subscription(db, tenant_id, currency)
+
+# Restore ensure_subscription for compatibility (returns Subscription or None)
+def ensure_subscription(db: Session, tenant_id: str) -> Subscription | None:
+    return db.query(Subscription).filter(Subscription.tenant_id == tenant_id).first()
 
 import json
 import uuid

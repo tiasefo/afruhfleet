@@ -1,4 +1,55 @@
 from __future__ import annotations
+import httpx
+from sqlalchemy.orm import Session
+from app.models.kyc import KYCSubmission, KYCStatus
+from app.models.user import User
+from app.core.config import settings
+import uuid
+
+FLEETBASE_KYC_API = getattr(settings, "FLEETBASE_KYC_API", "https://api.fleetbase.io/kyc")
+FLEETBASE_KYC_KEY = getattr(settings, "FLEETBASE_KYC_KEY", "")
+
+async def submit_id_document(user: User, file_url: str, db: Session) -> KYCSubmission:
+    # Create or update KYCSubmission
+    kyc = db.query(KYCSubmission).filter_by(user_id=user.id).first()
+    if not kyc:
+        kyc = KYCSubmission(user_id=user.id, status=KYCStatus.pending, id_document_url=file_url)
+        db.add(kyc)
+    else:
+        kyc.id_document_url = file_url
+        kyc.status = KYCStatus.pending
+    db.commit()
+    db.refresh(kyc)
+    # Call Fleetbase KYC API (mocked for now)
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{FLEETBASE_KYC_API}/document",
+            headers={"Authorization": f"Bearer {FLEETBASE_KYC_KEY}"},
+            json={"user_id": str(user.id), "file_url": file_url},
+        )
+        # TODO: Parse response, update status/result
+    return kyc
+
+async def submit_liveness_video(user: User, file_url: str, db: Session) -> KYCSubmission:
+    kyc = db.query(KYCSubmission).filter_by(user_id=user.id).first()
+    if not kyc:
+        kyc = KYCSubmission(user_id=user.id, status=KYCStatus.pending, liveness_video_url=file_url)
+        db.add(kyc)
+    else:
+        kyc.liveness_video_url = file_url
+        kyc.status = KYCStatus.pending
+    db.commit()
+    db.refresh(kyc)
+    # Call Fleetbase KYC API (mocked for now)
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{FLEETBASE_KYC_API}/liveness",
+            headers={"Authorization": f"Bearer {FLEETBASE_KYC_KEY}"},
+            json={"user_id": str(user.id), "file_url": file_url},
+        )
+        # TODO: Parse response, update status/result
+
+    return kyc
 
 import logging
 import uuid
@@ -78,16 +129,57 @@ class KYCService:
             raise
     
     async def _analyze_liveness_video(self, video_bytes: bytes) -> dict[str, Any]:
-        """Analyze video for liveness indicators"""
+        """Analyze video for liveness indicators using OpenCV (blink and head movement detection)"""
+        import cv2
+        import numpy as np
+        import tempfile
+        import os
         try:
-            # Mock implementation - in production, use computer vision
-            import random
-            
-            # Simulate liveness detection
-            blink_detected = random.choice([True, True, False])  # 66% chance
-            head_movement = random.choice([True, True, False])  # 66% chance
-            face_consistency = random.randint(60, 95)
-            
+            # Write video_bytes to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+                tmp.write(video_bytes)
+                video_path = tmp.name
+
+            cap = cv2.VideoCapture(video_path)
+            blink_detected = False
+            head_movement = False
+            face_consistency = 0
+            frame_count = 0
+            prev_face = None
+            face_positions = []
+
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            eye_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
+
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+                if len(faces) > 0:
+                    (x, y, w, h) = faces[0]
+                    face_roi = gray[y:y+h, x:x+w]
+                    eyes = eye_cascade.detectMultiScale(face_roi)
+                    # Blink detection: if eyes disappear in some frames
+                    if frame_count > 0 and len(eyes) == 0:
+                        blink_detected = True
+                    # Head movement: track face position changes
+                    face_center = (x + w//2, y + h//2)
+                    face_positions.append(face_center)
+                    if prev_face is not None:
+                        dist = np.linalg.norm(np.array(face_center) - np.array(prev_face))
+                        if dist > 15:
+                            head_movement = True
+                    prev_face = face_center
+                frame_count += 1
+
+            cap.release()
+            os.remove(video_path)
+
+            # Face consistency: how many frames had a face detected
+            face_consistency = int(100 * len(face_positions) / max(frame_count, 1))
+
             # Calculate liveness score
             score = 0
             if blink_detected:
@@ -96,9 +188,9 @@ class KYCService:
                 score += 30
             if face_consistency > 70:
                 score += 20
-            if len(video_bytes) > 10000:  # At least some video content
+            if frame_count > 10:
                 score += 20
-            
+
             return {
                 "score": score,
                 "passed": score >= self.liveness_threshold,
@@ -108,16 +200,54 @@ class KYCService:
                     "face_consistency": face_consistency
                 }
             }
-        
         except Exception as e:
             logger.error("Liveness analysis failed", extra={"error": str(e)})
             return {"score": 0, "passed": False, "error": str(e)}
     
     async def _extract_face_from_video(self, video_bytes: bytes) -> bytes:
-        """Extract face image from video"""
-        # Mock implementation - in production, use OpenCV or similar
-        # For now, return a placeholder
-        return b"face_image_placeholder"
+        """Extract the clearest face image from the video using OpenCV."""
+        import cv2
+        import numpy as np
+        import tempfile
+        import os
+        from PIL import Image
+        import io
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+                tmp.write(video_bytes)
+                video_path = tmp.name
+
+            cap = cv2.VideoCapture(video_path)
+            face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+            max_face_area = 0
+            best_face_img = None
+
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+                for (x, y, w, h) in faces:
+                    area = w * h
+                    if area > max_face_area:
+                        max_face_area = area
+                        face_img = frame[y:y+h, x:x+w]
+                        best_face_img = face_img
+
+            cap.release()
+            os.remove(video_path)
+
+            if best_face_img is not None:
+                pil_img = Image.fromarray(cv2.cvtColor(best_face_img, cv2.COLOR_BGR2RGB))
+                buf = io.BytesIO()
+                pil_img.save(buf, format='JPEG')
+                return buf.getvalue()
+            else:
+                return b''
+        except Exception as e:
+            logger.error("Face extraction from video failed", extra={"error": str(e)})
+            return b''
     
     async def _verify_id_document(
         self, 
@@ -126,52 +256,82 @@ class KYCService:
         id_number: str, 
         full_name: str
     ) -> dict[str, Any]:
-        """Verify ID document authenticity"""
+        """Verify ID document authenticity using OCR (pytesseract) and basic checks."""
+        import pytesseract
+        from PIL import Image
+        import io
+        import re
         try:
-            # Mock implementation - in production, use OCR and document validation
-            import random
-            
-            # Simulate ID verification
-            verification_score = random.randint(70, 95)
-            verified = verification_score >= 80
-            
-            # Extract data from ID (mock)
+            img = Image.open(io.BytesIO(id_document))
+            text = pytesseract.image_to_string(img)
+            # Basic checks for ID number and name in OCR text
+            id_found = id_number.lower() in text.lower()
+            name_found = all(part.lower() in text.lower() for part in full_name.split())
+            # Try to extract date of birth and expiry using regex
+            dob_match = re.search(r'(\d{4}-\d{2}-\d{2})', text)
+            dob = dob_match.group(1) if dob_match else None
+            # Score: +50 for ID, +30 for name, +10 for DOB, +10 for image quality
+            score = 0
+            if id_found:
+                score += 50
+            if name_found:
+                score += 30
+            if dob:
+                score += 10
+            if img.size[0] > 300 and img.size[1] > 200:
+                score += 10
+            verified = score >= 80
             extracted_data = {
                 "name": full_name,
                 "id_number": id_number,
                 "id_type": id_type,
-                "date_of_birth": "1990-01-01",  # Mock
-                "expiry_date": "2025-12-31",  # Mock
-                "issue_date": "2020-01-01"  # Mock
+                "date_of_birth": dob,
             }
-            
+            # Attempt to crop a face region (placeholder: center crop)
+            width, height = img.size
+            left = width // 4
+            top = height // 4
+            right = left + width // 2
+            bottom = top + height // 2
+            face_crop = img.crop((left, top, right, bottom))
+            buf = io.BytesIO()
+            face_crop.save(buf, format='JPEG')
+            id_photo = buf.getvalue()
             return {
                 "verified": verified,
-                "score": verification_score,
+                "score": score,
                 "extracted_data": extracted_data,
-                "photo": b"id_photo_placeholder"  # Mock photo from ID
+                "photo": id_photo
             }
-        
         except Exception as e:
             logger.error("ID verification failed", extra={"error": str(e)})
             return {"verified": False, "error": str(e)}
     
     async def _compare_faces(self, face1: bytes, face2: bytes) -> dict[str, Any]:
-        """Compare two faces for similarity"""
+        """Compare two faces for similarity using face_recognition library."""
+        import face_recognition
+        import numpy as np
+        from PIL import Image
+        import io
         try:
-            # Mock implementation - in production, use face recognition
-            import random
-            
-            # Simulate face matching
-            similarity_score = random.randint(75, 95)
-            passed = similarity_score >= 85
-            
+            # Load face1
+            img1 = face_recognition.load_image_file(io.BytesIO(face1))
+            encodings1 = face_recognition.face_encodings(img1)
+            # Load face2
+            img2 = face_recognition.load_image_file(io.BytesIO(face2))
+            encodings2 = face_recognition.face_encodings(img2)
+            if not encodings1 or not encodings2:
+                return {"score": 0, "passed": False, "error": "No face found in one or both images"}
+            # Compare faces
+            distance = np.linalg.norm(encodings1[0] - encodings2[0])
+            similarity = max(0, 1 - distance)  # Lower distance = higher similarity
+            score = int(similarity * 100)
+            passed = score >= 85
             return {
-                "score": similarity_score,
+                "score": score,
                 "passed": passed,
-                "similarity": similarity_score / 100
+                "similarity": similarity
             }
-        
         except Exception as e:
             logger.error("Face comparison failed", extra={"error": str(e)})
             return {"score": 0, "passed": False, "error": str(e)}

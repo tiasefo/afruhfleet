@@ -10,7 +10,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.middleware.rate_limit import rate_limit
 from app.models.user import User
-from app.schemas.ai import ChatRequest, ChatResponse
+from app.schemas.ai import AIChatRequest, AIChatResponse
 
 router = APIRouter(prefix="/ai", tags=["AI"])
 

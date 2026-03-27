@@ -63,6 +63,10 @@ class Settings(BaseSettings):
     log_level: str = Field(default='INFO', alias='LOG_LEVEL')
     enable_request_logging: bool = Field(default=True, alias='ENABLE_REQUEST_LOGGING')
 
+    # WhatsApp Business API
+    whatsapp_access_token: str = Field(default='', alias='WHATSAPP_ACCESS_TOKEN')
+    whatsapp_phone_number_id: str = Field(default='', alias='WHATSAPP_PHONE_NUMBER_ID')
+
 
 @lru_cache
 def get_settings() -> Settings:

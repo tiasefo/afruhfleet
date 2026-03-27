@@ -1,3 +1,5 @@
+from admin_app.api.routes.kyc import router as kyc_router
+app.include_router(kyc_router, prefix="/admin")
 from __future__ import annotations
 
 import logging

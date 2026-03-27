@@ -1,4 +1,62 @@
+
 from __future__ import annotations
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from sqlalchemy.orm import Session
+from app.api.deps import get_current_user
+from app.db.session import get_db
+from app.models.shipment import Shipment, ShipmentStatus
+from app.models.user import User
+from app.schemas.shipment import (
+    CSVUploadResponse,
+    GroupMemberCreate,
+    GroupMemberResponse,
+    GroupMemberUpdate,
+    ShipmentCreate,
+    ShipmentEventCreate,
+    ShipmentEventResponse,
+    ShipmentPublicTrackResponse,
+    ShipmentResponse,
+    ShipmentSearchResult,
+    ShipmentUpdate,
+)
+from app.services.shipment_service import (
+    add_shipment_event,
+    create_group_member,
+    create_shipment,
+    get_group_member,
+    get_shipment,
+    get_shipment_events,
+    import_shipments_csv,
+    list_group_members,
+    public_track_shipment,
+    search_shipments,
+    update_group_member,
+    update_shipment,
+)
+from app.middleware.rate_limit import rate_limit
+
+router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
+
+# ── Shipment Status Transition (explicit) ───────────────
+@router.post("/{tenant_id}/{shipment_id}/transition", response_model=ShipmentResponse)
+def transition_shipment_status_route(
+    tenant_id: str,
+    shipment_id: str,
+    status: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    shipment = get_shipment(db, shipment_id, tenant_id)
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+    try:
+        shipment.status = ShipmentStatus(status)
+        db.commit()
+        db.refresh(shipment)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+
+    return _to_response(shipment)
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
@@ -173,6 +231,7 @@ def get_events_route(
 @router.get("/public/track/{tenant_id}/{tracking_number}", response_model=ShipmentPublicTrackResponse)
 @rate_limit(category="public", rule="track")
 def public_track_route(
+    request,
     tenant_id: str,
     tracking_number: str,
     db: Session = Depends(get_db),
@@ -209,9 +268,10 @@ def public_track_route(
 
 # ── CSV Import ──────────────────────────────────────────────────
 
-@router.post("/{tenant_id}/import/csv", response_model=CSVUploadResponse)
+@router.post("/{tenant_id}/import/csv", response_model=None)
 @rate_limit(category="auth", rule="upload")
 def import_csv_route(
+    request,
     tenant_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),

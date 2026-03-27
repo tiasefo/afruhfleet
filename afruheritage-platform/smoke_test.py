@@ -271,11 +271,11 @@ def test_api_routes():
         
         routes = [route.path for route in router.routes]
         expected_routes = [
-            "/create",
-            "/{tenant_id}/setup-infrastructure",
-            "/{tenant_id}/status", 
-            "/{tenant_id}/portal-url",
-            "/auto-provision"
+            "/tenants/create",
+            "/tenants/{tenant_id}/setup-infrastructure",
+            "/tenants/{tenant_id}/status",
+            "/tenants/{tenant_id}/portal-url",
+            "/tenants/auto-provision"
         ]
         
         all_good = True

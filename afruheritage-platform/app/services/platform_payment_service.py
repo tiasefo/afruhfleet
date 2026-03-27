@@ -22,14 +22,7 @@ class PlatformPaymentService:
     def __init__(self, tenant_id: str):
         self.tenant_id = tenant_id
         self.platform_fee_rate = 0.015  # 1.5% platform fee
-        
-        # Initialize Paystack client
-        try:
-            import paystack
-            self.paystack = paystack.Paystack(secret_key=settings.PAYSTACK_SECRET_KEY)
-        except ImportError:
-            logger.warning("Paystack not installed, using mock implementation")
-            self.paystack = None
+        # No SDK client needed; use paystack_client.py functions
     
     async def initiate_payment(
         self,
@@ -65,40 +58,32 @@ class PlatformPaymentService:
             )
             
             # Initialize Paystack transaction
-            if self.paystack and payment_method == "mobile_money":
+            if payment_method == "mobile_money":
+                from app.services.paystack_client import initialize_transaction
                 paystack_data = {
-                    "amount": int(amount * 100),  # Convert to pesewas
                     "email": customer_info["email"],
-                    "currency": "GHS",
+                    "amount_minor": int(amount * 100),  # Convert to pesewas
                     "reference": payment_reference,
-                    "mobile_money": {
-                        "phone": customer_info["phone"],
-                        "provider": customer_info.get("provider", "mtn"),
-                    },
+                    "currency": "GHS",
+                    "callback_url": f"{settings.base_url}/api/v1/payments/webhook/paystack",
                     "metadata": {
                         "tenant_id": self.tenant_id,
                         "platform_fee": float(platform_fee),
                         "tenant_amount": float(tenant_amount),
                         "customization": "platform_payment",
                         **(metadata or {})
-                    },
-                    "callback_url": f"{settings.base_url}/api/v1/payments/webhook/paystack"
+                    }
                 }
-                
-                # Initialize Paystack transaction
-                result = self.paystack.transaction.initialize(paystack_data)
-                
+                result = initialize_transaction(**paystack_data)
                 if result["status"]:
                     payment.authorization_url = result["data"]["authorization_url"]
                     payment.paystack_reference = result["data"]["reference"]
-                    
                     logger.info("Payment initialized successfully", extra={
                         "payment_reference": payment_reference,
                         "amount": amount,
                         "platform_fee": platform_fee,
                         "tenant_amount": tenant_amount
                     })
-                    
                     return {
                         "payment_id": str(payment.id),
                         "payment_reference": payment_reference,
@@ -116,28 +101,9 @@ class PlatformPaymentService:
                         "error": result.get("message", "Unknown error")
                     })
                     raise Exception(f"Payment initialization failed: {result.get('message', 'Unknown error')}")
-            
             else:
-                # Mock implementation for testing
-                payment.authorization_url = f"https://paystack.co/pay/{payment_reference}"
-                
-                logger.info("Mock payment initialized", extra={
-                    "payment_reference": payment_reference,
-                    "amount": amount,
-                    "platform_fee": platform_fee
-                })
-                
-                return {
-                    "payment_id": str(payment.id),
-                    "payment_reference": payment_reference,
-                    "authorization_url": payment.authorization_url,
-                    "amount": float(amount),
-                    "platform_fee": float(platform_fee),
-                    "tenant_amount": float(tenant_amount),
-                    "payment_method": payment_method,
-                    "status": "pending",
-                    "mock": True
-                }
+                logger.error("Paystack is not available. Cannot initiate payment.")
+                raise RuntimeError("Paystack is not available. Payment cannot be processed.")
         
         except Exception as e:
             logger.error("Failed to initiate payment", extra={
@@ -151,34 +117,22 @@ class PlatformPaymentService:
     async def verify_payment(self, payment_reference: str) -> dict[str, Any]:
         """Verify payment status with Paystack"""
         try:
-            if self.paystack:
-                result = self.paystack.transaction.verify(payment_reference)
-                
-                if result["status"] and result["data"]["status"] == "success":
-                    return {
-                        "verified": True,
-                        "status": "success",
-                        "amount": result["data"]["amount"] / 100,  # Convert from pesewas
-                        "paid_at": result["data"]["paid_at"],
-                        "reference": result["data"]["reference"]
-                    }
-                else:
-                    return {
-                        "verified": False,
-                        "status": result["data"]["status"] if result["data"] else "unknown",
-                        "reference": payment_reference
-                    }
-            else:
-                # Mock verification
+            from app.services.paystack_client import verify_transaction
+            result = verify_transaction(payment_reference)
+            if result["status"] and result["data"]["status"] == "success":
                 return {
                     "verified": True,
                     "status": "success",
-                    "amount": 0,
-                    "paid_at": datetime.utcnow().isoformat(),
-                    "reference": payment_reference,
-                    "mock": True
+                    "amount": result["data"]["amount"] / 100,  # Convert from pesewas
+                    "paid_at": result["data"]["paid_at"],
+                    "reference": result["data"]["reference"]
                 }
-        
+            else:
+                return {
+                    "verified": False,
+                    "status": result["data"]["status"] if result["data"] else "unknown",
+                    "reference": payment_reference
+                }
         except Exception as e:
             logger.error("Payment verification failed", extra={
                 "payment_reference": payment_reference,
