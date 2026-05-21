@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Afruheritage Driver",
+    "slug": "afruheritage-driver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "afruheritage-driver",
+    "splash": {
+      "image": "./assets/afruheritage-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f5f9fa"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "themeColor": "#1a3a4a",
+      "eas": {
+        "projectId": "7c94e978-231a-4b40-9e21-884e0c9b5e8b"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7c94e978-231a-4b40-9e21-884e0c9b5e8b"
+    }
+  }
+}
