@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import os
 import shlex
@@ -13,19 +14,38 @@ class RunnerExecutor:
             "/run/secrets/afruheritage_runner_key",
         )
 
-    def _ssh_base(self, *, host: str, port: int, user: str) -> list[str]:
+    def _ssh_base(self, *, host: str, port: int, user: str, request_tty: bool = False) -> list[str]:
         cmd = [
             "ssh",
             "-o", "StrictHostKeyChecking=no",
             "-i", self.ssh_key_path,
             "-p", str(port),
-            f"{user}@{host}",
         ]
+        if request_tty:
+            cmd.append("-tt")
+        cmd.append(f"{user}@{host}")
         return cmd
 
-    def run_remote(self, *, host: str, port: int, user: str, command: str) -> tuple[int, str, str]:
-        full_cmd = self._ssh_base(host=host, port=port, user=user) + [command]
-        proc = subprocess.run(full_cmd, capture_output=True, text=True)
+    def run_remote(
+        self,
+        *,
+        host: str,
+        port: int,
+        user: str,
+        command: str,
+        stdin_text: str | None = None,
+        request_tty: bool = False,
+        timeout: int | None = None,
+    ) -> tuple[int, str, str]:
+        remote_command = f"bash -lc {shlex.quote(command)}"
+        full_cmd = self._ssh_base(host=host, port=port, user=user, request_tty=request_tty) + [remote_command]
+        proc = subprocess.run(
+            full_cmd,
+            input=stdin_text,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
         return proc.returncode, proc.stdout, proc.stderr
 
     def run_local(self, command: str, cwd: str | None = None) -> tuple[int, str, str]:

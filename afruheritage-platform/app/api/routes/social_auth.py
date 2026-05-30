@@ -1,4 +1,6 @@
 from __future__ import annotations
+from app.core.config import settings
+from app.api.deps import get_current_user
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
@@ -24,7 +26,7 @@ async def get_supported_providers():
         
         return {
             "providers": providers,
-            "base_url": "https://your-platform.com"
+            "base_url": settings.base_url
         }
         
     except Exception as e:
@@ -67,15 +69,43 @@ async def social_login(
         )
 
 
+@router.get("/{provider}")
+async def social_login_url(provider: str, request: Request):
+    """Return authorization URL for frontend-driven redirects."""
+    try:
+        social_service = get_social_auth_service()
+        return await social_service.get_authorization_url(provider, request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error("Failed to get social auth URL", extra={"provider": provider, "error": str(e)})
+        raise HTTPException(status_code=500, detail=f"Failed to initialize {provider} login")
+
+
 @router.get("/{provider}/callback")
 async def social_callback(
     provider: str,
     request: Request,
-    code: str = Query(...),
+    code: str | None = Query(None),
+    error: str | None = Query(None),
+    error_description: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
     """Handle social authentication callback"""
     try:
+        if error:
+            detail = error_description or error
+            raise HTTPException(
+                status_code=400,
+                detail=f"{provider} authorization failed: {detail}",
+            )
+
+        if not code:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing authorization code for {provider} callback",
+            )
+
         social_service = get_social_auth_service()
         
         # Process callback and create/update user
@@ -86,7 +116,9 @@ async def social_callback(
             "user_id": result["user"].id
         })
         
-        return result
+        frontend_base = settings.cors_origins[0] if settings.cors_origins else "http://localhost:3200"
+        redirect_url = f"{frontend_base.rstrip('/')}/login?social_token={result['access_token']}&provider={provider}"
+        return RedirectResponse(url=redirect_url)
         
     except ValueError as e:
         logger.error("Social authentication failed", extra={
@@ -97,6 +129,8 @@ async def social_callback(
             status_code=400,
             detail=f"Social authentication failed: {str(e)}"
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Social callback processing failed", extra={
             "provider": provider,
@@ -119,7 +153,7 @@ async def exchange_code_for_token(
         social_service = get_social_auth_service()
         
         # Process the code exchange
-        result = await social_service.handle_callback(provider, request.code, request, db)
+        result = await social_service.handle_callback(provider, request.code, request=None, db=db, redirect_uri=request.redirect_uri)
         
         return result
         

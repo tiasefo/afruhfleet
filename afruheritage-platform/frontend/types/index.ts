@@ -86,6 +86,11 @@ export interface Shipment {
   origin_city: string
   destination_country: string
   destination_city: string
+  current_location?: string
+  current_latitude?: number
+  current_longitude?: number
+  last_location_at?: string
+  live_tracking_provider?: string
   shipped_date?: string
   estimated_arrival?: string
   actual_arrival?: string
@@ -125,6 +130,8 @@ export interface ShipmentEvent {
   shipment_id: string
   event_type: string
   location?: string
+  latitude?: number
+  longitude?: number
   description?: string
   occurred_at?: string
   created_at: string

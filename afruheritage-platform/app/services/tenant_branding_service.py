@@ -1,6 +1,8 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import logging
+import uuid
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -10,18 +12,26 @@ from app.models.tenant_branding import TenantBranding
 logger = logging.getLogger("afruheritage.branding")
 
 
+def _as_uuid(value: str | uuid.UUID):
+    try:
+        return uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return value
+
+
 def ensure_tenant_branding(
     db: Session,
     tenant_id: str,
     company_name: str,
     contact_email: str | None = None,
 ) -> TenantBranding:
-    existing = db.query(TenantBranding).filter(TenantBranding.tenant_id == tenant_id).first()
+    tenant_pk = _as_uuid(tenant_id)
+    existing = db.query(TenantBranding).filter(TenantBranding.tenant_id == tenant_pk).first()
     if existing:
         return existing
 
     branding = TenantBranding(
-        tenant_id=tenant_id,
+        tenant_id=tenant_pk,
         company_name=company_name,
         primary_color="#0ea5e9",
         secondary_color="#1e293b",
@@ -46,11 +56,11 @@ def ensure_tenant_branding(
 
 
 def get_tenant_branding(db: Session, tenant_id: str) -> TenantBranding | None:
-    return db.query(TenantBranding).filter(TenantBranding.tenant_id == tenant_id).first()
+    return db.query(TenantBranding).filter(TenantBranding.tenant_id == _as_uuid(tenant_id)).first()
 
 
 def update_tenant_branding(db: Session, tenant_id: str, **kwargs: Any) -> TenantBranding | None:
-    branding = db.query(TenantBranding).filter(TenantBranding.tenant_id == tenant_id).first()
+    branding = db.query(TenantBranding).filter(TenantBranding.tenant_id == _as_uuid(tenant_id)).first()
     if not branding:
         return None
     for key, value in kwargs.items():

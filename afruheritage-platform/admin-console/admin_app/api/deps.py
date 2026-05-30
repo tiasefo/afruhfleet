@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -10,6 +10,15 @@ from admin_app.db.session import get_db
 from admin_app.models.admin_user import AdminUser
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/auth/login")
+
+
+def get_cp_token(x_cp_token: str | None = Header(default=None, alias="X-CP-Token")) -> str:
+    if not x_cp_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing control plane token",
+        )
+    return x_cp_token
 
 
 def get_current_admin(

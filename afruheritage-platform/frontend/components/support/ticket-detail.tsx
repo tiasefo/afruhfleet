@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { resolvePublicTenantId } from '@/lib/tenant'
 
 interface TicketDetailProps {
   token: string
@@ -34,19 +35,17 @@ interface Ticket {
   status: string
   priority: string
   category: string
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
   shipment_reference?: string
-  public_submitter_name: string
-  public_submitter_email: string
 }
 
 interface TicketMessage {
   id: string
-  sender_type: string
-  sender_name: string
+  author_type: string
+  author_name: string
   body: string
-  created_at: string
+  created_at?: string
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -78,8 +77,14 @@ export function TicketDetail({ token }: TicketDetailProps) {
   const loadTicket = async () => {
     setLoading(true)
     setError('')
+    const tenantId = resolvePublicTenantId()
+    if (!tenantId) {
+      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
+      setLoading(false)
+      return
+    }
     try {
-      const res = await fetch(`/api/v1/support-crm/public/tickets/${token}`)
+      const res = await fetch(`/api/v1/support-crm/public/tickets/${token}?tenant_id=${encodeURIComponent(tenantId)}`)
       if (!res.ok) {
         if (res.status === 404) throw new Error('Ticket not found. Please check your tracking token.')
         throw new Error('Failed to load ticket')
@@ -87,7 +92,7 @@ export function TicketDetail({ token }: TicketDetailProps) {
       const data = await res.json()
       setTicket(data)
 
-      const msgRes = await fetch(`/api/v1/support-crm/public/tickets/${token}/messages`)
+      const msgRes = await fetch(`/api/v1/support-crm/public/tickets/${token}/messages?tenant_id=${encodeURIComponent(tenantId)}`)
       if (msgRes.ok) {
         const msgData = await msgRes.json()
         setMessages(Array.isArray(msgData) ? msgData : msgData.items || [])
@@ -102,10 +107,15 @@ export function TicketDetail({ token }: TicketDetailProps) {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!replyText.trim()) return
+    const tenantId = resolvePublicTenantId()
+    if (!tenantId) {
+      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
+      return
+    }
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/v1/support-crm/public/tickets/${token}/reply`, {
+      const res = await fetch(`/api/v1/support-crm/public/tickets/${token}/reply?tenant_id=${encodeURIComponent(tenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: replyText }),
@@ -121,7 +131,8 @@ export function TicketDetail({ token }: TicketDetailProps) {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—'
     return new Date(dateString).toLocaleString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit',
     })
@@ -226,15 +237,15 @@ export function TicketDetail({ token }: TicketDetailProps) {
                 <div className="flex gap-4">
                   <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarFallback className={cn(
-                      message.sender_type === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                      message.author_type === 'support' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                     )}>
-                      {message.sender_type === 'support' ? <Headphones className="h-5 w-5" /> : <User className="h-5 w-5" />}
+                      {message.author_type === 'support' ? <Headphones className="h-5 w-5" /> : <User className="h-5 w-5" />}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{message.sender_name}</span>
-                      {message.sender_type === 'support' && (
+                      <span className="font-medium text-foreground">{message.author_name}</span>
+                      {message.author_type === 'support' && (
                         <Badge variant="secondary" className="text-xs">Support Team</Badge>
                       )}
                       <span className="text-xs text-muted-foreground">{formatDate(message.created_at)}</span>

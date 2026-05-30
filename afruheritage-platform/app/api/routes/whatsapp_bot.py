@@ -1,3 +1,4 @@
+from app.core.config import settings
 from fastapi import APIRouter, Request, HTTPException
 from app.services.whatsapp_service import get_whatsapp_service
 

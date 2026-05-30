@@ -1,6 +1,6 @@
-from admin_app.api.routes.kyc import router as kyc_router
-app.include_router(kyc_router, prefix="/admin")
 from __future__ import annotations
+from admin_app.api.routes.kyc import router as kyc_router
+from admin_app.api.routes.oauth import router as oauth_router
 
 import logging
 from contextlib import asynccontextmanager
@@ -15,6 +15,9 @@ from admin_app.api.routes.runners import router as runners_router
 from admin_app.api.routes.runtime import router as runtime_router
 from admin_app.api.routes.domains import router as domains_router
 from admin_app.api.routes.vendors import router as vendors_router
+from admin_app.api.routes.analytics import router as analytics_router
+from admin_app.api.routes.tickets import router as tickets_router
+from admin_app.api.routes.tracking import router as tracking_router
 from admin_app.core.config import admin_settings
 from admin_app.db.session import Base, engine
 
@@ -55,6 +58,11 @@ app.include_router(runners_router, prefix="/admin")
 app.include_router(runtime_router, prefix="/admin")
 app.include_router(domains_router, prefix="/admin")
 app.include_router(vendors_router, prefix="/admin")
+app.include_router(kyc_router, prefix="/admin")
+app.include_router(oauth_router, prefix="/admin")
+app.include_router(analytics_router, prefix="/admin")
+app.include_router(tickets_router, prefix="/admin")
+app.include_router(tracking_router, prefix="/admin")
 
 
 @app.get("/admin/health")

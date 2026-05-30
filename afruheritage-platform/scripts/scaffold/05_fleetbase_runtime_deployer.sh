@@ -349,12 +349,7 @@ def run_install(db: Session, runtime: FleetbaseRuntime, runner: RunnerNode) -> F
     log_event(db, runtime.id, "install_started", "Fleetbase installation started")
 
     install_cmd = (
-        f"cd {runtime.install_directory} && "
-        "command -v node >/dev/null 2>&1 && "
-        "command -v npm >/dev/null 2>&1 && "
-        "command -v docker >/dev/null 2>&1 && "
-        "npm install -g @fleetbase/cli && "
-        f"flb install-fleetbase --directory {runtime.install_directory} --environment production "
+        f"({build_fleetbase_install_script(install_path=runtime.install_directory, host=settings.fleetbase_default_install_host, environment='production')}) "
         f">> {runtime.install_log_path} 2>&1"
     )
 
@@ -363,6 +358,7 @@ def run_install(db: Session, runtime: FleetbaseRuntime, runner: RunnerNode) -> F
         port=runner.ssh_port,
         user=runner.ssh_user,
         command=install_cmd,
+        timeout=settings.provisioning_timeout_seconds,
     )
 
     if rc != 0:

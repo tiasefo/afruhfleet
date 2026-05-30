@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
-import { shipmentsAPI } from '@/lib/api'
+import { shipmentApi } from '@/lib/api_updated'
 import { Shipment, ShipmentStatus, PaymentStatus } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,6 +28,8 @@ import {
 } from 'lucide-react'
 
 export default function ShipmentsPage() {
+  const allStatusesValue = '__all_statuses__'
+  const allPaymentsValue = '__all_payments__'
   const { user } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
@@ -46,10 +48,10 @@ export default function ShipmentsPage() {
   const loadShipments = async () => {
     setIsLoading(true)
     try {
-      const data = await shipmentsAPI.list({
-        q: searchQuery || undefined,
+      // Get tenant ID from context or user
+      const tenantId = user?.tenant_id || 'default'
+      const data = await shipmentApi.getAll(tenantId, {
         status: statusFilter || undefined,
-        payment_status: paymentStatusFilter || undefined,
         page: currentPage,
         page_size: pageSize,
       })
@@ -147,12 +149,15 @@ export default function ShipmentsPage() {
             </div>
 
             {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select
+              value={statusFilter || allStatusesValue}
+              onValueChange={(value) => setStatusFilter(value === allStatusesValue ? '' : value)}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value={allStatusesValue}>All Statuses</SelectItem>
                 <SelectItem value={ShipmentStatus.DRAFT}>Draft</SelectItem>
                 <SelectItem value={ShipmentStatus.BOOKED}>Booked</SelectItem>
                 <SelectItem value={ShipmentStatus.PICKED_UP}>Picked Up</SelectItem>
@@ -167,12 +172,15 @@ export default function ShipmentsPage() {
             </Select>
 
             {/* Payment Status Filter */}
-            <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+            <Select
+              value={paymentStatusFilter || allPaymentsValue}
+              onValueChange={(value) => setPaymentStatusFilter(value === allPaymentsValue ? '' : value)}
+            >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Payment Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Payment</SelectItem>
+                <SelectItem value={allPaymentsValue}>All Payment</SelectItem>
                 <SelectItem value={PaymentStatus.UNPAID}>Unpaid</SelectItem>
                 <SelectItem value={PaymentStatus.PARTIALLY_PAID}>Partially Paid</SelectItem>
                 <SelectItem value={PaymentStatus.PAID}>Paid</SelectItem>

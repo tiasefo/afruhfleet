@@ -1,13 +1,14 @@
 from __future__ import annotations
+from app.core.config import settings
 
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ShipmentCreate(BaseModel):
-    tracking_number: str = Field(min_length=1, max_length=100)
+    tracking_number: str | None = Field(default=None, min_length=1, max_length=100)
     reference_number: str | None = None
 
     sender_name: str = Field(min_length=1, max_length=255)
@@ -53,6 +54,11 @@ class ShipmentUpdate(BaseModel):
     origin_city: str | None = None
     destination_country: str | None = None
     destination_city: str | None = None
+    current_location: str | None = None
+    current_latitude: float | None = None
+    current_longitude: float | None = None
+    last_location_at: datetime | None = None
+    live_tracking_provider: str | None = None
     shipped_date: datetime | None = None
     estimated_arrival: datetime | None = None
     actual_arrival: datetime | None = None
@@ -73,20 +79,66 @@ class ShipmentUpdate(BaseModel):
 class ShipmentEventCreate(BaseModel):
     event_type: str
     location: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     description: str | None = None
     occurred_at: datetime | None = None
+
+
+class ShipmentLocationUpdate(BaseModel):
+    latitude: float
+    longitude: float
+    location: str | None = None
+    occurred_at: datetime | None = None
+    provider: str | None = None
+    event_type: str = "location_update"
+    description: str | None = None
+    status: str | None = None
+
+
+class TrackingPointIngestRequest(BaseModel):
+    latitude: float
+    longitude: float
+    captured_at: datetime
+    speed_kph: float | None = None
+    heading: float | None = None
+    accuracy_m: float | None = None
+    source: str = "driver_app"
+
+
+class TrackingPointResponse(BaseModel):
+    id: str
+    shipment_id: str
+    tenant_id: str
+    latitude: float
+    longitude: float
+    speed_kph: float | None = None
+    heading: float | None = None
+    accuracy_m: float | None = None
+    source: str
+    captured_at: datetime
+    received_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TrackingPointIngestResponse(BaseModel):
+    accepted: bool
+    reason: str | None = None
+    point: TrackingPointResponse | None = None
 
 
 class ShipmentEventResponse(BaseModel):
     id: str
     event_type: str
     location: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
     description: str | None = None
     occurred_at: datetime
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ShipmentResponse(BaseModel):
@@ -102,6 +154,11 @@ class ShipmentResponse(BaseModel):
     origin_city: str | None = None
     destination_country: str | None = None
     destination_city: str | None = None
+    current_location: str | None = None
+    current_latitude: float | None = None
+    current_longitude: float | None = None
+    last_location_at: datetime | None = None
+    live_tracking_provider: str | None = None
     shipped_date: datetime | None = None
     estimated_arrival: datetime | None = None
     actual_arrival: datetime | None = None
@@ -120,8 +177,7 @@ class ShipmentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ShipmentSearchResult(BaseModel):
@@ -147,6 +203,11 @@ class ShipmentPublicTrackResponse(BaseModel):
     origin_city: str | None = None
     destination_country: str | None = None
     destination_city: str | None = None
+    current_location: str | None = None
+    current_latitude: float | None = None
+    current_longitude: float | None = None
+    last_location_at: datetime | None = None
+    live_tracking_provider: str | None = None
     shipped_date: datetime | None = None
     estimated_arrival: datetime | None = None
     payment_status: str
@@ -186,13 +247,13 @@ class GroupMemberResponse(BaseModel):
     email: str | None = None
     id_number: str | None = None
     company: str | None = None
+    notes: str | None = None
     preferred_language: str
     is_active: bool
     shipment_count: int = 0
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CSVUploadResponse(BaseModel):

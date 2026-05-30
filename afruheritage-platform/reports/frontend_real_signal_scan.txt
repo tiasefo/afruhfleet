@@ -1,0 +1,31 @@
+frontend/components/vendors/vendor-faq.tsx:    answer: 'When you accept delivery jobs through the platform, credits are deducted from your account. Once you complete deliveries, you earn revenue which can be withdrawn via mobile money or bank transfer. Credits help manage the flow of jobs and ensure reliable service.',
+frontend/components/vendors/vendor-faq.tsx:    answer: 'Once approved, your profile appears in the vendor marketplace. Tenants can search by location, vehicle type, and ratings. You will receive job notifications and can accept or decline based on your availability.',
+frontend/components/vendors/vendor-faq.tsx:    answer: 'The Delivery Services subscription is specifically designed for delivery vendors. It uses the same credit model as other platform subscriptions, allowing you to accept jobs, manage deliveries, and receive payments through the platform.',
+frontend/components/vendors/vendor-registration.tsx:            Complete the registration to join our network. Use credits to receive jobs and get paid.
+frontend/components/tracking/tracking-search.tsx:            provider: data.live_tracking_provider || 'gps',
+frontend/lib/api.ts:    return api.post(`/billing/subscriptions/trial/${tenantId}`)
+frontend/lib/api.ts:    return api.get(`/billing/subscriptions/${tenantId}`)
+frontend/lib/api.ts:    credits_to_buy?: number
+frontend/lib/api.ts:    return api.get(`/vendors/marketplace?tenant_id=${tenantId}`)
+frontend/lib/api.ts:    return api.get('/fleetbase-runtime/runners')
+frontend/lib/api.ts:    return api.post('/fleetbase-runtime/deploy', data)
+frontend/lib/api.ts:    return api.get(`/fleetbase-runtime/tenant/${tenantId}`)
+frontend/lib/api.ts:    return api.post(`/fleetbase-runtime/retry`, { runtime_id: runtimeId })
+frontend/lib/api.ts:    return api.post(`/fleetbase-runtime/suspend`, { runtime_id: runtimeId })
+frontend/app/billing/page.tsx:    'Vendor marketplace access',
+frontend/app/billing/page.tsx:        credits_to_buy: Math.floor(amount),
+frontend/app/billing/page.tsx:                        {wallet.currency} {wallet.balance_credits}
+frontend/app/billing/page.tsx:                      <p className="text-sm text-gray-600">{t('billing.available_credits')}</p>
+frontend/app/billing/page.tsx:                          <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Monthly credits: {plan.monthly_credit_allowance}</li>
+frontend/app/billing/page.tsx:                      <div className={`text-right ${transaction.credits_delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+frontend/app/billing/page.tsx:                          {transaction.credits_delta > 0 ? '+' : ''}{transaction.credits_delta} credits
+frontend/app/pricing/page.tsx:    'Vendor marketplace access',
+frontend/app/pricing/page.tsx:                            ? `${plan.monthly_credit_allowance.toLocaleString()} credits/month`
+frontend/app/shipments/[id]/page.tsx:            provider: 'browser_gps',
+admin-console/frontend/app/dashboard/billing/page.tsx:        api.get(`/admin/billing/subscriptions/${walletTenantId}`),
+admin-console/frontend/app/dashboard/billing/page.tsx:      await api.post('/admin/billing/adjust-credits', {
+admin-console/frontend/app/dashboard/billing/page.tsx:          <p className="mt-1 text-muted-foreground">Plans, subscriptions, and wallet management</p>
+admin-console/frontend/app/dashboard/billing/page.tsx:                  {p.included_credits != null && (
+admin-console/frontend/app/dashboard/billing/page.tsx:                    <div className="mt-1 text-sm text-muted-foreground">{p.included_credits} credits included</div>
+admin-console/frontend/app/dashboard/billing/page.tsx:                <div className="text-3xl font-bold">{wallet.balance_credits ?? wallet.balance ?? 0} <span className="text-base font-normal text-muted-foreground">credits</span></div>
+admin-console/frontend/app/dashboard/billing/page.tsx:            <DialogDescription>Add or subtract credits for tenant {walletTenantId}</DialogDescription>

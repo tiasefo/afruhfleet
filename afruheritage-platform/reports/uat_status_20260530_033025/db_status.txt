@@ -1,0 +1,31 @@
+time="2026-05-30T03:30:27Z" level=warning msg="/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+                  id                  |           email            | payment_completed | runtime_provisioned |           provisioning_status            |              tenant_id               |   subscription_id    |         created_at         
+--------------------------------------+----------------------------+-------------------+---------------------+------------------------------------------+--------------------------------------+----------------------+----------------------------
+ c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | runtime-test2@example.com  | t                 | f                   | runtime_installing                       | c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | afr_ab10d917cdec46ca | 2026-05-27 07:03:26.993399
+ 8e4310fb-a890-489e-bb78-f7db36cab30f | runtime-test@example.com   | t                 | f                   | runtime_error:No active runner available | 8e4310fb-a890-489e-bb78-f7db36cab30f | afr_9f420a4fd4dc4fcf | 2026-05-27 06:47:50.886967
+ 47347645-b429-4db4-b92a-64ba9bbe6efe | uat-b7904eb2@example.com   | f                 | f                   | awaiting_payment                         |                                      | afr_b18cb4a008624a46 | 2026-05-27 05:05:42.550224
+ 9b21d9d9-8431-4baf-bcc3-5de7bd5a5908 | mrbswiftidentity@gmail.com | f                 | f                   | awaiting_payment                         |                                      | afr_ba0c796714d04081 | 2026-05-27 02:00:52.250252
+ 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | newcustomer2@example.com   | t                 | f                   | subscription_active_runtime_pending      | 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | afr_4fbec1bec175439d | 2026-05-26 23:03:14.652731
+ 2eaf511a-ed57-407c-8a95-e694c825999e | newcustomer@example.com    | f                 | f                   | awaiting_payment                         |                                      | afr_201d2e1604614e70 | 2026-05-26 22:03:35.526747
+(6 rows)
+
+              tenant_id               | plan_code | status | credits_balance |         selected_addons_json          
+--------------------------------------+-----------+--------+-----------------+---------------------------------------
+ tenant-002                           | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+ tenant-001                           | business  | active |            1589 | ["marketplace", "gps_tracking"]
+ c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | business  | active |            1500 | ["marketplace", "gps_tracking"]
+ 8e4310fb-a890-489e-bb78-f7db36cab30f | business  | active |            1500 | ["marketplace", "gps_tracking"]
+ 2eaf511a-ed57-407c-8a95-e694c825999e | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+ 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+(6 rows)
+
+                  id                  |              tenant_id               |             tenant_slug              |   status   |                          runtime_url                          |      console_url       |        api_url         | last_error |        created_at         
+--------------------------------------+--------------------------------------+--------------------------------------+------------+---------------------------------------------------------------+------------------------+------------------------+------------+---------------------------
+ ba90f19f-fb4b-49d3-86ed-da7a3b363917 | d63c65c0-d5ad-46e1-8d45-ff802ed9ac47 | c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | installing | https://c34425fb-8b25-4910-b1dc-d5fb630e3fa0.afruheritage.com | http://10.0.0.115:4202 | http://10.0.0.115:8003 |            | 2026-05-29 03:16:08.03728
+(1 row)
+
+                  id                  |      name       |  hostname  | ssh_port |   ssh_user   |         root_runtime_path          | status | current_tenants | max_tenants 
+--------------------------------------+-----------------+------------+----------+--------------+------------------------------------+--------+-----------------+-------------
+ 440acea2-76e1-4c43-9d98-348913e6d774 | local-runner-01 | 10.0.0.115 |       22 | afruheritage | /mnt/storage/afruheritage-runtimes | active |               0 |          10
+(1 row)
+

@@ -1,6 +1,8 @@
+from app.core.config import settings
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class TenantCreate(BaseModel):
@@ -13,7 +15,7 @@ class TenantCreate(BaseModel):
 
 
 class TenantResponse(BaseModel):
-    id: str
+    id: UUID
     company_name: str
     slug: str
     contact_email: EmailStr
@@ -26,8 +28,7 @@ class TenantResponse(BaseModel):
     fleetbase_install_path: str | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TenantCreationRequest(BaseModel):
@@ -78,14 +79,19 @@ class LaunchRequest(BaseModel):
     runner_id: str | None = None
 
 
+class TenantRuntimeAuthUpdate(BaseModel):
+    live_api_token: str | None = None
+    live_api_auth_scheme: str | None = Field(default='bearer', min_length=3, max_length=32)
+    clear_live_api_token: bool = False
+
+
 class JobResponse(BaseModel):
-    id: str
-    tenant_id: str
+    id: UUID
+    tenant_id: UUID
     status: str
     details: str | None
     task_id: str | None
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

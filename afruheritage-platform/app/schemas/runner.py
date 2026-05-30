@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from app.core.config import settings
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RunnerCreate(BaseModel):
@@ -11,7 +13,7 @@ class RunnerCreate(BaseModel):
 
 
 class RunnerResponse(BaseModel):
-    id: str
+    id: UUID
     name: str
     host: str
     ssh_port: int
@@ -20,5 +22,4 @@ class RunnerResponse(BaseModel):
     is_active: bool
     reserved_for_single_tenant: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

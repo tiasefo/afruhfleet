@@ -1,0 +1,155 @@
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:26:router = APIRouter(prefix="/domains", tags=["Custom Domains"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:29:@router.post("/request", response_model=DomainResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:91:@router.post("/activate", response_model=DomainResponse | None)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:117:@router.post("/{domain_id}/fail", response_model=DomainResponse | None)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/custom_domains.py:144:@router.get("/{domain_id}/events", response_model=list[DomainEventResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:35:router = APIRouter(prefix="/support-crm", tags=["Support & CRM"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:38:@router.post("/accounts", response_model=CRMAccountResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:55:@router.post("/contacts", response_model=CRMContactResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:73:@router.post("/opportunities", response_model=OpportunityResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:90:@router.post("/quotes", response_model=QuoteResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:107:@router.post("/public/tickets", response_model=SupportTicketResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:130:@router.get("/public/tickets/{public_token}", response_model=SupportTicketResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:153:@router.get("/public/tickets/{public_token}/messages", response_model=list[SupportTicketMessageResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/support_crm.py:180:@router.post("/public/tickets/{public_token}/reply", response_model=SupportTicketMessageResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai.py:3:from fastapi import APIRouter, Depends, HTTPException, Query
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai.py:15:router = APIRouter(prefix="/ai", tags=["AI"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai.py:52:@router.post("/chat", response_model=AIChatResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:27:router = APIRouter(prefix="/fleetbase-runtime", tags=["Fleetbase Runtime"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:30:@router.post("/runners", response_model=RunnerResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:62:@router.get("/runners", response_model=list[RunnerResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:85:@router.post("/deploy", response_model=RuntimeResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:144:@router.post("/retry", response_model=RuntimeResponse | None)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:169:@router.post("/suspend", response_model=RuntimeResponse | None)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/fleetbase_runtime.py:194:@router.get("/{runtime_id}/events", response_model=list[RuntimeEventResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/pallet.py:1:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/pallet.py:9:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenants.py:2:from fastapi import APIRouter, Depends, HTTPException, Request
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenants.py:19:router = APIRouter(prefix='/tenants', tags=['tenants'])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenants.py:22:@router.post('', response_model=TenantResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenants.py:58:@router.get('', response_model=list[TenantResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenants.py:132:@router.get('/jobs/{job_id}', response_model=JobResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/shipments.py:3:from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/shipments.py:38:router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/shipments.py:61:from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/shipments.py:97:router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:5:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:39:router = APIRouter(prefix="/billing", tags=["Billing"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:42:@router.get("/plans", response_model=list[PlanResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:116:@router.post("/payments/init", response_model=PaymentInitResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:166:@router.post("/payments/verify/{reference}", response_model=PaymentVerifyResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:218:@router.post("/credits/consume", response_model=WalletResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:241:@router.post("/admin/read-only", response_model=SubscriptionResponse | None)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:262:@router.post("/admin/credits/adjust", response_model=WalletResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/billing.py:281:@router.post("/admin/subscriptions/assign", response_model=SubscriptionResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_bot.py:1:from fastapi import APIRouter, Request, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_bot.py:4:router = APIRouter(prefix="/whatsapp-bot", tags=["WhatsApp Bot"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_bot.py:6:@router.post("/webhook")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/navigator.py:1:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/navigator.py:9:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:3:from fastapi import APIRouter, Depends, HTTPException, Query
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:14:router = APIRouter(prefix="/geo", tags=["Geo & Maps"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:18:@router.get("/geocode")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:45:@router.get("/geocode/priority")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:63:@router.get("/geocode/city")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:80:@router.get("/route")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:111:@router.get("/route/priority")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:128:@router.get("/nearby-cities")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:142:@router.post("/validate/address")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/geo.py:154:@router.get("/country/{country}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_creation.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_creation.py:16:router = APIRouter(prefix="/tenants", tags=["Tenant Creation"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_creation.py:19:@router.post("/create", response_model=TenantCreationResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_creation.py:205:@router.post("/auto-provision")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:3:from fastapi import APIRouter, Depends, HTTPException, Request
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:24:router = APIRouter(prefix="/payments", tags=["Platform Payments"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:27:@router.post("/initiate", response_model=PaymentInitiateResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:78:@router.get("/status/{payment_reference}", response_model=PaymentStatusResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:134:@router.post("/webhook/paystack")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:182:@router.get("/statistics", response_model=PaymentStatistics)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:208:@router.post("/credits/purchase", response_model=CreditPurchaseResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:265:@router.get("/methods")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/payments.py:315:@router.get("/balance")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_csv.py:1:from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_csv.py:12:router = APIRouter(prefix="/whatsapp-csv", tags=["WhatsApp CSV Upload"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp_csv.py:14:@router.post("/upload")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/i18n.py:3:from fastapi import APIRouter, Header, Query
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/i18n.py:7:router = APIRouter(prefix="/i18n", tags=["Internationalization"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/i18n.py:10:@router.get("/translations/{lang}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/i18n.py:17:@router.get("/languages")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/i18n.py:22:@router.get("/detect")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:3:from fastapi import APIRouter, Depends, HTTPException, Query
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:34:router = APIRouter(prefix="/vendors", tags=["Delivery Vendors"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:39:@router.post("/register", response_model=VendorRegisterResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:79:@router.get("/admin", response_model=dict)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:99:@router.get("/admin/{vendor_id}", response_model=VendorResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:111:@router.post("/admin/{vendor_id}/review", response_model=VendorResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:132:@router.post("/admin/{vendor_id}/suspend", response_model=VendorResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:146:@router.get("/marketplace", response_model=dict)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/vendors.py:170:@router.get("/marketplace/{vendor_id}", response_model=VendorResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:1:from fastapi import APIRouter, UploadFile, File, Depends
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:7:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:10:@router.post("/test/full-pipeline")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:36:@router.get("/admin/list")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:53:@router.post("/admin/approve/{kyc_id}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:62:@router.post("/admin/revoke/{kyc_id}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:70:from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:75:router = APIRouter(prefix="/kyc", tags=["KYC Verification"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:77:@router.post("/upload-id")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:87:@router.post("/liveness")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/kyc.py:97:@router.get("/status")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/storefront.py:1:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/storefront.py:9:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/analytics.py:1:from fastapi import APIRouter, Depends
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/analytics.py:10:router = APIRouter(prefix="/analytics", tags=["analytics"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/analytics.py:12:@router.get("/admin/summary")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/health.py:1:from fastapi import APIRouter
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/health.py:3:router = APIRouter(tags=['health'])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/health.py:6:@router.get('/health')
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:3:from fastapi import APIRouter, Depends, HTTPException, Query, Request
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:15:router = APIRouter(prefix="/auth/social", tags=["Social Authentication"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:18:@router.get("/providers")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:38:@router.get("/{provider}/login")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:70:@router.get("/{provider}/callback")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:111:@router.post("/{provider}/token")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:137:@router.get("/disconnect/{provider}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/social_auth.py:185:@router.get("/connected")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/customer_portal.py:1:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/customer_portal.py:9:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:3:from fastapi import APIRouter, Depends, HTTPException, Request
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:13:router = APIRouter()
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:17:@router.get("/login", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:23:@router.get("/register", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:29:@router.get("/dashboard", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:39:@router.get("/", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:45:@router.get("/forgot-password", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth_pages.py:52:@router.get("/reset-password", response_class=HTMLResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/runners.py:1:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/runners.py:12:router = APIRouter(prefix='/runners', tags=['runners'])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/runners.py:15:@router.post('', response_model=RunnerResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/runners.py:33:@router.get('', response_model=list[RunnerResponse])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:1:from fastapi import APIRouter, Depends, HTTPException, Request, status
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:14:router = APIRouter(prefix='/auth', tags=['auth'])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:17:@router.post('/bootstrap', response_model=TokenResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:38:@router.post('/register', response_model=TokenResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:56:@router.post('/login', response_model=TokenResponse)
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/auth.py:85:@router.get('/me')
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/branding.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/branding.py:12:router = APIRouter(prefix="/branding", tags=["Tenant Branding"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_requests.py:3:from fastapi import APIRouter, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_requests.py:10:router = APIRouter(prefix="/tenants", tags=["Tenant Requests"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_requests.py:31:@router.post("/register-request")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/tenant_requests.py:86:@router.get("/registration-status/{request_id}")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:3:from fastapi import APIRouter, Depends, HTTPException
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:14:router = APIRouter(prefix="/whatsapp", tags=["WhatsApp Notifications"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:17:@router.post("/configure-groups")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:49:@router.post("/test-connection")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:79:@router.post("/send-shipment-update")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:113:@router.post("/send-customer-notification")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/whatsapp.py:150:@router.get("/status")
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai_widget.py:3:from fastapi import APIRouter, Depends, Query
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai_widget.py:10:router = APIRouter(prefix="/ai/widget", tags=["AI Widget"])
+/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/app/api/routes/ai_widget.py:21:@router.get("/config", response_model=AIWidgetConfigResponse)

@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
-import { billingAPI } from '@/lib/api'
+import { billingApi } from '@/lib/api_updated'
+import { resolveTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +24,38 @@ import {
   AlertCircle
 } from 'lucide-react'
 
+const planFeatures: Record<string, string[]> = {
+  free_trial: [
+    'Basic shipment tracking',
+    'Up to 50 shipments per month',
+    'Email support',
+    'AI assistant access (limited)',
+  ],
+  professional: [
+    'Unlimited shipments',
+    'Real-time shipment tracking',
+    'CSV bulk import',
+    'Full AI assistant access',
+    'Team management',
+    'Priority email support',
+  ],
+  business: [
+    'Everything in Professional',
+    'Custom domain support',
+    'Priority phone and email support',
+    'Dedicated account management',
+    'Advanced analytics',
+    'API access',
+  ],
+  delivery_services: [
+    'Vendor marketplace access',
+    'Vehicle fleet management',
+    'Service booking workflow',
+    'Earnings dashboard',
+    'Automated payouts',
+  ],
+}
+
 export default function BillingPage() {
   const { user } = useAuth()
   const { branding } = useBranding()
@@ -30,27 +63,50 @@ export default function BillingPage() {
   
   const [subscription, setSubscription] = useState<any>(null)
   const [wallet, setWallet] = useState<any>(null)
+  const [walletTransactions, setWalletTransactions] = useState<any[]>([])
   const [plans, setPlans] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showTopupModal, setShowTopupModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false)
   const [topupAmount, setTopupAmount] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const queryPlan = new URLSearchParams(window.location.search).get('plan')?.trim()
+    if (!queryPlan) return
+    setSelectedPlan(queryPlan)
+    setShowUpgradeModal(true)
+  }, [])
+
+  const buildBillingCallbackUrl = () => {
+    if (typeof window === 'undefined') return undefined
+    const callbackUrl = new URL('/billing/callback', window.location.origin)
+    const tenantId = resolveTenantId()
+    if (tenantId) {
+      callbackUrl.searchParams.set('tenant_id', tenantId)
+    }
+    return callbackUrl.toString()
+  }
 
   // Load billing data
   const loadBillingData = async () => {
     setIsLoading(true)
     try {
-      const [subData, walletData, plansData] = await Promise.all([
-        billingAPI.getSubscription(),
-        billingAPI.getWallet(),
-        billingAPI.getPlans(),
+      const tenantId = resolveTenantId()
+      const [subData, walletData, plansData, transactionsData] = await Promise.all([
+        billingApi.getSubscription(tenantId || ''),
+        billingApi.getWallet(tenantId || ''),
+        billingApi.getPlans(),
+        billingApi.getWalletTransactions(tenantId || ''),
       ])
       
       setSubscription(subData)
       setWallet(walletData)
       setPlans(plansData)
+      setWalletTransactions(transactionsData || [])
     } catch (error) {
       console.error('Failed to load billing data:', error)
     } finally {
@@ -67,12 +123,8 @@ export default function BillingPage() {
     
     setIsProcessing(true)
     try {
-      const response = await billingAPI.initPayment({
-        amount: parseFloat(topupAmount),
-        currency: wallet?.currency || 'GHS',
-        email: user?.email,
-        payment_type: 'wallet_topup',
-      })
+      const amount = parseFloat(topupAmount)
+      const response = await billingApi.purchaseCredits(resolveTenantId() || '', amount)
       
       // Redirect to Paystack
       window.location.href = response.authorization_url
@@ -88,15 +140,23 @@ export default function BillingPage() {
     
     setIsProcessing(true)
     try {
-      const plan = plans.find(p => p.id === selectedPlan)
+      if (selectedPlan === 'free_trial') {
+        await billingApi.createSubscription({
+          tenant_id: resolveTenantId() || '',
+          plan_code: selectedPlan,
+        })
+        await loadBillingData()
+        setShowUpgradeModal(false)
+        return
+      }
+
+      const plan = plans.find(p => p.code === selectedPlan)
       if (!plan) return
       
-      const response = await billingAPI.initPayment({
-        amount: plan.amount,
-        currency: plan.currency,
-        email: user?.email,
-        payment_type: 'subscription',
-        metadata: { plan_id: selectedPlan },
+      const response = await billingApi.createSubscription({
+        tenant_id: resolveTenantId() || '',
+        plan_code: selectedPlan,
+        payment_method: 'paystack',
       })
       
       // Redirect to Paystack
@@ -123,8 +183,8 @@ export default function BillingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Billing</h1>
-              <p className="mt-2 text-sm text-gray-600">Manage your subscription and wallet</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('billing.title')}</h1>
+              <p className="mt-2 text-sm text-gray-600">{t('billing.manage_subscription')}</p>
             </div>
           </div>
         </div>
@@ -138,7 +198,7 @@ export default function BillingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <CreditCard className="w-5 h-5 mr-2" />
-                  Current Subscription
+                  {t('billing.current_plan')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -146,9 +206,9 @@ export default function BillingPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-lg font-medium">{subscription.plan_name}</h3>
+                        <h3 className="text-lg font-medium">{subscription.plan_code}</h3>
                         <p className="text-sm text-gray-600">
-                          {subscription.amount} {subscription.currency} / {subscription.interval}
+                          {subscription.currency}
                         </p>
                       </div>
                       <Badge className={
@@ -163,12 +223,9 @@ export default function BillingPage() {
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h4 className="font-medium mb-2">Features</h4>
                       <ul className="space-y-1 text-sm text-gray-600">
-                        {subscription.features?.map((feature: string, index: number) => (
-                          <li key={index} className="flex items-center">
-                            <div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>
-                            {feature}
-                          </li>
-                        ))}
+                        <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Current period ends: {subscription.current_period_end}</li>
+                        {subscription.trial_ends_at && <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Trial ends: {subscription.trial_ends_at}</li>}
+                        {subscription.read_only_reason && <li className="flex items-center"><div className="w-1 h-1 bg-red-500 rounded-full mr-2"></div>{subscription.read_only_reason}</li>}
                       </ul>
                     </div>
                     
@@ -177,16 +234,16 @@ export default function BillingPage() {
                         <DialogTrigger asChild>
                           <Button>
                             <TrendingUp className="w-4 h-4 mr-2" />
-                            Upgrade Plan
+                            {t('billing.upgrade')}
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Upgrade Subscription</DialogTitle>
+                            <DialogTitle>Complete Subscription</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <label className="text-sm font-medium">Select Plan</label>
+                              <label className="text-sm font-medium">Selected Plan</label>
                               <Select value={selectedPlan} onValueChange={setSelectedPlan}>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Choose a plan" />
@@ -195,19 +252,32 @@ export default function BillingPage() {
                                   {plans
                                     .filter(plan => plan.code !== subscription.plan_code)
                                     .map((plan) => (
-                                    <SelectItem key={plan.id} value={plan.id}>
-                                      {plan.name} - {plan.amount} {plan.currency} / {plan.interval}
+                                    <SelectItem key={plan.code} value={plan.code}>
+                                      {plan.name} - {plan.price_amount} {plan.currency}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>
+                              {selectedPlan && (
+                                <div className="rounded-lg border bg-gray-50 p-4">
+                                  <p className="text-sm font-medium text-gray-900">What this tier includes</p>
+                                  <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                                    {(planFeatures[selectedPlan] || []).map((feature) => (
+                                      <li key={feature} className="flex items-center">
+                                        <div className="mr-2 h-1 w-1 rounded-full bg-green-500" />
+                                        {feature}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
                             <div className="flex space-x-3">
                               <Button onClick={handleUpgrade} disabled={!selectedPlan || isProcessing}>
-                                {isProcessing ? 'Processing...' : 'Upgrade Now'}
+                                  {isProcessing ? 'Processing...' : selectedPlan === 'free_trial' ? 'Start Free Trial' : 'Proceed to Payment'}
                               </Button>
                               <Button variant="outline" onClick={() => setShowUpgradeModal(false)}>
-                                Cancel
+                                {t('common.cancel')}
                               </Button>
                             </div>
                           </div>
@@ -218,9 +288,9 @@ export default function BillingPage() {
                 ) : (
                   <div className="text-center py-8">
                     <AlertCircle className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-lg font-medium text-gray-900">No Active Subscription</h3>
+                    <h3 className="mt-2 text-lg font-medium text-gray-900">{t('billing.no_active_subscription')}</h3>
                     <p className="mt-1 text-sm text-gray-600">
-                      Choose a plan to get started
+                      {t('billing.choose_plan_to_start')}
                     </p>
                     <div className="mt-4">
                       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
@@ -243,19 +313,32 @@ export default function BillingPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   {plans.map((plan) => (
-                                    <SelectItem key={plan.id} value={plan.id}>
-                                      {plan.name} - {plan.amount} {plan.currency} / {plan.interval}
+                                    <SelectItem key={plan.code} value={plan.code}>
+                                      {plan.name} - {plan.price_amount} {plan.currency}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>
+                            {selectedPlan && (
+                              <div className="rounded-lg border bg-gray-50 p-4">
+                                <p className="text-sm font-medium text-gray-900">What this tier includes</p>
+                                <ul className="mt-2 space-y-1 text-sm text-gray-600">
+                                  {(planFeatures[selectedPlan] || []).map((feature) => (
+                                    <li key={feature} className="flex items-center">
+                                      <div className="mr-2 h-1 w-1 rounded-full bg-green-500" />
+                                      {feature}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                             <div className="flex space-x-3">
                               <Button onClick={handleUpgrade} disabled={!selectedPlan || isProcessing}>
-                                {isProcessing ? 'Processing...' : 'Subscribe Now'}
+                                {isProcessing ? 'Processing...' : selectedPlan === 'free_trial' ? 'Start Free Trial' : 'Proceed to Payment'}
                               </Button>
                               <Button variant="outline" onClick={() => setShowUpgradeModal(false)}>
-                                Cancel
+                                {t('common.cancel')}
                               </Button>
                             </div>
                           </div>
@@ -274,7 +357,7 @@ export default function BillingPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Wallet className="w-5 h-5 mr-2" />
-                  Wallet Balance
+                  {t('billing.wallet_balance')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -282,53 +365,56 @@ export default function BillingPage() {
                   <div className="space-y-4">
                     <div className="text-center">
                       <div className="text-3xl font-bold text-gray-900">
-                        {wallet.currency} {wallet.balance.toFixed(2)}
+                        {wallet.currency} {wallet.balance_credits}
                       </div>
-                      <p className="text-sm text-gray-600">Available balance</p>
+                      <p className="text-sm text-gray-600">{t('billing.available_credits')}</p>
                     </div>
                     
-                    {wallet.credit_limit && (
-                      <div className="text-center">
-                        <div className="text-lg font-medium text-gray-700">
-                          Credit Limit: {wallet.currency} {wallet.credit_limit.toFixed(2)}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <Dialog open={showTopupModal} onOpenChange={setShowTopupModal}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">
-                          <DollarSign className="w-4 h-4 mr-2" />
-                          Add Funds
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Add Funds to Wallet</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-sm font-medium">Amount ({wallet?.currency || 'GHS'})</label>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="1"
-                              value={topupAmount}
-                              onChange={(e) => setTopupAmount(e.target.value)}
-                              placeholder="Enter amount"
-                            />
+                    <div className="flex space-x-3">
+                      <Dialog open={showTopupModal} onOpenChange={setShowTopupModal}>
+                        <DialogTrigger asChild>
+                          <Button className="flex-1">
+                            <DollarSign className="w-4 h-4 mr-2" />
+                            Add Funds
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Add Funds to Wallet</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-sm font-medium">Amount ({wallet?.currency || 'GHS'})</label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="1"
+                                value={topupAmount}
+                                onChange={(e) => setTopupAmount(e.target.value)}
+                                placeholder="Enter amount"
+                              />
+                            </div>
+                            <div className="flex space-x-3">
+                              <Button onClick={handleTopup} disabled={!topupAmount || isProcessing}>
+                                {isProcessing ? 'Processing...' : 'Add Funds'}
+                              </Button>
+                              <Button variant="outline" onClick={() => setShowTopupModal(false)}>
+                                {t('common.cancel')}
+                              </Button>
+                            </div>
                           </div>
-                          <div className="flex space-x-3">
-                            <Button onClick={handleTopup} disabled={!topupAmount || isProcessing}>
-                              {isProcessing ? 'Processing...' : 'Add Funds'}
-                            </Button>
-                            <Button variant="outline" onClick={() => setShowTopupModal(false)}>
-                              Cancel
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogContent>
+                      </Dialog>
+                      
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => setShowTransactionsModal(true)}
+                      >
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Transaction History
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -348,28 +434,27 @@ export default function BillingPage() {
         <div className="mt-8">
           <Card>
             <CardHeader>
-              <CardTitle>Available Plans</CardTitle>
+              <CardTitle>{t('billing.available_plans')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {plans.map((plan) => (
-                  <Card key={plan.id} className="relative">
+                  <Card key={plan.code} className="relative">
                     <CardContent className="p-6">
                       <h3 className="text-lg font-medium">{plan.name}</h3>
                       <div className="mt-2">
-                        <span className="text-3xl font-bold">{plan.currency} {plan.amount}</span>
-                        <span className="text-gray-600"> / {plan.interval}</span>
+                        <span className="text-3xl font-bold">{plan.currency} {plan.price_amount}</span>
                       </div>
                       
                       <div className="mt-4">
                         <h4 className="font-medium mb-2">Features</h4>
                         <ul className="space-y-1 text-sm text-gray-600">
-                          {plan.features?.map((feature: string, index: number) => (
-                            <li key={index} className="flex items-center">
-                              <div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>
-                              {feature}
-                            </li>
+                          <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Monthly credits: {plan.monthly_credit_allowance}</li>
+                          {(planFeatures[plan.code] || []).map((feature) => (
+                            <li key={feature} className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>{feature}</li>
                           ))}
+                          {plan.includes_custom_domain && <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Custom domain</li>}
+                          {plan.includes_priority_support && <li className="flex items-center"><div className="w-1 h-1 bg-green-500 rounded-full mr-2"></div>Priority support</li>}
                         </ul>
                       </div>
                       
@@ -378,7 +463,7 @@ export default function BillingPage() {
                         variant={subscription?.plan_code === plan.code ? "outline" : "default"}
                         disabled={subscription?.plan_code === plan.code}
                         onClick={() => {
-                          setSelectedPlan(plan.id)
+                          setSelectedPlan(plan.code)
                           setShowUpgradeModal(true)
                         }}
                       >
@@ -391,6 +476,54 @@ export default function BillingPage() {
             </CardContent>
           </Card>
         </div>
+      
+      {/* Transaction History Modal */}
+      <Dialog open={showTransactionsModal} onOpenChange={setShowTransactionsModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Transaction History</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {walletTransactions.length > 0 ? (
+              <div className="space-y-3">
+                {walletTransactions.map((transaction) => (
+                  <div key={transaction.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium capitalize">
+                          {transaction.transaction_type.replace('_', ' ')}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {transaction.memo || 'No description'}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(transaction.created_at).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className={`text-right ${transaction.credits_delta > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className="font-medium">
+                          {transaction.credits_delta > 0 ? '+' : ''}{transaction.credits_delta} credits
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Balance: {transaction.balance_after}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-lg font-medium text-gray-900">No Transactions</h3>
+                <p className="mt-1 text-sm text-gray-600">
+                  Your transaction history will appear here
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   )

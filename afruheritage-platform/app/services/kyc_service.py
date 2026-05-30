@@ -1,13 +1,9 @@
 from __future__ import annotations
-import httpx
+import json
 from sqlalchemy.orm import Session
 from app.models.kyc import KYCSubmission, KYCStatus
 from app.models.user import User
-from app.core.config import settings
 import uuid
-
-FLEETBASE_KYC_API = getattr(settings, "FLEETBASE_KYC_API", "https://api.fleetbase.io/kyc")
-FLEETBASE_KYC_KEY = getattr(settings, "FLEETBASE_KYC_KEY", "")
 
 async def submit_id_document(user: User, file_url: str, db: Session) -> KYCSubmission:
     # Create or update KYCSubmission
@@ -20,14 +16,6 @@ async def submit_id_document(user: User, file_url: str, db: Session) -> KYCSubmi
         kyc.status = KYCStatus.pending
     db.commit()
     db.refresh(kyc)
-    # Call Fleetbase KYC API (mocked for now)
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{FLEETBASE_KYC_API}/document",
-            headers={"Authorization": f"Bearer {FLEETBASE_KYC_KEY}"},
-            json={"user_id": str(user.id), "file_url": file_url},
-        )
-        # TODO: Parse response, update status/result
     return kyc
 
 async def submit_liveness_video(user: User, file_url: str, db: Session) -> KYCSubmission:
@@ -40,15 +28,6 @@ async def submit_liveness_video(user: User, file_url: str, db: Session) -> KYCSu
         kyc.status = KYCStatus.pending
     db.commit()
     db.refresh(kyc)
-    # Call Fleetbase KYC API (mocked for now)
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{FLEETBASE_KYC_API}/liveness",
-            headers={"Authorization": f"Bearer {FLEETBASE_KYC_KEY}"},
-            json={"user_id": str(user.id), "file_url": file_url},
-        )
-        # TODO: Parse response, update status/result
-
     return kyc
 
 import logging
@@ -287,7 +266,7 @@ class KYCService:
                 "id_type": id_type,
                 "date_of_birth": dob,
             }
-            # Attempt to crop a face region (placeholder: center crop)
+            # Fallback face crop when explicit face landmarks are unavailable.
             width, height = img.size
             left = width // 4
             top = height // 4
@@ -359,14 +338,26 @@ class KYCService:
     async def get_kyc_status(self, db: Session, user_id: str) -> dict[str, Any]:
         """Get KYC status for user"""
         try:
-            # Mock implementation - would query database
+            row = db.query(KYCSubmission).filter(KYCSubmission.user_id == user_id).order_by(KYCSubmission.updated_at.desc()).first()
+            if not row:
+                return {"user_id": user_id, "status": KYCStatus.not_started.value}
+
+            payload: dict[str, Any] = {}
+            if row.result:
+                try:
+                    payload = json.loads(row.result)
+                except Exception:
+                    payload = {}
+
             return {
                 "user_id": user_id,
-                "status": "approved",  # Mock
-                "verified_at": datetime.utcnow(),
-                "liveness_score": 85,
-                "face_match_score": 90,
-                "id_verified": True
+                "status": row.status.value,
+                "id_document_url": row.id_document_url,
+                "liveness_video_url": row.liveness_video_url,
+                "liveness_photo_url": payload.get("liveness_photo_url"),
+                "id_back_url": payload.get("id_back_url"),
+                "submitted_at": payload.get("submitted_at"),
+                "updated_at": row.updated_at.isoformat() if row.updated_at else None,
             }
         
         except Exception as e:

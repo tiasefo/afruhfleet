@@ -18,6 +18,7 @@ import {
   Shield,
   Menu,
   X,
+  Users,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -40,6 +41,7 @@ const navItems = [
   { href: '/dashboard/tracking', label: 'Tracking', icon: Truck },
   { href: '/dashboard/vendor-actions', label: 'Vendor Actions', icon: Building2 },
   { href: '/dashboard/tickets', label: 'Tickets', icon: CreditCard },
+  { href: '/dashboard/users', label: 'Users', icon: Users },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

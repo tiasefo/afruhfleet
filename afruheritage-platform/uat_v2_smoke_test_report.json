@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-05-27T05:05:43.823672",
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "name": "API Health",
+      "status": "PASS",
+      "response_time": 0.0049,
+      "details": "{\"status\":\"ok\",\"service\":\"afruheritage-control-plane\"}",
+      "error": "HTTP 200"
+    },
+    {
+      "name": "Frontend Onboarding Page",
+      "status": "PASS",
+      "response_time": 0.0125,
+      "details": "HTTP 200",
+      "error": "HTTP 200"
+    },
+    {
+      "name": "Commercial Catalog",
+      "status": "PASS",
+      "response_time": 0.0038,
+      "details": "plans=4, addons=5",
+      "error": "HTTP 200: {\"plans\":[{\"code\":\"free\",\"name\":\"Free\",\"monthly_price\":0,\"credits\":50},{\"code\":\"professional\",\"name\":\"Professional\",\"monthly_price\":1000,\"credits\":500},{\"code\":\"business\",\"name\":\"Business\",\"monthly_price\":2500,\"credits\":1500},{\"code\":\"vendor_driver\",\"name\":\"Vendor / Driver\",\"monthly_price\":300,\"cred"
+    },
+    {
+      "name": "Commercial Signup Checkout",
+      "status": "PASS",
+      "response_time": 0.7955,
+      "details": "signup_id=47347645-b429-4db4-b92a-64ba9bbe6efe, reference=afr_b18cb4a008624a46",
+      "error": "missing reference/checkout_url"
+    },
+    {
+      "name": "Payment Receipt Endpoint",
+      "status": "PASS",
+      "response_time": 0.0297,
+      "details": "reference=afr_b18cb4a008624a46",
+      "error": "HTTP 200: {\"receipt\":{\"reference\":\"afr_b18cb4a008624a46\",\"provider_reference\":\"afr_b18cb4a008624a46\",\"tenant_id\":\"47347645-b429-4db4-b92a-64ba9bbe6efe\",\"provider\":\"paystack\",\"purpose\":\"subscription\",\"amount\":3100.0,\"currency\":\"GHS\",\"status\":\"initialized\",\"checkout_url\":\"https://checkout.paystack.com/8l27d85vv"
+    },
+    {
+      "name": "Marketplace Shipment + Driver + GPS Flow",
+      "status": "PASS",
+      "response_time": 0.1996,
+      "details": "job_id=70025e5b-f9bb-44c8-bb07-449236ce66df",
+      "error": "statuses=[200, 200, 200, 200]"
+    },
+    {
+      "name": "Admin Credits Visibility",
+      "status": "PASS",
+      "response_time": 0.0076,
+      "details": "{\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1589},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05",
+      "error": "HTTP 200: {\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1589},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05:43.536496\"},{\"feature_code\":\"marketplace_post\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05:43.415"
+    },
+    {
+      "name": "Runtime Routes Present",
+      "status": "PASS",
+      "response_time": 0.2426,
+      "details": "runtime_paths=4/4",
+      "error": "missing=[]"
+    }
+  ]
+}

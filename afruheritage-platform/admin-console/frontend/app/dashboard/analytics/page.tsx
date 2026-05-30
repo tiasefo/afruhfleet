@@ -1,39 +1,83 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { api } from "@/lib/api"
+import { toast } from "sonner"
+import { Building2, DollarSign, Loader2, Package, RefreshCw, ShieldCheck, Users } from "lucide-react"
+
+type AnalyticsSummary = {
+  tenants: number
+  users: number
+  kyc_total: number
+  kyc_approved: number
+  shipments: number
+  payments: number
+  revenue: number
+}
 
 export default function AnalyticsDashboardPage() {
-  // Placeholder for analytics data
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const loadSummary = async () => {
+    setLoading(true)
+    try {
+      const data = await api.get<AnalyticsSummary>("/admin/analytics/summary")
+      setSummary(data)
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load analytics")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // TODO: Fetch analytics data from backend API
-    // fetch("/api/analytics").then(res => res.json()).then(setAnalytics);
-  }, []);
+    loadSummary()
+  }, [])
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
-      <p className="text-gray-600 mb-4">Advanced analytics and business intelligence for shipments, revenue, and operations.</p>
-      {/* Example analytics widgets (to be replaced with real data) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded shadow p-6">
-          <h2 className="text-lg font-semibold mb-2">Total Shipments</h2>
-          <div className="text-3xl font-bold">--</div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Analytics</h1>
+          <p className="mt-1 text-muted-foreground">Platform metrics overview</p>
         </div>
-        <div className="bg-white rounded shadow p-6">
-          <h2 className="text-lg font-semibold mb-2">Revenue (GHS)</h2>
-          <div className="text-3xl font-bold">--</div>
-        </div>
-        <div className="bg-white rounded shadow p-6">
-          <h2 className="text-lg font-semibold mb-2">Active Tenants</h2>
-          <div className="text-3xl font-bold">--</div>
-        </div>
+        <Button variant="outline" size="icon" onClick={loadSummary}>
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </div>
-      <div className="bg-white rounded shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
-        <div className="text-gray-400">No data yet.</div>
-      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCard title="Tenants" value={summary?.tenants ?? 0} icon={Building2} />
+          <MetricCard title="Users" value={summary?.users ?? 0} icon={Users} />
+          <MetricCard title="Shipments" value={summary?.shipments ?? 0} icon={Package} />
+          <MetricCard title="Payments" value={summary?.payments ?? 0} icon={DollarSign} />
+          <MetricCard title="Revenue" value={`GHS ${summary?.revenue ?? 0}`} icon={DollarSign} />
+          <MetricCard title="KYC Total" value={summary?.kyc_total ?? 0} icon={ShieldCheck} />
+          <MetricCard title="KYC Approved" value={summary?.kyc_approved ?? 0} icon={ShieldCheck} />
+        </div>
+      )}
     </div>
-  );
+  )
+}
+
+function MetricCard({ title, value, icon: Icon }: { title: string; value: string | number; icon: any }) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex items-center justify-between">
+        <div className="text-2xl font-bold">{value}</div>
+        <Icon className="h-5 w-5 text-muted-foreground" />
+      </CardContent>
+    </Card>
+  )
 }

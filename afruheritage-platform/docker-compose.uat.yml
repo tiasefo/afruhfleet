@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      target: production
+    container_name: afruheritage-api
+    env_file:
+      - .env
+    environment:
+      # Override redis to use existing container hostname on platform-network
+      REDIS_URL: redis://afruheritage-redis:6379/0
+      CELERY_BROKER_URL: redis://afruheritage-redis:6379/0
+      CELERY_RESULT_BACKEND: redis://afruheritage-redis:6379/0
+      APP_ENV: uat
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./logs:/app/logs
+      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+    ports:
+      - "8100:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - platform-network
+
+  frontend:
+    build:
+      context: ./frontend
+      target: runner
+    container_name: afruheritage-frontend
+    env_file:
+      - ./frontend/.env.docker
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - platform-network
+
+  worker:
+    build:
+      context: .
+      target: production
+    container_name: afruheritage-worker
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://afruheritage-redis:6379/0
+      CELERY_BROKER_URL: redis://afruheritage-redis:6379/0
+      CELERY_RESULT_BACKEND: redis://afruheritage-redis:6379/0
+      APP_ENV: uat
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./logs:/app/logs
+      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+    restart: unless-stopped
+    networks:
+      - platform-network
+
+  beat:
+    build:
+      context: .
+      target: production
+    container_name: afruheritage-beat
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://afruheritage-redis:6379/0
+      CELERY_BROKER_URL: redis://afruheritage-redis:6379/0
+      CELERY_RESULT_BACKEND: redis://afruheritage-redis:6379/0
+      APP_ENV: uat
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - platform-network
+
+networks:
+  platform-network:
+    external: true

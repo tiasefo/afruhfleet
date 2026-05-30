@@ -59,7 +59,7 @@
 </head>
 <body>
   <h1>Afruheritage Platform Feature Matrix</h1>
-  <div class="meta">Generated from codebase scan at: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform</div>
+  <div class="meta">Generated from codebase scan at: /mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform</div>
   
     <div class="legend">
       <span class="pill green">Aligned</span>
@@ -94,15 +94,16 @@
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/ai_instructionsfile.md :: /api/v1/ai/chat
-- app/api/routes/ai_widget.py :: /api/v1/ai/chat
 - app/api/routes/ai.py :: app/api/routes/ai.py
+- app/api/routes/ai_widget.py :: /api/v1/ai/chat
 - app/schemas/ai.py :: /api/v1/ai/chat
+- app/models/ai_instructionsfile.md :: /api/v1/ai/chat
 - app/ai/ollama_client.py :: app/ai/ollama_client.py
 - app/ai/retriever.py :: app/ai/retriever.py
 - docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/chat
-- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat
+- scripts/diagnostics.py :: app/ai/retriever.py
 - scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/chat
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat
 
 Frontend:
 - app/static/widget/embed.js :: /static/widget/embed.js</pre></details></td>
@@ -118,12 +119,12 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config
 - app/api/routes/ai_widget.py :: app/api/routes/ai_widget.py
 - app/static/widget/embed.js :: /api/v1/ai/widget/config
+- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config
 - docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/widget/config
-- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config
 - scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/widget/config
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config
 
 Frontend:
 - app/static/widget/embed.js :: app/static/widget/embed.js</pre></details></td>
@@ -139,11 +140,12 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/billing.py :: billing_plans
 - app/api/routes/billing.py :: app/api/routes/billing.py
+- app/models/billing.py :: billing_plans
+- docs/CANONICAL_ARCHITECTURE_MAP.md :: app/api/routes/billing.py
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/plans
-- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans
 - scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/plans
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans
 
 Frontend:
 - app/templates/tenant/portal.html :: billing
@@ -162,8 +164,8 @@ Frontend:
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/models/billing.py :: billing_wallets
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/wallets
-- scripts/audit/platform_feature_matrix.py :: billing_wallets
-- scripts/scaffold/02_billing_subscription.sh :: billing_wallets</pre></details></td>
+- scripts/scaffold/02_billing_subscription.sh :: billing_wallets
+- scripts/audit/platform_feature_matrix.py :: billing_wallets</pre></details></td>
               <td>Credits for AI usage and document processing.</td>
             </tr>
             
@@ -176,13 +178,16 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
+- app/api/routes/payment_hub.py :: PAYSTACK_SECRET_KEY
+- app/api/routes/commercial_orchestration.py :: PAYSTACK_SECRET_KEY
+- app/core/config.py :: PAYSTACK_SECRET_KEY
 - app/services/paystack_client.py :: PAYSTACK_SECRET_KEY
-- app/services/platform_payment_service.py :: PAYSTACK_SECRET_KEY
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/payments/init
-- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY
 - scripts/scaffold/02_billing_subscription.sh :: PAYSTACK_SECRET_KEY
+- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY
 
 Frontend:
+- app/onboarding-docs/page.tsx :: payments
 - app/templates/tenant/portal.html :: payments
 - app/templates/auth/dashboard.html :: billing</pre></details></td>
               <td>Backend-only payment initialization and verification.</td>
@@ -197,14 +202,18 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/billing.py :: billing_subscriptions
 - app/api/routes/billing.py :: create_trial_subscription
+- app/api/routes/tenants.py :: create_trial_subscription
 - app/services/billing_service.py :: create_trial_subscription
+- app/services/signup_onboarding_service.py :: create_trial_subscription
+- app/services/tenant_creation_service.py :: create_trial_subscription
+- app/models/billing.py :: billing_subscriptions
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/subscriptions
-- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions
 - scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/subscriptions
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions
 
 Frontend:
+- app/onboarding-docs/page.tsx :: plan
 - app/templates/tenant/portal.html :: subscription</pre></details></td>
               <td>Trial, activation, read-only enforcement foundation.</td>
             </tr>
@@ -220,14 +229,15 @@ Frontend:
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/models/support_crm.py :: crm_accounts
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/accounts
-- scripts/audit/platform_feature_matrix.py :: crm_accounts
 - scripts/scaffold/03_support_glpi_crm.sh :: crm_accounts
+- scripts/audit/platform_feature_matrix.py :: crm_accounts
 
 Frontend:
+- app/onboarding-docs/page.tsx :: contact
 - app/templates/tenant/portal.html :: contact
-- app/templates/auth/register.html :: contact
+- app/templates/emails/base.html :: account
 - app/templates/auth/login.html :: account
-- app/templates/emails/base.html :: account</pre></details></td>
+- app/templates/auth/register.html :: contact</pre></details></td>
               <td>Tenant CRM base.</td>
             </tr>
             
@@ -242,8 +252,8 @@ Frontend:
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/models/support_crm.py :: crm_opportunities
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/opportunities
-- scripts/audit/platform_feature_matrix.py :: crm_opportunities
-- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities</pre></details></td>
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities
+- scripts/audit/platform_feature_matrix.py :: crm_opportunities</pre></details></td>
               <td>Sales pipeline foundation.</td>
             </tr>
             
@@ -258,8 +268,8 @@ Frontend:
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/models/support_crm.py :: crm_quotes
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/quotes
-- scripts/audit/platform_feature_matrix.py :: crm_quotes
-- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes</pre></details></td>
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes
+- scripts/audit/platform_feature_matrix.py :: crm_quotes</pre></details></td>
               <td>Quote generation foundation.</td>
             </tr>
             
@@ -275,12 +285,13 @@ Frontend:
 - app/api/routes/auth.py :: app/api/routes/auth.py
 - app/templates/auth/login.html :: /api/v1/auth/login
 - scripts/bootstrap_admin.sh :: /api/v1/auth/bootstrap
+- scripts/bootstrap_login_create_tenant.sh :: /api/v1/auth/bootstrap
 - scripts/audit/platform_feature_matrix.py :: /api/v1/auth/bootstrap
 
 Frontend:
 - app/templates/tenant/portal.html :: login
-- app/templates/auth/register.html :: login
 - app/templates/auth/login.html :: auth/login
+- app/templates/auth/register.html :: login
 - app/templates/auth/dashboard.html :: login</pre></details></td>
               <td>Admin bootstrap and login flow.</td>
             </tr>
@@ -295,21 +306,22 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: tenant
-- app/locales/en.json :: tenant
-- app/models/__init__.py :: tenant
-- app/models/tenant_ai_settings.py :: tenant
-- app/models/shipment.py :: tenant
-- app/models/tenant.py :: tenant
-- app/models/payment.py :: tenant
-- app/models/vendor.py :: tenant
-- app/models/tenant_branding.py :: tenant
-- app/models/notification_preferences.py :: tenant
+- app/api/deps.py :: tenant
+- app/api/routes/custom_domains.py :: tenant
+- app/api/routes/users.py :: tenant
+- app/api/routes/geo.py :: tenant
+- app/api/routes/support_crm.py :: tenant
+- app/api/routes/admin_subscriptions.py :: tenant
+- app/api/routes/admin_credits.py :: tenant
+- app/api/routes/analytics.py :: tenant
+- app/api/routes/vendors.py :: tenant
 
 Frontend:
+- app/onboarding-docs/page.tsx :: tenant
 - app/static/widget/embed.js :: tenant
 - app/templates/tenant/portal.html :: tenant
-- app/templates/auth/register.html :: tenant
 - app/templates/auth/login.html :: tenant
+- app/templates/auth/register.html :: tenant
 - app/templates/auth/dashboard.html :: tenant</pre></details></td>
               <td>Tenant CRUD, approval, lifecycle.</td>
             </tr>
@@ -325,10 +337,11 @@ Frontend:
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/services/cloudflare_domains.py :: app/services/cloudflare_domains.py
 - docs/CUSTOM_DOMAIN_INTEGRATION.md :: CLOUDFLARE_API_TOKEN
-- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py
 - scripts/scaffold/04_custom_domains.sh :: CLOUDFLARE_API_TOKEN
+- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py
 
 Frontend:
+- app/onboarding-docs/page.tsx :: domain
 - app/templates/tenant/portal.html :: domain
 - app/templates/auth/login.html :: domain</pre></details></td>
               <td>Cloudflare for SaaS style hostname orchestration.</td>
@@ -344,17 +357,17 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: custom_domains
-- app/models/custom_domains.py :: custom_domains
 - app/api/routes/custom_domains.py :: custom_domains
-- app/services/tenant_creation_service.py :: custom_domains
 - app/services/custom_domain_service.py :: custom_domains
-- app/tasks/domain_verification.py :: custom_domains
 - app/schemas/custom_domains.py :: custom_domains
+- app/models/custom_domains.py :: custom_domains
+- app/tasks/domain_verification.py :: custom_domains
 - docs/CUSTOM_DOMAIN_INTEGRATION.md :: /api/v1/domains/request
-- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request
 - scripts/scaffold/04_custom_domains.sh :: /api/v1/domains/request
+- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request
 
 Frontend:
+- app/onboarding-docs/page.tsx :: domain
 - app/templates/tenant/portal.html :: domain
 - app/templates/auth/login.html :: domain</pre></details></td>
               <td>Customer subdomain/apex domain foundation.</td>
@@ -370,13 +383,13 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: entity
-- app/models/audit.py :: entity
-- app/models/tenant.py :: fleetbase
-- app/models/payment.py :: entity
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/models/support_crm.py :: contacts
+- app/api/routes/users.py :: entity
+- app/api/routes/support_crm.py :: contacts
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
 - app/core/errors.py :: entity
 - app/core/config.py :: fleetbase</pre></details></td>
               <td>Potential Fleetbase data objects not yet visibly wired.</td>
@@ -392,15 +405,15 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: fleetbase
-- app/models/tenant.py :: fleetbase
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/middleware/rate_limit.py :: dispatch
-- app/core/config.py :: fleetbase
-- app/core/structured_logging.py :: dispatch
-- app/core/middleware.py :: dispatch
-- app/api/routes/tenants.py :: fleetbase
+- app/api/routes/vendors.py :: dispatch
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
 - app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/core/middleware.py :: dispatch
+- app/core/structured_logging.py :: dispatch
 
 Frontend:
 - app/templates/tenant/portal.html :: console
@@ -418,15 +431,15 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: driver
-- app/locales/zh.json :: driver
-- app/models/tenant.py :: fleetbase
-- app/models/vendor.py :: driver
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
-- app/api/routes/tenants.py :: fleetbase
-- app/api/routes/fleetbase_runtime.py :: fleetbase</pre></details></td>
+- app/api/routes/vendors.py :: driver
+- app/api/routes/admin_marketplace.py :: driver
+- app/api/routes/navigator.py :: driver
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/api/routes/marketplace.py :: driver
+- app/api/routes/commercial_orchestration.py :: driver</pre></details></td>
               <td>Driver management capability from Fleetbase.</td>
             </tr>
             
@@ -440,35 +453,37 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/core/config.py :: @fleetbase/cli
-- app/services/fleetbase_runtime_service.py :: @fleetbase/cli
-- app/services/fleetbase_provisioner.py :: flb install-fleetbase
 - docs/DEPLOYMENT.md :: flb install-fleetbase
 - infra/runner/bootstrap_runner.sh :: @fleetbase/cli
 - scripts/bootstrap_runner.sh :: @fleetbase/cli
-- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli
-- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli</pre></details></td>
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli
+- scripts/audit/endgoal_gap_audit.py :: flb install-fleetbase
+- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli</pre></details></td>
               <td>CLI/runtime installation capability.</td>
             </tr>
             
-            <tr style="background:#fef9c3">
+            <tr style="background:#dcfce7">
               <td>Fleetbase Engine</td>
               <td>Fleetbase Orders</td>
               <td>fleetbase</td>
               <td>Yes</td>
-              <td>No</td>
-              <td><strong>Backend only</strong></td>
+              <td>Yes</td>
+              <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: fleetbase
-- app/models/tenant.py :: fleetbase
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
-- app/api/routes/runners.py :: order
-- app/api/routes/tenants.py :: order
-- app/api/routes/fleetbase_runtime.py :: order
 - app/api/routes/custom_domains.py :: order
-- app/api/routes/support_crm.py :: order</pre></details></td>
+- app/api/routes/users.py :: order
+- app/api/routes/runners.py :: order
+- app/api/routes/support_crm.py :: order
+- app/api/routes/admin_credits.py :: order
+- app/api/routes/admin_marketplace.py :: order
+- app/api/routes/billing.py :: order
+- app/api/routes/tenants.py :: order
+- app/api/routes/payments.py :: order
+
+Frontend:
+- app/onboarding-docs/page.tsx :: orders</pre></details></td>
               <td>Operational order lifecycle from Fleetbase engine.</td>
             </tr>
             
@@ -481,18 +496,19 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/main.py :: fleetbase
-- app/locales/en.json :: tracking
-- app/locales/zh.json :: tracking
-- app/models/shipment.py :: tracking
-- app/models/tenant.py :: fleetbase
-- app/models/tenant_branding.py :: tracking
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/models/support_crm.py :: tracking
-- app/middleware/rate_limit.py :: tracking
+- app/main.py :: tracking
+- app/api/routes/geo.py :: tracking
+- app/api/routes/support_crm.py :: tracking
+- app/api/routes/vendors.py :: tracking
+- app/api/routes/admin_marketplace.py :: tracking
+- app/api/routes/payments.py :: webhook
+- app/api/routes/navigator.py :: tracking
+- app/api/routes/shipments.py :: tracking
+- app/api/routes/whatsapp_bot.py :: webhook
+- app/api/routes/storefront.py :: fleetbase
 
 Frontend:
+- app/onboarding-docs/page.tsx :: map
 - app/templates/tenant/portal.html :: tracking
 - app/templates/auth/register.html :: tracking
 - app/templates/auth/dashboard.html :: tracking</pre></details></td>
@@ -509,15 +525,15 @@ Frontend:
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: vehicle
-- app/locales/zh.json :: vehicle
-- app/models/tenant.py :: fleetbase
-- app/models/vendor.py :: vehicle
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
 - app/api/routes/vendors.py :: vehicle
-- app/api/routes/tenants.py :: fleetbase</pre></details></td>
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/onboarding-docs/page.tsx :: fleetbase
+- app/services/fleetbase_runtime_service.py :: fleetbase</pre></details></td>
               <td>Vehicle management capability from Fleetbase.</td>
             </tr>
             
@@ -534,8 +550,9 @@ Frontend:
 - app/services/fleetbase_runtime_service.py :: app/services/fleetbase_runtime_service.py
 - app/services/runner_executor.py :: RunnerExecutor
 - docs/FLEETBASE_RUNTIME_DEPLOYER.md :: /api/v1/fleetbase-runtime
-- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime
-- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime</pre></details></td>
+- scripts/bootstrap_login_create_tenant.sh :: /api/v1/fleetbase-runtime
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime
+- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime</pre></details></td>
               <td>Runner registration and install orchestration layer.</td>
             </tr>
             
@@ -548,13 +565,15 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/support_crm.py :: support_sync_logs
+- app/core/config.py :: GLPI_BASE_URL
 - app/services/glpi_client.py :: app/services/glpi_client.py
+- app/models/support_crm.py :: support_sync_logs
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: GLPI_BASE_URL
-- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py
 - scripts/scaffold/03_support_glpi_crm.sh :: support_sync_logs
+- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py
 
 Frontend:
+- app/onboarding-docs/page.tsx :: support
 - app/templates/tenant/portal.html :: support
 - app/templates/auth/login.html :: support
 - app/templates/auth/dashboard.html :: support</pre></details></td>
@@ -570,15 +589,16 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/models/support_crm.py :: support_tickets
 - app/api/routes/support_crm.py :: public_token
 - app/services/support_crm_service.py :: public_token
 - app/schemas/support_crm.py :: public_token
+- app/models/support_crm.py :: support_tickets
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/public/tickets
-- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets
 - scripts/scaffold/03_support_glpi_crm.sh :: /api/v1/support-crm/public/tickets
+- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets
 
 Frontend:
+- app/onboarding-docs/page.tsx :: ticket
 - app/templates/tenant/portal.html :: support
 - app/templates/auth/login.html :: support
 - app/templates/auth/dashboard.html :: support</pre></details></td>
@@ -594,18 +614,19 @@ Frontend:
               <td><strong>Aligned</strong></td>
               <td>No</td>
               <td><details><summary>Evidence</summary><pre>Backend:
-- app/main.py :: shipment
-- app/locales/en.json :: tracking
-- app/locales/zh.json :: tracking
-- app/models/shipment.py :: tracking
-- app/models/payment.py :: shipment
-- app/models/vendor.py :: shipment
-- app/models/tenant_branding.py :: tracking
-- app/models/notification_preferences.py :: shipment
-- app/models/support_crm.py :: tracking
-- app/middleware/rate_limit.py :: tracking
+- app/main.py :: tracking
+- app/api/routes/geo.py :: tracking
+- app/api/routes/support_crm.py :: tracking
+- app/api/routes/analytics.py :: shipment
+- app/api/routes/vendors.py :: tracking
+- app/api/routes/admin_marketplace.py :: tracking
+- app/api/routes/navigator.py :: tracking
+- app/api/routes/shipments.py :: tracking
+- app/api/routes/branding.py :: tracking
+- app/api/routes/whatsapp.py :: tracking
 
 Frontend:
+- app/onboarding-docs/page.tsx :: shipment
 - app/templates/tenant/portal.html :: tracking
 - app/templates/auth/register.html :: tracking
 - app/templates/auth/dashboard.html :: tracking</pre></details></td>

@@ -1,3 +1,4 @@
+from app.core.config import settings
 import json
 
 from sqlalchemy.orm import Session

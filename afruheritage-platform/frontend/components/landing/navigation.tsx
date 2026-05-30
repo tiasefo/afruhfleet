@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useI18n, LanguageSwitcher } from '@/lib/i18n'
-import { useAuth } from '@/lib/auth'
+import { useTranslation } from '@/hooks/useTranslation'
+import { useAuth } from '@/hooks/useAuth'
 
 const navLinks = [
   { 
@@ -32,8 +32,8 @@ const navLinks = [
       { label: 'AI Assistant', href: '#ai' },
       { label: 'Real-time Tracking', href: '/track' },
       { label: 'Document Management', href: '#documents' },
-      { label: 'API Integration', href: '#api' },
-      { label: 'KYC Verification', href: '/kyc/test-full-pipeline' },
+      { label: 'API Integration', href: '/support' },
+      { label: 'Vendor Verification (KYC)', href: '/vendors#vendor-registration' },
     ]
   },
   { label: 'For Vendors', href: '/vendors' },
@@ -43,7 +43,7 @@ const navLinks = [
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
-  const { t, locale, setLocale } = useI18n()
+  const { t, lang, setLang } = useTranslation()
   const { user, token } = useAuth()
 
   return (
@@ -88,7 +88,14 @@ export function Navigation() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-3 lg:flex">
-          <LanguageSwitcher />
+          <button
+            onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+            type="button"
+          >
+            <span className="text-base">{lang === 'en' ? '🇨🇳' : '🇬🇧'}</span>
+            {lang === 'en' ? '中文' : 'English'}
+          </button>
 
           {token ? (
             <Button asChild>
@@ -96,6 +103,9 @@ export function Navigation() {
             </Button>
           ) : (
             <>
+              <Button variant="outline" asChild>
+                <Link href="/tenant-request">Request Tenant</Link>
+              </Button>
               <Button variant="ghost" asChild>
                 <Link href="/login">{t('auth.login')}</Link>
               </Button>
@@ -156,13 +166,23 @@ export function Navigation() {
               </div>
 
               <div className="flex flex-col gap-2 pt-4 border-t">
-                <LanguageSwitcher />
+                <button
+                  onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
+                  type="button"
+                >
+                  <span className="text-base">{lang === 'en' ? '🇨🇳' : '🇬🇧'}</span>
+                  {lang === 'en' ? '中文' : 'English'}
+                </button>
                 {token ? (
                   <Button asChild className="w-full">
                     <Link href="/dashboard" onClick={() => setIsOpen(false)}>{user?.full_name || 'Dashboard'}</Link>
                   </Button>
                 ) : (
                   <>
+                    <Button variant="ghost" asChild className="w-full">
+                      <Link href="/tenant-request" onClick={() => setIsOpen(false)}>Request Tenant</Link>
+                    </Button>
                     <Button variant="outline" asChild className="w-full">
                       <Link href="/login" onClick={() => setIsOpen(false)}>{t('auth.login')}</Link>
                     </Button>

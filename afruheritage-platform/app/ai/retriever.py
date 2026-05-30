@@ -1,15 +1,18 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import json
 import math
+import os
 from pathlib import Path
 from typing import Any
 
 import httpx
+from app.ai.platform_knowledge import search_runtime_corpus
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 INDEX_FILE = REPO_ROOT / "data" / "vectorstore" / "knowledge_index.json"
-OLLAMA_BASE_URL = "http://host.docker.internal:11434"
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 EMBED_MODEL = "nomic-embed-text:latest"
 
 
@@ -40,11 +43,19 @@ def _embed(text: str) -> list[float]:
 
 def search_knowledge(query: str, scopes: list[str] | None = None, top_k: int = 5) -> list[dict[str, Any]]:
     if not INDEX_FILE.exists():
-        return []
+        return search_runtime_corpus(query, top_k=top_k)
 
-    index = json.loads(INDEX_FILE.read_text(encoding="utf-8"))
+    try:
+        index = json.loads(INDEX_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return search_runtime_corpus(query, top_k=top_k)
+
     entries = index.get("entries", [])
-    query_embedding = _embed(query)
+    try:
+        query_embedding = _embed(query)
+    except Exception:
+        # Fall back to lexical retrieval when embeddings are unavailable.
+        return search_runtime_corpus(query, top_k=top_k)
 
     scored: list[tuple[float, dict[str, Any]]] = []
     for entry in entries:
@@ -56,7 +67,9 @@ def search_knowledge(query: str, scopes: list[str] | None = None, top_k: int = 5
 
     scored.sort(key=lambda x: x[0], reverse=True)
 
-    return [
+    # Keep vector hits, but prioritize runtime code/docs chunks for platform-aware answers.
+    vector_top_k = max(1, top_k // 3)
+    vector_results = [
         {
             "score": score,
             "chunk_id": entry["chunk_id"],
@@ -65,7 +78,25 @@ def search_knowledge(query: str, scopes: list[str] | None = None, top_k: int = 5
             "content": entry["content"],
             "metadata": entry["metadata"],
         }
-        for score, entry in scored[:top_k]
+        for score, entry in scored[:vector_top_k]
     ]
+
+    lexical_results = search_runtime_corpus(query, top_k=top_k)
+    if not vector_results:
+        return lexical_results
+
+    merged: list[dict[str, Any]] = []
+    seen_chunk_ids: set[str] = set()
+
+    for result in vector_results + lexical_results:
+        chunk_id = result.get("chunk_id")
+        if chunk_id in seen_chunk_ids:
+            continue
+        seen_chunk_ids.add(chunk_id)
+        merged.append(result)
+        if len(merged) >= top_k:
+            break
+
+    return merged
 
 knowledge_retriever = None

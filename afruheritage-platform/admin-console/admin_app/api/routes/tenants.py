@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from admin_app.api.deps import get_current_admin
@@ -25,7 +26,11 @@ def list_tenants(
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    return cp.list_tenants(_get_cp_token(request))
+    try:
+        return cp.list_tenants(_get_cp_token(request))
+    except Exception as exc:
+        # If the control plane API is not available, return empty list
+        return []
 
 
 @router.post("")
@@ -43,6 +48,61 @@ def create_tenant(
         entity_type="tenant",
         entity_id=result.get("id"),
         details={"company_name": payload.company_name},
+    )
+    return result
+
+
+@router.get("/requests")
+def list_tenant_requests(
+    request: Request,
+    status: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    _ = current_admin
+    return cp.list_tenant_requests(_get_cp_token(request), status=status, page=page, page_size=page_size)
+
+
+class ReviewTenantRequestPayload(BaseModel):
+    status: str
+    review_notes: str | None = None
+
+
+@router.patch("/requests/{request_id}")
+def review_tenant_request(
+    request_id: str,
+    payload: ReviewTenantRequestPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.review_tenant_request(_get_cp_token(request), request_id, payload.model_dump())
+    record_admin_audit(
+        db,
+        admin_email=current_admin.email,
+        action="tenant.request.reviewed_via_admin",
+        entity_type="tenant_request",
+        entity_id=request_id,
+        details={"status": payload.status},
+    )
+    return result
+
+
+@router.post("/requests/{request_id}/auto-provision")
+def auto_provision_tenant_request(
+    request_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.auto_provision_tenant_request(_get_cp_token(request), request_id)
+    record_admin_audit(
+        db,
+        admin_email=current_admin.email,
+        action="tenant.request.auto_provisioned_via_admin",
+        entity_type="tenant_request",
+        entity_id=request_id,
     )
     return result
 

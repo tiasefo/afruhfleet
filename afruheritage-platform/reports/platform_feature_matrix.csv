@@ -1,33 +1,35 @@
 group,feature,source,backend_present,frontend_present,status,color,unused_flag,notes,evidence
 AI,AI Chat API,in_house,True,True,Aligned,green,No,RAG-backed chat endpoint.,"Backend:
-- app/models/ai_instructionsfile.md :: /api/v1/ai/chat
-- app/api/routes/ai_widget.py :: /api/v1/ai/chat
 - app/api/routes/ai.py :: app/api/routes/ai.py
+- app/api/routes/ai_widget.py :: /api/v1/ai/chat
 - app/schemas/ai.py :: /api/v1/ai/chat
+- app/models/ai_instructionsfile.md :: /api/v1/ai/chat
 - app/ai/ollama_client.py :: app/ai/ollama_client.py
 - app/ai/retriever.py :: app/ai/retriever.py
 - docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/chat
-- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat
+- scripts/diagnostics.py :: app/ai/retriever.py
 - scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/chat
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat
 
 Frontend:
 - app/static/widget/embed.js :: /static/widget/embed.js"
 AI,Floating AI Widget,in_house,True,True,Aligned,green,No,Floating chatbot for control plane and tenant pages.,"Backend:
-- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config
 - app/api/routes/ai_widget.py :: app/api/routes/ai_widget.py
 - app/static/widget/embed.js :: /api/v1/ai/widget/config
+- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config
 - docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/widget/config
-- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config
 - scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/widget/config
+- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config
 
 Frontend:
 - app/static/widget/embed.js :: app/static/widget/embed.js"
 Billing,Billing Plans,in_house,True,True,Aligned,green,No,"Plan catalog: free_trial, professional, business.","Backend:
-- app/models/billing.py :: billing_plans
 - app/api/routes/billing.py :: app/api/routes/billing.py
+- app/models/billing.py :: billing_plans
+- docs/CANONICAL_ARCHITECTURE_MAP.md :: app/api/routes/billing.py
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/plans
-- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans
 - scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/plans
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans
 
 Frontend:
 - app/templates/tenant/portal.html :: billing
@@ -35,230 +37,249 @@ Frontend:
 Billing,Credit Wallet,in_house,True,False,Backend only,yellow,No,Credits for AI usage and document processing.,"Backend:
 - app/models/billing.py :: billing_wallets
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/wallets
-- scripts/audit/platform_feature_matrix.py :: billing_wallets
-- scripts/scaffold/02_billing_subscription.sh :: billing_wallets"
+- scripts/scaffold/02_billing_subscription.sh :: billing_wallets
+- scripts/audit/platform_feature_matrix.py :: billing_wallets"
 Billing,Paystack Payment Integration,in_house,True,True,Aligned,green,No,Backend-only payment initialization and verification.,"Backend:
+- app/api/routes/payment_hub.py :: PAYSTACK_SECRET_KEY
+- app/api/routes/commercial_orchestration.py :: PAYSTACK_SECRET_KEY
+- app/core/config.py :: PAYSTACK_SECRET_KEY
 - app/services/paystack_client.py :: PAYSTACK_SECRET_KEY
-- app/services/platform_payment_service.py :: PAYSTACK_SECRET_KEY
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/payments/init
-- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY
 - scripts/scaffold/02_billing_subscription.sh :: PAYSTACK_SECRET_KEY
+- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY
 
 Frontend:
+- app/onboarding-docs/page.tsx :: payments
 - app/templates/tenant/portal.html :: payments
 - app/templates/auth/dashboard.html :: billing"
 Billing,Subscriptions,in_house,True,True,Aligned,green,No,"Trial, activation, read-only enforcement foundation.","Backend:
-- app/models/billing.py :: billing_subscriptions
 - app/api/routes/billing.py :: create_trial_subscription
+- app/api/routes/tenants.py :: create_trial_subscription
 - app/services/billing_service.py :: create_trial_subscription
+- app/services/signup_onboarding_service.py :: create_trial_subscription
+- app/services/tenant_creation_service.py :: create_trial_subscription
+- app/models/billing.py :: billing_subscriptions
 - docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/subscriptions
-- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions
 - scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/subscriptions
+- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions
 
 Frontend:
+- app/onboarding-docs/page.tsx :: plan
 - app/templates/tenant/portal.html :: subscription"
 CRM,CRM Accounts & Contacts,in_house,True,True,Aligned,green,No,Tenant CRM base.,"Backend:
 - app/models/support_crm.py :: crm_accounts
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/accounts
-- scripts/audit/platform_feature_matrix.py :: crm_accounts
 - scripts/scaffold/03_support_glpi_crm.sh :: crm_accounts
+- scripts/audit/platform_feature_matrix.py :: crm_accounts
 
 Frontend:
+- app/onboarding-docs/page.tsx :: contact
 - app/templates/tenant/portal.html :: contact
-- app/templates/auth/register.html :: contact
+- app/templates/emails/base.html :: account
 - app/templates/auth/login.html :: account
-- app/templates/emails/base.html :: account"
+- app/templates/auth/register.html :: contact"
 CRM,Opportunities,in_house,True,False,Backend only,yellow,No,Sales pipeline foundation.,"Backend:
 - app/models/support_crm.py :: crm_opportunities
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/opportunities
-- scripts/audit/platform_feature_matrix.py :: crm_opportunities
-- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities"
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities
+- scripts/audit/platform_feature_matrix.py :: crm_opportunities"
 CRM,Quotes,in_house,True,False,Backend only,yellow,No,Quote generation foundation.,"Backend:
 - app/models/support_crm.py :: crm_quotes
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/quotes
-- scripts/audit/platform_feature_matrix.py :: crm_quotes
-- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes"
+- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes
+- scripts/audit/platform_feature_matrix.py :: crm_quotes"
 Core Platform,Authentication & Admin Bootstrap,in_house,True,True,Aligned,green,No,Admin bootstrap and login flow.,"Backend:
 - app/api/routes/auth.py :: app/api/routes/auth.py
 - app/templates/auth/login.html :: /api/v1/auth/login
 - scripts/bootstrap_admin.sh :: /api/v1/auth/bootstrap
+- scripts/bootstrap_login_create_tenant.sh :: /api/v1/auth/bootstrap
 - scripts/audit/platform_feature_matrix.py :: /api/v1/auth/bootstrap
 
 Frontend:
 - app/templates/tenant/portal.html :: login
-- app/templates/auth/register.html :: login
 - app/templates/auth/login.html :: auth/login
+- app/templates/auth/register.html :: login
 - app/templates/auth/dashboard.html :: login"
 Core Platform,Tenant Management,in_house,True,True,Aligned,green,No,"Tenant CRUD, approval, lifecycle.","Backend:
 - app/main.py :: tenant
-- app/locales/en.json :: tenant
-- app/models/__init__.py :: tenant
-- app/models/tenant_ai_settings.py :: tenant
-- app/models/shipment.py :: tenant
-- app/models/tenant.py :: tenant
-- app/models/payment.py :: tenant
-- app/models/vendor.py :: tenant
-- app/models/tenant_branding.py :: tenant
-- app/models/notification_preferences.py :: tenant
+- app/api/deps.py :: tenant
+- app/api/routes/custom_domains.py :: tenant
+- app/api/routes/users.py :: tenant
+- app/api/routes/geo.py :: tenant
+- app/api/routes/support_crm.py :: tenant
+- app/api/routes/admin_subscriptions.py :: tenant
+- app/api/routes/admin_credits.py :: tenant
+- app/api/routes/analytics.py :: tenant
+- app/api/routes/vendors.py :: tenant
 
 Frontend:
+- app/onboarding-docs/page.tsx :: tenant
 - app/static/widget/embed.js :: tenant
 - app/templates/tenant/portal.html :: tenant
-- app/templates/auth/register.html :: tenant
 - app/templates/auth/login.html :: tenant
+- app/templates/auth/register.html :: tenant
 - app/templates/auth/dashboard.html :: tenant"
 Domains,Cloudflare Domain Integration,in_house,True,True,Aligned,green,No,Cloudflare for SaaS style hostname orchestration.,"Backend:
 - app/services/cloudflare_domains.py :: app/services/cloudflare_domains.py
 - docs/CUSTOM_DOMAIN_INTEGRATION.md :: CLOUDFLARE_API_TOKEN
-- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py
 - scripts/scaffold/04_custom_domains.sh :: CLOUDFLARE_API_TOKEN
+- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py
 
 Frontend:
+- app/onboarding-docs/page.tsx :: domain
 - app/templates/tenant/portal.html :: domain
 - app/templates/auth/login.html :: domain"
 Domains,Custom Domain Requests,in_house,True,True,Aligned,green,No,Customer subdomain/apex domain foundation.,"Backend:
 - app/main.py :: custom_domains
-- app/models/custom_domains.py :: custom_domains
 - app/api/routes/custom_domains.py :: custom_domains
-- app/services/tenant_creation_service.py :: custom_domains
 - app/services/custom_domain_service.py :: custom_domains
-- app/tasks/domain_verification.py :: custom_domains
 - app/schemas/custom_domains.py :: custom_domains
+- app/models/custom_domains.py :: custom_domains
+- app/tasks/domain_verification.py :: custom_domains
 - docs/CUSTOM_DOMAIN_INTEGRATION.md :: /api/v1/domains/request
-- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request
 - scripts/scaffold/04_custom_domains.sh :: /api/v1/domains/request
+- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request
 
 Frontend:
+- app/onboarding-docs/page.tsx :: domain
 - app/templates/tenant/portal.html :: domain
 - app/templates/auth/login.html :: domain"
 Fleetbase Engine,Fleetbase Contacts / Entities,fleetbase,True,False,Backend only,yellow,No,Potential Fleetbase data objects not yet visibly wired.,"Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: entity
-- app/models/audit.py :: entity
-- app/models/tenant.py :: fleetbase
-- app/models/payment.py :: entity
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/models/support_crm.py :: contacts
+- app/api/routes/users.py :: entity
+- app/api/routes/support_crm.py :: contacts
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
 - app/core/errors.py :: entity
 - app/core/config.py :: fleetbase"
 Fleetbase Engine,Fleetbase Dispatch Dashboard,fleetbase,True,True,Aligned,green,No,Dispatch and operations console via Fleetbase.,"Backend:
 - app/main.py :: fleetbase
-- app/models/tenant.py :: fleetbase
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/middleware/rate_limit.py :: dispatch
-- app/core/config.py :: fleetbase
-- app/core/structured_logging.py :: dispatch
-- app/core/middleware.py :: dispatch
-- app/api/routes/tenants.py :: fleetbase
+- app/api/routes/vendors.py :: dispatch
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
 - app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/core/middleware.py :: dispatch
+- app/core/structured_logging.py :: dispatch
 
 Frontend:
 - app/templates/tenant/portal.html :: console
 - app/templates/auth/dashboard.html :: console"
 Fleetbase Engine,Fleetbase Drivers,fleetbase,True,False,Backend only,yellow,No,Driver management capability from Fleetbase.,"Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: driver
-- app/locales/zh.json :: driver
-- app/models/tenant.py :: fleetbase
-- app/models/vendor.py :: driver
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
-- app/api/routes/tenants.py :: fleetbase
-- app/api/routes/fleetbase_runtime.py :: fleetbase"
+- app/api/routes/vendors.py :: driver
+- app/api/routes/admin_marketplace.py :: driver
+- app/api/routes/navigator.py :: driver
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/api/routes/marketplace.py :: driver
+- app/api/routes/commercial_orchestration.py :: driver"
 Fleetbase Engine,Fleetbase Extensions / CLI Install,fleetbase,True,False,Backend only,yellow,No,CLI/runtime installation capability.,"Backend:
 - app/core/config.py :: @fleetbase/cli
-- app/services/fleetbase_runtime_service.py :: @fleetbase/cli
-- app/services/fleetbase_provisioner.py :: flb install-fleetbase
 - docs/DEPLOYMENT.md :: flb install-fleetbase
 - infra/runner/bootstrap_runner.sh :: @fleetbase/cli
 - scripts/bootstrap_runner.sh :: @fleetbase/cli
-- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli
-- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli"
-Fleetbase Engine,Fleetbase Orders,fleetbase,True,False,Backend only,yellow,No,Operational order lifecycle from Fleetbase engine.,"Backend:
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli
+- scripts/audit/endgoal_gap_audit.py :: flb install-fleetbase
+- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli"
+Fleetbase Engine,Fleetbase Orders,fleetbase,True,True,Aligned,green,No,Operational order lifecycle from Fleetbase engine.,"Backend:
 - app/main.py :: fleetbase
-- app/models/tenant.py :: fleetbase
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
-- app/api/routes/runners.py :: order
-- app/api/routes/tenants.py :: order
-- app/api/routes/fleetbase_runtime.py :: order
 - app/api/routes/custom_domains.py :: order
-- app/api/routes/support_crm.py :: order"
-Fleetbase Engine,Fleetbase Real-time Tracking,fleetbase,True,True,Aligned,green,No,Native Fleetbase operational tracking capability.,"Backend:
-- app/main.py :: fleetbase
-- app/locales/en.json :: tracking
-- app/locales/zh.json :: tracking
-- app/models/shipment.py :: tracking
-- app/models/tenant.py :: fleetbase
-- app/models/tenant_branding.py :: tracking
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/models/support_crm.py :: tracking
-- app/middleware/rate_limit.py :: tracking
+- app/api/routes/users.py :: order
+- app/api/routes/runners.py :: order
+- app/api/routes/support_crm.py :: order
+- app/api/routes/admin_credits.py :: order
+- app/api/routes/admin_marketplace.py :: order
+- app/api/routes/billing.py :: order
+- app/api/routes/tenants.py :: order
+- app/api/routes/payments.py :: order
 
 Frontend:
+- app/onboarding-docs/page.tsx :: orders"
+Fleetbase Engine,Fleetbase Real-time Tracking,fleetbase,True,True,Aligned,green,No,Native Fleetbase operational tracking capability.,"Backend:
+- app/main.py :: tracking
+- app/api/routes/geo.py :: tracking
+- app/api/routes/support_crm.py :: tracking
+- app/api/routes/vendors.py :: tracking
+- app/api/routes/admin_marketplace.py :: tracking
+- app/api/routes/payments.py :: webhook
+- app/api/routes/navigator.py :: tracking
+- app/api/routes/shipments.py :: tracking
+- app/api/routes/whatsapp_bot.py :: webhook
+- app/api/routes/storefront.py :: fleetbase
+
+Frontend:
+- app/onboarding-docs/page.tsx :: map
 - app/templates/tenant/portal.html :: tracking
 - app/templates/auth/register.html :: tracking
 - app/templates/auth/dashboard.html :: tracking"
 Fleetbase Engine,Fleetbase Vehicles,fleetbase,True,False,Backend only,yellow,No,Vehicle management capability from Fleetbase.,"Backend:
 - app/main.py :: fleetbase
-- app/locales/en.json :: vehicle
-- app/locales/zh.json :: vehicle
-- app/models/tenant.py :: fleetbase
-- app/models/vendor.py :: vehicle
-- app/models/runner.py :: fleetbase
-- app/models/fleetbase_runtime.py :: fleetbase
-- app/core/config.py :: fleetbase
 - app/api/routes/vendors.py :: vehicle
-- app/api/routes/tenants.py :: fleetbase"
+- app/api/routes/navigator.py :: fleetbase
+- app/api/routes/storefront.py :: fleetbase
+- app/api/routes/fleetbase_runtime.py :: fleetbase
+- app/api/routes/pallet.py :: fleetbase
+- app/api/routes/customer_portal.py :: fleetbase
+- app/core/config.py :: fleetbase
+- app/onboarding-docs/page.tsx :: fleetbase
+- app/services/fleetbase_runtime_service.py :: fleetbase"
 Fleetbase Runtime,Fleetbase Runtime Orchestration,in_house,True,False,Backend only,yellow,No,Runner registration and install orchestration layer.,"Backend:
 - app/api/routes/fleetbase_runtime.py :: app/api/routes/fleetbase_runtime.py
 - app/services/fleetbase_runtime_service.py :: app/services/fleetbase_runtime_service.py
 - app/services/runner_executor.py :: RunnerExecutor
 - docs/FLEETBASE_RUNTIME_DEPLOYER.md :: /api/v1/fleetbase-runtime
-- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime
-- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime"
+- scripts/bootstrap_login_create_tenant.sh :: /api/v1/fleetbase-runtime
+- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime
+- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime"
 Support,GLPI Sync,in_house,True,True,Aligned,green,No,Shared GLPI backend with tenant separation.,"Backend:
-- app/models/support_crm.py :: support_sync_logs
+- app/core/config.py :: GLPI_BASE_URL
 - app/services/glpi_client.py :: app/services/glpi_client.py
+- app/models/support_crm.py :: support_sync_logs
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: GLPI_BASE_URL
-- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py
 - scripts/scaffold/03_support_glpi_crm.sh :: support_sync_logs
+- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py
 
 Frontend:
+- app/onboarding-docs/page.tsx :: support
 - app/templates/tenant/portal.html :: support
 - app/templates/auth/login.html :: support
 - app/templates/auth/dashboard.html :: support"
 Support,Public Support Ticket Intake,in_house,True,True,Aligned,green,No,Customers can create tickets without login.,"Backend:
-- app/models/support_crm.py :: support_tickets
 - app/api/routes/support_crm.py :: public_token
 - app/services/support_crm_service.py :: public_token
 - app/schemas/support_crm.py :: public_token
+- app/models/support_crm.py :: support_tickets
 - docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/public/tickets
-- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets
 - scripts/scaffold/03_support_glpi_crm.sh :: /api/v1/support-crm/public/tickets
+- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets
 
 Frontend:
+- app/onboarding-docs/page.tsx :: ticket
 - app/templates/tenant/portal.html :: support
 - app/templates/auth/login.html :: support
 - app/templates/auth/dashboard.html :: support"
 Tracking,Tracking Engine (CSV / Customer Mapping),in_house,True,True,Aligned,green,No,Desired next module; likely not scaffolded yet.,"Backend:
-- app/main.py :: shipment
-- app/locales/en.json :: tracking
-- app/locales/zh.json :: tracking
-- app/models/shipment.py :: tracking
-- app/models/payment.py :: shipment
-- app/models/vendor.py :: shipment
-- app/models/tenant_branding.py :: tracking
-- app/models/notification_preferences.py :: shipment
-- app/models/support_crm.py :: tracking
-- app/middleware/rate_limit.py :: tracking
+- app/main.py :: tracking
+- app/api/routes/geo.py :: tracking
+- app/api/routes/support_crm.py :: tracking
+- app/api/routes/analytics.py :: shipment
+- app/api/routes/vendors.py :: tracking
+- app/api/routes/admin_marketplace.py :: tracking
+- app/api/routes/navigator.py :: tracking
+- app/api/routes/shipments.py :: tracking
+- app/api/routes/branding.py :: tracking
+- app/api/routes/whatsapp.py :: tracking
 
 Frontend:
+- app/onboarding-docs/page.tsx :: shipment
 - app/templates/tenant/portal.html :: tracking
 - app/templates/auth/register.html :: tracking
 - app/templates/auth/dashboard.html :: tracking"

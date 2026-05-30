@@ -11,6 +11,7 @@ class AdminLoginRequest(BaseModel):
 class AdminTokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    control_plane_token: str | None = None
 
 
 class AdminCreateRequest(BaseModel):

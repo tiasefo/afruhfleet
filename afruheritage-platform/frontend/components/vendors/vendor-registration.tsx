@@ -112,6 +112,23 @@ export function VendorRegistration() {
 
   const [submitError, setSubmitError] = useState<string | null>(null)
 
+  const getApiErrorMessage = (payload: any): string => {
+    if (!payload) return 'Registration failed'
+    if (typeof payload === 'string') return payload
+    if (typeof payload.detail === 'string') return payload.detail
+    if (Array.isArray(payload.detail)) {
+      return payload.detail
+        .map((item: any) => {
+          if (typeof item === 'string') return item
+          if (item?.msg) return item.msg
+          return JSON.stringify(item)
+        })
+        .join('; ')
+    }
+    if (payload.message) return String(payload.message)
+    return 'Registration failed'
+  }
+
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setSubmitError(null)
@@ -141,7 +158,7 @@ export function VendorRegistration() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: 'Registration failed. Please try again.' }))
-        throw new Error(err.detail || 'Registration failed')
+        throw new Error(getApiErrorMessage(err))
       }
       setIsComplete(true)
     } catch (err: any) {

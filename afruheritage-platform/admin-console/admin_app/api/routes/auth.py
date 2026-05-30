@@ -17,6 +17,7 @@ from admin_app.schemas.auth import (
     AdminUserResponse,
 )
 from admin_app.services.audit_service import record_admin_audit
+from admin_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/auth", tags=["Admin Auth"])
 
@@ -33,7 +34,13 @@ def admin_login(payload: AdminLoginRequest, db: Session = Depends(get_db)):
     db.commit()
 
     record_admin_audit(db, admin_email=user.email, action="admin.login", entity_type="admin_user", entity_id=str(user.id))
-    return AdminTokenResponse(access_token=create_admin_token(str(user.id)))
+    control_plane_token = None
+    try:
+        # Use email as username for control plane login
+        control_plane_token = cp.login_control_plane(user.email.lower(), payload.password)
+    except Exception:
+        control_plane_token = None
+    return AdminTokenResponse(access_token=create_admin_token(str(user.id)), control_plane_token=control_plane_token)
 
 
 @router.get("/me", response_model=AdminUserResponse)
@@ -121,4 +128,9 @@ def bootstrap_first_admin(payload: AdminCreateRequest, db: Session = Depends(get
     db.refresh(user)
 
     record_admin_audit(db, admin_email=user.email, action="admin.bootstrap", entity_type="admin_user", entity_id=str(user.id))
-    return AdminTokenResponse(access_token=create_admin_token(str(user.id)))
+    control_plane_token = None
+    try:
+        control_plane_token = cp.login_control_plane(payload.email.lower(), payload.password)
+    except Exception:
+        control_plane_token = None
+    return AdminTokenResponse(access_token=create_admin_token(str(user.id)), control_plane_token=control_plane_token)

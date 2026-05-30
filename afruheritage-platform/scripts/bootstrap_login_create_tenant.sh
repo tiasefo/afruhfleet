@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-API_URL="${API_URL:-http://localhost:8000}"
+API_URL="${API_URL:-http://localhost:8100}"
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-tiasefo@afruheritage.com}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:Sumiasis243$}"

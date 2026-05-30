@@ -1,0 +1,10 @@
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/fleetbase': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/fleetbase_storefront': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/#innodb_redo': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/performance_schema': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/fleetbase_sandbox': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/sys': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/#innodb_temp': Permission denied
+du: cannot read directory '/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql/mysql': Permission denied
+125M	/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0
+132K	/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0-install.log

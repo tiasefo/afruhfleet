@@ -62,6 +62,10 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAddingEvent, setIsAddingEvent] = useState(false)
+  const [locationLabel, setLocationLabel] = useState('')
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false)
+  const [locationError, setLocationError] = useState<string | null>(null)
+  const [locationSuccess, setLocationSuccess] = useState<string | null>(null)
 
   // Fetch shipment details
   const loadShipment = async () => {
@@ -143,6 +147,49 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
     } finally {
       setIsAddingEvent(false)
     }
+  }
+
+  const handleCaptureLocation = async () => {
+    setLocationError(null)
+    setLocationSuccess(null)
+
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationError('Browser GPS is not available on this device.')
+      return
+    }
+
+    setIsUpdatingLocation(true)
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          await shipmentsAPI.updateLocation(params.id, {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            location: locationLabel.trim() || undefined,
+            occurred_at: new Date().toISOString(),
+            provider: 'browser_gps',
+            description: 'Location updated from shipment dashboard',
+          })
+          await loadShipment()
+          await loadEvents()
+          setLocationSuccess('Shipment location updated successfully.')
+        } catch (err: any) {
+          setLocationError(err?.message || 'Failed to update shipment location.')
+        } finally {
+          setIsUpdatingLocation(false)
+        }
+      },
+      (geoError) => {
+        setLocationError(geoError.message || 'Unable to capture current GPS location.')
+        setIsUpdatingLocation(false)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    )
   }
 
   if (isLoading) {
@@ -456,7 +503,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
                     <Activity className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-lg font-medium text-gray-900">No tracking events</h3>
                     <p className="mt-1 text-sm text-gray-600">
-                      Add events to track this shipment's journey
+                      Add events to track this shipment&apos;s journey
                     </p>
                   </div>
                 ) : (
@@ -538,6 +585,20 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
                       </p>
                     </div>
                   </div>
+                  {(shipment.current_location || shipment.current_latitude != null || shipment.current_longitude != null) && (
+                    <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+                      <p className="text-sm font-medium text-blue-900">Latest GPS</p>
+                      <p className="mt-1 text-sm text-blue-800">{shipment.current_location || 'Live coordinates recorded'}</p>
+                      {shipment.current_latitude != null && shipment.current_longitude != null && (
+                        <p className="mt-1 text-sm text-blue-700">
+                          {Number(shipment.current_latitude).toFixed(5)}, {Number(shipment.current_longitude).toFixed(5)}
+                        </p>
+                      )}
+                      {shipment.last_location_at && (
+                        <p className="mt-1 text-xs text-blue-700">Updated {new Date(shipment.last_location_at).toLocaleString()}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -584,10 +645,28 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
                   <FileText className="w-4 h-4 mr-2" />
                   Generate Invoice
                 </Button>
-                <Button variant="outline" className="w-full">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Track Location
-                </Button>
+                <div className="space-y-3 rounded-lg border border-gray-200 p-3">
+                  <Input
+                    value={locationLabel}
+                    onChange={(e) => setLocationLabel(e.target.value)}
+                    placeholder="Optional location label"
+                  />
+                  <Button variant="outline" className="w-full" onClick={handleCaptureLocation} disabled={isUpdatingLocation}>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {isUpdatingLocation ? 'Capturing GPS...' : 'Capture Current GPS'}
+                  </Button>
+                  {locationError && (
+                    <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>{locationError}</span>
+                    </div>
+                  )}
+                  {locationSuccess && (
+                    <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+                      {locationSuccess}
+                    </div>
+                  )}
+                </div>
                 <Button variant="outline" className="w-full">
                   <DollarSign className="w-4 h-4 mr-2" />
                   Record Payment

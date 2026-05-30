@@ -15,3 +15,8 @@ node_modules/
 .next/
 .DS_Storevenv/
 __pycache__/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/

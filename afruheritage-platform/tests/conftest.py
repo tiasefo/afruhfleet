@@ -1,21 +1,53 @@
 from __future__ import annotations
 
+import inspect
 import os
+
+import httpx
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 
+
+if "app" not in inspect.signature(httpx.Client.__init__).parameters:
+    _original_httpx_client_init = httpx.Client.__init__
+
+    def _compat_httpx_client_init(self, *args, app=None, **kwargs):
+        return _original_httpx_client_init(self, *args, **kwargs)
+
+    httpx.Client.__init__ = _compat_httpx_client_init
+
 os.environ.setdefault("APP_ENV", "test")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci-only")
-os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ.setdefault("CELERY_BROKER_URL", "redis://localhost:6379/0")
 os.environ.setdefault("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("DEFAULT_SUBDOMAIN_BASE", "afruheritage.com")
-os.environ.setdefault("RUNNER_DEFAULT_FLEETBASE_ROOT", "/tmp/test-runners")
+
+# Whitelabeled Fleet Engine test defaults
+os.environ.setdefault("RUNNER_DEFAULT_FLEET_ENGINE_ROOT", "/tmp/test-runners")
+os.environ.setdefault("RUNNER_DEFAULT_SSH_PORT", "22")
 os.environ.setdefault("RUNNER_DEFAULT_SSH_USER", "test")
 os.environ.setdefault("RUNNER_DEFAULT_SSH_KEY_PATH", "/tmp/fake_key")
+
+# Optional: Mapbox / Google Maps / S3 / SMTP defaults for tests
+os.environ.setdefault("MAPBOX_ACCESS_TOKEN", "")
+os.environ.setdefault("GOOGLE_MAPS_API_KEY", "")
+os.environ.setdefault("S3_BUCKET", "")
+os.environ.setdefault("S3_REGION", "us-east-1")
+os.environ.setdefault("S3_ENDPOINT_URL", "")
+os.environ.setdefault("LOCAL_STORAGE_DIR", "/tmp/storage")
+
+os.environ.setdefault("SMTP_HOST", "")
+os.environ.setdefault("SMTP_PORT", "587")
+os.environ.setdefault("SMTP_USERNAME", "")
+os.environ.setdefault("SMTP_PASSWORD", "")
+os.environ.setdefault("SMTP_USE_TLS", "true")
+os.environ.setdefault("SMTP_FROM_EMAIL", "noreply@afruheritage.com")
+os.environ.setdefault("SMTP_FROM_NAME", "Afruheritage")
+
 
 from app.db.session import Base, get_db
 from app.main import app
@@ -73,5 +105,5 @@ def superuser(db_session) -> User:
 
 @pytest.fixture()
 def auth_headers(superuser) -> dict[str, str]:
-    token = create_access_token(data={"sub": str(superuser.id)})
+    token = create_access_token(subject=str(superuser.id))
     return {"Authorization": f"Bearer {token}"}

@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { api, getToken, setToken, clearToken } from '@/lib/api'
+import { api, getToken, setToken, clearToken, authApi } from '@/lib/api_updated'
+import { persistTenantId } from '@/lib/tenant'
 
 interface User {
   id: string
@@ -18,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithToken: (token: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
 }
@@ -29,6 +31,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+
+  const loginWithToken = async (accessToken: string) => {
+    setToken(accessToken)
+    setTokenState(accessToken)
+    const userData = await authApi.me()
+    setUser(userData)
+    persistTenantId(userData.tenant_id)
+    if (userData.is_superuser) {
+      router.push('/dashboard')
+    } else {
+      router.push('/shipments')
+    }
+  }
 
   // Check for existing token on mount
   useEffect(() => {
@@ -43,12 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/auth/login', { email, password })
-      const { access_token, user: userData } = response
+      const response = await authApi.login({ username: email, password })
+      const { access_token } = response
       
       setToken(access_token)
       setTokenState(access_token)
+
+      const userData = await authApi.me()
       setUser(userData)
+      persistTenantId(userData.tenant_id)
       
       // Redirect based on user role
       if (userData.is_superuser) {
@@ -63,6 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     clearToken()
+    persistTenantId(null)
     setTokenState(null)
     setUser(null)
     router.push('/login')
@@ -70,8 +89,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const userData = await api.get('/auth/me')
+      const userData = await authApi.me()
       setUser(userData)
+      persistTenantId(userData.tenant_id)
     } catch (error) {
       // Token invalid, clear it
       logout()
@@ -86,6 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isAuthenticated: !!user && !!token,
     login,
+    loginWithToken,
     logout,
     refreshUser,
   }

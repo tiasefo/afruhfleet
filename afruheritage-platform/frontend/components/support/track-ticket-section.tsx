@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Search, Loader2, AlertCircle, MessageSquare } from 'lucide-react'
+import { resolvePublicTenantId } from '@/lib/tenant'
 
 export function TrackTicketSection() {
   const router = useRouter()
@@ -20,9 +21,16 @@ export function TrackTicketSection() {
 
     setIsSearching(true)
     setError('')
+    const tenantId = resolvePublicTenantId()
+
+    if (!tenantId) {
+      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
+      setIsSearching(false)
+      return
+    }
 
     try {
-      const res = await fetch(`/api/v1/support-crm/public/tickets/${searchValue.trim()}`)
+      const res = await fetch(`/api/v1/support-crm/public/tickets/${searchValue.trim()}?tenant_id=${encodeURIComponent(tenantId)}`)
       if (res.status === 404) {
         setError('Ticket not found. Please check your tracking token.')
         return

@@ -168,6 +168,11 @@
   "billing.payment_history": "Payment History",
   "billing.invoices": "Invoices",
   "billing.make_payment": "Make Payment",
+  "billing.available_plans": "Available Plans",
+  "billing.manage_subscription": "Manage your subscription and wallet",
+  "billing.no_active_subscription": "No Active Subscription",
+  "billing.choose_plan_to_start": "Choose a plan to get started",
+  "billing.available_credits": "Available credits",
 
   "support.title": "Support",
   "support.create_ticket": "Create Ticket",

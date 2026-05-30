@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import uuid
 from datetime import datetime
@@ -16,6 +17,9 @@ def enum_values(enum_cls):
 
 
 class DomainType(str, PyEnum):
+    # Legacy labels retained for compatibility with existing PostgreSQL enum values.
+    PROVIDER_SUBDOMAIN = "provider_subdomain"
+    CUSTOMER_DOMAIN = "customer_domain"
     PLATFORM_SUBDOMAIN = "platform_subdomain"
     CUSTOMER_SUBDOMAIN = "customer_subdomain"
     APEX = "apex"

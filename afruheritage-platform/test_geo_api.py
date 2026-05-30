@@ -16,7 +16,7 @@ def test_geo_api():
     """Test geo API endpoints"""
     print("🌐 Testing Geo API Endpoints...")
     
-    base_url = "http://localhost:8000/api/v1/geo"
+    base_url = "http://localhost:8100/api/v1/geo"
     
     # Test endpoints to try
     endpoints = [
@@ -63,7 +63,7 @@ def main():
     """Run API tests"""
     print("🌐 Afruheritage Geo API Test Suite")
     print("=" * 50)
-    print("Note: Make sure the API server is running on localhost:8000")
+    print("Note: Make sure the API server is running on localhost:8100")
     print("Start with: uvicorn app.main:app --reload")
     print()
     

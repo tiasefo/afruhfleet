@@ -1,3 +1,4 @@
+from app.core.config import settings
 import enum
 import uuid
 from datetime import datetime
@@ -39,6 +40,8 @@ class Tenant(Base):
     runner_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('runner_nodes.id'), nullable=True)
     live_console_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     live_api_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    live_api_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    live_api_auth_scheme: Mapped[str | None] = mapped_column(String(32), nullable=True, default='bearer')
     fleetbase_install_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
     subdomain: Mapped[str | None] = mapped_column(String(120), unique=False, index=True, nullable=True)
     custom_domain: Mapped[str | None] = mapped_column(String(255), unique=False, nullable=True)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import enum
 import uuid
@@ -56,6 +57,11 @@ class Shipment(Base):
     origin_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     destination_country: Mapped[str | None] = mapped_column(String(100), nullable=True)
     destination_city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    current_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    current_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    current_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    last_location_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    live_tracking_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     shipped_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     estimated_arrival: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -99,6 +105,8 @@ class ShipmentEvent(Base):
     shipment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("shipments.id"), nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)

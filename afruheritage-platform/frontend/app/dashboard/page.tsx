@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { AIChatWidget } from '@/components/ai-chat-widget'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
+import { tenantApi } from '@/lib/api_updated'
 import {
   Building2,
   Package,
@@ -27,35 +28,30 @@ import {
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { user, token, loading, logout } = useAuth()
+  const { user, token, isLoading, logout } = useAuth()
   const { branding } = useBranding()
   const [tenants, setTenants] = useState<any[]>([])
   const [tenantsLoading, setTenantsLoading] = useState(false)
 
   useEffect(() => {
-    if (!loading && !token) {
+    if (!isLoading && !token) {
       router.push('/login')
     }
-  }, [loading, token, router])
+  }, [isLoading, token, router])
 
   useEffect(() => {
     if (user?.is_superuser && token) {
-      loadTenants(token)
+      loadTenants()
     }
   }, [user, token])
 
-  const loadTenants = async (t: string) => {
+  const loadTenants = async () => {
     setTenantsLoading(true)
     try {
-      const res = await fetch('/api/v1/tenants/?page=1&page_size=10', {
-        headers: { Authorization: `Bearer ${t}` },
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setTenants(data.items || [])
-      }
-    } catch {
-      // Tenants endpoint may not exist yet
+      const data = await tenantApi.getAll({ page: 1, page_size: 10 })
+      setTenants(data.items || [])
+    } catch (error) {
+      console.error('Failed to load tenants:', error)
     } finally {
       setTenantsLoading(false)
     }
@@ -66,7 +62,7 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -254,6 +250,14 @@ export default function DashboardPage() {
                     Tenants can be created from the Admin Console at{' '}
                     <span className="font-mono text-xs">:3001</span>
                   </p>
+                  <div className="mt-4 flex justify-center gap-3">
+                    <Button asChild>
+                      <a href="http://10.0.0.115:3001/dashboard/tenants">Create Tenant Instance</a>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <a href="http://10.0.0.115:3001/dashboard">Open Admin Console</a>
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">

@@ -27,10 +27,14 @@ import {
 
 export default function TenantsPage() {
   const [tenants, setTenants] = useState<any[]>([])
+  const [tenantRequests, setTenantRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingRequests, setLoadingRequests] = useState(true)
   const [search, setSearch] = useState('')
+  const [requestStatusFilter, setRequestStatusFilter] = useState('pending_review')
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [form, setForm] = useState({ company_name: '', contact_email: '', plan_code: 'free_trial', requested_domain: '', domain_type: 'subdomain' })
 
   const load = async () => {
@@ -46,6 +50,20 @@ export default function TenantsPage() {
   }
 
   useEffect(() => { load() }, [])
+
+  const loadRequests = async () => {
+    setLoadingRequests(true)
+    try {
+      const data = await api.get(`/admin/tenants/requests?status=${encodeURIComponent(requestStatusFilter)}&page=1&page_size=20`)
+      setTenantRequests(Array.isArray(data) ? data : (data.items || []))
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setLoadingRequests(false)
+    }
+  }
+
+  useEffect(() => { loadRequests() }, [requestStatusFilter])
 
   const handleCreate = async () => {
     setCreating(true)
@@ -64,7 +82,7 @@ export default function TenantsPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      await api.post(`/admin/tenants/${id}/approve`)
+      await api.post(`/admin/tenants/${id}/approve`, { verification_notes: null })
       toast.success('Tenant approved')
       load()
     } catch (e: any) {
@@ -74,11 +92,37 @@ export default function TenantsPage() {
 
   const handleLaunch = async (id: string) => {
     try {
-      await api.post(`/admin/tenants/${id}/launch`)
+      await api.post(`/admin/tenants/${id}/launch`, { runner_id: null })
       toast.success('Tenant launch initiated')
       load()
     } catch (e: any) {
       toast.error(e.message)
+    }
+  }
+
+  const handleReviewRequest = async (id: string, status: 'approved' | 'rejected') => {
+    setActionLoading(`${id}:${status}`)
+    try {
+      await api.patch(`/admin/tenants/requests/${id}`, { status, review_notes: null })
+      toast.success(`Request ${status}`)
+      loadRequests()
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleAutoProvision = async (id: string) => {
+    setActionLoading(`${id}:auto`)
+    try {
+      await api.post(`/admin/tenants/requests/${id}/auto-provision`, {})
+      toast.success('Tenant auto-provisioned')
+      await Promise.all([load(), loadRequests()])
+    } catch (e: any) {
+      toast.error(e.message)
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -197,6 +241,60 @@ export default function TenantsPage() {
           ))}
         </div>
       )}
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Tenant Requests</CardTitle>
+          <div className="flex items-center gap-2">
+            <select
+              className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+              value={requestStatusFilter}
+              onChange={e => setRequestStatusFilter(e.target.value)}
+            >
+              <option value="pending_review">Pending Review</option>
+              <option value="approved">Approved</option>
+              <option value="provisioning">Provisioning</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <Button variant="outline" size="icon" onClick={loadRequests}><RefreshCw className="h-4 w-4" /></Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingRequests ? (
+            <div className="flex justify-center py-10">
+              <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : tenantRequests.length === 0 ? (
+            <div className="py-6 text-center text-muted-foreground">No tenant requests found</div>
+          ) : (
+            <div className="space-y-3">
+              {tenantRequests.map((r: any) => (
+                <Card key={r.id}>
+                  <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="font-semibold">{r.company_name}</div>
+                      <div className="text-sm text-muted-foreground">{r.contact_name} · {r.contact_email} · {r.country}/{r.city}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColor(r.status)}>{r.status}</Badge>
+                      {r.status === 'pending_review' && (
+                        <>
+                          <Button size="sm" variant="outline" disabled={actionLoading === `${r.id}:approved`} onClick={() => handleReviewRequest(r.id, 'approved')}>Approve</Button>
+                          <Button size="sm" variant="outline" disabled={actionLoading === `${r.id}:rejected`} onClick={() => handleReviewRequest(r.id, 'rejected')}>Reject</Button>
+                        </>
+                      )}
+                      {(r.status === 'approved' || r.status === 'provisioning') && (
+                        <Button size="sm" disabled={actionLoading === `${r.id}:auto`} onClick={() => handleAutoProvision(r.id)}>Auto Provision</Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

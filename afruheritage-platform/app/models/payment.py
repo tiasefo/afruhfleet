@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import enum
 import uuid
@@ -38,42 +39,35 @@ class PaymentRecord(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
 
-    # Payment details
     payment_reference: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
     paystack_reference: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     platform_fee: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     tenant_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     paid_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
-    
-    # Payment method and status
+
     payment_method: Mapped[PaymentMethod] = mapped_column(Enum(PaymentMethod), nullable=False)
     status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
-    
-    # Customer information
+
     customer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     customer_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     customer_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    
-    # URLs and references
+
     authorization_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     callback_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    
-    # Timestamps
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     failed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    
-    # Additional information
+
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     failure_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     additional_data: Mapped[dict] = mapped_column(JSON, nullable=True, default=lambda: {})
-    
-    # Relationships
-    tenant: Mapped["Tenant"] = relationship("Tenant", back_populates="payments")
+
+    tenant: Mapped["Tenant"] = relationship("Tenant")
 
 
 class VirtualCredit(Base):
@@ -84,22 +78,20 @@ class VirtualCredit(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+
     balance: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="GHS")
-    
-    # Credit history
+
     total_purchased: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
     total_spent: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
-    # Relationships
-    user: Mapped["User"] = relationship("User", back_populates="virtual_credits")
-    purchases: Mapped[list["CreditPurchase"]] = relationship("CreditPurchase", back_populates="credit_account")
-    transactions: Mapped[list["CreditTransaction"]] = relationship("CreditTransaction", back_populates="credit_account")
+
+    user: Mapped["User"] = relationship("User")
+    purchases: Mapped[list["CreditPurchase"]] = relationship("CreditPurchase")
+    transactions: Mapped[list["CreditTransaction"]] = relationship("CreditTransaction")
 
 
 class CreditPurchase(Base):
@@ -110,26 +102,22 @@ class CreditPurchase(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     credit_account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("virtual_credits.id"), nullable=False)
-    
-    # Purchase details
+
     amount_paid: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     credits_received: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="GHS")
-    
-    # Payment information
+
     payment_method: Mapped[PaymentMethod] = mapped_column(Enum(PaymentMethod), nullable=False)
     payment_reference: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")  # pending, completed, failed
-    
-    # Timestamps
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    
-    # Relationships
+
     user: Mapped["User"] = relationship("User")
-    credit_account: Mapped["VirtualCredit"] = relationship("VirtualCredit", back_populates="purchases")
+    credit_account: Mapped["VirtualCredit"] = relationship("VirtualCredit", overlaps="purchases")
 
 
 class CreditTransaction(Base):
@@ -140,28 +128,23 @@ class CreditTransaction(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
     credit_account_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("virtual_credits.id"), nullable=False)
-    
-    # Transaction details
-    transaction_type: Mapped[str] = mapped_column(String(50), nullable=False)  # spend, transfer, gift, refund
+
+    transaction_type: Mapped[str] = mapped_column(String(50), nullable=False)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     balance_before: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     balance_after: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    
-    # Related entities
-    related_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)  # For transfers
-    related_entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)  # Related shipment, etc.
-    related_entity_type: Mapped[str | None] = mapped_column(String(50), nullable=True)  # shipment, ride, etc.
-    
-    # Description and metadata
+
+    related_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)
+    related_entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
+    related_entity_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     extra_data: Mapped[dict] = mapped_column(JSON, nullable=True, default=lambda: {})
-    
-    # Timestamps
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    
-    # Relationships
-    user: Mapped["User"] = relationship("User")
-    credit_account: Mapped["VirtualCredit"] = relationship("VirtualCredit", back_populates="transactions")
+
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+    credit_account: Mapped["VirtualCredit"] = relationship("VirtualCredit", overlaps="transactions")
     related_user: Mapped["User | None"] = relationship("User", foreign_keys=[related_user_id])

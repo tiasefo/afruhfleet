@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session

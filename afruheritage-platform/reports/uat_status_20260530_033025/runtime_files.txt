@@ -1,0 +1,3 @@
+/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker-compose.yml
+/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/.afruheritage-runtime.env
+/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0-install.log

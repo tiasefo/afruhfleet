@@ -1,6 +1,6 @@
 import requests
 
-API_URL = "http://localhost:8000/api/v1"
+API_URL = "http://localhost:8100/api/v1"
 ADMIN_TOKEN = "<YOUR_ADMIN_TOKEN>"  # Replace with a real admin JWT
 
 headers = {

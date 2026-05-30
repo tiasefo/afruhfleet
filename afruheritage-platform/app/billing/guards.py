@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 from app.db.session import SessionLocal
 from app.services.billing_service import evaluate_subscription_state

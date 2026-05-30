@@ -10,6 +10,6 @@ logs:
 	docker compose logs -f api worker
 
 bootstrap-admin:
-	curl -X POST http://localhost:8000/api/v1/auth/bootstrap \
+	curl -X POST http://localhost:8100/api/v1/auth/bootstrap \
 	  -H 'Content-Type: application/json' \
 	  -d '{"email":"admin@afruheritage.local","password":"ChangeMeNow!123","full_name":"Initial Admin"}'

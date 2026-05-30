@@ -65,7 +65,7 @@ The script installs Docker, Docker Compose plugin, Node.js LTS, npm, and the Fle
 Use the admin token from bootstrap or login, then register a runner:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/runners \
+curl -X POST http://localhost:8100/api/v1/runners \
   -H 'Authorization: Bearer <TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -83,7 +83,7 @@ curl -X POST http://localhost:8000/api/v1/runners \
 Create tenant:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/tenants \
+curl -X POST http://localhost:8100/api/v1/tenants \
   -H 'Authorization: Bearer <TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8000/api/v1/tenants \
 Approve tenant:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/tenants/<TENANT_ID>/approve \
+curl -X POST http://localhost:8100/api/v1/tenants/<TENANT_ID>/approve \
   -H 'Authorization: Bearer <TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{"verification_notes": "Approved for provisioning"}'
@@ -108,7 +108,7 @@ curl -X POST http://localhost:8000/api/v1/tenants/<TENANT_ID>/approve \
 Launch tenant:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/tenants/<TENANT_ID>/launch \
+curl -X POST http://localhost:8100/api/v1/tenants/<TENANT_ID>/launch \
   -H 'Authorization: Bearer <TOKEN>' \
   -H 'Content-Type: application/json' \
   -d '{"runner_id": "<RUNNER_ID>"}'
@@ -117,7 +117,7 @@ curl -X POST http://localhost:8000/api/v1/tenants/<TENANT_ID>/launch \
 Check job status:
 
 ```bash
-curl -H 'Authorization: Bearer <TOKEN>' http://localhost:8000/api/v1/tenants/jobs/<JOB_ID>
+curl -H 'Authorization: Bearer <TOKEN>' http://localhost:8100/api/v1/tenants/jobs/<JOB_ID>
 ```
 
 ## 7. White-label and routing requirements

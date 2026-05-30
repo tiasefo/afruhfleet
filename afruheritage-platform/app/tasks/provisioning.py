@@ -8,6 +8,7 @@ from app.core.structured_logging import business_logger
 from app.db.session import SessionLocal
 from app.models.tenant import LaunchStatus, ProvisioningJob, Tenant
 from app.services.fleetbase_provisioner import FleetbaseProvisioner
+from app.services.fleetbase_runtime_service import sync_runtime_from_tenant
 from app.services.notification_service import notification_service
 from app.tasks.celery_app import celery_app
 
@@ -48,6 +49,9 @@ def provision_tenant(job_id: str) -> None:
         tenant.launch_status = LaunchStatus.provisioning
         job.status = LaunchStatus.provisioning
         db.commit()
+        db.refresh(tenant)
+
+        sync_runtime_from_tenant(db, tenant, status=LaunchStatus.provisioning)
 
         provisioner = FleetbaseProvisioner(tenant.runner)
         result = provisioner.provision(tenant)
@@ -56,9 +60,13 @@ def provision_tenant(job_id: str) -> None:
         tenant.fleetbase_install_path = result.install_path
         tenant.live_console_url = result.console_url
         tenant.live_api_url = result.api_url
+        tenant.live_api_auth_scheme = tenant.live_api_auth_scheme or 'bearer'
         job.status = LaunchStatus.active
         job.details = result.detail
         db.commit()
+        db.refresh(tenant)
+
+        sync_runtime_from_tenant(db, tenant, status=LaunchStatus.active)
 
         duration_ms = (time.time() - start_time) * 1000
         logger.info('Provisioning completed for tenant %s', tenant.slug)
@@ -99,6 +107,8 @@ def provision_tenant(job_id: str) -> None:
         if 'tenant' in locals() and tenant:
             tenant.launch_status = LaunchStatus.failed
         db.commit()
+        if 'tenant' in locals() and tenant:
+            sync_runtime_from_tenant(db, tenant, status=LaunchStatus.failed, last_error=str(exc)[:2000])
         raise
     finally:
         db.close()

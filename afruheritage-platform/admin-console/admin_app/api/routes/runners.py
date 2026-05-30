@@ -9,6 +9,7 @@ from admin_app.models.admin_user import AdminUser
 from admin_app.schemas.proxy import ProxyRunnerCreate
 from admin_app.services.audit_service import record_admin_audit
 from admin_app.services import control_plane_client as cp
+from admin_app.services.control_plane_client import ControlPlaneError
 
 router = APIRouter(prefix="/runners", tags=["Admin – Runners"])
 
@@ -25,7 +26,10 @@ def list_runners(
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    return cp.list_runners(_get_cp_token(request))
+    try:
+        return cp.list_runners(_get_cp_token(request))
+    except ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
 
 
 @router.post("")
@@ -35,7 +39,10 @@ def create_runner(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    result = cp.create_runner(_get_cp_token(request), payload.model_dump())
+    try:
+        result = cp.create_runner(_get_cp_token(request), payload.model_dump())
+    except ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
     record_admin_audit(
         db,
         admin_email=current_admin.email,

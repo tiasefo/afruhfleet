@@ -1,91 +1,102 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_no_tenant_check
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.core.structured_logging import security_logger
 from app.db.session import get_db
 from app.middleware.rate_limit import rate_limit
 from app.models.user import User
-from app.schemas.auth import BootstrapAdminRequest, LoginRequest, RegisterRequest, TokenResponse
-
+from app.schemas.auth import BootstrapAdminRequest, LoginRequest, PasswordResetConfirmRequest, RegisterRequest, TokenResponse
+from app.services.signup_onboarding_service import ensure_user_tenant_context
+from app.services.billing_service import normalize_plan_code
 router = APIRouter(prefix='/auth', tags=['auth'])
 
-
 @router.post('/bootstrap', response_model=TokenResponse)
-def bootstrap_admin(payload: BootstrapAdminRequest, db: Session = Depends(get_db)) -> TokenResponse:
+def bootstrap_admin(payload: BootstrapAdminRequest, db: Session=Depends(get_db)) -> TokenResponse:
     if not settings.enable_bootstrap_admin:
         raise HTTPException(status_code=403, detail='Bootstrap admin route disabled')
     existing_admin = db.scalar(select(User).where(User.is_superuser.is_(True)))
     if existing_admin:
         raise HTTPException(status_code=409, detail='Bootstrap admin already exists')
-
-    user = User(
-        email=payload.email.lower(),
-        full_name=payload.full_name,
-        hashed_password=get_password_hash(payload.password),
-        is_superuser=True,
-        is_active=True,
-    )
+    user = User(email=payload.email.lower(), full_name=payload.full_name, hashed_password=get_password_hash(payload.password), is_superuser=True, is_tenant_admin=False, is_active=True)
     db.add(user)
     db.commit()
     db.refresh(user)
-    return TokenResponse(access_token=create_access_token(str(user.id)))
-
+    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
 @router.post('/register', response_model=TokenResponse)
-def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenResponse:
+def register(payload: RegisterRequest, db: Session=Depends(get_db)) -> TokenResponse:
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
         raise HTTPException(status_code=409, detail='An account with this email already exists')
-    user = User(
-        email=payload.email.lower(),
-        full_name=payload.full_name,
-        hashed_password=get_password_hash(payload.password),
-        is_superuser=False,
-        is_active=True,
-    )
+    user = User(email=payload.email.lower(), full_name=payload.full_name, hashed_password=get_password_hash(payload.password), is_superuser=False, is_tenant_admin=True, is_active=True)
     db.add(user)
-    db.commit()
+    db.flush()
+    ensure_user_tenant_context(
+        db,
+        user,
+        company_name=payload.company_name,
+        plan_code=normalize_plan_code(payload.plan_code).value,
+    )
     db.refresh(user)
-    return TokenResponse(access_token=create_access_token(str(user.id)))
-
+    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
 @router.post('/login', response_model=TokenResponse)
-@rate_limit(category="public", rule="login")
-def login(request: Request, payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
-    user = db.scalar(select(User).where(User.email == payload.username.lower()))
-    ip_address = request.client.host if request.client else "unknown"
-    user_agent = request.headers.get("User-Agent", "")
-    
+@rate_limit(category='public', rule='login')
+def login(request: Request, payload: LoginRequest, db: Session=Depends(get_db)) -> TokenResponse:
+    login_email = payload.email.lower()
+    user = db.scalar(select(User).where(User.email == login_email))
+    ip_address = request.client.host if request.client else 'unknown'
+    user_agent = request.headers.get('User-Agent', '')
     if not user or not verify_password(payload.password, user.hashed_password):
-        # Log failed login attempt
-        security_logger.log_login_attempt(
-            email=payload.username.lower(),
-            success=False,
-            ip_address=ip_address,
-            user_agent=user_agent,
-            failure_reason="Invalid credentials"
-        )
+        security_logger.log_login_attempt(email=login_email, success=False, ip_address=ip_address, user_agent=user_agent, failure_reason='Invalid credentials')
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Incorrect email or password')
-    
-    # Log successful login
-    security_logger.log_login_attempt(
-        email=user.email,
-        success=True,
-        ip_address=ip_address,
-        user_agent=user_agent
-    )
-    
-    return TokenResponse(access_token=create_access_token(str(user.id)))
 
+    if user.must_reset_password:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Password setup required. Use the reset link sent to your email.')
+
+    if not user.is_superuser and not user.tenant_id:
+        ensure_user_tenant_context(db, user)
+
+    security_logger.log_login_attempt(email=user.email, success=True, ip_address=ip_address, user_agent=user_agent)
+    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
 @router.get('/me')
-def me(current_user: User = Depends(get_current_user)) -> dict[str, str | bool]:
+def me(current_user: User=Depends(get_current_user_no_tenant_check)) -> dict[str, str | bool | None]:
     return {
+        'id': str(current_user.id),
         'email': current_user.email,
         'full_name': current_user.full_name,
+        'is_tenant_admin': current_user.is_tenant_admin,
         'is_superuser': current_user.is_superuser,
+        'tenant_id': str(getattr(current_user, 'tenant_id', None)) if getattr(current_user, 'tenant_id', None) else None,
     }
+
+
+@router.post('/password-reset/confirm')
+def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = Depends(get_db)) -> dict[str, str]:
+    user = db.scalar(select(User).where(User.password_reset_token == payload.token))
+    if not user:
+        raise HTTPException(status_code=404, detail='Invalid reset token')
+
+    now = datetime.now(timezone.utc)
+    expires_at = user.password_reset_expires_at
+    if not expires_at:
+        raise HTTPException(status_code=400, detail='Reset token expired')
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < now:
+        raise HTTPException(status_code=400, detail='Reset token expired')
+
+    user.hashed_password = get_password_hash(payload.new_password)
+    user.password_reset_token = None
+    user.password_reset_expires_at = None
+    user.must_reset_password = False
+    user.is_active = True
+    db.add(user)
+    db.commit()
+
+    return {'status': 'ok', 'message': 'Password updated successfully. You can now sign in.'}

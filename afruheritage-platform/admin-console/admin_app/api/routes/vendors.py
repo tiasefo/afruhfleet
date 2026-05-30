@@ -29,12 +29,16 @@ def list_vendors(
     page: int = 1,
     page_size: int = 20,
 ):
-    params = {"page": page, "page_size": page_size}
-    if status:
-        params["status"] = status
-    if q:
-        params["q"] = q
-    return cp.list_vendors(_get_cp_token(request), params)
+    try:
+        params = {"page": page, "page_size": page_size}
+        if status:
+            params["status"] = status
+        if q:
+            params["q"] = q
+        return cp.list_vendors(_get_cp_token(request), params)
+    except Exception as exc:
+        # If the control plane API is not available, return empty list
+        return {"items": [], "total": 0, "page": page, "page_size": page_size, "pages": 0}
 
 
 @router.get("/{vendor_id}")

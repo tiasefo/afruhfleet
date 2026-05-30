@@ -15,20 +15,18 @@ class WhatsAppNotificationService:
     def __init__(self, tenant_id: str):
         self.tenant_id = tenant_id
         self.api_url = "https://graph.facebook.com/v18.0"
-        self.access_token = getattr(settings, "WHATSAPP_ACCESS_TOKEN", "")
-        self.phone_number_id = getattr(settings, "WHATSAPP_PHONE_NUMBER_ID", "")
+        self.access_token = settings.whatsapp_access_token
+        self.phone_number_id = settings.whatsapp_phone_number_id
     
     async def send_message(self, recipient: str, message: str, message_type: str = "text") -> dict[str, Any]:
         """Send WhatsApp message to recipient"""
         try:
             if not self.access_token or not self.phone_number_id:
-                # Mock implementation for testing
-                logger.warning("WhatsApp not configured, using mock implementation")
+                logger.warning("WhatsApp not configured for tenant notification delivery")
                 return {
-                    "message_id": f"mock_msg_{recipient}_{hash(message) % 10000}",
-                    "status": "sent",
+                    "status": "not_configured",
                     "recipient": recipient,
-                    "mock": True
+                    "error": "WhatsApp API credentials are not configured"
                 }
             
             # Real WhatsApp Business API call
@@ -219,53 +217,49 @@ Thank you for choosing our service! 🚀
     
     async def _get_tenant_whatsapp_groups(self) -> list[dict[str, Any]]:
         """Get tenant's configured WhatsApp groups"""
-        # This would typically come from database
-        # For now, return mock data
-        return [
-            {
-                "group_id": "120363043329234567@g.us",  # WhatsApp group ID
-                "group_name": "Operations Team",
-                "notifications": ["shipment_created", "status_update", "delivered"]
-            },
-            {
-                "group_id": "120363043329876543@g.us",
-                "group_name": "Management Updates", 
-                "notifications": ["delivered", "failed"]
-            }
-        ]
+        return []
     
     async def _get_tenant_subdomain(self) -> str:
         """Get tenant's subdomain for tracking URLs"""
-        # This would typically come from database
-        # For now, return mock subdomain
-        return "accragloballogistics"
+        return self.tenant_id
     
     async def configure_whatsapp_groups(self, groups: list[dict[str, Any]]) -> dict[str, Any]:
         """Configure WhatsApp groups for tenant"""
         try:
-            # Validate group IDs
             configured_groups = []
             for group in groups:
-                if group["group_id"].endswith("@g.us"):  # WhatsApp group ID format
-                    configured_groups.append({
-                        "group_id": group["group_id"],
-                        "group_name": group["group_name"],
-                        "notifications": group.get("notifications", ["all"])
-                    })
-                else:
+                group_id = group.get("group_id", "")
+                group_name = group.get("group_name", "")
+                if not group_id or not group_name:
+                    continue
+                if not group_id.endswith("@g.us"):
                     logger.warning("Invalid WhatsApp group ID", extra={
                         "tenant_id": self.tenant_id,
-                        "group_id": group["group_id"]
+                        "group_id": group_id
                     })
-            
-            # Save to database (placeholder)
-            logger.info("WhatsApp groups configured", extra={
+                    continue
+                configured_groups.append({
+                    "group_id": group_id,
+                    "group_name": group_name,
+                    "notifications": group.get("notifications", ["all"])
+                })
+
+            if not configured_groups:
+                return {
+                    "status": "not_enabled",
+                    "error": "No valid WhatsApp groups submitted",
+                    "groups_count": 0,
+                    "groups": []
+                }
+
+            logger.info("WhatsApp group configuration accepted but persistence is not enabled", extra={
                 "tenant_id": self.tenant_id,
                 "groups_count": len(configured_groups)
             })
-            
+
             return {
-                "status": "configured",
+                "status": "not_enabled",
+                "error": "Persistent WhatsApp group storage is not enabled yet",
                 "groups_count": len(configured_groups),
                 "groups": configured_groups
             }

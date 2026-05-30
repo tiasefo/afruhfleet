@@ -1,16 +1,15 @@
 from __future__ import annotations
-
-import os
+from app.core.config import settings
 
 import httpx
 
 
 class GLPIClient:
     def __init__(self) -> None:
-        self.base_url = os.getenv("GLPI_BASE_URL", "").rstrip("/")
-        self.app_token = os.getenv("GLPI_APP_TOKEN", "")
-        self.user_token = os.getenv("GLPI_USER_TOKEN", "")
-        self.entity_mode = os.getenv("GLPI_TENANT_SEPARATION_MODE", "shared_entities")
+        self.base_url = (settings.glpi_api_url or settings.glpi_base_url or "").rstrip("/")
+        self.app_token = settings.glpi_app_token or ""
+        self.user_token = settings.glpi_user_token or ""
+        self.entity_mode = settings.glpi_tenant_separation_mode or "shared_entities"
 
     def enabled(self) -> bool:
         return bool(self.base_url and self.app_token and self.user_token)

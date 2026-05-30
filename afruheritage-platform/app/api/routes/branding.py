@@ -1,7 +1,8 @@
-from __future__ import annotations
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from datetime import datetime, timezone
+import uuid
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
@@ -31,7 +32,7 @@ def get_public_branding_route(
 ):
     branding = get_tenant_branding(db, tenant_id)
     if not branding:
-        raise HTTPException(status_code=404, detail="Branding not found for this tenant")
+        return _default_response(tenant_id)
     return _to_response(branding)
 
 
@@ -78,4 +79,38 @@ def _to_response(b) -> BrandingResponse:
         max_group_members=b.max_group_members,
         created_at=b.created_at,
         updated_at=b.updated_at,
+    )
+
+
+def _default_response(tenant_id: str) -> BrandingResponse:
+    now = datetime.now(timezone.utc)
+    return BrandingResponse(
+        id=str(uuid.uuid4()),
+        tenant_id=tenant_id,
+        company_name="Afruheritage",
+        tagline="AI-powered freight forwarding platform built for Africa.",
+        logo_url=None,
+        favicon_url="/favicon.ico",
+        primary_color="#0ea5e9",
+        secondary_color="#64748b",
+        accent_color="#f59e0b",
+        background_color="#ffffff",
+        legal_company_name="Afruheritage Logistics Ltd",
+        legal_footer_text="© 2024 Afruheritage. All rights reserved.",
+        terms_url=None,
+        privacy_url=None,
+        support_email="support@afruheritage.com",
+        support_phone="+233 30 123 4567",
+        support_url=None,
+        notification_from_name="Afruheritage",
+        notification_from_email="support@afruheritage.com",
+        default_language="en",
+        supported_languages="en,zh",
+        maps_enabled=True,
+        public_tracking_enabled=True,
+        csv_import_enabled=True,
+        group_members_enabled=True,
+        max_group_members=50,
+        created_at=now,
+        updated_at=now,
     )

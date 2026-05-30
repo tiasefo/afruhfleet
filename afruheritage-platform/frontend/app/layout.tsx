@@ -1,18 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from './providers'
+import { GlobalBackButton } from '@/components/navigation/global-back-button'
 import './globals.css'
-
-const inter = Inter({ 
-  subsets: ['latin'],
-  variable: '--font-inter',
-})
-
-const geistMono = Geist_Mono({ 
-  subsets: ['latin'],
-  variable: '--font-geist-mono',
-})
 
 export const metadata: Metadata = {
   title: 'Afruheritage | AI-Powered Freight Forwarding Platform',
@@ -41,9 +31,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${geistMono.variable}`}>
+    <html lang="en" className="font-sans">
       <body className="font-sans antialiased">
         <Providers>
+          <GlobalBackButton />
           {children}
         </Providers>
         <Analytics />

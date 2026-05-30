@@ -1,3 +1,4 @@
+from app.core.config import settings
 import uuid
 import enum
 from datetime import datetime

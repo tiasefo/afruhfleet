@@ -24,6 +24,7 @@ import {
   DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { resolvePublicTenantId } from '@/lib/tenant'
 
 // Default shipment structure
 const defaultShipment = {
@@ -61,6 +62,7 @@ const defaultShipment = {
     balance: 1000,
     currency: 'GHS',
   },
+  liveTracking: null,
   events: [
     {
       id: '1',
@@ -140,7 +142,12 @@ export function TrackingSearch() {
     setNotFound(false)
     setShowResult(false)
 
-    const tid = tenantId.trim() || 'default'
+    const tid = tenantId.trim() || resolvePublicTenantId()
+    if (!tid) {
+      setNotFound(true)
+      setIsSearching(false)
+      return
+    }
     try {
       const res = await fetch(`/api/v1/shipments/public/track/${tid}/${encodeURIComponent(searchValue.trim())}`)
       if (res.ok) {
@@ -157,6 +164,13 @@ export function TrackingSearch() {
           origin: { city: data.origin_city || '', country: data.origin_country || '', date: data.shipped_date || '' },
           destination: { city: data.destination_city || '', country: data.destination_country || '', date: data.estimated_arrival || '' },
           payment: { total: data.total_cost || 0, paid: data.amount_paid || 0, balance: data.balance_due || 0, currency: data.currency || 'GHS' },
+          liveTracking: data.current_latitude != null && data.current_longitude != null ? {
+            location: data.current_location || '',
+            latitude: data.current_latitude,
+            longitude: data.current_longitude,
+            lastUpdated: data.last_location_at || '',
+            provider: data.live_tracking_provider || 'gps',
+          } : null,
           events: (data.events || []).map((ev: any, i: number) => ({
             id: ev.id || String(i),
             type: ev.event_type,
@@ -353,6 +367,28 @@ export function TrackingSearch() {
                     </div>
                   </div>
                 </div>
+
+                {shipment.liveTracking && (
+                  <div className="mt-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-primary">Live GPS</p>
+                        <p className="mt-1 font-semibold text-foreground">
+                          {shipment.liveTracking.location || 'Location update received'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {shipment.liveTracking.latitude.toFixed(5)}, {shipment.liveTracking.longitude.toFixed(5)}
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground sm:text-right">
+                        <p>Source: {shipment.liveTracking.provider}</p>
+                        {shipment.liveTracking.lastUpdated && (
+                          <p>Updated: {formatDate(shipment.liveTracking.lastUpdated)} at {formatTime(shipment.liveTracking.lastUpdated)}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -365,7 +401,7 @@ export function TrackingSearch() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative space-y-0">
-                    {shipment.events.map((event, index) => (
+                    {shipment.events.map((event: any, index: number) => (
                       <div key={event.id} className="relative flex gap-4 pb-8 last:pb-0">
                         {/* Timeline Line */}
                         {index < shipment.events.length - 1 && (

@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, ArrowRight, Ship, Eye, EyeOff, Github, Mail } from 'lucide-react'
+import { Loader2, ArrowRight, Eye, EyeOff, Github, Mail, Music2, Ship } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
+import { authApi } from '@/lib/api_updated'
 
 export function RegisterForm() {
   const router = useRouter()
@@ -29,6 +30,7 @@ export function RegisterForm() {
     setError('')
 
     const formData = new FormData(e.currentTarget)
+    const companyName = formData.get('company_name') as string
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const fullName = formData.get('full_name') as string
@@ -47,22 +49,13 @@ export function RegisterForm() {
     }
 
     try {
-      const res = await fetch('/api/v1/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName }),
+      await authApi.bootstrap({
+        email,
+        password,
+        full_name: fullName,
       })
       
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({ detail: 'Registration failed' }))
-        if (res.status === 409) {
-          throw new Error('Email already exists')
-        }
-        throw new Error(body.detail || 'Registration failed')
-      }
-      
-      const data = await res.json()
-      login(data.access_token, data.user)
+      await login(email, password)
       router.push('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Registration failed')
@@ -132,15 +125,29 @@ export function RegisterForm() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => handleSocialRegister('github')}
-                  disabled={socialLoading === 'github'}
+                  onClick={() => handleSocialRegister('instagram')}
+                  disabled={socialLoading === 'instagram'}
                 >
-                  {socialLoading === 'github' ? (
+                  {socialLoading === 'instagram' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Github className="mr-2 h-4 w-4" />
                   )}
-                  Continue with GitHub
+                  Continue with Instagram
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleSocialRegister('tiktok')}
+                  disabled={socialLoading === 'tiktok'}
+                >
+                  {socialLoading === 'tiktok' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Music2 className="mr-2 h-4 w-4" />
+                  )}
+                  Continue with TikTok
                 </Button>
               </div>
 
@@ -163,6 +170,19 @@ export function RegisterForm() {
                 )}
 
                 <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="company_name">Company Name</FieldLabel>
+                    <Input
+                      id="company_name"
+                      name="company_name"
+                      type="text"
+                      placeholder="Enter your company name"
+                      required
+                      autoComplete="organization"
+                      className="h-11"
+                    />
+                  </Field>
+
                   <Field>
                     <FieldLabel htmlFor="full_name">Full Name</FieldLabel>
                     <Input
@@ -268,6 +288,12 @@ export function RegisterForm() {
                   Already have an account?{' '}
                   <Link href="/login" className="text-primary hover:underline">
                     Sign in
+                  </Link>
+                </p>
+                <p className="text-center text-sm text-muted-foreground">
+                  Need a company tenant workspace?{' '}
+                  <Link href="/tenant-request" className="text-primary hover:underline">
+                    Submit tenant request
                   </Link>
                 </p>
               </form>

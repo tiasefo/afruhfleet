@@ -1,11 +1,15 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import json
 from pathlib import Path
 
 from sqlalchemy.orm import Session
 
+from app.models.runner import RunnerNode
 from app.models.fleetbase_runtime import FleetbaseRuntime, FleetbaseRuntimeEvent, FleetbaseRunnerNode, RuntimeStatus
+from app.models.tenant import LaunchStatus, Tenant
+from app.services.fleetbase_install_script import build_fleetbase_install_script
 from app.services.runner_executor import RunnerExecutor
 
 
@@ -25,6 +29,93 @@ def pick_runner(db: Session, requested_runner_id: str | None = None) -> Fleetbas
     if not runner:
         raise ValueError("No active runner available")
     return runner
+
+
+def _map_launch_status(status: LaunchStatus | str | None) -> RuntimeStatus:
+    mapping = {
+        LaunchStatus.queued: RuntimeStatus.QUEUED,
+        LaunchStatus.provisioning: RuntimeStatus.INSTALLING,
+        LaunchStatus.active: RuntimeStatus.ACTIVE,
+        LaunchStatus.failed: RuntimeStatus.FAILED,
+        LaunchStatus.suspended: RuntimeStatus.SUSPENDED,
+        LaunchStatus.pending_verification: RuntimeStatus.REQUESTED,
+        LaunchStatus.approved: RuntimeStatus.REQUESTED,
+        LaunchStatus.draft: RuntimeStatus.REQUESTED,
+    }
+    if isinstance(status, str):
+        try:
+            status = LaunchStatus(status)
+        except ValueError:
+            return RuntimeStatus.REQUESTED
+    return mapping.get(status, RuntimeStatus.REQUESTED)
+
+
+def _build_runtime_url(tenant: Tenant) -> str:
+    if tenant.custom_domain and tenant.custom_domain_verified:
+        return f"https://{tenant.custom_domain}"
+    return f"https://{tenant.requested_domain}"
+
+
+def _build_install_directory(tenant: Tenant) -> str | None:
+    if tenant.fleetbase_install_path:
+        return tenant.fleetbase_install_path
+    runner = tenant.runner
+    if isinstance(runner, RunnerNode):
+        return f"{runner.fleetbase_root}/{tenant.slug}"
+    return None
+
+
+def sync_runtime_from_tenant(
+    db: Session,
+    tenant: Tenant,
+    *,
+    status: LaunchStatus | RuntimeStatus | str | None = None,
+    last_error: str | None = None,
+) -> FleetbaseRuntime:
+    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant.id).first()
+    runtime_status = status if isinstance(status, RuntimeStatus) else _map_launch_status(status or tenant.launch_status)
+    install_directory = _build_install_directory(tenant) or f"/srv/afruheritage/tenants/{tenant.slug}"
+    runtime_url = _build_runtime_url(tenant)
+    console_url = tenant.live_console_url or runtime_url
+    api_url = tenant.live_api_url
+
+    if not runtime:
+        runtime = FleetbaseRuntime(
+            tenant_id=tenant.id,
+            tenant_slug=tenant.slug,
+            runner_id=tenant.runner_id,
+            status=runtime_status,
+            install_directory=install_directory,
+            runtime_url=runtime_url,
+            console_url=console_url,
+            api_url=api_url,
+            install_log_path=f"{install_directory}/logs/install.log",
+            last_error=last_error,
+            is_reference_install=False,
+        )
+        db.add(runtime)
+        db.commit()
+        db.refresh(runtime)
+        log_event(db, runtime.id, "runtime_synced", f"Runtime synced from tenant status {runtime.status.value}")
+        return runtime
+
+    previous_status = runtime.status
+    runtime.tenant_slug = tenant.slug
+    runtime.runner_id = tenant.runner_id
+    runtime.status = runtime_status
+    runtime.install_directory = install_directory
+    runtime.runtime_url = runtime_url
+    runtime.console_url = console_url
+    runtime.api_url = api_url
+    runtime.install_log_path = f"{install_directory}/logs/install.log"
+    runtime.last_error = last_error
+    db.add(runtime)
+    db.commit()
+    db.refresh(runtime)
+
+    if previous_status != runtime.status:
+        log_event(db, runtime.id, "runtime_synced", f"Runtime synced from tenant status {runtime.status.value}")
+    return runtime
 
 
 def create_runtime_request(
@@ -50,7 +141,7 @@ def create_runtime_request(
         console_url=f"https://{tenant_slug}.afruheritage.com/console",
         api_url=f"https://{tenant_slug}.afruheritage.com/api",
         is_reference_install=is_reference_install,
-        install_log_path=f"{install_dir}/logs/install.log",
+        install_log_path=f"{runner.root_runtime_path}/{tenant_slug}-install.log",
     )
     db.add(runtime)
     db.commit()
@@ -90,12 +181,7 @@ def run_install(db: Session, runtime: FleetbaseRuntime, runner: FleetbaseRunnerN
     log_event(db, runtime.id, "install_started", "Fleetbase installation started")
 
     install_cmd = (
-        f"cd {runtime.install_directory} && "
-        "command -v node >/dev/null 2>&1 && "
-        "command -v npm >/dev/null 2>&1 && "
-        "command -v docker >/dev/null 2>&1 && "
-        "npm install -g @fleetbase/cli && "
-        f"flb install-fleetbase --directory {runtime.install_directory} --environment production "
+        f"({build_fleetbase_install_script(install_path=runtime.install_directory, host=settings.fleetbase_default_install_host, environment='production')}) "
         f">> {runtime.install_log_path} 2>&1"
     )
 
@@ -104,6 +190,7 @@ def run_install(db: Session, runtime: FleetbaseRuntime, runner: FleetbaseRunnerN
         port=runner.ssh_port,
         user=runner.ssh_user,
         command=install_cmd,
+        timeout=settings.provisioning_timeout_seconds,
     )
 
     if rc != 0:
@@ -121,7 +208,27 @@ def run_install(db: Session, runtime: FleetbaseRuntime, runner: FleetbaseRunnerN
     db.refresh(runtime)
     log_event(db, runtime.id, "install_complete", "Fleetbase installation completed")
 
-    # Placeholder: runtime health is set active after the install command succeeds.
+    verify_cmd = (
+        f"test -d {runtime.install_directory} && "
+        f"(test -f {runtime.install_directory}/docker-compose.yml || test -f {runtime.install_directory}/docker-compose.yaml)"
+    )
+    verify_rc, verify_out, verify_err = executor.run_remote(
+        host=runner.hostname,
+        port=runner.ssh_port,
+        user=runner.ssh_user,
+        command=verify_cmd,
+        timeout=120,
+    )
+
+    if verify_rc != 0:
+        runtime.status = RuntimeStatus.FAILED
+        runtime.last_error = verify_err or verify_out or "Install verification failed after runtime configuration"
+        db.add(runtime)
+        db.commit()
+        db.refresh(runtime)
+        log_event(db, runtime.id, "install_verification_failed", runtime.last_error)
+        return runtime
+
     runtime.status = RuntimeStatus.ACTIVE
     db.add(runtime)
     runner.current_tenants += 1

@@ -1,0 +1,17 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0   807    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   807  100   807    0     0   1086      0 --:--:-- --:--:-- --:--:--  1086
+HTTP/2 200 
+date: Sat, 30 May 2026 03:30:27 GMT
+content-type: application/json
+content-length: 807
+server: cloudflare
+x-correlation-id: e76cce9a-469e-4d4c-b7b1-1fbb6ad44609
+x-request-id: e76cce9a-469e-4d4c-b7b1-1fbb6ad44609
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=n8LQc%2FkndbB9jFdIa5d%2BXIamXh3ptQOcK%2F3jA4%2F%2F0KxYC0O2GOpyi7zX%2F0OHYjN9%2BnhuIcB87NoWAsiL0l%2F4BBnAQwHPSxv3903xQQ3XG9DdwZFXqB%2B8v2lkQrqXvjrhkT9ofUTT%2FmRoBNlZ4QbFTizPrw%3D%3D"}]}
+cf-ray: a03aa906592c8e8b-SEA
+alt-svc: h3=":443"; ma=86400
+
+{"plans":[{"code":"free","name":"Free","monthly_price":0,"credits":50},{"code":"professional","name":"Professional","monthly_price":1000,"credits":500},{"code":"business","name":"Business","monthly_price":2500,"credits":1500},{"code":"vendor_driver","name":"Vendor / Driver","monthly_price":300,"credits":100}],"addons":[{"code":"marketplace","name":"Marketplace Access","monthly_price":200},{"code":"gps_tracking","name":"GPS Tracking","monthly_price":150},{"code":"ai","name":"AI Assistant","monthly_price":250},{"code":"advanced_crm","name":"Advanced CRM","monthly_price":150},{"code":"premium_support","name":"Premium Support","monthly_price":200}],"payment_methods":["paystack"],"note":"Paystack currently covers MoMo/cards where supported. Other providers can be added through the payment hub later."}

@@ -23,7 +23,14 @@ export default function RunnersPage() {
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [form, setForm] = useState({ label: '', host: '', port: '22', ssh_user: '', ssh_key_path: '' })
+  const [form, setForm] = useState({
+    name: '',
+    host: '',
+    ssh_port: '22',
+    ssh_user: 'root',
+    fleetbase_root: '/srv/fleetbase',
+    reserved_for_single_tenant: true,
+  })
 
   const load = async () => {
     setLoading(true)
@@ -42,10 +49,20 @@ export default function RunnersPage() {
   const handleCreate = async () => {
     setCreating(true)
     try {
-      await api.post('/admin/runners', { ...form, port: parseInt(form.port) || 22 })
+      await api.post('/admin/runners', {
+        ...form,
+        ssh_port: parseInt(form.ssh_port) || 22,
+      })
       toast.success('Runner created')
       setCreateOpen(false)
-      setForm({ label: '', host: '', port: '22', ssh_user: '', ssh_key_path: '' })
+      setForm({
+        name: '',
+        host: '',
+        ssh_port: '22',
+        ssh_user: 'root',
+        fleetbase_root: '/srv/fleetbase',
+        reserved_for_single_tenant: true,
+      })
       load()
     } catch (e: any) {
       toast.error(e.message)
@@ -74,8 +91,8 @@ export default function RunnersPage() {
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label>Label</Label>
-                  <Input value={form.label} onChange={e => setForm(f => ({ ...f, label: e.target.value }))} placeholder="runner-01" />
+                  <Label>Name</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="runner-01" />
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="col-span-2 space-y-2">
@@ -84,7 +101,7 @@ export default function RunnersPage() {
                   </div>
                   <div className="space-y-2">
                     <Label>Port</Label>
-                    <Input value={form.port} onChange={e => setForm(f => ({ ...f, port: e.target.value }))} />
+                    <Input value={form.ssh_port} onChange={e => setForm(f => ({ ...f, ssh_port: e.target.value }))} />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -92,10 +109,18 @@ export default function RunnersPage() {
                   <Input value={form.ssh_user} onChange={e => setForm(f => ({ ...f, ssh_user: e.target.value }))} placeholder="root" />
                 </div>
                 <div className="space-y-2">
-                  <Label>SSH Key Path</Label>
-                  <Input value={form.ssh_key_path} onChange={e => setForm(f => ({ ...f, ssh_key_path: e.target.value }))} placeholder="/root/.ssh/id_rsa" />
+                  <Label>Fleetbase Root Directory</Label>
+                  <Input value={form.fleetbase_root} onChange={e => setForm(f => ({ ...f, fleetbase_root: e.target.value }))} placeholder="/srv/fleetbase" />
                 </div>
-                <Button className="w-full" onClick={handleCreate} disabled={creating || !form.label || !form.host}>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.reserved_for_single_tenant}
+                    onChange={e => setForm(f => ({ ...f, reserved_for_single_tenant: e.target.checked }))}
+                  />
+                  Reserve runner for one active tenant at a time
+                </label>
+                <Button className="w-full" onClick={handleCreate} disabled={creating || !form.name || !form.host || !form.fleetbase_root}>
                   {creating ? 'Adding...' : 'Add Runner'}
                 </Button>
               </div>
@@ -123,8 +148,8 @@ export default function RunnersPage() {
                         <Server className="h-5 w-5" />
                       </div>
                       <div>
-                        <div className="font-semibold">{r.label || r.name}</div>
-                        <div className="text-sm text-muted-foreground">{r.host}:{r.port || 22}</div>
+                        <div className="font-semibold">{r.name}</div>
+                        <div className="text-sm text-muted-foreground">{r.host}:{r.ssh_port || 22}</div>
                       </div>
                     </div>
                     <Badge variant={online ? 'default' : 'outline'} className={online ? 'bg-green-600' : ''}>
@@ -134,6 +159,7 @@ export default function RunnersPage() {
                   </div>
                   <div className="mt-4 text-xs text-muted-foreground">
                     <div>User: {r.ssh_user || r.user || 'root'}</div>
+                    <div>Root: {r.fleetbase_root || '-'}</div>
                     {r.tenant_count != null && <div>Tenants: {r.tenant_count}</div>}
                   </div>
                 </CardContent>

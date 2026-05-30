@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ArrowLeft, Package, User, MapPin, DollarSign, AlertCircle } from 'lucide-react'
 
 export default function CreateShipmentPage() {
+  const unassignedMemberValue = '__unassigned__'
   const { user } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
@@ -68,7 +69,7 @@ export default function CreateShipmentPage() {
   const [members, setMembers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null)(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Load members for assignment
   useEffect(() => {
@@ -98,8 +99,8 @@ export default function CreateShipmentPage() {
     setError(null)
 
     // Basic validation
-    if (!formData.tracking_number || !formData.sender_name || !formData.receiver_name ||
-        !formData.sender_address || !formData.receiver_address ||
+    if (!formData.sender_name || !formData.receiver_name ||
+      !formData.sender_address || !formData.receiver_address ||
         !formData.origin_country || !formData.origin_city ||
         !formData.destination_country || !formData.destination_city ||
         !formData.total_cost) {
@@ -126,8 +127,8 @@ export default function CreateShipmentPage() {
 
       await shipmentsAPI.create(shipmentData)
       router.push('/shipments')
-    } catch (err) {
-      setError('Failed to create shipment. Please try again.')
+    } catch (err: any) {
+      setError(err?.message || 'Failed to create shipment. Please try again.')
       console.error('Failed to create shipment:', err)
     } finally {
       setIsSubmitting(false)
@@ -170,13 +171,12 @@ export default function CreateShipmentPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tracking Number *
+                    Tracking Number
                   </label>
                   <Input
                     value={formData.tracking_number}
                     onChange={(e) => handleInputChange('tracking_number', e.target.value)}
-                    placeholder="Enter tracking number"
-                    required
+                    placeholder="Leave blank to auto-generate"
                   />
                 </div>
                 <div>
@@ -596,12 +596,15 @@ export default function CreateShipmentPage() {
                 <CardTitle>Assign to Team Member</CardTitle>
               </CardHeader>
               <CardContent>
-                <Select value={formData.group_member_id} onValueChange={(value) => handleInputChange('group_member_id', value)}>
+                <Select
+                  value={formData.group_member_id || unassignedMemberValue}
+                  onValueChange={(value) => handleInputChange('group_member_id', value === unassignedMemberValue ? '' : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select team member (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value={unassignedMemberValue}>Unassigned</SelectItem>
                     {members.map((member) => (
                       <SelectItem key={member.id} value={member.id}>
                         {member.full_name} - {member.email}

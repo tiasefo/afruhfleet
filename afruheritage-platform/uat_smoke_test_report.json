@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-05-27T07:31:31.604237",
+  "summary": {
+    "total": 6,
+    "passed": 3,
+    "failed": 3,
+    "errors": 0,
+    "success_rate": 50.0
+  },
+  "results": [
+    {
+      "name": "Authentication Flow",
+      "status": "PASS",
+      "response_time": 0.2889280319213867,
+      "details": "Authenticated as admin@afruheritage.com, Tenant: None, Superuser: True",
+      "error": null
+    },
+    {
+      "name": "Marketplace Functionality",
+      "status": "FAIL",
+      "response_time": 0.010992765426635742,
+      "details": "",
+      "error": "Vendor registration failed: 500"
+    },
+    {
+      "name": "Uber-like Services",
+      "status": "FAIL",
+      "response_time": 0.037194013595581055,
+      "details": "",
+      "error": "Driver creation failed: 500"
+    },
+    {
+      "name": "WordPress-like Provisioning",
+      "status": "FAIL",
+      "response_time": 0.008269309997558594,
+      "details": "",
+      "error": "Tenant creation failed: 422"
+    },
+    {
+      "name": "Advanced Features",
+      "status": "PASS",
+      "response_time": 0.04552865028381348,
+      "details": "Advanced features: AI Chat: \u274c, Billing Wallet: \u274c, CRM Accounts: \u274c, Analytics Dashboard: \u274c, Custom Domain Request: \u274c",
+      "error": null
+    },
+    {
+      "name": "Frontend Pages",
+      "status": "PASS",
+      "response_time": 0.04471397399902344,
+      "details": "Frontend pages: /: \u2705, /login: \u2705, /register: \u2705, /dashboard: \u2705, /shipments: \u2705, /billing: \u2705, /vendors: \u2705, /analytics: \u274c",
+      "error": null
+    }
+  ]
+}

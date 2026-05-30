@@ -168,6 +168,11 @@
   "billing.payment_history": "付款记录",
   "billing.invoices": "发票",
   "billing.make_payment": "立即付款",
+  "billing.available_plans": "可用套餐",
+  "billing.manage_subscription": "管理您的订阅和钱包",
+  "billing.no_active_subscription": "暂无有效订阅",
+  "billing.choose_plan_to_start": "请选择套餐开始使用",
+  "billing.available_credits": "可用积分",
 
   "support.title": "支持",
   "support.create_ticket": "创建工单",

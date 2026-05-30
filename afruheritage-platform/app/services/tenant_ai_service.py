@@ -1,6 +1,8 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import logging
+import uuid
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -10,13 +12,21 @@ from app.models.tenant_ai_settings import TenantAISettings
 logger = logging.getLogger("afruheritage.ai")
 
 
+def _as_uuid(value: str | uuid.UUID):
+    try:
+        return uuid.UUID(str(value))
+    except (TypeError, ValueError):
+        return value
+
+
 def ensure_tenant_ai_settings(db: Session, tenant_id: str, tenant_slug: str, company_name: str) -> TenantAISettings:
-    existing = db.query(TenantAISettings).filter(TenantAISettings.tenant_id == tenant_id).first()
+    tenant_pk = _as_uuid(tenant_id)
+    existing = db.query(TenantAISettings).filter(TenantAISettings.tenant_id == tenant_pk).first()
     if existing:
         return existing
 
     settings = TenantAISettings(
-        tenant_id=tenant_id,
+        tenant_id=tenant_pk,
         widget_enabled=True,
         chat_model="afruheritage-copilot:latest",
         retrieval_scope=f"tenant:{tenant_slug}",
@@ -42,7 +52,7 @@ def get_tenant_ai_settings_by_hostname(db: Session, hostname: str) -> TenantAISe
 
 
 def update_tenant_ai_settings(db: Session, tenant_id: str, **kwargs: Any) -> TenantAISettings | None:
-    settings = db.query(TenantAISettings).filter(TenantAISettings.tenant_id == tenant_id).first()
+    settings = db.query(TenantAISettings).filter(TenantAISettings.tenant_id == _as_uuid(tenant_id)).first()
     if not settings:
         return None
     for key, value in kwargs.items():

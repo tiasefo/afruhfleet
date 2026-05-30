@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import json
 import re
@@ -19,6 +20,16 @@ from app.services.cloudflare_domains import CloudflareDomainClient
 HOSTNAME_RE = re.compile(
     r"^(?=.{1,253}$)(?!-)(?:[a-zA-Z0-9-]{1,63}\.)+[A-Za-z]{2,63}$"
 )
+
+
+def _resolve_domain_type_for_storage(domain_type: str) -> DomainType:
+    """Bridge new API labels to legacy enum labels when required by existing DB enums."""
+    normalized = domain_type.strip().lower()
+    if normalized == DomainType.PLATFORM_SUBDOMAIN.value:
+        return DomainType.PROVIDER_SUBDOMAIN
+    if normalized in (DomainType.CUSTOMER_SUBDOMAIN.value, DomainType.APEX.value):
+        return DomainType.CUSTOMER_DOMAIN
+    return DomainType(normalized)
 
 
 def validate_hostname(hostname: str) -> str:
@@ -56,7 +67,7 @@ def create_platform_domain_if_missing(db: Session, tenant_id: str, tenant_slug: 
     domain = CustomDomain(
         tenant_id=tenant_id,
         hostname=platform_hostname,
-        domain_type=DomainType.PLATFORM_SUBDOMAIN,
+        domain_type=_resolve_domain_type_for_storage(DomainType.PLATFORM_SUBDOMAIN.value),
         status=DomainStatus.ACTIVE,
         provider=DomainProvider.INTERNAL,
         verification_method=VerificationMethod.NONE,
@@ -87,7 +98,7 @@ def request_custom_domain(db: Session, *, tenant_id: str, hostname: str, domain_
     domain = CustomDomain(
         tenant_id=tenant_id,
         hostname=normalized,
-        domain_type=DomainType(domain_type),
+        domain_type=_resolve_domain_type_for_storage(domain_type),
         status=DomainStatus.REQUESTED,
         provider=DomainProvider.CLOUDFLARE,
         verification_method=VerificationMethod.TXT,

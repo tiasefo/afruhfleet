@@ -67,7 +67,7 @@ def check_env_vars():
 # ---------------------
 # Port Checks
 # ---------------------
-REQUIRED_PORTS = [8000, 11434]
+REQUIRED_PORTS = [8100, 11434]
 
 def check_ports():
     for port in REQUIRED_PORTS:

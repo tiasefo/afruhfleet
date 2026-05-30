@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 from datetime import datetime
 from typing import Any

@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Check, Zap, Shield, Globe, Headphones } from 'lucide-react'
-import { useAuth } from '@/lib/auth'
-import { useI18n } from '@/lib/i18n'
+import { useAuth } from '@/hooks/useAuth'
+import { billingAPI } from '@/lib/api'
+import { resolvePublicTenantId, resolveTenantId } from '@/lib/tenant'
 
 interface Plan {
   code: string
@@ -23,13 +24,13 @@ interface Plan {
 }
 
 const planFeatures: Record<string, string[]> = {
-  trial: [
+  free_trial: [
     'Basic shipment tracking',
     'Up to 50 shipments/month',
     'Email support',
     'AI assistant (limited)',
   ],
-  pro: [
+  professional: [
     'Unlimited shipments',
     'Real-time tracking & maps',
     'CSV bulk import',
@@ -56,8 +57,8 @@ const planFeatures: Record<string, string[]> = {
 }
 
 const planIcons: Record<string, any> = {
-  trial: Zap,
-  pro: Shield,
+  free_trial: Zap,
+  professional: Shield,
   business: Globe,
   delivery_services: Headphones,
 }
@@ -67,7 +68,6 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { token } = useAuth()
-  const { t } = useI18n()
   const router = useRouter()
 
   useEffect(() => {
@@ -76,9 +76,7 @@ export default function PricingPage() {
 
   const loadPlans = async () => {
     try {
-      const res = await fetch('/api/v1/billing/plans')
-      if (!res.ok) throw new Error('Failed to load plans')
-      const data = await res.json()
+      const data = await billingAPI.getPlans()
       setPlans(data)
     } catch (err: any) {
       setError(err.message || 'Failed to load pricing')
@@ -88,11 +86,15 @@ export default function PricingPage() {
   }
 
   const handleSelectPlan = (plan: Plan) => {
+    const tenantId = resolvePublicTenantId() || resolveTenantId()
+    const suffix = tenantId ? `&tenant_id=${encodeURIComponent(tenantId)}` : ''
+
     if (!token) {
-      router.push('/register')
+      router.push(`/register?plan=${encodeURIComponent(plan.code)}${suffix}`)
       return
     }
-    router.push(`/dashboard?plan=${plan.code}`)
+
+    router.push(`/billing?plan=${encodeURIComponent(plan.code)}${tenantId ? `&tenant_id=${encodeURIComponent(tenantId)}` : ''}`)
   }
 
   const formatPrice = (plan: Plan) => {
@@ -129,7 +131,7 @@ export default function PricingPage() {
                 {plans.map((plan) => {
                   const features = planFeatures[plan.code] || []
                   const Icon = planIcons[plan.code] || Zap
-                  const isPopular = plan.code === 'pro'
+                  const isPopular = plan.code === 'professional'
 
                   return (
                     <Card

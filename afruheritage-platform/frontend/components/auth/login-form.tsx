@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, Eye, EyeOff, ArrowRight, Ship, Github, Mail } from 'lucide-react'
+import { Loader2, Eye, EyeOff, ArrowRight, Github, Mail, Music2, Ship } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
@@ -17,12 +17,21 @@ import { useBranding } from '@/hooks/useBranding'
 export function LoginForm() {
   const router = useRouter()
   const { t } = useTranslation()
-  const { login } = useAuth()
+  const { login, loginWithToken } = useAuth()
+  const searchParams = useSearchParams()
   const { branding } = useBranding()
   const [isLoading, setIsLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const socialToken = searchParams.get('social_token')
+    if (!socialToken) return
+    loginWithToken(socialToken).catch((err: any) => {
+      setError(err?.message || 'Social login failed')
+    })
+  }, [searchParams, loginWithToken])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -104,15 +113,29 @@ export function LoginForm() {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => handleSocialLogin('github')}
-                  disabled={socialLoading === 'github'}
+                  onClick={() => handleSocialLogin('instagram')}
+                  disabled={socialLoading === 'instagram'}
                 >
-                  {socialLoading === 'github' ? (
+                  {socialLoading === 'instagram' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Github className="mr-2 h-4 w-4" />
                   )}
-                  Continue with GitHub
+                  Continue with Instagram
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleSocialLogin('tiktok')}
+                  disabled={socialLoading === 'tiktok'}
+                >
+                  {socialLoading === 'tiktok' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Music2 className="mr-2 h-4 w-4" />
+                  )}
+                  Continue with TikTok
                 </Button>
               </div>
 
@@ -214,7 +237,7 @@ export function LoginForm() {
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground">
-                  Don't have an account?{' '}
+                  Don&apos;t have an account?{' '}
                   <Link href="/register" className="text-primary hover:underline">
                     Get started
                   </Link>

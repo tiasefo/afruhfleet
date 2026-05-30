@@ -8,7 +8,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/ai_instructionsfile.md :: /api/v1/ai/chat\n- app/api/routes/ai_widget.py :: /api/v1/ai/chat\n- app/api/routes/ai.py :: app/api/routes/ai.py\n- app/schemas/ai.py :: /api/v1/ai/chat\n- app/ai/ollama_client.py :: app/ai/ollama_client.py\n- app/ai/retriever.py :: app/ai/retriever.py\n- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/chat\n- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat\n- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/chat\n\nFrontend:\n- app/static/widget/embed.js :: /static/widget/embed.js",
+    "evidence": "Backend:\n- app/api/routes/ai.py :: app/api/routes/ai.py\n- app/api/routes/ai_widget.py :: /api/v1/ai/chat\n- app/schemas/ai.py :: /api/v1/ai/chat\n- app/models/ai_instructionsfile.md :: /api/v1/ai/chat\n- app/ai/ollama_client.py :: app/ai/ollama_client.py\n- app/ai/retriever.py :: app/ai/retriever.py\n- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/chat\n- scripts/diagnostics.py :: app/ai/retriever.py\n- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/chat\n- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/chat\n\nFrontend:\n- app/static/widget/embed.js :: /static/widget/embed.js",
     "notes": "RAG-backed chat endpoint."
   },
   {
@@ -20,7 +20,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config\n- app/api/routes/ai_widget.py :: app/api/routes/ai_widget.py\n- app/static/widget/embed.js :: /api/v1/ai/widget/config\n- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/widget/config\n- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config\n- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/widget/config\n\nFrontend:\n- app/static/widget/embed.js :: app/static/widget/embed.js",
+    "evidence": "Backend:\n- app/api/routes/ai_widget.py :: app/api/routes/ai_widget.py\n- app/static/widget/embed.js :: /api/v1/ai/widget/config\n- app/models/ai_instructionsfile.md :: /api/v1/ai/widget/config\n- docs/AI_WIDGET_INTEGRATION.md :: /api/v1/ai/widget/config\n- scripts/scaffold/01_ai_foundation.sh :: /api/v1/ai/widget/config\n- scripts/audit/platform_feature_matrix.py :: /api/v1/ai/widget/config\n\nFrontend:\n- app/static/widget/embed.js :: app/static/widget/embed.js",
     "notes": "Floating chatbot for control plane and tenant pages."
   },
   {
@@ -32,7 +32,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/billing.py :: billing_plans\n- app/api/routes/billing.py :: app/api/routes/billing.py\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/plans\n- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans\n- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/plans\n\nFrontend:\n- app/templates/tenant/portal.html :: billing\n- app/templates/auth/dashboard.html :: billing",
+    "evidence": "Backend:\n- app/api/routes/billing.py :: app/api/routes/billing.py\n- app/models/billing.py :: billing_plans\n- docs/CANONICAL_ARCHITECTURE_MAP.md :: app/api/routes/billing.py\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/plans\n- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/plans\n- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/plans\n\nFrontend:\n- app/templates/tenant/portal.html :: billing\n- app/templates/auth/dashboard.html :: billing",
     "notes": "Plan catalog: free_trial, professional, business."
   },
   {
@@ -44,7 +44,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/billing.py :: billing_wallets\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/wallets\n- scripts/audit/platform_feature_matrix.py :: billing_wallets\n- scripts/scaffold/02_billing_subscription.sh :: billing_wallets",
+    "evidence": "Backend:\n- app/models/billing.py :: billing_wallets\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/wallets\n- scripts/scaffold/02_billing_subscription.sh :: billing_wallets\n- scripts/audit/platform_feature_matrix.py :: billing_wallets",
     "notes": "Credits for AI usage and document processing."
   },
   {
@@ -56,7 +56,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/services/paystack_client.py :: PAYSTACK_SECRET_KEY\n- app/services/platform_payment_service.py :: PAYSTACK_SECRET_KEY\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/payments/init\n- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY\n- scripts/scaffold/02_billing_subscription.sh :: PAYSTACK_SECRET_KEY\n\nFrontend:\n- app/templates/tenant/portal.html :: payments\n- app/templates/auth/dashboard.html :: billing",
+    "evidence": "Backend:\n- app/api/routes/payment_hub.py :: PAYSTACK_SECRET_KEY\n- app/api/routes/commercial_orchestration.py :: PAYSTACK_SECRET_KEY\n- app/core/config.py :: PAYSTACK_SECRET_KEY\n- app/services/paystack_client.py :: PAYSTACK_SECRET_KEY\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/payments/init\n- scripts/scaffold/02_billing_subscription.sh :: PAYSTACK_SECRET_KEY\n- scripts/audit/platform_feature_matrix.py :: PAYSTACK_SECRET_KEY\n\nFrontend:\n- app/onboarding-docs/page.tsx :: payments\n- app/templates/tenant/portal.html :: payments\n- app/templates/auth/dashboard.html :: billing",
     "notes": "Backend-only payment initialization and verification."
   },
   {
@@ -68,7 +68,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/billing.py :: billing_subscriptions\n- app/api/routes/billing.py :: create_trial_subscription\n- app/services/billing_service.py :: create_trial_subscription\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/subscriptions\n- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions\n- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/subscriptions\n\nFrontend:\n- app/templates/tenant/portal.html :: subscription",
+    "evidence": "Backend:\n- app/api/routes/billing.py :: create_trial_subscription\n- app/api/routes/tenants.py :: create_trial_subscription\n- app/services/billing_service.py :: create_trial_subscription\n- app/services/signup_onboarding_service.py :: create_trial_subscription\n- app/services/tenant_creation_service.py :: create_trial_subscription\n- app/models/billing.py :: billing_subscriptions\n- docs/BILLING_SUBSCRIPTION_INTEGRATION.md :: /api/v1/billing/subscriptions\n- scripts/scaffold/02_billing_subscription.sh :: /api/v1/billing/subscriptions\n- scripts/audit/platform_feature_matrix.py :: /api/v1/billing/subscriptions\n\nFrontend:\n- app/onboarding-docs/page.tsx :: plan\n- app/templates/tenant/portal.html :: subscription",
     "notes": "Trial, activation, read-only enforcement foundation."
   },
   {
@@ -80,7 +80,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/support_crm.py :: crm_accounts\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/accounts\n- scripts/audit/platform_feature_matrix.py :: crm_accounts\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_accounts\n\nFrontend:\n- app/templates/tenant/portal.html :: contact\n- app/templates/auth/register.html :: contact\n- app/templates/auth/login.html :: account\n- app/templates/emails/base.html :: account",
+    "evidence": "Backend:\n- app/models/support_crm.py :: crm_accounts\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/accounts\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_accounts\n- scripts/audit/platform_feature_matrix.py :: crm_accounts\n\nFrontend:\n- app/onboarding-docs/page.tsx :: contact\n- app/templates/tenant/portal.html :: contact\n- app/templates/emails/base.html :: account\n- app/templates/auth/login.html :: account\n- app/templates/auth/register.html :: contact",
     "notes": "Tenant CRM base."
   },
   {
@@ -92,7 +92,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/support_crm.py :: crm_opportunities\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/opportunities\n- scripts/audit/platform_feature_matrix.py :: crm_opportunities\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities",
+    "evidence": "Backend:\n- app/models/support_crm.py :: crm_opportunities\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/opportunities\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_opportunities\n- scripts/audit/platform_feature_matrix.py :: crm_opportunities",
     "notes": "Sales pipeline foundation."
   },
   {
@@ -104,7 +104,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/support_crm.py :: crm_quotes\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/quotes\n- scripts/audit/platform_feature_matrix.py :: crm_quotes\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes",
+    "evidence": "Backend:\n- app/models/support_crm.py :: crm_quotes\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/quotes\n- scripts/scaffold/03_support_glpi_crm.sh :: crm_quotes\n- scripts/audit/platform_feature_matrix.py :: crm_quotes",
     "notes": "Quote generation foundation."
   },
   {
@@ -116,7 +116,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/api/routes/auth.py :: app/api/routes/auth.py\n- app/templates/auth/login.html :: /api/v1/auth/login\n- scripts/bootstrap_admin.sh :: /api/v1/auth/bootstrap\n- scripts/audit/platform_feature_matrix.py :: /api/v1/auth/bootstrap\n\nFrontend:\n- app/templates/tenant/portal.html :: login\n- app/templates/auth/register.html :: login\n- app/templates/auth/login.html :: auth/login\n- app/templates/auth/dashboard.html :: login",
+    "evidence": "Backend:\n- app/api/routes/auth.py :: app/api/routes/auth.py\n- app/templates/auth/login.html :: /api/v1/auth/login\n- scripts/bootstrap_admin.sh :: /api/v1/auth/bootstrap\n- scripts/bootstrap_login_create_tenant.sh :: /api/v1/auth/bootstrap\n- scripts/audit/platform_feature_matrix.py :: /api/v1/auth/bootstrap\n\nFrontend:\n- app/templates/tenant/portal.html :: login\n- app/templates/auth/login.html :: auth/login\n- app/templates/auth/register.html :: login\n- app/templates/auth/dashboard.html :: login",
     "notes": "Admin bootstrap and login flow."
   },
   {
@@ -128,7 +128,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: tenant\n- app/locales/en.json :: tenant\n- app/models/__init__.py :: tenant\n- app/models/tenant_ai_settings.py :: tenant\n- app/models/shipment.py :: tenant\n- app/models/tenant.py :: tenant\n- app/models/payment.py :: tenant\n- app/models/vendor.py :: tenant\n- app/models/tenant_branding.py :: tenant\n- app/models/notification_preferences.py :: tenant\n\nFrontend:\n- app/static/widget/embed.js :: tenant\n- app/templates/tenant/portal.html :: tenant\n- app/templates/auth/register.html :: tenant\n- app/templates/auth/login.html :: tenant\n- app/templates/auth/dashboard.html :: tenant",
+    "evidence": "Backend:\n- app/main.py :: tenant\n- app/api/deps.py :: tenant\n- app/api/routes/custom_domains.py :: tenant\n- app/api/routes/users.py :: tenant\n- app/api/routes/geo.py :: tenant\n- app/api/routes/support_crm.py :: tenant\n- app/api/routes/admin_subscriptions.py :: tenant\n- app/api/routes/admin_credits.py :: tenant\n- app/api/routes/analytics.py :: tenant\n- app/api/routes/vendors.py :: tenant\n\nFrontend:\n- app/onboarding-docs/page.tsx :: tenant\n- app/static/widget/embed.js :: tenant\n- app/templates/tenant/portal.html :: tenant\n- app/templates/auth/login.html :: tenant\n- app/templates/auth/register.html :: tenant\n- app/templates/auth/dashboard.html :: tenant",
     "notes": "Tenant CRUD, approval, lifecycle."
   },
   {
@@ -140,7 +140,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/services/cloudflare_domains.py :: app/services/cloudflare_domains.py\n- docs/CUSTOM_DOMAIN_INTEGRATION.md :: CLOUDFLARE_API_TOKEN\n- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py\n- scripts/scaffold/04_custom_domains.sh :: CLOUDFLARE_API_TOKEN\n\nFrontend:\n- app/templates/tenant/portal.html :: domain\n- app/templates/auth/login.html :: domain",
+    "evidence": "Backend:\n- app/services/cloudflare_domains.py :: app/services/cloudflare_domains.py\n- docs/CUSTOM_DOMAIN_INTEGRATION.md :: CLOUDFLARE_API_TOKEN\n- scripts/scaffold/04_custom_domains.sh :: CLOUDFLARE_API_TOKEN\n- scripts/audit/platform_feature_matrix.py :: app/services/cloudflare_domains.py\n\nFrontend:\n- app/onboarding-docs/page.tsx :: domain\n- app/templates/tenant/portal.html :: domain\n- app/templates/auth/login.html :: domain",
     "notes": "Cloudflare for SaaS style hostname orchestration."
   },
   {
@@ -152,7 +152,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: custom_domains\n- app/models/custom_domains.py :: custom_domains\n- app/api/routes/custom_domains.py :: custom_domains\n- app/services/tenant_creation_service.py :: custom_domains\n- app/services/custom_domain_service.py :: custom_domains\n- app/tasks/domain_verification.py :: custom_domains\n- app/schemas/custom_domains.py :: custom_domains\n- docs/CUSTOM_DOMAIN_INTEGRATION.md :: /api/v1/domains/request\n- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request\n- scripts/scaffold/04_custom_domains.sh :: /api/v1/domains/request\n\nFrontend:\n- app/templates/tenant/portal.html :: domain\n- app/templates/auth/login.html :: domain",
+    "evidence": "Backend:\n- app/main.py :: custom_domains\n- app/api/routes/custom_domains.py :: custom_domains\n- app/services/custom_domain_service.py :: custom_domains\n- app/schemas/custom_domains.py :: custom_domains\n- app/models/custom_domains.py :: custom_domains\n- app/tasks/domain_verification.py :: custom_domains\n- docs/CUSTOM_DOMAIN_INTEGRATION.md :: /api/v1/domains/request\n- scripts/scaffold/04_custom_domains.sh :: /api/v1/domains/request\n- scripts/audit/platform_feature_matrix.py :: /api/v1/domains/request\n\nFrontend:\n- app/onboarding-docs/page.tsx :: domain\n- app/templates/tenant/portal.html :: domain\n- app/templates/auth/login.html :: domain",
     "notes": "Customer subdomain/apex domain foundation."
   },
   {
@@ -164,7 +164,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/locales/en.json :: entity\n- app/models/audit.py :: entity\n- app/models/tenant.py :: fleetbase\n- app/models/payment.py :: entity\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/models/support_crm.py :: contacts\n- app/core/errors.py :: entity\n- app/core/config.py :: fleetbase",
+    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/api/routes/users.py :: entity\n- app/api/routes/support_crm.py :: contacts\n- app/api/routes/navigator.py :: fleetbase\n- app/api/routes/storefront.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase\n- app/api/routes/pallet.py :: fleetbase\n- app/api/routes/customer_portal.py :: fleetbase\n- app/core/errors.py :: entity\n- app/core/config.py :: fleetbase",
     "notes": "Potential Fleetbase data objects not yet visibly wired."
   },
   {
@@ -176,7 +176,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/models/tenant.py :: fleetbase\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/middleware/rate_limit.py :: dispatch\n- app/core/config.py :: fleetbase\n- app/core/structured_logging.py :: dispatch\n- app/core/middleware.py :: dispatch\n- app/api/routes/tenants.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase\n\nFrontend:\n- app/templates/tenant/portal.html :: console\n- app/templates/auth/dashboard.html :: console",
+    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/api/routes/vendors.py :: dispatch\n- app/api/routes/navigator.py :: fleetbase\n- app/api/routes/storefront.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase\n- app/api/routes/pallet.py :: fleetbase\n- app/api/routes/customer_portal.py :: fleetbase\n- app/core/config.py :: fleetbase\n- app/core/middleware.py :: dispatch\n- app/core/structured_logging.py :: dispatch\n\nFrontend:\n- app/templates/tenant/portal.html :: console\n- app/templates/auth/dashboard.html :: console",
     "notes": "Dispatch and operations console via Fleetbase."
   },
   {
@@ -188,7 +188,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/locales/en.json :: driver\n- app/locales/zh.json :: driver\n- app/models/tenant.py :: fleetbase\n- app/models/vendor.py :: driver\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/core/config.py :: fleetbase\n- app/api/routes/tenants.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase",
+    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/api/routes/vendors.py :: driver\n- app/api/routes/admin_marketplace.py :: driver\n- app/api/routes/navigator.py :: driver\n- app/api/routes/storefront.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase\n- app/api/routes/pallet.py :: fleetbase\n- app/api/routes/customer_portal.py :: fleetbase\n- app/api/routes/marketplace.py :: driver\n- app/api/routes/commercial_orchestration.py :: driver",
     "notes": "Driver management capability from Fleetbase."
   },
   {
@@ -200,7 +200,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/core/config.py :: @fleetbase/cli\n- app/services/fleetbase_runtime_service.py :: @fleetbase/cli\n- app/services/fleetbase_provisioner.py :: flb install-fleetbase\n- docs/DEPLOYMENT.md :: flb install-fleetbase\n- infra/runner/bootstrap_runner.sh :: @fleetbase/cli\n- scripts/bootstrap_runner.sh :: @fleetbase/cli\n- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli\n- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli",
+    "evidence": "Backend:\n- app/core/config.py :: @fleetbase/cli\n- docs/DEPLOYMENT.md :: flb install-fleetbase\n- infra/runner/bootstrap_runner.sh :: @fleetbase/cli\n- scripts/bootstrap_runner.sh :: @fleetbase/cli\n- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: @fleetbase/cli\n- scripts/audit/endgoal_gap_audit.py :: flb install-fleetbase\n- scripts/audit/platform_feature_matrix.py :: @fleetbase/cli",
     "notes": "CLI/runtime installation capability."
   },
   {
@@ -208,11 +208,11 @@
     "feature": "Fleetbase Orders",
     "source": "fleetbase",
     "backend_present": true,
-    "frontend_present": false,
-    "status": "Backend only",
-    "color": "yellow",
+    "frontend_present": true,
+    "status": "Aligned",
+    "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/models/tenant.py :: fleetbase\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/core/config.py :: fleetbase\n- app/api/routes/runners.py :: order\n- app/api/routes/tenants.py :: order\n- app/api/routes/fleetbase_runtime.py :: order\n- app/api/routes/custom_domains.py :: order\n- app/api/routes/support_crm.py :: order",
+    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/api/routes/custom_domains.py :: order\n- app/api/routes/users.py :: order\n- app/api/routes/runners.py :: order\n- app/api/routes/support_crm.py :: order\n- app/api/routes/admin_credits.py :: order\n- app/api/routes/admin_marketplace.py :: order\n- app/api/routes/billing.py :: order\n- app/api/routes/tenants.py :: order\n- app/api/routes/payments.py :: order\n\nFrontend:\n- app/onboarding-docs/page.tsx :: orders",
     "notes": "Operational order lifecycle from Fleetbase engine."
   },
   {
@@ -224,7 +224,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/locales/en.json :: tracking\n- app/locales/zh.json :: tracking\n- app/models/shipment.py :: tracking\n- app/models/tenant.py :: fleetbase\n- app/models/tenant_branding.py :: tracking\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/models/support_crm.py :: tracking\n- app/middleware/rate_limit.py :: tracking\n\nFrontend:\n- app/templates/tenant/portal.html :: tracking\n- app/templates/auth/register.html :: tracking\n- app/templates/auth/dashboard.html :: tracking",
+    "evidence": "Backend:\n- app/main.py :: tracking\n- app/api/routes/geo.py :: tracking\n- app/api/routes/support_crm.py :: tracking\n- app/api/routes/vendors.py :: tracking\n- app/api/routes/admin_marketplace.py :: tracking\n- app/api/routes/payments.py :: webhook\n- app/api/routes/navigator.py :: tracking\n- app/api/routes/shipments.py :: tracking\n- app/api/routes/whatsapp_bot.py :: webhook\n- app/api/routes/storefront.py :: fleetbase\n\nFrontend:\n- app/onboarding-docs/page.tsx :: map\n- app/templates/tenant/portal.html :: tracking\n- app/templates/auth/register.html :: tracking\n- app/templates/auth/dashboard.html :: tracking",
     "notes": "Native Fleetbase operational tracking capability."
   },
   {
@@ -236,7 +236,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/locales/en.json :: vehicle\n- app/locales/zh.json :: vehicle\n- app/models/tenant.py :: fleetbase\n- app/models/vendor.py :: vehicle\n- app/models/runner.py :: fleetbase\n- app/models/fleetbase_runtime.py :: fleetbase\n- app/core/config.py :: fleetbase\n- app/api/routes/vendors.py :: vehicle\n- app/api/routes/tenants.py :: fleetbase",
+    "evidence": "Backend:\n- app/main.py :: fleetbase\n- app/api/routes/vendors.py :: vehicle\n- app/api/routes/navigator.py :: fleetbase\n- app/api/routes/storefront.py :: fleetbase\n- app/api/routes/fleetbase_runtime.py :: fleetbase\n- app/api/routes/pallet.py :: fleetbase\n- app/api/routes/customer_portal.py :: fleetbase\n- app/core/config.py :: fleetbase\n- app/onboarding-docs/page.tsx :: fleetbase\n- app/services/fleetbase_runtime_service.py :: fleetbase",
     "notes": "Vehicle management capability from Fleetbase."
   },
   {
@@ -248,7 +248,7 @@
     "status": "Backend only",
     "color": "yellow",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/api/routes/fleetbase_runtime.py :: app/api/routes/fleetbase_runtime.py\n- app/services/fleetbase_runtime_service.py :: app/services/fleetbase_runtime_service.py\n- app/services/runner_executor.py :: RunnerExecutor\n- docs/FLEETBASE_RUNTIME_DEPLOYER.md :: /api/v1/fleetbase-runtime\n- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime\n- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime",
+    "evidence": "Backend:\n- app/api/routes/fleetbase_runtime.py :: app/api/routes/fleetbase_runtime.py\n- app/services/fleetbase_runtime_service.py :: app/services/fleetbase_runtime_service.py\n- app/services/runner_executor.py :: RunnerExecutor\n- docs/FLEETBASE_RUNTIME_DEPLOYER.md :: /api/v1/fleetbase-runtime\n- scripts/bootstrap_login_create_tenant.sh :: /api/v1/fleetbase-runtime\n- scripts/scaffold/05_fleetbase_runtime_deployer.sh :: /api/v1/fleetbase-runtime\n- scripts/audit/platform_feature_matrix.py :: /api/v1/fleetbase-runtime",
     "notes": "Runner registration and install orchestration layer."
   },
   {
@@ -260,7 +260,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/support_crm.py :: support_sync_logs\n- app/services/glpi_client.py :: app/services/glpi_client.py\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: GLPI_BASE_URL\n- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py\n- scripts/scaffold/03_support_glpi_crm.sh :: support_sync_logs\n\nFrontend:\n- app/templates/tenant/portal.html :: support\n- app/templates/auth/login.html :: support\n- app/templates/auth/dashboard.html :: support",
+    "evidence": "Backend:\n- app/core/config.py :: GLPI_BASE_URL\n- app/services/glpi_client.py :: app/services/glpi_client.py\n- app/models/support_crm.py :: support_sync_logs\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: GLPI_BASE_URL\n- scripts/scaffold/03_support_glpi_crm.sh :: support_sync_logs\n- scripts/audit/platform_feature_matrix.py :: app/services/glpi_client.py\n\nFrontend:\n- app/onboarding-docs/page.tsx :: support\n- app/templates/tenant/portal.html :: support\n- app/templates/auth/login.html :: support\n- app/templates/auth/dashboard.html :: support",
     "notes": "Shared GLPI backend with tenant separation."
   },
   {
@@ -272,7 +272,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/models/support_crm.py :: support_tickets\n- app/api/routes/support_crm.py :: public_token\n- app/services/support_crm_service.py :: public_token\n- app/schemas/support_crm.py :: public_token\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/public/tickets\n- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets\n- scripts/scaffold/03_support_glpi_crm.sh :: /api/v1/support-crm/public/tickets\n\nFrontend:\n- app/templates/tenant/portal.html :: support\n- app/templates/auth/login.html :: support\n- app/templates/auth/dashboard.html :: support",
+    "evidence": "Backend:\n- app/api/routes/support_crm.py :: public_token\n- app/services/support_crm_service.py :: public_token\n- app/schemas/support_crm.py :: public_token\n- app/models/support_crm.py :: support_tickets\n- docs/SUPPORT_GLPI_CRM_INTEGRATION.md :: /api/v1/support-crm/public/tickets\n- scripts/scaffold/03_support_glpi_crm.sh :: /api/v1/support-crm/public/tickets\n- scripts/audit/platform_feature_matrix.py :: /api/v1/support-crm/public/tickets\n\nFrontend:\n- app/onboarding-docs/page.tsx :: ticket\n- app/templates/tenant/portal.html :: support\n- app/templates/auth/login.html :: support\n- app/templates/auth/dashboard.html :: support",
     "notes": "Customers can create tickets without login."
   },
   {
@@ -284,7 +284,7 @@
     "status": "Aligned",
     "color": "green",
     "unused_flag": "No",
-    "evidence": "Backend:\n- app/main.py :: shipment\n- app/locales/en.json :: tracking\n- app/locales/zh.json :: tracking\n- app/models/shipment.py :: tracking\n- app/models/payment.py :: shipment\n- app/models/vendor.py :: shipment\n- app/models/tenant_branding.py :: tracking\n- app/models/notification_preferences.py :: shipment\n- app/models/support_crm.py :: tracking\n- app/middleware/rate_limit.py :: tracking\n\nFrontend:\n- app/templates/tenant/portal.html :: tracking\n- app/templates/auth/register.html :: tracking\n- app/templates/auth/dashboard.html :: tracking",
+    "evidence": "Backend:\n- app/main.py :: tracking\n- app/api/routes/geo.py :: tracking\n- app/api/routes/support_crm.py :: tracking\n- app/api/routes/analytics.py :: shipment\n- app/api/routes/vendors.py :: tracking\n- app/api/routes/admin_marketplace.py :: tracking\n- app/api/routes/navigator.py :: tracking\n- app/api/routes/shipments.py :: tracking\n- app/api/routes/branding.py :: tracking\n- app/api/routes/whatsapp.py :: tracking\n\nFrontend:\n- app/onboarding-docs/page.tsx :: shipment\n- app/templates/tenant/portal.html :: tracking\n- app/templates/auth/register.html :: tracking\n- app/templates/auth/dashboard.html :: tracking",
     "notes": "Desired next module; likely not scaffolded yet."
   }
 ]

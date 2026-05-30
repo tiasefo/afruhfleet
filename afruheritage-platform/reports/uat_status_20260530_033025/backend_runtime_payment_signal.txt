@@ -1,0 +1,113 @@
+app/api/routes/payment_hub.py.bak.1779863307:14:from app.models.payment_hub import PaymentTransaction
+app/api/routes/payment_hub.py.bak.1779863307:64:        signup.payment_completed = True
+app/api/routes/payment_hub.py.bak.1779863307:151:        tx = PaymentTransaction(
+app/api/routes/payment_hub.py.bak.1779863307:193:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py.bak.1779863307:248:            db.query(PaymentTransaction)
+app/api/routes/payment_hub.py.bak.1779863307:249:            .filter(PaymentTransaction.tenant_id == tenant_id)
+app/api/routes/payment_hub.py.bak.1779863307:250:            .order_by(PaymentTransaction.created_at.desc())
+app/api/routes/payment_hub.py.bak.1779863307:311:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py.bak.1779863307:361:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py.bak.1779863307:389:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:15:from app.models.payment_hub import PaymentTransaction
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:119:            signup.payment_completed = True
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:186:        tx = PaymentTransaction(
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:241:            "payment_completed": signup.payment_completed,
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:253:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:264:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:306:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:343:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:354:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:396:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:433:@router.post("/signup/{signup_id}/reconcile-runtime")
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:436:    from app.models.fleetbase_runtime import FleetbaseRuntime, RuntimeStatus
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:448:        runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant.id).first()
+app/api/routes/commercial_orchestration.py.bak.async.1780107455:488:                signup.provisioning_status = "runtime_active"
+grep: app/api/routes/__pycache__/fleetbase_runtime.cpython-310.pyc: binary file matches
+app/api/routes/fleetbase_runtime.py:8:from app.models.fleetbase_runtime import FleetbaseRuntime, FleetbaseRuntimeEvent, FleetbaseRunnerNode
+app/api/routes/fleetbase_runtime.py:52:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == _resolve_uuid(tenant_id)).first()
+app/api/routes/fleetbase_runtime.py:77:    rows = db.query(FleetbaseRuntimeEvent).filter(FleetbaseRuntimeEvent.runtime_id == runtime_id).order_by(FleetbaseRuntimeEvent.created_at.asc()).all()
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:15:from app.models.payment_hub import PaymentTransaction
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:119:            signup.payment_completed = True
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:186:        tx = PaymentTransaction(
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:241:            "payment_completed": signup.payment_completed,
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:253:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:264:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:306:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:343:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:354:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102228:396:            signup.provisioning_status = "runtime_active"
+app/api/routes/payment_hub.py:14:from app.models.payment_hub import PaymentTransaction
+app/api/routes/payment_hub.py:64:        signup.payment_completed = True
+app/api/routes/payment_hub.py:117:                signup.provisioning_status = "runtime_active"
+app/api/routes/payment_hub.py:131:                    signup.payment_completed = True
+app/api/routes/payment_hub.py:221:        tx = PaymentTransaction(
+app/api/routes/payment_hub.py:263:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py:318:            db.query(PaymentTransaction)
+app/api/routes/payment_hub.py:319:            .filter(PaymentTransaction.tenant_id == tenant_id)
+app/api/routes/payment_hub.py:320:            .order_by(PaymentTransaction.created_at.desc())
+app/api/routes/payment_hub.py:381:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py:431:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/payment_hub.py:459:        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:15:from app.models.payment_hub import PaymentTransaction
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:119:            signup.payment_completed = True
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:186:        tx = PaymentTransaction(
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:241:            "payment_completed": signup.payment_completed,
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:253:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:264:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:306:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:343:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:354:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py.bak.reconcile.1780102207:396:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py:15:from app.models.payment_hub import PaymentTransaction
+app/api/routes/commercial_orchestration.py:119:            signup.payment_completed = True
+app/api/routes/commercial_orchestration.py:186:        tx = PaymentTransaction(
+app/api/routes/commercial_orchestration.py:241:            "payment_completed": signup.payment_completed,
+app/api/routes/commercial_orchestration.py:253:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py:264:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py:306:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py:343:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py:354:        if not signup.payment_completed:
+app/api/routes/commercial_orchestration.py:396:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py:433:@router.post("/signup/{signup_id}/reconcile-runtime")
+app/api/routes/commercial_orchestration.py:436:    from app.models.fleetbase_runtime import FleetbaseRuntime, RuntimeStatus
+app/api/routes/commercial_orchestration.py:448:        runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant.id).first()
+app/api/routes/commercial_orchestration.py:488:                signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py:517:    from app.models.fleetbase_runtime import FleetbaseRuntime, RuntimeStatus
+app/api/routes/commercial_orchestration.py:523:        if not signup or not signup.payment_completed:
+app/api/routes/commercial_orchestration.py:568:            signup.provisioning_status = "runtime_active"
+app/api/routes/commercial_orchestration.py:595:@router.post("/signup/{signup_id}/provision-runtime-async")
+app/api/routes/commercial_orchestration.py:603:        if not signup.payment_completed:
+app/services/fleetbase_runtime_service.py:10:from app.models.fleetbase_runtime import FleetbaseRuntime, FleetbaseRuntimeEvent, FleetbaseRunnerNode, RuntimeStatus
+app/services/fleetbase_runtime_service.py:74:) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py:75:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant.id).first()
+app/services/fleetbase_runtime_service.py:83:        runtime = FleetbaseRuntime(
+app/services/fleetbase_runtime_service.py:128:) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py:130:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant_id).first()
+app/services/fleetbase_runtime_service.py:134:    runtime = FleetbaseRuntime(
+app/services/fleetbase_runtime_service.py:153:def run_install(db: Session, runtime: FleetbaseRuntime, runner: FleetbaseRunnerNode) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py:238:    log_event(db, runtime.id, "runtime_active", "Fleetbase runtime marked active")
+app/services/fleetbase_runtime_service.py:242:def suspend_runtime(db: Session, runtime_id: str, reason: str | None = None) -> FleetbaseRuntime | None:
+app/services/fleetbase_runtime_service.py:243:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.id == runtime_id).first()
+app/services/fleetbase_runtime_service.py:255:def retry_runtime(db: Session, runtime_id: str) -> FleetbaseRuntime | None:
+app/services/fleetbase_runtime_service.py:256:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.id == runtime_id).first()
+app/services/fleetbase_runtime_service.py:269:    row = FleetbaseRuntimeEvent(
+app/services/fleetbase_runtime_service.py.bak.1780040109:10:from app.models.fleetbase_runtime import FleetbaseRuntime, FleetbaseRuntimeEvent, FleetbaseRunnerNode, RuntimeStatus
+app/services/fleetbase_runtime_service.py.bak.1780040109:74:) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py.bak.1780040109:75:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant.id).first()
+app/services/fleetbase_runtime_service.py.bak.1780040109:83:        runtime = FleetbaseRuntime(
+app/services/fleetbase_runtime_service.py.bak.1780040109:128:) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py.bak.1780040109:130:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.tenant_id == tenant_id).first()
+app/services/fleetbase_runtime_service.py.bak.1780040109:134:    runtime = FleetbaseRuntime(
+app/services/fleetbase_runtime_service.py.bak.1780040109:153:def run_install(db: Session, runtime: FleetbaseRuntime, runner: FleetbaseRunnerNode) -> FleetbaseRuntime:
+app/services/fleetbase_runtime_service.py.bak.1780040109:238:    log_event(db, runtime.id, "runtime_active", "Fleetbase runtime marked active")
+app/services/fleetbase_runtime_service.py.bak.1780040109:242:def suspend_runtime(db: Session, runtime_id: str, reason: str | None = None) -> FleetbaseRuntime | None:
+app/services/fleetbase_runtime_service.py.bak.1780040109:243:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.id == runtime_id).first()
+app/services/fleetbase_runtime_service.py.bak.1780040109:255:def retry_runtime(db: Session, runtime_id: str) -> FleetbaseRuntime | None:
+app/services/fleetbase_runtime_service.py.bak.1780040109:256:    runtime = db.query(FleetbaseRuntime).filter(FleetbaseRuntime.id == runtime_id).first()
+app/services/fleetbase_runtime_service.py.bak.1780040109:269:    row = FleetbaseRuntimeEvent(
+grep: app/services/__pycache__/fleetbase_runtime_service.cpython-310.pyc: binary file matches
+grep: app/models/__pycache__/fleetbase_runtime.cpython-310.pyc: binary file matches
+app/models/fleetbase_runtime.py:38:class FleetbaseRuntime(Base):
+app/models/fleetbase_runtime.py:87:class FleetbaseRuntimeEvent(Base):
+app/models/payment_hub.py:9:class PaymentTransaction(Base):
+app/models/commercial_orchestration.py:29:    payment_completed: Mapped[bool] = mapped_column(Boolean, default=False)

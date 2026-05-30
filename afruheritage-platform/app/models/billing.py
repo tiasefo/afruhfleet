@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import uuid
 from datetime import datetime, timedelta
@@ -29,6 +30,7 @@ class SubscriptionStatus(str, PyEnum):
 
 class WalletTransactionType(str, PyEnum):
     CREDIT_PURCHASE = "credit_purchase"
+    SUBSCRIPTION_CREDIT = "subscription_credit"
     MANUAL_ADJUSTMENT = "manual_adjustment"
     AI_USAGE_DEBIT = "ai_usage_debit"
     DOCUMENT_PROCESSING_DEBIT = "document_processing_debit"
@@ -38,11 +40,18 @@ class WalletTransactionType(str, PyEnum):
 
 
 class PaymentStatus(str, PyEnum):
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILED = "failed"
-    VERIFIED = "verified"
-    CANCELED = "canceled"
+    UNPAID = "UNPAID"
+    PARTIALLY_PAID = "PARTIALLY_PAID"
+    PAID = "PAID"
+    REFUNDED = "REFUNDED"
+    OVERDUE = "OVERDUE"
+
+    # Compatibility aliases for existing business code paths
+    PENDING = "UNPAID"
+    SUCCESS = "PAID"
+    FAILED = "OVERDUE"
+    VERIFIED = "PAID"
+    CANCELED = "OVERDUE"
 
 
 class Plan(Base):
@@ -112,7 +121,15 @@ class Payment(Base):
     purpose: Mapped[str] = mapped_column(String(50), nullable=False)  # subscription|credit_topup
     currency: Mapped[str] = mapped_column(String(10), nullable=False)
     amount_minor: Mapped[int] = mapped_column(Integer, nullable=False)  # paystack minor units
-    status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
+    status: Mapped[PaymentStatus] = mapped_column(
+        Enum(
+            PaymentStatus,
+            name="paymentstatus",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
+        nullable=False,
+        default=PaymentStatus.PENDING,
+    )
     provider: Mapped[str] = mapped_column(String(50), nullable=False, default="paystack")
     provider_authorization_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     provider_access_code: Mapped[str | None] = mapped_column(String(255), nullable=True)

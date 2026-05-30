@@ -1,0 +1,430 @@
+from __future__ import annotations
+
+import json
+import uuid
+
+import requests
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, EmailStr
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from app.core.config import settings
+from app.api.routes.payment_hub import PAYSTACK_SECRET_KEY, PAYSTACK_BASE_URL
+from app.models.commercial_orchestration import CommercialSignup
+from app.models.payment_hub import PaymentTransaction
+
+router = APIRouter(prefix="/commercial", tags=["Commercial Orchestration"])
+
+engine = create_engine(settings.database_url)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+
+PLAN_CATALOG = {
+    "free": {"name": "Free", "monthly_price": 0, "credits": 50},
+    "professional": {"name": "Professional", "monthly_price": 1000, "credits": 500},
+    "business": {"name": "Business", "monthly_price": 2500, "credits": 1500},
+    "vendor_driver": {"name": "Vendor / Driver", "monthly_price": 300, "credits": 100},
+}
+
+ADDON_CATALOG = {
+    "marketplace": {"name": "Marketplace Access", "monthly_price": 200},
+    "gps_tracking": {"name": "GPS Tracking", "monthly_price": 150},
+    "ai": {"name": "AI Assistant", "monthly_price": 250},
+    "advanced_crm": {"name": "Advanced CRM", "monthly_price": 150},
+    "premium_support": {"name": "Premium Support", "monthly_price": 200},
+}
+
+
+class SignupStart(BaseModel):
+    email: EmailStr
+    phone: str | None = None
+    account_type: str = "tenant_org"
+
+
+class PlanSelect(BaseModel):
+    signup_id: str
+    plan_code: str
+    addons: list[str] = []
+    payment_method: str = "paystack"
+    callback_url: str | None = None
+
+
+@router.get("/catalog")
+def catalog():
+    return {
+        "plans": [
+            {"code": code, **value}
+            for code, value in PLAN_CATALOG.items()
+        ],
+        "addons": [
+            {"code": code, **value}
+            for code, value in ADDON_CATALOG.items()
+        ],
+        "payment_methods": ["paystack"],
+        "note": "Paystack currently covers MoMo/cards where supported. Other providers can be added through the payment hub later.",
+    }
+
+
+@router.post("/signup/start")
+def signup_start(payload: SignupStart):
+    db = SessionLocal()
+    try:
+        signup = CommercialSignup(
+            email=payload.email,
+            phone=payload.phone,
+            account_type=payload.account_type,
+            provisioning_status="started",
+        )
+        db.add(signup)
+        db.commit()
+        db.refresh(signup)
+
+        return {
+            "signup_id": str(signup.id),
+            "status": "started",
+            "email": signup.email,
+            "account_type": signup.account_type,
+            "next": "select_plan",
+        }
+    finally:
+        db.close()
+
+
+@router.post("/signup/select-plan")
+def select_plan(payload: PlanSelect):
+    if payload.plan_code not in PLAN_CATALOG:
+        raise HTTPException(status_code=400, detail="invalid_plan_code")
+
+    invalid_addons = [x for x in payload.addons if x not in ADDON_CATALOG]
+    if invalid_addons:
+        raise HTTPException(status_code=400, detail={"invalid_addons": invalid_addons})
+
+    db = SessionLocal()
+    try:
+        signup = db.query(CommercialSignup).filter(CommercialSignup.id == payload.signup_id).first()
+        if not signup:
+            raise HTTPException(status_code=404, detail="signup_not_found")
+
+        plan_amount = PLAN_CATALOG[payload.plan_code]["monthly_price"]
+        addon_amount = sum(ADDON_CATALOG[x]["monthly_price"] for x in payload.addons)
+        total_amount = plan_amount + addon_amount
+
+        signup.selected_plan = payload.plan_code
+        signup.selected_addons = json.dumps(payload.addons)
+        signup.payment_method = payload.payment_method
+        signup.total_amount = int(total_amount)
+
+        if total_amount <= 0:
+            signup.payment_completed = True
+            signup.subscription_id = f"free_{uuid.uuid4().hex[:12]}"
+            signup.tenant_id = f"tenant_{uuid.uuid4().hex[:12]}"
+            signup.provisioning_status = "free_tier_ready_for_activation"
+
+            db.add(signup)
+            db.commit()
+            db.refresh(signup)
+
+            return {
+                "signup_id": str(signup.id),
+                "status": "free_tier_ready",
+                "tenant_id": signup.tenant_id,
+                "subscription_id": signup.subscription_id,
+                "plan_code": payload.plan_code,
+                "addons": payload.addons,
+                "amount_due": 0,
+                "next": "activate_free_subscription_and_runtime",
+            }
+
+        if payload.payment_method != "paystack":
+            raise HTTPException(status_code=400, detail="only_paystack_currently_enabled")
+
+        if not PAYSTACK_SECRET_KEY:
+            raise HTTPException(status_code=500, detail="PAYSTACK_SECRET_KEY_missing")
+
+        reference = f"afr_{uuid.uuid4().hex[:16]}"
+
+        paystack_body = {
+            "email": signup.email,
+            "amount": int(round(total_amount * 100)),
+            "currency": "GHS",
+            "reference": reference,
+            "metadata": {
+                "tenant_id": str(signup.id),
+                "commercial_signup_id": str(signup.id),
+                "purpose": "subscription",
+                "platform": "afruheritage",
+                "plan_code": payload.plan_code,
+                "addons": payload.addons,
+            },
+        }
+
+        if payload.callback_url:
+            paystack_body["callback_url"] = payload.callback_url
+
+        response = requests.post(
+            f"{PAYSTACK_BASE_URL}/transaction/initialize",
+            headers={
+                "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+                "Content-Type": "application/json",
+            },
+            json=paystack_body,
+            timeout=30,
+        )
+
+        data = response.json()
+
+        if response.status_code >= 400 or not data.get("status"):
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "error": "paystack_initialize_failed",
+                    "response": data,
+                },
+            )
+
+        tx = PaymentTransaction(
+            tenant_id=str(signup.id),
+            purpose="subscription",
+            provider="paystack",
+            amount=total_amount,
+            currency="GHS",
+            reference=reference,
+            provider_reference=data["data"].get("reference", reference),
+            checkout_url=data["data"]["authorization_url"],
+            status="initialized",
+            raw_response_json=json.dumps(data),
+            plan_code=payload.plan_code,
+            addons_json=json.dumps(payload.addons),
+        )
+
+        signup.subscription_id = reference
+        signup.provisioning_status = "awaiting_payment"
+
+        db.add(signup)
+        db.add(tx)
+        db.commit()
+        db.refresh(signup)
+        db.refresh(tx)
+
+        return {
+            "signup_id": str(signup.id),
+            "status": "checkout_initialized",
+            "plan_code": payload.plan_code,
+            "addons": payload.addons,
+            "amount_due": total_amount,
+            "currency": "GHS",
+            "payment_reference": reference,
+            "checkout_url": tx.checkout_url,
+            "next": "complete_paystack_checkout",
+        }
+    finally:
+        db.close()
+
+
+@router.get("/signup/{signup_id}")
+def signup_status(signup_id: str):
+    db = SessionLocal()
+    try:
+        signup = db.query(CommercialSignup).filter(CommercialSignup.id == signup_id).first()
+        if not signup:
+            raise HTTPException(status_code=404, detail="signup_not_found")
+
+        return {
+            "signup_id": str(signup.id),
+            "email": signup.email,
+            "phone": signup.phone,
+            "account_type": signup.account_type,
+            "selected_plan": signup.selected_plan,
+            "selected_addons": json.loads(signup.selected_addons or "[]"),
+            "payment_method": signup.payment_method,
+            "payment_completed": signup.payment_completed,
+            "subscription_id": signup.subscription_id,
+            "tenant_id": signup.tenant_id,
+            "runtime_provisioned": signup.runtime_provisioned,
+            "provisioning_status": signup.provisioning_status,
+            "total_amount": signup.total_amount,
+            "created_at": signup.created_at.isoformat(),
+        }
+    finally:
+        db.close()
+
+
+@router.post("/signup/{signup_id}/provision-runtime")
+def provision_signup_runtime(signup_id: str):
+    from app.models.tenant import Tenant, LaunchStatus, DomainType
+    from app.services.fleetbase_runtime_service import pick_runner, create_runtime_request, run_install
+
+    db = SessionLocal()
+    try:
+        signup = db.query(CommercialSignup).filter(CommercialSignup.id == signup_id).first()
+        if not signup:
+            raise HTTPException(status_code=404, detail="signup_not_found")
+
+        if not signup.payment_completed:
+            raise HTTPException(status_code=400, detail="payment_not_completed")
+
+        tenant = db.query(Tenant).filter(Tenant.slug == signup_id).first()
+
+        if not tenant:
+            tenant = Tenant(
+                company_name=signup.email.split("@")[0],
+                slug=signup_id,
+                contact_email=signup.email,
+                plan_code=signup.selected_plan or "business",
+                requested_domain=f"{signup_id}.afruheritage.com",
+                domain_type=DomainType.provider_subdomain,
+                launch_status=LaunchStatus.queued,
+            )
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+
+        runner = pick_runner(db)
+
+        # Do not assign FleetbaseRunnerNode.id to Tenant.runner_id.
+        # Tenant.runner_id references legacy runner_nodes.id, while runtime.runner_id
+        # correctly references fleetbase_runner_nodes.id.
+        tenant.launch_status = LaunchStatus.provisioning
+        db.add(tenant)
+        db.commit()
+        db.refresh(tenant)
+
+        runtime = create_runtime_request(
+            db,
+            tenant_id=str(tenant.id),
+            tenant_slug=tenant.slug,
+            runner=runner,
+            is_reference_install=False,
+        )
+
+        runtime = run_install(db, runtime, runner)
+
+        if runtime.status.value == "active":
+            tenant.launch_status = LaunchStatus.active
+            signup.runtime_provisioned = True
+            signup.provisioning_status = "runtime_active"
+        else:
+            tenant.launch_status = LaunchStatus.failed
+            signup.runtime_provisioned = False
+            signup.provisioning_status = f"runtime_failed:{runtime.last_error or runtime.status.value}"
+
+        db.add(tenant)
+        db.add(signup)
+        db.commit()
+
+        return {
+            "signup_id": signup_id,
+            "tenant_id": str(tenant.id),
+            "runtime_id": str(runtime.id),
+            "runtime_status": runtime.status.value,
+            "runtime_url": runtime.runtime_url,
+            "console_url": runtime.console_url,
+            "provisioning_status": signup.provisioning_status,
+            "last_error": runtime.last_error,
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        try:
+            signup = db.query(CommercialSignup).filter(CommercialSignup.id == signup_id).first()
+            if signup:
+                signup.provisioning_status = f"runtime_error:{str(exc)[:200]}"
+                db.add(signup)
+                db.commit()
+        except Exception:
+            db.rollback()
+        raise HTTPException(status_code=500, detail=f"runtime_provisioning_failed:{str(exc)[:300]}") from exc
+    finally:
+        db.close()
+
+
+@router.post("/signup/{signup_id}/provision-runtime")
+def provision_signup_runtime(signup_id: str):
+    from app.models.tenant import Tenant, LaunchStatus, DomainType
+    from app.services.fleetbase_runtime_service import pick_runner, create_runtime_request, run_install
+
+    db = SessionLocal()
+    try:
+        signup = db.query(CommercialSignup).filter(CommercialSignup.id == signup_id).first()
+        if not signup:
+            raise HTTPException(status_code=404, detail="signup_not_found")
+
+        if not signup.payment_completed:
+            raise HTTPException(status_code=400, detail="payment_not_completed")
+
+        tenant = db.query(Tenant).filter(Tenant.slug == signup_id).first()
+
+        if not tenant:
+            tenant = Tenant(
+                company_name=signup.email.split("@")[0],
+                slug=signup_id,
+                contact_email=signup.email,
+                plan_code=signup.selected_plan or "business",
+                requested_domain=f"{signup_id}.afruheritage.com",
+                domain_type=DomainType.provider_subdomain,
+                launch_status=LaunchStatus.queued,
+            )
+            db.add(tenant)
+            db.commit()
+            db.refresh(tenant)
+
+        runner = pick_runner(db)
+
+        # Do not assign FleetbaseRunnerNode.id to Tenant.runner_id.
+        # Tenant.runner_id references legacy runner_nodes.id, while runtime.runner_id
+        # correctly references fleetbase_runner_nodes.id.
+        tenant.launch_status = LaunchStatus.provisioning
+        db.add(tenant)
+        db.commit()
+        db.refresh(tenant)
+
+        runtime = create_runtime_request(
+            db,
+            tenant_id=str(tenant.id),
+            tenant_slug=tenant.slug,
+            runner=runner,
+            is_reference_install=False,
+        )
+
+        runtime = run_install(db, runtime, runner)
+
+        if runtime.status.value == "active":
+            tenant.launch_status = LaunchStatus.active
+            signup.runtime_provisioned = True
+            signup.provisioning_status = "runtime_active"
+        else:
+            tenant.launch_status = LaunchStatus.failed
+            signup.runtime_provisioned = False
+            signup.provisioning_status = f"runtime_failed:{runtime.last_error or runtime.status.value}"
+
+        db.add(tenant)
+        db.add(signup)
+        db.commit()
+
+        return {
+            "signup_id": signup_id,
+            "tenant_id": str(tenant.id),
+            "runtime_id": str(runtime.id),
+            "runtime_status": runtime.status.value,
+            "runtime_url": runtime.runtime_url,
+            "console_url": runtime.console_url,
+            "provisioning_status": signup.provisioning_status,
+            "last_error": runtime.last_error,
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        try:
+            signup = db.query(CommercialSignup).filter(CommercialSignup.id == signup_id).first()
+            if signup:
+                signup.provisioning_status = f"runtime_error:{str(exc)[:200]}"
+                db.add(signup)
+                db.commit()
+        except Exception:
+            db.rollback()
+        raise HTTPException(status_code=500, detail=f"runtime_provisioning_failed:{str(exc)[:300]}") from exc
+    finally:
+        db.close()

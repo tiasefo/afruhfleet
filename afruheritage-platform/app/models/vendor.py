@@ -1,4 +1,5 @@
 from __future__ import annotations
+from app.core.config import settings
 
 import uuid
 from datetime import datetime
@@ -52,6 +53,13 @@ class BookingStatus(str, PyEnum):
     DISPUTED = "disputed"
 
 
+class DriverAvailability(str, PyEnum):
+    OFFLINE = "offline"
+    AVAILABLE = "available"
+    EN_ROUTE_PICKUP = "en_route_pickup"
+    DELIVERING = "delivering"
+
+
 # ── Delivery Vendor ────────────────────────────────────────────
 
 class DeliveryVendor(Base):
@@ -82,6 +90,15 @@ class DeliveryVendor(Base):
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    availability_status: Mapped[DriverAvailability] = mapped_column(
+        Enum(DriverAvailability, values_callable=_ev), nullable=False, default=DriverAvailability.OFFLINE,
+    )
+    availability_updated_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_known_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    last_known_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    last_known_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     # Agreement flags
     terms_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     insurance_accepted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -98,6 +115,7 @@ class DeliveryVendor(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     vehicles: Mapped[list[VendorVehicle]] = relationship("VendorVehicle", back_populates="vendor", lazy="selectin")
+    documents: Mapped[list[VendorDocument]] = relationship("VendorDocument", back_populates="vendor", lazy="selectin", cascade="all, delete-orphan")
 
 
 # ── Vendor Vehicle ─────────────────────────────────────────────
@@ -124,6 +142,18 @@ class VendorVehicle(Base):
     vendor: Mapped[DeliveryVendor] = relationship("DeliveryVendor", back_populates="vehicles")
 
 
+class VendorDocument(Base):
+    __tablename__ = "vendor_documents"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vendor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("delivery_vendors.id"), nullable=False, index=True)
+    document_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    file_url: Mapped[str] = mapped_column(String(1024), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    vendor: Mapped[DeliveryVendor] = relationship("DeliveryVendor", back_populates="documents")
+
+
 # ── Service Booking (tenant consumes vendor service) ───────────
 
 class VendorServiceBooking(Base):
@@ -143,6 +173,13 @@ class VendorServiceBooking(Base):
     vehicle_type_requested: Mapped[VehicleType | None] = mapped_column(
         Enum(VehicleType, values_callable=_ev), nullable=True,
     )
+    driver_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    driver_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    current_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    current_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    current_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+    last_location_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    live_tracking_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Pricing (credit-based)
@@ -154,8 +191,13 @@ class VendorServiceBooking(Base):
     tenant_review: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     booked_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    offered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    offer_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    responded_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    canceled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

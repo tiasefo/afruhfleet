@@ -17,6 +17,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { WebView } from "react-native-webview";
 
 type Booking = {
   id: string;
@@ -56,12 +57,109 @@ type SupportTicketMessage = {
   body: string;
 };
 
-type MobileTab = "operations" | "tracking" | "kyc" | "vendorDocs" | "vendorJoin" | "support";
+type MobileTab = "operations" | "tracking" | "kyc" | "vendorDocs" | "vendorJoin" | "support" | "parity";
+type AppMode = "web" | "native";
+
+type CoverageStatus = "LIVE" | "PARTIAL" | "MISSING";
+
+const parityRows: {
+  feature: string;
+  web: CoverageStatus;
+  mobile: CoverageStatus;
+  note: string;
+}[] = [
+  {
+    feature: "Email/password authentication",
+    web: "LIVE",
+    mobile: "LIVE",
+    note: "Both clients call real login APIs.",
+  },
+  {
+    feature: "Social OAuth login",
+    web: "LIVE",
+    mobile: "PARTIAL",
+    note: "Native app relies on Web mode for social login.",
+  },
+  {
+    feature: "Customer shipment dashboard",
+    web: "LIVE",
+    mobile: "PARTIAL",
+    note: "Native app has no customer dashboard; available via Web mode.",
+  },
+  {
+    feature: "Public shipment tracking",
+    web: "LIVE",
+    mobile: "LIVE",
+    note: "Web and native now call real tracking endpoints.",
+  },
+  {
+    feature: "Support create/track/reply",
+    web: "LIVE",
+    mobile: "LIVE",
+    note: "Web and native support both use support-crm APIs.",
+  },
+  {
+    feature: "KYC submission",
+    web: "LIVE",
+    mobile: "LIVE",
+    note: "Both sides submit multipart KYC payloads.",
+  },
+  {
+    feature: "Vendor registration",
+    web: "PARTIAL",
+    mobile: "LIVE",
+    note: "Web registration flow is simulated; native submits real payload.",
+  },
+  {
+    feature: "Vendor document upload",
+    web: "MISSING",
+    mobile: "LIVE",
+    note: "Only native app uploads vendor docs to /vendors/me/documents.",
+  },
+  {
+    feature: "Driver operations (bookings)",
+    web: "MISSING",
+    mobile: "LIVE",
+    note: "Driver booking actions are native-only.",
+  },
+  {
+    feature: "Live GPS ingestion",
+    web: "MISSING",
+    mobile: "LIVE",
+    note: "Native app streams location points to shipment tracking endpoint.",
+  },
+  {
+    feature: "Admin analytics",
+    web: "LIVE",
+    mobile: "MISSING",
+    note: "Admin analytics dashboard exists only on web.",
+  },
+  {
+    feature: "WhatsApp CSV upload",
+    web: "LIVE",
+    mobile: "MISSING",
+    note: "CSV ingest tooling is available only in web admin.",
+  },
+];
+
+function statusStyle(status: CoverageStatus) {
+  if (status === "LIVE") return { bg: "#dcfce7", fg: "#166534", border: "#86efac" };
+  if (status === "PARTIAL") return { bg: "#fef3c7", fg: "#92400e", border: "#fcd34d" };
+  return { bg: "#ffe4e6", fg: "#9f1239", border: "#fda4af" };
+}
 
 const TOKEN_KEY = "driver_auth_token";
-const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8100";
+const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "https://api.afruheritage.com";
+const DEFAULT_WEB_URL = process.env.EXPO_PUBLIC_WEB_APP_URL || "https://afruheritage.com";
 
 export default function App() {
+  const [appMode, setAppMode] = useState<AppMode>("web");
+  const [webUrl, setWebUrl] = useState(DEFAULT_WEB_URL);
+  const [webLoading, setWebLoading] = useState(false);
+  const [webCanGoBack, setWebCanGoBack] = useState(false);
+  const [webCanGoForward, setWebCanGoForward] = useState(false);
+  const webRef = useRef<WebView>(null);
+
   const [baseUrl, setBaseUrl] = useState(DEFAULT_BASE_URL);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -635,12 +733,67 @@ export default function App() {
     setStatusMessage("GPS tracking started");
   }
 
+  if (appMode === "web") {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <StatusBar style="dark" />
+        <View style={styles.webToolbar}>
+          <Text style={styles.webTitle}>Afruheritage Mobile</Text>
+          <View style={styles.rowWrap}>
+            <Pressable
+              style={[styles.secondaryBtn, !webCanGoBack ? styles.disabledBtn : null]}
+              onPress={() => webRef.current?.goBack()}
+              disabled={!webCanGoBack}
+            >
+              <Text style={styles.btnText}>Back</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.secondaryBtn, !webCanGoForward ? styles.disabledBtn : null]}
+              onPress={() => webRef.current?.goForward()}
+              disabled={!webCanGoForward}
+            >
+              <Text style={styles.btnText}>Forward</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryBtn} onPress={() => webRef.current?.reload()}>
+              <Text style={styles.btnText}>Reload</Text>
+            </Pressable>
+            <Pressable style={styles.primaryBtn} onPress={() => setAppMode("native")}>
+              <Text style={styles.btnText}>Native Tools</Text>
+            </Pressable>
+          </View>
+        </View>
+        <WebView
+          ref={webRef}
+          source={{ uri: webUrl }}
+          javaScriptEnabled
+          domStorageEnabled
+          sharedCookiesEnabled
+          startInLoadingState
+          onLoadStart={() => setWebLoading(true)}
+          onLoadEnd={() => setWebLoading(false)}
+          onNavigationStateChange={(state) => {
+            setWebCanGoBack(state.canGoBack);
+            setWebCanGoForward(state.canGoForward);
+            setWebUrl(state.url);
+          }}
+          style={styles.webView}
+        />
+        {webLoading ? (
+          <View style={styles.webLoadingOverlay}>
+            <ActivityIndicator size="small" />
+          </View>
+        ) : null}
+      </SafeAreaView>
+    );
+  }
+
   if (!token) {
     return (
       <SafeAreaView style={styles.safe}>
         <StatusBar style="dark" />
         <View style={styles.loginCard}>
           <Text style={styles.title}>Driver App</Text>
+          <Text style={styles.small}>Use "Use Full App" for full web features in mobile view.</Text>
           <TextInput value={baseUrl} onChangeText={setBaseUrl} style={styles.input} placeholder="API base URL" />
           <TextInput value={email} onChangeText={setEmail} style={styles.input} placeholder="Email" autoCapitalize="none" />
           <TextInput
@@ -652,6 +805,9 @@ export default function App() {
           />
           <Pressable style={styles.primaryBtn} onPress={login}>
             <Text style={styles.btnText}>Login</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryBtn} onPress={() => setAppMode("web")}>
+            <Text style={styles.btnText}>Use Full App</Text>
           </Pressable>
           {loading && <ActivityIndicator />}
         </View>
@@ -679,6 +835,7 @@ export default function App() {
             { key: "vendorDocs", label: "Vendor Docs" },
             { key: "vendorJoin", label: "Vendor Join" },
             { key: "support", label: "Support" },
+            { key: "parity", label: "Parity" },
           ].map((item) => (
             <Pressable
               key={item.key}
@@ -693,6 +850,9 @@ export default function App() {
         <View style={styles.row}>
           <Pressable style={styles.primaryBtn} onPress={() => void refreshBookings()}>
             <Text style={styles.btnText}>Refresh Offers</Text>
+          </Pressable>
+          <Pressable style={styles.secondaryBtn} onPress={() => setAppMode("web")}>
+            <Text style={styles.btnText}>Full App</Text>
           </Pressable>
           <Pressable style={styles.secondaryBtn} onPress={logout}>
             <Text style={styles.btnText}>Logout</Text>
@@ -971,6 +1131,33 @@ export default function App() {
           </>
         ) : null}
 
+        {tab === "parity" ? (
+          <>
+            <Text style={styles.sectionTitle}>Web vs Mobile Feature Parity</Text>
+            <Text style={styles.small}>
+              Deep-dive matrix from current code and API integrations.
+            </Text>
+            {parityRows.map((row) => {
+              const web = statusStyle(row.web);
+              const mobile = statusStyle(row.mobile);
+              return (
+                <View key={row.feature} style={styles.bookingCard}>
+                  <Text style={styles.bookingTitle}>{row.feature}</Text>
+                  <View style={styles.rowWrap}>
+                    <View style={[styles.statusPill, { backgroundColor: web.bg, borderColor: web.border }]}>
+                      <Text style={[styles.statusPillText, { color: web.fg }]}>Web: {row.web}</Text>
+                    </View>
+                    <View style={[styles.statusPill, { backgroundColor: mobile.bg, borderColor: mobile.border }]}>
+                      <Text style={[styles.statusPillText, { color: mobile.fg }]}>Mobile: {row.mobile}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.small}>{row.note}</Text>
+                </View>
+              );
+            })}
+          </>
+        ) : null}
+
         <Text style={styles.status}>{statusMessage}</Text>
       </ScrollView>
     </SafeAreaView>
@@ -992,6 +1179,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#ffffff",
     gap: 10,
+  },
+  webToolbar: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 10,
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e1e7ef",
+    gap: 8,
+  },
+  webTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a3a4a",
+  },
+  webView: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  webLoadingOverlay: {
+    position: "absolute",
+    right: 16,
+    top: 12,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 12,
+    padding: 6,
   },
   title: {
     fontSize: 24,
@@ -1096,6 +1309,16 @@ const styles = StyleSheet.create({
   status: {
     color: "#31596a",
     fontSize: 13,
+  },
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: "700",
   },
   brandRow: {
     flexDirection: "row",

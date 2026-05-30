@@ -276,72 +276,82 @@
                     const userData = await userResponse.json();
                     document.getElementById('userName').textContent = userData.email;
                     document.getElementById('tenantName').textContent = userData.tenant_name || 'Tenant';
+
+                    if (userData.tenant_id) {
+                        await loadShipmentSummary(userData.tenant_id, token);
+                        return;
+                    }
                 }
 
-                // Load shipment statistics (mock data for now)
-                loadMockData();
+                renderEmptyDashboard();
 
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
-                // Load mock data on error
-                loadMockData();
+                renderEmptyDashboard();
             }
         }
 
-        // Load mock data for demonstration
-        function loadMockData() {
-            // Update stats with mock data
-            document.getElementById('activeShipments').textContent = '24';
-            document.getElementById('inTransit').textContent = '18';
-            document.getElementById('delivered').textContent = '156';
-            document.getElementById('revenue').textContent = '₵45,230';
+        async function loadShipmentSummary(tenantId, token) {
+            const response = await fetch(`/api/v1/shipments/${tenantId}/summary`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
 
-            // Load recent activity
+            if (!response.ok) {
+                renderEmptyDashboard();
+                return;
+            }
+
+            const summary = await response.json();
+            document.getElementById('activeShipments').textContent = String(summary.active_shipments || 0);
+            document.getElementById('inTransit').textContent = String(summary.in_transit || 0);
+            document.getElementById('delivered').textContent = String(summary.delivered || 0);
+            document.getElementById('revenue').textContent = `₵${Number(summary.revenue || 0).toLocaleString()}`;
+
             const recentActivity = document.getElementById('recentActivity');
-            recentActivity.innerHTML = `
-                <div class="flex items-start space-x-3">
-                    <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">AFR-2024-001 delivered</p>
-                        <p class="text-xs text-gray-500">Accra to Kumasi • 2 hours ago</p>
+            if ((summary.recent_activity || []).length === 0) {
+                recentActivity.innerHTML = `<p class="text-sm text-gray-500">No shipment activity yet.</p>`;
+            } else {
+                recentActivity.innerHTML = (summary.recent_activity || []).map(item => `
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-900">${item.tracking_number} ${item.status.replaceAll('_', ' ')}</p>
+                            <p class="text-xs text-gray-500">${item.route} • ${new Date(item.updated_at).toLocaleString()}</p>
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="flex-shrink-0 w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">AFR-2024-002 in transit</p>
-                        <p class="text-xs text-gray-500">Tema to Takoradi • 5 hours ago</p>
-                    </div>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-900">AFR-2024-003 picked up</p>
-                        <p class="text-xs text-gray-500">Kumasi to Accra • 1 day ago</p>
-                    </div>
-                </div>
-            `;
+                `).join('');
+            }
 
-            // Initialize chart
-            initializeChart();
+            initializeChart(summary.chart || {labels: [], active_shipments: [], delivered: []});
+        }
+
+        function renderEmptyDashboard() {
+            document.getElementById('activeShipments').textContent = '0';
+            document.getElementById('inTransit').textContent = '0';
+            document.getElementById('delivered').textContent = '0';
+            document.getElementById('revenue').textContent = '₵0';
+            document.getElementById('recentActivity').innerHTML = `<p class="text-sm text-gray-500">No shipment activity yet.</p>`;
+            initializeChart({labels: [], active_shipments: [], delivered: []});
         }
 
         // Initialize shipment trends chart
-        function initializeChart() {
+        function initializeChart(chartData) {
             const ctx = document.getElementById('shipmentChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    labels: chartData.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                     datasets: [{
                         label: 'Active Shipments',
-                        data: [12, 19, 15, 25, 22, 30],
+                        data: chartData.active_shipments || [0, 0, 0, 0, 0, 0],
                         borderColor: 'rgb(147, 51, 234)',
                         backgroundColor: 'rgba(147, 51, 234, 0.1)',
                         tension: 0.3
                     }, {
                         label: 'Delivered',
-                        data: [8, 12, 10, 18, 16, 24],
+                        data: chartData.delivered || [0, 0, 0, 0, 0, 0],
                         borderColor: 'rgb(34, 197, 94)',
                         backgroundColor: 'rgba(34, 197, 94, 0.1)',
                         tension: 0.3

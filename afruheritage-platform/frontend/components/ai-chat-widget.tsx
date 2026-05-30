@@ -24,26 +24,64 @@ interface Message {
   timestamp: Date
 }
 
-const WELCOME_MESSAGE: Message = {
-  id: 'welcome',
-  role: 'assistant',
-  content: "Hello! I'm your Afruheritage AI assistant. I can help you with:\n\n- Tracking shipments\n- Getting quotes\n- Customs information\n- General logistics questions\n\nHow can I help you today?",
-  timestamp: new Date(),
+interface WidgetConfig {
+  enabled: boolean
+  tenant_slug: string | null
+  model: string
+  scope: string
+  welcome_message: string
+  theme: string
+  primary_color: string
+  api_endpoint: string
 }
 
-const DEMO_RESPONSES = [
-  "I can help you track your shipment. Please provide your tracking number and I'll look up the current status for you.",
-  "For customs clearance in Ghana, you'll typically need: Commercial Invoice, Bill of Lading, Packing List, and Import Declaration Form. Processing usually takes 2-3 business days.",
-  "Our standard shipping rates from Guangzhou to Accra start at $3.50/kg for air freight and $800/CBM for sea freight. Would you like a detailed quote?",
-  "Your shipment AFR-2024-12847 is currently in transit. It departed Guangzhou port on March 15th and is expected to arrive at Tema Port on April 2nd.",
-]
+interface AIChatResponse {
+  answer: string
+  sources: Array<{
+    source_path?: string
+  }>
+}
+
+const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
+  enabled: true,
+  tenant_slug: null,
+  model: 'afruheritage-copilot:latest',
+  scope: 'shared',
+  welcome_message: 'Welcome to Afruheritage Assistant. How can I help you today?',
+  theme: 'light',
+  primary_color: '#0ea5e9',
+  api_endpoint: '/api/v1/ai/chat',
+}
+
+function createWelcomeMessage(content: string): Message {
+  return {
+    id: 'welcome',
+    role: 'assistant',
+    content,
+    timestamp: new Date(),
+  }
+}
+
+function joinApiUrl(apiBaseUrl: string, endpoint: string): string {
+  const normalizedBase = apiBaseUrl.replace(/\/$/, '')
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+
+  if (normalizedBase.endsWith('/api/v1') && normalizedEndpoint.startsWith('/api/v1/')) {
+    return `${normalizedBase}${normalizedEndpoint.slice('/api/v1'.length)}`
+  }
+
+  return `${normalizedBase}${normalizedEndpoint}`
+}
 
 export function AIChatWidget() {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL
   const [isOpen, setIsOpen] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE])
+  const [messages, setMessages] = useState<Message[]>([createWelcomeMessage(DEFAULT_WIDGET_CONFIG.welcome_message)])
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [widgetConfig, setWidgetConfig] = useState<WidgetConfig>(DEFAULT_WIDGET_CONFIG)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -64,8 +102,48 @@ export function AIChatWidget() {
     }
   }, [isOpen, isMinimized])
 
+  useEffect(() => {
+    let cancelled = false
+
+    const loadWidgetConfig = async () => {
+      if (!apiBaseUrl) {
+        setError('AI service is not configured for this environment.')
+        return
+      }
+
+      try {
+        const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost'
+        const configUrl = joinApiUrl(apiBaseUrl, `/ai/widget/config?host=${encodeURIComponent(host)}`)
+        const response = await fetch(configUrl, { cache: 'no-store' })
+        const data = (await response.json()) as WidgetConfig
+
+        if (!response.ok) {
+          throw new Error('Failed to load AI widget settings')
+        }
+
+        if (!cancelled) {
+          setWidgetConfig(data)
+          setMessages([createWelcomeMessage(data.welcome_message || DEFAULT_WIDGET_CONFIG.welcome_message)])
+          setError(null)
+        }
+      } catch {
+        if (!cancelled) {
+          setWidgetConfig(DEFAULT_WIDGET_CONFIG)
+          setMessages([createWelcomeMessage(DEFAULT_WIDGET_CONFIG.welcome_message)])
+          setError('AI settings could not be loaded. Using default mode.')
+        }
+      }
+    }
+
+    loadWidgetConfig()
+
+    return () => {
+      cancelled = true
+    }
+  }, [apiBaseUrl])
+
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return
+    if (!inputValue.trim() || isTyping) return
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -77,43 +155,69 @@ export function AIChatWidget() {
     setMessages((prev) => [...prev, userMessage])
     setInputValue('')
     setIsTyping(true)
+    setError(null)
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-      if (token) headers['Authorization'] = `Bearer ${token}`
+      if (!apiBaseUrl) {
+        throw new Error('Missing API base URL')
+      }
 
-      const res = await fetch('/api/v1/ai/chat', {
+      const chatEndpoint = widgetConfig.api_endpoint || '/api/v1/ai/chat'
+      const chatUrl = joinApiUrl(apiBaseUrl, chatEndpoint)
+      const recentContext = messages.slice(-4).map((message) => ({
+        role: message.role,
+        content: message.content,
+      }))
+      const payload = {
+        message: userMessage.content,
+        tenant_scope: widgetConfig.scope,
+        tenant_slug: widgetConfig.tenant_slug,
+        model: widgetConfig.model,
+        page_url: typeof window !== 'undefined' ? window.location.href : undefined,
+        context: {
+          recent_messages: recentContext,
+        },
+      }
+
+      const response = await fetch(chatUrl, {
         method: 'POST',
-        headers,
-        body: JSON.stringify({ message: userMessage.content }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       })
 
-      let reply: string
-      if (res.ok) {
-        const data = await res.json()
-        reply = data.answer || 'I received your message but have no answer at this time.'
-      } else if (res.status === 401) {
-        reply = 'Please log in to use the AI assistant. You can sign in from the login page.'
-      } else {
-        const err = await res.json().catch(() => ({ detail: 'AI service unavailable' }))
-        reply = err.detail || 'Sorry, something went wrong. Please try again.'
+      const data = (await response.json()) as AIChatResponse
+      if (!response.ok || !data.answer) {
+        throw new Error('AI response failed')
       }
+
+      const sourcePaths = Array.isArray(data.sources)
+        ? data.sources.map((source) => source.source_path || 'knowledge').filter(Boolean)
+        : []
+      const appSources = sourcePaths.filter((path) => !path.startsWith('knowledge/shared/'))
+      const sourcePreview = (appSources.length > 0 ? appSources : sourcePaths).slice(0, 2)
+      const sourceHint = sourcePreview.length > 0
+        ? `\n\nSources: ${sourcePreview.join(', ')}`
+        : ''
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: reply,
+        content: `${data.answer}${sourceHint}`,
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+    } catch {
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'I could not reach the AI service right now. Please try again in a moment.',
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
-    } catch {
-      setMessages((prev) => [...prev, {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Unable to reach the AI service. Please check your connection and try again.',
-        timestamp: new Date(),
-      }])
+      setError('Live AI is temporarily unavailable.')
     } finally {
       setIsTyping(false)
     }
@@ -127,6 +231,10 @@ export function AIChatWidget() {
   }
 
   if (!isOpen) {
+    if (!widgetConfig.enabled) {
+      return null
+    }
+
     return (
       <Button
         onClick={() => setIsOpen(true)}
@@ -279,7 +387,7 @@ export function AIChatWidget() {
               </Button>
             </div>
             <p className="mt-2 text-center text-[10px] text-muted-foreground">
-              Powered by Afruheritage AI
+              {error || 'AI responses are generated from platform knowledge via live backend.'}
             </p>
           </div>
         </>

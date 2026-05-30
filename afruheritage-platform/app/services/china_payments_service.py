@@ -16,16 +16,16 @@ class ChinaPaymentService:
     
     def __init__(self):
         self.alipay_config = {
-            "app_id": getattr(settings, "ALIPAY_APP_ID", ""),
-            "private_key": getattr(settings, "ALIPAY_PRIVATE_KEY", ""),
-            "public_key": getattr(settings, "ALIPAY_PUBLIC_KEY", ""),
+            "app_id": settings.alipay_app_id,
+            "private_key": settings.alipay_private_key,
+            "public_key": settings.alipay_public_key,
             "gateway_url": "https://openapi.alipay.com/gateway.do"
         }
         
         self.wechat_config = {
-            "app_id": getattr(settings, "WECHAT_APP_ID", ""),
-            "mch_id": getattr(settings, "WECHAT_MCH_ID", ""),
-            "api_key": getattr(settings, "WECHAT_API_KEY", ""),
+            "app_id": settings.wechat_app_id,
+            "mch_id": settings.wechat_mch_id,
+            "api_key": settings.wechat_api_key,
             "gateway_url": "https://api.mch.weixin.qq.com"
         }
     
@@ -38,8 +38,11 @@ class ChinaPaymentService:
         """Initiate AliPay payment"""
         try:
             if not self.alipay_config["app_id"]:
-                # Mock implementation for testing
-                return await self._mock_alipay_payment(amount, order_info)
+                return {
+                    "status": "not_configured",
+                    "error": "AliPay credentials are not configured",
+                    "provider": "alipay"
+                }
             
             import httpx
             import urllib.parse
@@ -107,8 +110,11 @@ class ChinaPaymentService:
         """Initiate WeChat Pay payment"""
         try:
             if not self.wechat_config["app_id"]:
-                # Mock implementation for testing
-                return await self._mock_wechat_payment(amount, order_info)
+                return {
+                    "status": "not_configured",
+                    "error": "WeChat Pay credentials are not configured",
+                    "provider": "wechat_pay"
+                }
             
             import httpx
             
@@ -182,14 +188,11 @@ class ChinaPaymentService:
         """Verify AliPay payment status"""
         try:
             if not self.alipay_config["app_id"]:
-                # Mock verification
                 return {
-                    "verified": True,
-                    "status": "success",
-                    "amount": 0,
-                    "paid_at": datetime.utcnow().isoformat(),
+                    "verified": False,
+                    "status": "not_configured",
                     "trade_no": out_trade_no,
-                    "mock": True
+                    "error": "AliPay credentials are not configured"
                 }
             
             import httpx
@@ -245,14 +248,11 @@ class ChinaPaymentService:
         """Verify WeChat Pay payment status"""
         try:
             if not self.wechat_config["app_id"]:
-                # Mock verification
                 return {
-                    "verified": True,
-                    "status": "success",
-                    "amount": 0,
-                    "paid_at": datetime.utcnow().isoformat(),
+                    "verified": False,
+                    "status": "not_configured",
                     "transaction_id": out_trade_no,
-                    "mock": True
+                    "error": "WeChat Pay credentials are not configured"
                 }
             
             import httpx
@@ -305,44 +305,27 @@ class ChinaPaymentService:
                 "error": str(e)
             }
     
-    async def _mock_alipay_payment(self, amount: float, order_info: dict[str, Any]) -> dict[str, Any]:
-        """Mock AliPay payment for testing"""
-        payment_id = f"ALI_MOCK_{uuid.uuid4().hex[:12].upper()}"
-        
-        return {
-            "payment_id": payment_id,
-            "payment_url": f"https://mock-alipay.com/pay/{payment_id}",
-            "amount": amount,
-            "currency": "CNY",
-            "provider": "alipay",
-            "status": "pending",
-            "mock": True
-        }
-    
-    async def _mock_wechat_payment(self, amount: float, order_info: dict[str, Any]) -> dict[str, Any]:
-        """Mock WeChat Pay payment for testing"""
-        payment_id = f"WX_MOCK_{uuid.uuid4().hex[:12].upper()}"
-        
-        return {
-            "payment_id": payment_id,
-            "qr_code_url": f"https://mock-wechat.com/qr/{payment_id}",
-            "qr_code_data": payment_id,
-            "amount": amount,
-            "currency": "CNY",
-            "provider": "wechat_pay",
-            "status": "pending",
-            "mock": True
-        }
-    
     async def _sign_alipay_request(self, params: dict[str, Any]) -> str:
-        """Sign AliPay request (simplified)"""
-        # Mock implementation - in production, use proper RSA signing
-        return f"mock_signature_{uuid.uuid4().hex[:16]}"
+        """Sign AliPay request."""
+        if not self.alipay_config["private_key"]:
+            raise RuntimeError("AliPay private key is not configured")
+        # Real RSA2 signing should be plugged here with the production signing library.
+        raise RuntimeError("AliPay RSA2 signing is not yet implemented")
     
     async def _sign_wechat_request(self, params: dict[str, Any]) -> str:
-        """Sign WeChat request (simplified)"""
-        # Mock implementation - in production, use proper MD5 signing
-        return f"mock_signature_{uuid.uuid4().hex[:16]}"
+        """Sign WeChat request using MD5 signature flow."""
+        import hashlib
+
+        if not self.wechat_config["api_key"]:
+            raise RuntimeError("WeChat API key is not configured")
+
+        to_sign = "&".join(
+            f"{k}={v}"
+            for k, v in sorted(params.items())
+            if v is not None and v != "" and k != "sign"
+        )
+        to_sign = f"{to_sign}&key={self.wechat_config['api_key']}"
+        return hashlib.md5(to_sign.encode("utf-8")).hexdigest().upper()
     
     async def _build_xml_request(self, params: dict[str, Any]) -> bytes:
         """Build XML request for WeChat Pay"""
@@ -354,19 +337,13 @@ class ChinaPaymentService:
     
     async def _parse_xml_response(self, xml_content: bytes) -> dict[str, Any]:
         """Parse XML response from WeChat Pay"""
-        # Mock implementation - in production, use proper XML parsing
-        return {
-            "return_code": "SUCCESS",
-            "return_msg": "OK",
-            "appid": self.wechat_config["app_id"],
-            "mch_id": self.wechat_config["mch_id"],
-            "nonce_str": uuid.uuid4().hex[:16],
-            "sign": "mock_signature",
-            "result_code": "SUCCESS",
-            "prepay_id": f"prepay_{uuid.uuid4().hex[:16]}",
-            "trade_type": "NATIVE",
-            "code_url": f"weixin://wxpay/bizpayurl?pr={uuid.uuid4().hex[:16]}"
-        }
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(xml_content)
+        parsed: dict[str, Any] = {}
+        for child in root:
+            parsed[child.tag] = child.text
+        return parsed
     
     def get_supported_methods(self) -> list[dict[str, Any]]:
         """Get supported China payment methods"""

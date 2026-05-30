@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Loader2, Send, Copy, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { resolvePublicTenantId } from '@/lib/tenant'
 
 const categories = [
   { value: 'shipment', label: 'Shipment Issue' },
@@ -59,13 +60,20 @@ export function CreateTicketForm() {
     const subject = (form.querySelector('#subject') as HTMLInputElement)?.value || ''
     const description = (form.querySelector('#description') as HTMLTextAreaElement)?.value || ''
     const tracking = (form.querySelector('#tracking') as HTMLInputElement)?.value || ''
+    const tenantId = resolvePublicTenantId()
+
+    if (!tenantId) {
+      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
+      setIsSubmitting(false)
+      return
+    }
 
     try {
-      const res = await fetch('/api/v1/support-crm/public/tickets', {
+      const res = await fetch(`/api/v1/support-crm/public/tickets?tenant_id=${encodeURIComponent(tenantId)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tenant_id: 'platform',
+          tenant_id: tenantId,
           public_submitter_name: name,
           public_submitter_email: email,
           subject,

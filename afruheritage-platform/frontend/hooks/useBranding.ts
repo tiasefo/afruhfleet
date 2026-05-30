@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { brandingAPI } from '@/lib/api'
+import { ApiError, brandingAPI, getToken } from '@/lib/api'
 
 interface TenantBranding {
   company_name: string
@@ -71,18 +71,22 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      // Try to get authenticated branding first
-      try {
+      const token = getToken()
+
+      if (token) {
         const response = await brandingAPI.get()
         setBranding(response)
-      } catch {
-        // Fallback to public branding
-        const response = await brandingAPI.getPublic()
-        setBranding(response)
+        return
       }
+
+      const response = await brandingAPI.getPublic()
+      setBranding(response)
     } catch (error) {
-      console.error('Failed to load branding:', error)
-      setError('Failed to load branding')
+      if (!(error instanceof ApiError && (error.status === 401 || error.status === 404))) {
+        console.error('Failed to load branding:', error)
+        setError('Failed to load branding')
+      }
+
       // Use default branding as fallback
       setBranding(defaultBranding)
     } finally {

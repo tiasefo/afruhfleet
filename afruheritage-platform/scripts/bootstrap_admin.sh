@@ -2,7 +2,7 @@
 
 set -e
 
-API_URL="http://localhost:8000"
+API_URL="http://localhost:8100"
 
 EMAIL="admin@afruheritage.com"
 PASSWORD="Sumiasis243$"

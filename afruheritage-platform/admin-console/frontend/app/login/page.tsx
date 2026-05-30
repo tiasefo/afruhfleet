@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { AlertCircle, Shield } from 'lucide-react'
-import { api, setToken } from '@/lib/api'
+import { useAuth } from '@/lib/auth-context'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -21,8 +22,7 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const data = await api.post('/admin/auth/login', { email, password })
-      setToken(data.access_token)
+      await login(email, password)
       router.push('/dashboard')
     } catch (err: any) {
       setError(err.message || 'Login failed')
