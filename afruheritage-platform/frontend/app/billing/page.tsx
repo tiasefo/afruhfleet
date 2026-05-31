@@ -71,6 +71,7 @@ export default function BillingPage() {
   const [showTransactionsModal, setShowTransactionsModal] = useState(false)
   const [topupAmount, setTopupAmount] = useState('')
   const [selectedPlan, setSelectedPlan] = useState('')
+  const [selectedProvider, setSelectedProvider] = useState('paystack')
   const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
@@ -140,27 +141,35 @@ export default function BillingPage() {
     
     setIsProcessing(true)
     try {
+      const tenantId = resolveTenantId() || ''
+
       if (selectedPlan === 'free_trial') {
-        await billingApi.createSubscription({
-          tenant_id: resolveTenantId() || '',
-          plan_code: selectedPlan,
-        })
+        await billingApi.startTrial(tenantId)
         await loadBillingData()
         setShowUpgradeModal(false)
         return
       }
 
-      const plan = plans.find(p => p.code === selectedPlan)
+      const plan = plans.find((p: any) => p.code === selectedPlan)
       if (!plan) return
-      
-      const response = await billingApi.createSubscription({
-        tenant_id: resolveTenantId() || '',
+
+      const response = await billingApi.initPayment({
+        tenant_id: tenantId,
+        email: user?.email || '',
+        amount_major: plan.price_amount || 0,
+        currency: plan.currency || 'GHS',
+        purpose: 'subscription',
         plan_code: selectedPlan,
-        payment_method: 'paystack',
+        callback_url: `${window.location.origin}/billing/callback?plan=${selectedPlan}`,
+        payment_provider: selectedProvider,
       })
-      
-      // Redirect to Paystack
-      window.location.href = response.authorization_url
+
+      if (response?.authorization_url) {
+        window.location.href = response.authorization_url
+      } else {
+        await loadBillingData()
+        setShowUpgradeModal(false)
+      }
     } catch (error) {
       console.error('Failed to initiate upgrade:', error)
     } finally {
@@ -259,6 +268,18 @@ export default function BillingPage() {
                                 </SelectContent>
                               </Select>
                             </div>
+                            {selectedPlan && selectedPlan !== 'free_trial' && (
+                              <div>
+                                <label className="text-sm font-medium">Payment Method</label>
+                                <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="paystack">Paystack (Ghana — GHS)</SelectItem>
+                                    <SelectItem value="flutterwave">Flutterwave (Kenya — KES / GHS)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
                               {selectedPlan && (
                                 <div className="rounded-lg border bg-gray-50 p-4">
                                   <p className="text-sm font-medium text-gray-900">What this tier includes</p>

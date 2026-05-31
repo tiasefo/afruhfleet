@@ -49,12 +49,13 @@ export function RegisterForm() {
     }
 
     try {
-      await authApi.bootstrap({
+      await authApi.register({
         email,
         password,
         full_name: fullName,
+        company_name: companyName || fullName,
+        plan_code: 'free_trial',
       })
-      
       await login(email, password)
       router.push('/dashboard')
     } catch (err: any) {

@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
 import { shipmentsAPI, membersAPI } from '@/lib/api'
+import { COUNTRY_OPTIONS, getCitiesForCountry } from '@/lib/geo-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -477,45 +478,37 @@ export default function CreateShipmentPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Origin Country *
                   </label>
-                  <Input
-                    value={formData.origin_country}
-                    onChange={(e) => handleInputChange('origin_country', e.target.value)}
-                    placeholder="Enter origin country"
-                    required
-                  />
+                  <Select value={formData.origin_country} onValueChange={(v) => { handleInputChange('origin_country', v); handleInputChange('origin_city', '') }}>
+                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                    <SelectContent>{COUNTRY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Origin City *
                   </label>
-                  <Input
-                    value={formData.origin_city}
-                    onChange={(e) => handleInputChange('origin_city', e.target.value)}
-                    placeholder="Enter origin city"
-                    required
-                  />
+                  <Select value={formData.origin_city} onValueChange={(v) => handleInputChange('origin_city', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent>{getCitiesForCountry(formData.origin_country).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Destination Country *
                   </label>
-                  <Input
-                    value={formData.destination_country}
-                    onChange={(e) => handleInputChange('destination_country', e.target.value)}
-                    placeholder="Enter destination country"
-                    required
-                  />
+                  <Select value={formData.destination_country} onValueChange={(v) => { handleInputChange('destination_country', v); handleInputChange('destination_city', '') }}>
+                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                    <SelectContent>{COUNTRY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Destination City *
                   </label>
-                  <Input
-                    value={formData.destination_city}
-                    onChange={(e) => handleInputChange('destination_city', e.target.value)}
-                    placeholder="Enter destination city"
-                    required
-                  />
+                  <Select value={formData.destination_city} onValueChange={(v) => handleInputChange('destination_city', v)}>
+                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+                    <SelectContent>{getCitiesForCountry(formData.destination_country).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -26,7 +26,7 @@ from slugify import slugify
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_db, get_current_user
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.middleware.rate_limit import rate_limit
@@ -246,3 +246,49 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
             "Log in with your email and password to complete setup and start customising your branding."
         ),
     )
+
+
+@router.post('/retry-provisioning/{tenant_id}')
+def retry_fleetbase_provisioning(
+    tenant_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin: retry Fleetbase org provisioning for a pending tenant."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail='Superuser required')
+
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+
+    if tenant.fleetbase_org_id:
+        return {'status': 'already_provisioned', 'org_id': str(tenant.fleetbase_org_id)}
+
+    try:
+        # find the admin user for this tenant
+        admin_user = db.query(User).filter(
+            User.tenant_id == tenant_id,
+            User.role.in_(['company_admin', 'platform_admin'])
+        ).order_by(User.created_at).first()
+        admin_email = (admin_user.email if admin_user else tenant.contact_email) or ''
+        admin_name = (admin_user.full_name if admin_user else tenant.company_name + ' Admin') or tenant.company_name
+
+        fb_org = fleetbase_client.provision_org(
+            company_name=tenant.company_name,
+            admin_email=admin_email,
+            admin_password=secrets.token_urlsafe(16),
+        )
+        tenant.fleetbase_org_id = fb_org.org_id
+        tenant.fleetbase_api_key = fb_org.api_key
+        tenant.fleetbase_admin_token = fb_org.admin_token
+        tenant.live_api_token = fb_org.api_key
+        tenant.live_console_url = fb_org.console_url
+        tenant.launch_status = 'active'
+        tenant.verification_notes = 'Provisioned via retry'
+        db.commit()
+        return {'status': 'provisioned', 'org_id': str(fb_org.org_id), 'console_url': fb_org.console_url}
+    except Exception as exc:
+        tenant.verification_notes = f'Retry failed: {exc}'
+        db.commit()
+        raise HTTPException(status_code=502, detail=f'Provisioning failed: {exc}') from exc

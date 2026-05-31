@@ -56,6 +56,7 @@ class PaymentInitRequest(BaseModel):
     plan_code: str | None = None
     credits_to_buy: int | None = None
     callback_url: str | None = None
+    payment_provider: str = "paystack"  # paystack | flutterwave
 
 
 class PaymentInitResponse(BaseModel):

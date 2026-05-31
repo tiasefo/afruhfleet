@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import csv
+import io
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -349,3 +353,111 @@ def send_user_reset_link(
     db.commit()
 
     return TenantUserResetResponse(status='ok', message='Password setup/reset link sent to user email')
+
+
+class BulkImportRow(BaseModel):
+    full_name: str
+    email: str | None = None
+    phone: str | None = None
+    role: str = 'member'
+    goods_description: str | None = None
+
+
+class BulkImportResult(BaseModel):
+    total: int
+    created: int
+    skipped: int
+    errors: list[str]
+
+
+@router.post('/bulk-import', response_model=BulkImportResult)
+def bulk_import_users(
+    file: UploadFile = File(...),
+    tenant_id: str | None = Query(None),
+    send_invite_email: bool = Query(True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    CSV columns (header required): full_name, email, phone, role, goods_description
+    Imports users as tenant members; each gets a random temporary password.
+    An invite email is sent if send_invite_email=true and email is provided.
+    """
+    scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
+    if not scope_tenant_id:
+        raise HTTPException(status_code=400, detail='tenant_id is required')
+
+    content = file.file.read().decode('utf-8-sig')  # handle BOM
+    reader = csv.DictReader(io.StringIO(content))
+
+    created = 0
+    skipped = 0
+    errors: list[str] = []
+    rows_processed = 0
+
+    for row_num, row in enumerate(reader, start=2):
+        rows_processed += 1
+        full_name = (row.get('full_name') or row.get('name') or '').strip()
+        email = (row.get('email') or '').strip().lower() or None
+        phone = (row.get('phone') or '').strip() or None
+        role = (row.get('role') or 'member').strip() or 'member'
+        goods_desc = (row.get('goods_description') or row.get('goods') or '').strip() or None
+
+        if not full_name:
+            errors.append(f'Row {row_num}: full_name is required — skipped')
+            skipped += 1
+            continue
+
+        if not email and not phone:
+            errors.append(f'Row {row_num}: at least email or phone required — skipped')
+            skipped += 1
+            continue
+
+        # Skip if email already registered under this tenant
+        if email:
+            existing = db.query(User).filter(
+                User.email == email,
+                User.tenant_id == scope_tenant_id,
+            ).first()
+            if existing:
+                skipped += 1
+                continue
+
+        temp_password = secrets.token_urlsafe(12)
+        user = User(
+            id=uuid.uuid4(),
+            email=email,
+            full_name=full_name,
+            phone=phone,
+            hashed_password=get_password_hash(temp_password),
+            tenant_id=scope_tenant_id,
+            role=role,
+            is_active=True,
+            must_reset_password=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        if goods_desc:
+            user.notes = goods_desc
+
+        db.add(user)
+        db.flush()  # get user.id before commit
+
+        if send_invite_email and email:
+            try:
+                _send_password_setup_email(user, scope_tenant_id)
+            except Exception as exc:
+                errors.append(f'Row {row_num}: user created but email failed — {exc}')
+
+        _write_audit_event(
+            db,
+            actor_email=current_user.email,
+            event_type='tenant_user_bulk_imported',
+            entity_type='user',
+            entity_id=str(user.id),
+            details_json=f'{{"tenant_id":"{scope_tenant_id}","email":"{email}","full_name":"{full_name}"}}',
+        )
+        created += 1
+
+    db.commit()
+    return BulkImportResult(total=rows_processed, created=created, skipped=skipped, errors=errors)

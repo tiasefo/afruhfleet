@@ -111,6 +111,14 @@ export const authApi = {
     full_name?: string
   }) => api.post('/auth/bootstrap', data),
 
+  register: (data: {
+    email: string
+    password: string
+    full_name: string
+    company_name: string
+    plan_code?: string
+  }) => api.post('/auth/register', data),
+
   login: (data: {
     username: string
     password: string
@@ -186,11 +194,22 @@ export const billingApi = {
   getSubscription: (tenantId: string) =>
     api.get(`/billing/subscriptions/${tenantId}`),
 
-  createSubscription: (data: {
+  startTrial: (tenantId: string) =>
+    api.post(`/billing/subscriptions/trial/${tenantId}`, {}),
+
+  initPayment: (data: {
     tenant_id: string
-    plan_code: string
-    payment_method?: string
-  }) => api.post('/billing/subscriptions', data),
+    email: string
+    amount_major: number
+    currency: string
+    purpose: string
+    plan_code?: string
+    callback_url?: string
+    payment_provider?: string
+  }) => api.post(`/billing/payments/init?tenant_id=${data.tenant_id}`, data),
+
+  verifyPayment: (reference: string, tenantId: string) =>
+    api.post(`/billing/payments/verify/${reference}?tenant_id=${tenantId}`, {}),
 
   getWallet: (tenantId: string) =>
     api.get(`/billing/wallets/${tenantId}`),
@@ -261,7 +280,7 @@ export const crmApi = {
     account_id?: string
     contact_id?: string
     close_date?: string
-  }) => api.post('/support-crm/opportunities', data),
+  }) => api.post(`/support-crm/opportunities?tenant_id=${data.tenant_id}`, data),
 
   getQuotes: (tenantId: string) =>
     api.get(`/support-crm/quotes?tenant_id=${tenantId}`),
@@ -274,7 +293,7 @@ export const crmApi = {
     opportunity_id?: string
     valid_until?: string
     notes?: string
-  }) => api.post('/support-crm/quotes', data),
+  }) => api.post(`/support-crm/quotes?tenant_id=${data.tenant_id}`, data),
 
   getTickets: (tenantId: string) =>
     api.get(`/support-crm/tickets?tenant_id=${tenantId}`),

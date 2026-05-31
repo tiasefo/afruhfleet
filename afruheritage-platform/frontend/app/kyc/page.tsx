@@ -105,6 +105,7 @@ export default function KYCPage() {
 
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     not_submitted: { label: 'Not Submitted', color: 'text-gray-600', bg: 'bg-gray-100' },
+    not_started: { label: 'Not Submitted', color: 'text-gray-600', bg: 'bg-gray-100' },
     pending: { label: 'Under Review', color: 'text-yellow-700', bg: 'bg-yellow-100' },
     approved: { label: 'Approved', color: 'text-green-700', bg: 'bg-green-100' },
     rejected: { label: 'Rejected', color: 'text-red-700', bg: 'bg-red-100' },
@@ -179,7 +180,7 @@ export default function KYCPage() {
         )}
 
         {/* Not submitted or rejected — show form */}
-        {(currentStatus === 'not_submitted' || currentStatus === 'rejected') && (
+        {(currentStatus === 'not_submitted' || currentStatus === 'not_started' || currentStatus === 'rejected') && (
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h2 className="text-base font-bold text-gray-900 mb-1">Submit Your Documents</h2>
             <p className="text-sm text-gray-500 mb-5">

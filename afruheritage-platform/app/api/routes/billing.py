@@ -10,6 +10,7 @@ from app.models.user import User
 from app.schemas.billing import BillingAdminAdjustCreditsRequest, BillingAdminAssignPlanRequest, BillingAdminSetReadOnlyRequest, CreditConsumeRequest, PaymentInitRequest, PaymentInitResponse, PaymentReinitRequest, PaymentVerifyResponse, PlanResponse, SubscriptionResponse, UsageCreditCostResponse, WalletResponse, WalletTransactionResponse
 from app.services.billing_service import activate_or_upgrade_subscription, add_wallet_credits_once, admin_adjust_credits, ensure_wallet, get_plans, grant_subscription_allowance, mark_payment_verified, set_payment_initialized, set_subscription_read_only, write_audit_log, consume_wallet_credits, create_payment, create_trial_subscription, evaluate_subscription_state, seed_default_plans, admin_assign_plan as admin_assign_plan_service, get_plan_features, normalize_plan_code, get_feature_credit_costs
 from app.services.paystack_client import initialize_transaction, verify_transaction
+import app.services.flutterwave_client as _flw
 from app.middleware.rate_limit import rate_limit
 router = APIRouter(prefix='/billing', tags=['Billing'])
 
@@ -101,7 +102,18 @@ def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(
     effective_tenant_id = current_user.tenant_id if not current_user.is_superuser else request.tenant_id
     payment = create_payment(db=db, tenant_id=effective_tenant_id, purpose=request.purpose, currency=request.currency, amount_minor=amount_minor)
     try:
-        payload = initialize_transaction(email=request.email, amount_minor=amount_minor, reference=payment.reference, currency=request.currency, callback_url=request.callback_url, metadata={'tenant_id': str(effective_tenant_id), 'purpose': request.purpose, 'plan_code': request.plan_code, 'credits_to_buy': request.credits_to_buy})
+        provider = (request.payment_provider or "paystack").lower()
+        if provider == "flutterwave":
+            payload = _flw.initialize_transaction(
+                email=request.email,
+                amount_major=request.amount_major,
+                reference=payment.reference,
+                currency=request.currency,
+                callback_url=request.callback_url,
+                metadata={'tenant_id': str(effective_tenant_id), 'purpose': request.purpose, 'plan_code': request.plan_code, 'credits_to_buy': request.credits_to_buy},
+            )
+        else:
+            payload = initialize_transaction(email=request.email, amount_minor=amount_minor, reference=payment.reference, currency=request.currency, callback_url=request.callback_url, metadata={'tenant_id': str(effective_tenant_id), 'purpose': request.purpose, 'plan_code': request.plan_code, 'credits_to_buy': request.credits_to_buy})
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f'Payment gateway error: {exc}') from exc
     data = payload.get('data', {})

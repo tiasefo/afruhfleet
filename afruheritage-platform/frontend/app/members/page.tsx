@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { usersApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ import {
   RefreshCw,
   AlertCircle,
   Send,
+  Upload,
 } from 'lucide-react'
 
 function getRoleLabel(user: any): string {
@@ -140,6 +142,12 @@ export default function MembersPage() {
                     Invite Member
                   </Button>
                 </DialogTrigger>
+                <Link href="/members/import" className="ml-2">
+                  <Button variant="outline">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Bulk Import CSV
+                  </Button>
+                </Link>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

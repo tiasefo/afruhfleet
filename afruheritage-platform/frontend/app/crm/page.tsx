@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
 import { crmAPI } from '@/lib/api'
+import { resolveTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -78,7 +79,9 @@ export default function CRMPage() {
     
     setIsProcessing(true)
     try {
+      const tenantId = resolveTenantId() || (user as any)?.tenant_id || ''
       const payload = {
+        tenant_id: tenantId,
         title: formData.title,
         stage: formData.stage,
         currency: formData.currency,

@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ShipmentCreate(BaseModel):
-    tracking_number: str | None = Field(default=None, min_length=1, max_length=100)
+    tracking_number: str | None = Field(default=None, max_length=100)
     reference_number: str | None = None
 
     sender_name: str = Field(min_length=1, max_length=255)
