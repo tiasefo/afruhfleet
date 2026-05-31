@@ -44,6 +44,7 @@ from app.api.routes.whatsapp import router as whatsapp_router
 from app.api.routes.whatsapp_csv import router as whatsapp_csv_router
 from app.api.routes.vendors import router as vendors_router
 from app.api.routes.users import router as users_router
+from app.api.routes.company_registration import router as company_registration_router
 
 from app.core.config import settings
 from app.db.runtime_migrations import run_runtime_migrations
@@ -148,6 +149,7 @@ app.include_router(geo_router, prefix=settings.api_v1_prefix)
 
 app.include_router(vendors_router, prefix=settings.api_v1_prefix)
 app.include_router(users_router, prefix=settings.api_v1_prefix)
+app.include_router(company_registration_router, prefix=settings.api_v1_prefix)
 app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(kyc_router, prefix=settings.api_v1_prefix)
 

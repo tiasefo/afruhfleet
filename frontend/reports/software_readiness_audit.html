@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Software Readiness Audit</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
+  margin: 24px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+th, td {
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  vertical-align: top;
+  text-align: left;
+  font-size: 14px;
+}
+th {
+  background: #0f172a;
+  color: white;
+}
+pre {
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+.legend span {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+}
+</style>
+</head>
+<body>
+<h1>Software Readiness Audit</h1>
+<p>Target: distinguish functioning software from scaffold / mock / simulation / reference-only code.</p>
+<div class="legend">
+  <span style="background:#dcfce7;">Functional software</span>
+  <span style="background:#fef9c3;">Partial / backend-led</span>
+  <span style="background:#fed7aa;">Scaffold / placeholder risk</span>
+  <span style="background:#fecaca;">Mock / simulation / non-functional</span>
+  <span style="background:#e5e7eb;">Referenced only</span>
+</div>
+<table>
+<thead>
+<tr>
+  <th>Group</th>
+  <th>Capability</th>
+  <th>Backend</th>
+  <th>Frontend</th>
+  <th>Docs</th>
+  <th>Status</th>
+  <th>Impl</th>
+  <th>Penalty</th>
+  <th>Net</th>
+  <th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+
+        <tr style="background:#fecaca">
+          <td>AI</td>
+          <td>AI chat</td>
+          <td>No</td>
+          <td>No</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><details><summary>Open</summary><pre>No evidence</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fecaca">
+          <td>Billing</td>
+          <td>Billing and plans</td>
+          <td>No</td>
+          <td>No</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><details><summary>Open</summary><pre>No evidence</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fecaca">
+          <td>CRM</td>
+          <td>CRM accounts contacts opportunities quotes</td>
+          <td>No</td>
+          <td>No</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><details><summary>Open</summary><pre>No evidence</pre></details></td>
+        </tr>
+        
+        <tr style="background:#e5e7eb">
+          <td>Core</td>
+          <td>Auth bootstrap and login</td>
+          <td>No</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td><strong>Referenced only</strong></td>
+          <td>11</td>
+          <td>0</td>
+          <td>11</td>
+          <td><details><summary>Open</summary><pre>Frontend:
+- app/layout.tsx :: auth
+- app/login/page.tsx :: login
+- app/admin/page.tsx :: login
+- app/customer/page.tsx :: login
+Docs:
+- app/login/page.tsx :: login
+- app/admin/page.tsx :: login
+- app/customer/page.tsx :: login</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fef9c3">
+          <td>Core</td>
+          <td>Tenant lifecycle</td>
+          <td>Yes</td>
+          <td>No</td>
+          <td>Yes</td>
+          <td><strong>Partial / backend-led</strong></td>
+          <td>8</td>
+          <td>0</td>
+          <td>8</td>
+          <td><details><summary>Open</summary><pre>Services:
+- scripts/auto_patch_multitenant.py :: tenant
+- scripts/unified_multitenant_fleet_engine_repair.py :: tenant
+Docs:
+- scripts/auto_patch_multitenant.py :: tenant
+- scripts/unified_multitenant_fleet_engine_repair.py :: tenant</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fecaca">
+          <td>Domains</td>
+          <td>Custom domains</td>
+          <td>No</td>
+          <td>No</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><details><summary>Open</summary><pre>No evidence</pre></details></td>
+        </tr>
+        
+        <tr style="background:#dcfce7">
+          <td>Fleetbase Engine</td>
+          <td>Fleetbase operational engine usage</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td><strong>Functional software</strong></td>
+          <td>17</td>
+          <td>2</td>
+          <td>15</td>
+          <td><details><summary>Open</summary><pre>Routes:
+- app/track/page.tsx :: tracking
+Models:
+- scripts/unified_multitenant_fleet_engine_repair.py :: fleetbase
+- scripts/validate_fleetbase_integration.py :: fleetbase
+- scripts/patch_test_fleetbase_refs.py :: fleetbase
+- scripts/auto_patch_fleetbase.py :: fleetbase
+Frontend:
+- app/track/page.tsx :: tracking
+Docs:
+- scripts/unified_multitenant_fleet_engine_repair.py :: fleetbase
+- scripts/validate_fleetbase_integration.py :: fleetbase
+- scripts/patch_test_fleetbase_refs.py :: fleetbase
+- scripts/auto_patch_fleetbase.py :: fleetbase
+Suspicious:
+- scripts/validate_fleetbase_integration.py :: mock:\bhardcoded\b</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fecaca">
+          <td>Fleetbase Runtime</td>
+          <td>Fleetbase runtime orchestration</td>
+          <td>No</td>
+          <td>No</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>0</td>
+          <td>0</td>
+          <td>0</td>
+          <td><details><summary>Open</summary><pre>No evidence</pre></details></td>
+        </tr>
+        
+        <tr style="background:#fecaca">
+          <td>Support</td>
+          <td>Public support intake</td>
+          <td>No</td>
+          <td>Yes</td>
+          <td>No</td>
+          <td><strong>Mock / simulation / non-functional</strong></td>
+          <td>4</td>
+          <td>0</td>
+          <td>4</td>
+          <td><details><summary>Open</summary><pre>Frontend:
+- app/support/page.tsx :: support
+- app/support/ticket/[token]/page.tsx :: support</pre></details></td>
+        </tr>
+        
+</tbody>
+</table>
+</body>
+</html>

@@ -52,15 +52,14 @@ async def submit_manual_kyc(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # tenant_id is optional — personal shippers have no tenant
     tenant_id = str(getattr(current_user, 'tenant_id', '') or '')
-    if not tenant_id:
-        raise HTTPException(status_code=400, detail='Tenant context required for KYC submission')
 
-    sub = evaluate_subscription_state(db, tenant_id)
-    if not sub:
-        raise HTTPException(status_code=402, detail='No active subscription found for tenant')
-    if not feature_enabled_for_plan(sub.plan_code.value, 'manual_kyc'):
-        raise HTTPException(status_code=403, detail='Current plan does not include manual KYC processing')
+    # Subscription check only for tenanted users (company admins / drivers on a plan)
+    if tenant_id:
+        sub = evaluate_subscription_state(db, tenant_id)
+        if sub and not feature_enabled_for_plan(sub.plan_code.value, 'manual_kyc'):
+            raise HTTPException(status_code=403, detail='Current plan does not include manual KYC processing')
 
     row = db.query(KYCSubmission).filter(KYCSubmission.user_id == current_user.id).first()
     if not row:
@@ -104,38 +103,33 @@ async def submit_manual_kyc(
             logical_name='liveness_video',
         )
 
+    # Store in dedicated model columns (Sprint 3)
     row.status = KYCStatus.pending
+    row.id_type = id_type
+    row.id_number = id_number
+    row.full_name = full_name
     row.id_document_url = id_front_url
+    row.id_front_url = id_front_url
+    row.id_back_url = id_back_url
+    row.liveness_photo_url = liveness_photo_url
     row.liveness_video_url = liveness_video_url
-    row.result = json.dumps(
-        {
-            'id_type': id_type,
-            'id_number': id_number,
-            'full_name': full_name,
-            'id_front_url': id_front_url,
-            'id_back_url': id_back_url,
-            'liveness_photo_url': liveness_photo_url,
-            'liveness_video_url': liveness_video_url,
-            'submitted_at': datetime.utcnow().isoformat(),
-            'review_mode': 'manual_admin_review',
-        }
-    )
 
     db.commit()
     db.refresh(row)
 
-    credit_cost = feature_credit_cost('kyc_manual_submission')
-    if credit_cost > 0:
-        try:
-            consume_wallet_credits(
-                db,
-                tenant_id=tenant_id,
-                usage_type='document_processing',
-                credits=credit_cost,
-                memo='Manual KYC submission processing',
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=402, detail=str(exc)) from exc
+    if tenant_id:
+        credit_cost = feature_credit_cost('kyc_manual_submission')
+        if credit_cost > 0:
+            try:
+                consume_wallet_credits(
+                    db,
+                    tenant_id=tenant_id,
+                    usage_type='document_processing',
+                    credits=credit_cost,
+                    memo='Manual KYC submission processing',
+                )
+            except ValueError as exc:
+                raise HTTPException(status_code=402, detail=str(exc)) from exc
 
     return {
         'submission_id': str(row.id),
@@ -256,34 +250,58 @@ async def get_kyc_status(db: Session = Depends(get_db), current_user: User = Dep
     return await KYCService().get_kyc_status(db, str(current_user.id))
 
 
+@router.get('/admin/pending')
+def list_pending_kyc(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """Return all KYC submissions awaiting admin review."""
+    items = []
+    for row in (
+        db.query(KYCSubmission)
+        .filter(KYCSubmission.status.in_([KYCStatus.pending, KYCStatus.queried]))
+        .order_by(KYCSubmission.created_at.asc())
+        .all()
+    ):
+        items.append({
+            'id': str(row.id),
+            'user_id': str(row.user_id),
+            'status': row.status.value,
+            'id_type': row.id_type,
+            'id_number': row.id_number,
+            'full_name': row.full_name,
+            'id_front_url': row.id_front_url or row.id_document_url,
+            'id_back_url': row.id_back_url,
+            'liveness_photo_url': row.liveness_photo_url,
+            'liveness_video_url': row.liveness_video_url,
+            'admin_note': row.admin_note,
+            'created_at': row.created_at,
+            'updated_at': row.updated_at,
+        })
+    return items
+
+
 @router.get('/admin/list')
 def list_kyc_submissions(
-    tenant_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
 ):
     items = []
     for row in db.query(KYCSubmission).order_by(KYCSubmission.updated_at.desc()).all():
-        payload = {}
-        if row.result:
-            try:
-                payload = json.loads(row.result)
-            except Exception:
-                payload = {}
-
         items.append(
             {
                 'id': str(row.id),
                 'user_id': str(row.user_id),
                 'status': row.status.value,
-                'id_document_url': row.id_document_url,
-                'id_back_url': payload.get('id_back_url'),
-                'liveness_photo_url': payload.get('liveness_photo_url'),
-                'liveness_video_url': row.liveness_video_url or payload.get('liveness_video_url'),
-                'id_type': payload.get('id_type'),
-                'id_number': payload.get('id_number'),
-                'full_name': payload.get('full_name'),
-                'submitted_at': payload.get('submitted_at'),
+                'id_type': row.id_type,
+                'id_number': row.id_number,
+                'full_name': row.full_name,
+                'id_front_url': row.id_front_url or row.id_document_url,
+                'id_back_url': row.id_back_url,
+                'liveness_photo_url': row.liveness_photo_url,
+                'liveness_video_url': row.liveness_video_url,
+                'admin_note': row.admin_note,
+                'reviewed_at': row.reviewed_at,
                 'created_at': row.created_at,
                 'updated_at': row.updated_at,
             }
@@ -291,9 +309,34 @@ def list_kyc_submissions(
     return items
 
 
+@router.post('/{submission_id}/review')
+def review_kyc_submission(
+    submission_id: str,
+    action: str,           # approve | reject | query
+    admin_note: str = "",
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """Admin review: approve, reject, or query a KYC submission."""
+    valid_actions = {'approve', 'reject', 'query'}
+    if action not in valid_actions:
+        raise HTTPException(status_code=400, detail=f'action must be one of {sorted(valid_actions)}')
+
+    row = db.query(KYCSubmission).filter_by(id=uuid.UUID(submission_id)).first()
+    if not row:
+        raise HTTPException(status_code=404, detail='KYC submission not found')
+
+    status_map = {'approve': KYCStatus.approved, 'reject': KYCStatus.rejected, 'query': KYCStatus.queried}
+    row.status = status_map[action]
+    row.admin_note = admin_note or None
+    row.reviewed_by = current_user.id
+    row.reviewed_at = datetime.utcnow()
+    db.commit()
+    return {'submission_id': submission_id, 'status': row.status.value, 'admin_note': row.admin_note}
+
+
 @router.post('/admin/approve/{kyc_id}')
 def approve_kyc_submission(
-    tenant_id: str,
     kyc_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
@@ -302,13 +345,14 @@ def approve_kyc_submission(
     if not row:
         raise HTTPException(status_code=404, detail='KYC submission not found')
     row.status = KYCStatus.approved
+    row.reviewed_by = current_user.id
+    row.reviewed_at = datetime.utcnow()
     db.commit()
     return {'status': 'approved'}
 
 
 @router.post('/admin/revoke/{kyc_id}')
 def revoke_kyc_submission(
-    tenant_id: str,
     kyc_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
@@ -317,5 +361,7 @@ def revoke_kyc_submission(
     if not row:
         raise HTTPException(status_code=404, detail='KYC submission not found')
     row.status = KYCStatus.rejected
+    row.reviewed_by = current_user.id
+    row.reviewed_at = datetime.utcnow()
     db.commit()
     return {'status': 'revoked'}

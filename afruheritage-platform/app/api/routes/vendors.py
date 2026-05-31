@@ -1,9 +1,11 @@
 from __future__ import annotations
 from app.core.config import settings
+import logging
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from pydantic import ValidationError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_superuser
 from app.db.session import get_db
@@ -13,6 +15,18 @@ from app.services.billing_service import consume_wallet_credits, evaluate_subscr
 from app.services.storage_service import storage_service
 from app.services.vendor_service import add_vendor_document, auto_dispatch_booking, create_booking, get_booking, get_vendor, get_vendor_by_email, list_bookings, list_vendors, register_vendor, review_vendor, search_marketplace, suggest_vendors_for_pickup, suspend_vendor, update_booking, update_vendor_availability, vendor_decide_booking
 from app.middleware.rate_limit import rate_limit
+
+_VALID_ID_TYPES = {"ghana_card", "passport", "voter_id", "drivers_license"}
+_ID_TYPE_ALIASES = {
+    "national_id": "ghana_card",
+    "national_card": "ghana_card",
+    "ghana_national_id": "ghana_card",
+    "driver_license": "drivers_license",
+    "driver's_license": "drivers_license",
+    "drivers license": "drivers_license",
+}
+
+logger = logging.getLogger("afruheritage.vendors")
 router = APIRouter(prefix='/vendors', tags=['Delivery Vendors'])
 
 @router.post('/register', response_model=VendorRegisterResponse)
@@ -20,12 +34,65 @@ router = APIRouter(prefix='/vendors', tags=['Delivery Vendors'])
 async def register_vendor_route(request: Request, db: Session=Depends(get_db)):
     try:
         payload = VendorRegisterRequest.model_validate(await request.json())
-        vendor = register_vendor(db, full_name=payload.full_name, email=payload.email, phone=payload.phone, id_type=payload.id_type, id_number=payload.id_number, vehicle_types=payload.vehicle_types, vehicle_reg_number=payload.vehicle_reg_number, vehicle_model=payload.vehicle_model, vehicle_year=payload.vehicle_year, business_name=payload.business_name, business_type=payload.business_type, operating_regions=payload.operating_regions, years_experience=payload.years_experience, terms_accepted=payload.terms_accepted, insurance_accepted=payload.insurance_accepted, background_check_accepted=payload.background_check_accepted)
-        return VendorRegisterResponse(id=str(vendor.id), full_name=vendor.full_name, email=vendor.email, phone=vendor.phone, status=vendor.status.value, message='Registration submitted successfully. Our team will review your application within 2-3 business days.')
+
+        # Normalise id_type — map common aliases to valid enum values so that
+        # callers sending "national_id" or other variants don't get a hard 500
+        # from SQLAlchemy trying to persist an invalid PostgreSQL enum value.
+        normalised_id_type = _ID_TYPE_ALIASES.get(
+            (payload.id_type or "").lower().strip(),
+            (payload.id_type or "").lower().strip(),
+        )
+        if normalised_id_type not in _VALID_ID_TYPES:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "field": "id_type",
+                    "error": f"'{payload.id_type}' is not a valid ID type.",
+                    "valid_values": sorted(_VALID_ID_TYPES),
+                },
+            )
+
+        vendor = register_vendor(
+            db,
+            full_name=payload.full_name,
+            email=payload.email,
+            phone=payload.phone,
+            id_type=normalised_id_type,
+            id_number=payload.id_number,
+            vehicle_types=payload.vehicle_types,
+            vehicle_reg_number=payload.vehicle_reg_number,
+            vehicle_model=payload.vehicle_model,
+            vehicle_year=payload.vehicle_year,
+            business_name=payload.business_name,
+            business_type=payload.business_type,
+            operating_regions=payload.operating_regions,
+            years_experience=payload.years_experience,
+            terms_accepted=payload.terms_accepted,
+            insurance_accepted=payload.insurance_accepted,
+            background_check_accepted=payload.background_check_accepted,
+        )
+        return VendorRegisterResponse(
+            id=str(vendor.id),
+            full_name=vendor.full_name,
+            email=vendor.email,
+            phone=vendor.phone,
+            status=vendor.status.value,
+            message='Registration submitted successfully. Our team will review your application within 2-3 business days.',
+        )
+    except HTTPException:
+        raise
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=exc.errors()) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.exception("DB error during vendor registration")
+        raise HTTPException(status_code=500, detail="Database error during registration. Please try again.") from exc
+    except Exception as exc:
+        db.rollback()
+        logger.exception("Unexpected error during vendor registration")
+        raise HTTPException(status_code=500, detail="Unexpected error during registration. Please try again.") from exc
 
 @router.get('/admin', response_model=dict)
 def list_vendors_admin(status: str | None=Query(None), q: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):

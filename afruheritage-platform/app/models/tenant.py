@@ -46,6 +46,12 @@ class Tenant(Base):
     subdomain: Mapped[str | None] = mapped_column(String(120), unique=False, index=True, nullable=True)
     custom_domain: Mapped[str | None] = mapped_column(String(255), unique=False, nullable=True)
     custom_domain_verified: Mapped[bool] = mapped_column(default=False)
+
+    # Fleetbase org provisioned for this tenant (single shared Fleetbase instance, per-org isolation)
+    fleetbase_org_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    fleetbase_api_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fleetbase_admin_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     runner = relationship('RunnerNode')

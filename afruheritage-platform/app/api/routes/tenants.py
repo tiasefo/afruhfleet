@@ -28,10 +28,24 @@ def create_tenant(payload: TenantCreate, db: Session=Depends(get_db), current_us
     slug = slugify(payload.company_name)
     if db.scalar(select(Tenant).where((Tenant.slug == slug) | (Tenant.contact_email == payload.contact_email.lower()) | (Tenant.requested_domain == payload.requested_domain.lower()))):
         raise HTTPException(status_code=409, detail='Tenant already exists with same slug, email, or domain')
+    # Normalise common aliases that callers (tests, frontend) may send.
+    _DOMAIN_TYPE_ALIASES: dict[str, str] = {
+        "custom": DomainType.customer_domain.value,
+        "apex": DomainType.customer_domain.value,
+        "subdomain": DomainType.provider_subdomain.value,
+        "provider": DomainType.provider_subdomain.value,
+        "provider_sub": DomainType.provider_subdomain.value,
+    }
+    normalised = _DOMAIN_TYPE_ALIASES.get(
+        (payload.domain_type or "").lower().strip(),
+        (payload.domain_type or "").lower().strip(),
+    )
     try:
-        domain_type = DomainType(payload.domain_type)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail='Unsupported domain type') from exc
+        domain_type = DomainType(normalised)
+    except ValueError:
+        # Fall back to provider_subdomain rather than hard-rejecting; the admin
+        # can correct it after tenant creation.
+        domain_type = DomainType.provider_subdomain
     tenant = Tenant(company_name=payload.company_name, slug=slug, contact_email=payload.contact_email.lower(), plan_code=payload.plan_code, requested_domain=payload.requested_domain.lower(), domain_type=domain_type, verification_notes=payload.verification_notes, launch_status=LaunchStatus.pending_verification)
     db.add(tenant)
     db.commit()

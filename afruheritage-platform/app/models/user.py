@@ -1,10 +1,18 @@
 import uuid
+import enum
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.session import Base
+
+
+class UserRole(str, enum.Enum):
+    personal_shipper = "personal_shipper"   # Individual sending packages
+    delivery_driver  = "delivery_driver"    # Rider / truck driver on the marketplace
+    company_admin    = "company_admin"      # Freight forwarding company owner
+    platform_admin   = "platform_admin"     # Afruheritage superuser
 
 
 class User(Base):
@@ -14,6 +22,9 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     full_name: Mapped[str] = mapped_column(String(255))
     hashed_password: Mapped[str] = mapped_column(String(255))
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole), default=UserRole.personal_shipper, nullable=False
+    )
     tenant_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('tenants.id'), nullable=True, index=True)
     is_tenant_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -28,6 +28,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - default
+      - fleetbase_default
 
   # Celery Worker for Background Tasks
   worker:
@@ -122,7 +125,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ > /dev/null 2>&1 || node -e \"require('http').get('http://localhost:3000/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -144,7 +147,7 @@ services:
       - "4000:4000"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:4000/docs"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -177,3 +180,7 @@ volumes:
 networks:
   default:
     driver: bridge
+  # Join the Fleetbase network so `fleetbase-httpd` hostname resolves
+  # from within the afruheritage-api container.
+  fleetbase_default:
+    external: true

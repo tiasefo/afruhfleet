@@ -1,0 +1,198 @@
+[
+  {
+    "group": "AI",
+    "capability": "AI chat",
+    "backend_present": false,
+    "frontend_present": false,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 0,
+    "penalty": 0,
+    "net_score": 0,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [],
+    "doc_hits": [],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Billing",
+    "capability": "Billing and plans",
+    "backend_present": false,
+    "frontend_present": false,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 0,
+    "penalty": 0,
+    "net_score": 0,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [],
+    "doc_hits": [],
+    "suspicious_hits": []
+  },
+  {
+    "group": "CRM",
+    "capability": "CRM accounts contacts opportunities quotes",
+    "backend_present": false,
+    "frontend_present": false,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 0,
+    "penalty": 0,
+    "net_score": 0,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [],
+    "doc_hits": [],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Core",
+    "capability": "Auth bootstrap and login",
+    "backend_present": false,
+    "frontend_present": true,
+    "docs_present": true,
+    "status": "Referenced only",
+    "color": "gray",
+    "implementation_strength": 11,
+    "penalty": 0,
+    "net_score": 11,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [
+      "app/layout.tsx :: auth",
+      "app/login/page.tsx :: login",
+      "app/admin/page.tsx :: login",
+      "app/customer/page.tsx :: login"
+    ],
+    "doc_hits": [
+      "app/login/page.tsx :: login",
+      "app/admin/page.tsx :: login",
+      "app/customer/page.tsx :: login"
+    ],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Core",
+    "capability": "Tenant lifecycle",
+    "backend_present": true,
+    "frontend_present": false,
+    "docs_present": true,
+    "status": "Partial / backend-led",
+    "color": "yellow",
+    "implementation_strength": 8,
+    "penalty": 0,
+    "net_score": 8,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [
+      "scripts/auto_patch_multitenant.py :: tenant",
+      "scripts/unified_multitenant_fleet_engine_repair.py :: tenant"
+    ],
+    "frontend_hits": [],
+    "doc_hits": [
+      "scripts/auto_patch_multitenant.py :: tenant",
+      "scripts/unified_multitenant_fleet_engine_repair.py :: tenant"
+    ],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Domains",
+    "capability": "Custom domains",
+    "backend_present": false,
+    "frontend_present": false,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 0,
+    "penalty": 0,
+    "net_score": 0,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [],
+    "doc_hits": [],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Fleetbase Engine",
+    "capability": "Fleetbase operational engine usage",
+    "backend_present": true,
+    "frontend_present": true,
+    "docs_present": true,
+    "status": "Functional software",
+    "color": "green",
+    "implementation_strength": 17,
+    "penalty": 2,
+    "net_score": 15,
+    "route_hits": [
+      "app/track/page.tsx :: tracking"
+    ],
+    "model_hits": [
+      "scripts/unified_multitenant_fleet_engine_repair.py :: fleetbase",
+      "scripts/validate_fleetbase_integration.py :: fleetbase",
+      "scripts/patch_test_fleetbase_refs.py :: fleetbase",
+      "scripts/auto_patch_fleetbase.py :: fleetbase"
+    ],
+    "service_hits": [],
+    "frontend_hits": [
+      "app/track/page.tsx :: tracking"
+    ],
+    "doc_hits": [
+      "scripts/unified_multitenant_fleet_engine_repair.py :: fleetbase",
+      "scripts/validate_fleetbase_integration.py :: fleetbase",
+      "scripts/patch_test_fleetbase_refs.py :: fleetbase",
+      "scripts/auto_patch_fleetbase.py :: fleetbase"
+    ],
+    "suspicious_hits": [
+      "scripts/validate_fleetbase_integration.py :: mock:\\bhardcoded\\b"
+    ]
+  },
+  {
+    "group": "Fleetbase Runtime",
+    "capability": "Fleetbase runtime orchestration",
+    "backend_present": false,
+    "frontend_present": false,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 0,
+    "penalty": 0,
+    "net_score": 0,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [],
+    "doc_hits": [],
+    "suspicious_hits": []
+  },
+  {
+    "group": "Support",
+    "capability": "Public support intake",
+    "backend_present": false,
+    "frontend_present": true,
+    "docs_present": false,
+    "status": "Mock / simulation / non-functional",
+    "color": "red",
+    "implementation_strength": 4,
+    "penalty": 0,
+    "net_score": 4,
+    "route_hits": [],
+    "model_hits": [],
+    "service_hits": [],
+    "frontend_hits": [
+      "app/support/page.tsx :: support",
+      "app/support/ticket/[token]/page.tsx :: support"
+    ],
+    "doc_hits": [],
+    "suspicious_hits": []
+  }
+]

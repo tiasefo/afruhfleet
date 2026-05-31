@@ -1,0 +1,614 @@
+{
+  "root": "/mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform",
+  "summary": {
+    "python_files": 215,
+    "frontend_files": 1228,
+    "alembic_versions": 4,
+    "module_index_size": 239
+  },
+  "findings": [
+    {
+      "type": "unresolved_imports",
+      "file": "app/models/notification_preferences.py",
+      "unresolved": [
+        "app.db.base_class"
+      ]
+    },
+    {
+      "type": "fastapi_router_defs",
+      "routers": [
+        "admin-console/admin_app/api/routes/runners.py",
+        "admin-console/admin_app/api/routes/oauth.py",
+        "admin-console/admin_app/api/routes/tickets.py",
+        "admin-console/admin_app/api/routes/analytics.py",
+        "admin-console/admin_app/api/routes/vendors.py",
+        "admin-console/admin_app/api/routes/billing.py",
+        "admin-console/admin_app/api/routes/runtime.py",
+        "admin-console/admin_app/api/routes/tenants.py",
+        "admin-console/admin_app/api/routes/kyc.py",
+        "admin-console/admin_app/api/routes/domains.py",
+        "admin-console/admin_app/api/routes/tracking.py",
+        "admin-console/admin_app/api/routes/auth.py",
+        "app/api/routes/custom_domains.py",
+        "app/api/routes/users.py",
+        "app/api/routes/runners.py",
+        "app/api/routes/social_auth.py",
+        "app/api/routes/geo.py",
+        "app/api/routes/support_crm.py",
+        "app/api/routes/admin_subscriptions.py",
+        "app/api/routes/admin_credits.py",
+        "app/api/routes/analytics.py",
+        "app/api/routes/vendors.py",
+        "app/api/routes/ai.py",
+        "app/api/routes/admin_marketplace.py",
+        "app/api/routes/billing.py",
+        "app/api/routes/tenants.py",
+        "app/api/routes/payments.py",
+        "app/api/routes/navigator.py",
+        "app/api/routes/tenant_requests.py",
+        "app/api/routes/shipments.py",
+        "app/api/routes/whatsapp_bot.py",
+        "app/api/routes/tenant_creation.py",
+        "app/api/routes/storefront.py",
+        "app/api/routes/kyc.py",
+        "app/api/routes/fleetbase_runtime.py",
+        "app/api/routes/pallet.py",
+        "app/api/routes/branding.py",
+        "app/api/routes/i18n.py",
+        "app/api/routes/auth_pages.py",
+        "app/api/routes/health.py",
+        "app/api/routes/whatsapp.py",
+        "app/api/routes/customer_portal.py",
+        "app/api/routes/ai_widget.py",
+        "app/api/routes/auth.py",
+        "app/api/routes/payment_hub.py",
+        "app/api/routes/whatsapp_csv.py",
+        "app/api/routes/marketplace.py",
+        "app/api/routes/commercial_orchestration.py"
+      ]
+    },
+    {
+      "type": "fastapi_include_router_calls",
+      "calls": [
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(ai_router, prefix=\"/api/v1\")",
+          "arg": "ai_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=\"/api/v1\")",
+          "arg": "ai_widget_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(billing_router, prefix=\"/api/v1\")",
+          "arg": "billing_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/04_custom_domains_20260319_154358/app/main.py",
+          "call": ".include_router(support_crm_router, prefix=\"/api/v1\")",
+          "arg": "support_crm_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(health.router, prefix=settings.api_v1_prefix)",
+          "arg": "health.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(ai_router, prefix=\"/api/v1\")",
+          "arg": "ai_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/02_billing_subscription_20260319_083924/app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=\"/api/v1\")",
+          "arg": "ai_widget_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(ai_router, prefix=\"/api/v1\")",
+          "arg": "ai_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=\"/api/v1\")",
+          "arg": "ai_widget_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(billing_router, prefix=\"/api/v1\")",
+          "arg": "billing_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(support_crm_router, prefix=\"/api/v1\")",
+          "arg": "support_crm_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/05_fleetbase_runtime_deployer_20260319_190235/app/main.py",
+          "call": ".include_router(custom_domains_router, prefix=\"/api/v1\")",
+          "arg": "custom_domains_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(health.router, prefix=settings.api_v1_prefix)",
+          "arg": "health.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(ai_router)",
+          "arg": "ai_router"
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(ai_router, prefix=\"/api/v1\")",
+          "arg": "ai_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/01_ai_foundation_20260319_075215/app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=\"/api/v1\")",
+          "arg": "ai_widget_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(health.router, prefix=settings.api_v1_prefix)",
+          "arg": "health.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(ai_router, prefix=\"/api/v1\")",
+          "arg": "ai_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=\"/api/v1\")",
+          "arg": "ai_widget_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": ".scaffold_backups/03_support_glpi_crm_20260319_150439/app/main.py",
+          "call": ".include_router(billing_router, prefix=\"/api/v1\")",
+          "arg": "billing_router, prefix=\"/api/v1\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(auth_router, prefix=\"/admin\")",
+          "arg": "auth_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(tenants_router, prefix=\"/admin\")",
+          "arg": "tenants_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(billing_router, prefix=\"/admin\")",
+          "arg": "billing_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(runners_router, prefix=\"/admin\")",
+          "arg": "runners_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(runtime_router, prefix=\"/admin\")",
+          "arg": "runtime_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(domains_router, prefix=\"/admin\")",
+          "arg": "domains_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(vendors_router, prefix=\"/admin\")",
+          "arg": "vendors_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(kyc_router, prefix=\"/admin\")",
+          "arg": "kyc_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(oauth_router, prefix=\"/admin\")",
+          "arg": "oauth_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(analytics_router, prefix=\"/admin\")",
+          "arg": "analytics_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(tickets_router, prefix=\"/admin\")",
+          "arg": "tickets_router, prefix=\"/admin\""
+        },
+        {
+          "file": "admin-console/admin_app/main.py",
+          "call": ".include_router(tracking_router, prefix=\"/admin\")",
+          "arg": "tracking_router, prefix=\"/admin\""
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(auth.router, prefix=settings.api_v1_prefix)",
+          "arg": "auth.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(social_auth_router, prefix=settings.api_v1_prefix)",
+          "arg": "social_auth_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(auth_pages.router)",
+          "arg": "auth_pages.router"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(tenant_requests.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenant_requests.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(tenant_creation.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenant_creation.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(tenants.router, prefix=settings.api_v1_prefix)",
+          "arg": "tenants.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(payments_router, prefix=settings.api_v1_prefix)",
+          "arg": "payments_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(billing_router, prefix=settings.api_v1_prefix)",
+          "arg": "billing_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(commercial_orchestration_router, prefix=settings.api_v1_prefix)",
+          "arg": "commercial_orchestration_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(whatsapp_router, prefix=settings.api_v1_prefix)",
+          "arg": "whatsapp_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)",
+          "arg": "whatsapp_csv_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(runners.router, prefix=settings.api_v1_prefix)",
+          "arg": "runners.router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)",
+          "arg": "fleetbase_runtime_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(ai_router, prefix=settings.api_v1_prefix)",
+          "arg": "ai_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(ai_widget_router, prefix=settings.api_v1_prefix)",
+          "arg": "ai_widget_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(support_crm_router, prefix=settings.api_v1_prefix)",
+          "arg": "support_crm_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(custom_domains_router, prefix=settings.api_v1_prefix)",
+          "arg": "custom_domains_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(shipments_router, prefix=settings.api_v1_prefix)",
+          "arg": "shipments_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(i18n_router, prefix=settings.api_v1_prefix)",
+          "arg": "i18n_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(navigator_router, prefix=settings.api_v1_prefix)",
+          "arg": "navigator_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(storefront_router, prefix=settings.api_v1_prefix)",
+          "arg": "storefront_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(pallet_router, prefix=settings.api_v1_prefix)",
+          "arg": "pallet_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(customer_portal_router, prefix=settings.api_v1_prefix)",
+          "arg": "customer_portal_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(branding_router, prefix=settings.api_v1_prefix)",
+          "arg": "branding_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(geo_router, prefix=settings.api_v1_prefix)",
+          "arg": "geo_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(vendors_router, prefix=settings.api_v1_prefix)",
+          "arg": "vendors_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(users_router, prefix=settings.api_v1_prefix)",
+          "arg": "users_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(analytics_router, prefix=settings.api_v1_prefix)",
+          "arg": "analytics_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(kyc_router, prefix=settings.api_v1_prefix)",
+          "arg": "kyc_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(marketplace_router, prefix=settings.api_v1_prefix)",
+          "arg": "marketplace_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(admin_marketplace_router, prefix=settings.api_v1_prefix)",
+          "arg": "admin_marketplace_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(admin_subscriptions_router, prefix=settings.api_v1_prefix)",
+          "arg": "admin_subscriptions_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(admin_credits_router, prefix=settings.api_v1_prefix)",
+          "arg": "admin_credits_router, prefix=settings.api_v1_prefix"
+        },
+        {
+          "file": "app/main.py",
+          "call": ".include_router(payment_hub_router, prefix=settings.api_v1_prefix)",
+          "arg": "payment_hub_router, prefix=settings.api_v1_prefix"
+        }
+      ]
+    },
+    {
+      "type": "alembic_overview",
+      "alembic_versions_count": 4,
+      "alembic_versions": [
+        "alembic/versions/20260521_02_vendor_booking_live_dispatch.py",
+        "alembic/versions/20260521_03_tenant_runtime_auth.py",
+        "alembic/versions/20260414_01_users_tenant_identity.py",
+        "alembic/versions/20260521_01_shipment_live_tracking.py"
+      ],
+      "model_files_count": 26,
+      "model_files_sample": [
+        "admin-console/admin_app/models/admin_user.py",
+        "admin-console/admin_app/models/__init__.py",
+        "admin-console/admin_app/models/audit_log.py",
+        "app/models/custom_domains.py",
+        "app/models/shipment.py",
+        "app/models/user.py",
+        "app/models/tenant_ai_settings.py",
+        "app/models/support_crm.py",
+        "app/models/tenant_request.py",
+        "app/models/marketplace_gps.py",
+        "app/models/tenant_branding.py",
+        "app/models/shipment_tracking.py",
+        "app/models/__init__.py",
+        "app/models/billing.py",
+        "app/models/tenant.py",
+        "app/models/payment.py",
+        "app/models/kyc.py",
+        "app/models/fleetbase_runtime.py",
+        "app/models/saas_subscription.py",
+        "app/models/runner.py"
+      ]
+    },
+    {
+      "type": "frontend_backend_alignment_overview",
+      "next_app_routes_sample": [
+        "_global-error",
+        "_not-found",
+        "admin/runtime",
+        "billing",
+        "billing/callback",
+        "crm",
+        "crm/contacts",
+        "crm/quotes",
+        "dashboard",
+        "dashboard/analytics",
+        "dashboard/billing",
+        "dashboard/domains",
+        "dashboard/kyc",
+        "dashboard/runners",
+        "dashboard/runtimes",
+        "dashboard/tenants",
+        "dashboard/tickets",
+        "dashboard/tracking",
+        "dashboard/users",
+        "dashboard/vendor-actions",
+        "dashboard/vendors",
+        "fleetbase/drivers",
+        "fleetbase/extensions",
+        "fleetbase/vehicles",
+        "login",
+        "members",
+        "members/[id]",
+        "members/[id]/edit",
+        "members/new",
+        "onboarding",
+        "onboarding-docs",
+        "pricing",
+        "register",
+        "settings",
+        "shipments",
+        "shipments/[id]",
+        "shipments/[id]/edit",
+        "shipments/new",
+        "static/widget",
+        "support",
+        "support/ticket/[token]",
+        "tenant-request",
+        "track",
+        "vendors"
+      ],
+      "api_route_files_sample": [
+        "admin-console/admin_app/api/routes/runners.py",
+        "admin-console/admin_app/api/routes/oauth.py",
+        "admin-console/admin_app/api/routes/tickets.py",
+        "admin-console/admin_app/api/routes/analytics.py",
+        "admin-console/admin_app/api/routes/vendors.py",
+        "admin-console/admin_app/api/routes/__init__.py",
+        "admin-console/admin_app/api/routes/billing.py",
+        "admin-console/admin_app/api/routes/runtime.py",
+        "admin-console/admin_app/api/routes/tenants.py",
+        "admin-console/admin_app/api/routes/kyc.py",
+        "admin-console/admin_app/api/routes/domains.py",
+        "admin-console/admin_app/api/routes/tracking.py",
+        "admin-console/admin_app/api/routes/auth.py",
+        "app/api/routes/custom_domains.py",
+        "app/api/routes/users.py",
+        "app/api/routes/runners.py",
+        "app/api/routes/social_auth.py",
+        "app/api/routes/geo.py",
+        "app/api/routes/support_crm.py",
+        "app/api/routes/admin_subscriptions.py",
+        "app/api/routes/admin_credits.py",
+        "app/api/routes/analytics.py",
+        "app/api/routes/vendors.py",
+        "app/api/routes/ai.py",
+        "app/api/routes/admin_marketplace.py",
+        "app/api/routes/billing.py",
+        "app/api/routes/tenants.py",
+        "app/api/routes/payments.py",
+        "app/api/routes/navigator.py",
+        "app/api/routes/tenant_requests.py",
+        "app/api/routes/shipments.py",
+        "app/api/routes/whatsapp_bot.py",
+        "app/api/routes/tenant_creation.py",
+        "app/api/routes/storefront.py",
+        "app/api/routes/kyc.py",
+        "app/api/routes/fleetbase_runtime.py",
+        "app/api/routes/pallet.py",
+        "app/api/routes/branding.py",
+        "app/api/routes/i18n.py",
+        "app/api/routes/auth_pages.py",
+        "app/api/routes/health.py",
+        "app/api/routes/whatsapp.py",
+        "app/api/routes/customer_portal.py",
+        "app/api/routes/ai_widget.py",
+        "app/api/routes/auth.py",
+        "app/api/routes/payment_hub.py",
+        "app/api/routes/whatsapp_csv.py",
+        "app/api/routes/marketplace.py",
+        "app/api/routes/commercial_orchestration.py"
+      ]
+    }
+  ]
+}

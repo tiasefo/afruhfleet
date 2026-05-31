@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Afruheritage Freight",
+    "slug": "afruheritage",
+    "version": "1.0.0",
+    "owner": "tiasefo",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.afruheritage.freight",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Required for liveness selfie during KYC verification.",
+        "NSPhotoLibraryUsageDescription": "Required to upload ID documents for KYC verification.",
+        "NSLocationWhenInUseUsageDescription": "Used to show nearby shipments on the driver dashboard."
+      }
+    },
+    "android": {
+      "package": "com.afruheritage.freight",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E67E22",
+        "foregroundImage": "./assets/icon.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Required to upload your ID documents for KYC verification.",
+          "cameraPermission": "Required for liveness selfie during KYC verification."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "afruheritage"
+      }
+    }
+  }
+}

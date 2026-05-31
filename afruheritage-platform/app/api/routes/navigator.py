@@ -12,6 +12,11 @@ router = APIRouter()
 @router.get("/navigator/{tenant_id}/drivers")
 def get_navigator_drivers(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Fetch driver list for Navigator module for a tenant."""
+    import uuid as _uuid
+    try:
+        _uuid.UUID(tenant_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=404, detail="Tenant not found")
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant or not tenant.live_api_url:
         raise HTTPException(status_code=404, detail="Tenant or Fleetbase API not found")
@@ -22,6 +27,11 @@ def get_navigator_drivers(tenant_id: str, db: Session = Depends(get_db), current
 @router.get("/navigator/{tenant_id}/tracking")
 def get_navigator_tracking(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     """Fetch real-time tracking data for Navigator module for a tenant."""
+    import uuid as _uuid
+    try:
+        _uuid.UUID(tenant_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=404, detail="Tenant not found")
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant or not tenant.live_api_url:
         raise HTTPException(status_code=404, detail="Tenant or Fleetbase API not found")

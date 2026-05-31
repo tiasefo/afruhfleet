@@ -75,6 +75,10 @@ class Settings(BaseSettings):
     provisioning_timeout_seconds: int = Field(default=3600, alias='PROVISIONING_TIMEOUT_SECONDS')
     fleetbase_runtime_api_token: str = Field(default='', alias='FLEETBASE_RUNTIME_API_TOKEN')
 
+    # Fleetbase internal API URL (reachable from inside this container)
+    # When both stacks are on the same host, use the host-gateway or exposed port.
+    fleetbase_internal_url: str = Field(default='http://fleetbase-httpd-1', alias='FLEETBASE_INTERNAL_URL')
+
     # Rate limiting
     enable_rate_limiting: bool = Field(default=True, alias='ENABLE_RATE_LIMITING')
     rate_limit_storage_uri: str = Field(default='redis://localhost:6379', alias='RATE_LIMIT_STORAGE_URI')

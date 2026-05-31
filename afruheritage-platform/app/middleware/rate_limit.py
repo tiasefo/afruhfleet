@@ -26,11 +26,18 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) 
         user_id=user_id.get(),
         tenant_id=tenant_id.get(),
     )
-    
+
+    # exc.detail from slowapi is a plain string (e.g. "2 per 1 hour"), not a dict.
+    # Accessing it with a string key raises TypeError which would bubble up as HTTP 500.
+    # Build headers safely without assuming any particular shape.
+    headers: dict[str, str] = {}
+    if isinstance(exc.detail, dict) and "retry-after" in exc.detail:
+        headers["Retry-After"] = str(exc.detail["retry-after"])
+
     return Response(
         content='{"error": "Rate limit exceeded", "message": "Too many requests, please try again later"}',
         status_code=429,
-        headers={"Retry-After": str(exc.detail["retry-after"])},
+        headers=headers,
         media_type="application/json"
     )
 
