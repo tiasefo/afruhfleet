@@ -59,7 +59,7 @@ services:
       context: .
       target: production
     container_name: afruheritage-beat
-    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO --schedule=/app/logs/celerybeat-schedule
     env_file:
       - .env
     volumes:
