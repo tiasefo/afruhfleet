@@ -29,6 +29,7 @@ class User(Base):
     is_tenant_admin: Mapped[bool] = mapped_column(Boolean, default=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    onboarding_complete: Mapped[bool] = mapped_column(Boolean, default=False, server_default='false')
     must_reset_password: Mapped[bool] = mapped_column(Boolean, default=False)
     password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

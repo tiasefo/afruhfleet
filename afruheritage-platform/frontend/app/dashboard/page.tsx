@@ -106,123 +106,240 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Quick actions */}
+        {/* Quick actions — role-aware */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/shipments">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                  <Package className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Shipments</p>
-                  <p className="text-sm text-muted-foreground">Manage shipments</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          {/* Personal Shipper cards */}
+          {(user?.role === 'personal_shipper' || user?.is_superuser || !user?.role) && (
+            <>
+              <Link href="/shipments">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                      <Package className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">My Shipments</p>
+                      <p className="text-sm text-muted-foreground">Track & manage</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/shipments/new">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                      <Plus className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Create Shipment</p>
+                      <p className="text-sm text-muted-foreground">Send a package</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/track">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Track Package</p>
+                      <p className="text-sm text-muted-foreground">Real-time tracking</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/support">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Support</p>
+                      <p className="text-sm text-muted-foreground">Get help</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </>
+          )}
 
-          <Link href="/shipments/new">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
-                  <Plus className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Create Shipment</p>
-                  <p className="text-sm text-muted-foreground">New shipment</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          {/* Delivery Driver cards */}
+          {user?.role === 'delivery_driver' && (
+            <>
+              <Link href="/vendors">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                      <Ship className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Available Jobs</p>
+                      <p className="text-sm text-muted-foreground">Browse shipments</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/shipments">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                      <Package className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">My Bids</p>
+                      <p className="text-sm text-muted-foreground">Active bids</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/kyc">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-yellow-100 text-yellow-600">
+                      <Globe className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">KYC Status</p>
+                      <p className="text-sm text-muted-foreground">Verification</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/support">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Support</p>
+                      <p className="text-sm text-muted-foreground">Get help</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </>
+          )}
 
-          <Link href="/members">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Team Members</p>
-                  <p className="text-sm text-muted-foreground">Manage team</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/billing">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                  <CreditCard className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Billing</p>
-                  <p className="text-sm text-muted-foreground">Subscription & wallet</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+          {/* Company Admin cards */}
+          {user?.role === 'company_admin' && (
+            <>
+              <Link href="/shipments">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                      <Package className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Shipments</p>
+                      <p className="text-sm text-muted-foreground">Manage all</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/shipments/new">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                      <Plus className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">New Shipment</p>
+                      <p className="text-sm text-muted-foreground">Create booking</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/members">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Team Members</p>
+                      <p className="text-sm text-muted-foreground">Manage team</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/billing">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Billing</p>
+                      <p className="text-sm text-muted-foreground">Subscription</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* Secondary Actions */}
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href="/track">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600">
-                  <MapPin className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Track Shipment</p>
-                  <p className="text-sm text-muted-foreground">Public tracking</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/support">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Support</p>
-                  <p className="text-sm text-muted-foreground">Get help</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/settings">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
-                  <Settings className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Settings</p>
-                  <p className="text-sm text-muted-foreground">Configure</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href="/vendors">
-            <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
-                  <Ship className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">Vendors</p>
-                  <p className="text-sm text-muted-foreground">Partners</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+        {/* Secondary actions (all roles) */}
+        {user?.role !== 'delivery_driver' && (
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Link href="/track">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-100 text-cyan-600">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Track Shipment</p>
+                    <p className="text-sm text-muted-foreground">Public tracking</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/support">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Support</p>
+                    <p className="text-sm text-muted-foreground">Get help</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/settings">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                    <Settings className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Settings</p>
+                    <p className="text-sm text-muted-foreground">Configure</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/vendors">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                    <Ship className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Vendors</p>
+                    <p className="text-sm text-muted-foreground">Partners</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        )}
 
         {/* Tenant list for superusers */}
         {user?.is_superuser && (

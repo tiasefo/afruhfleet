@@ -11,6 +11,7 @@ const HIDDEN_PATHS = new Set([
   '/register',
   '/pricing',
   '/tenant-request',
+  '/onboarding',
 ])
 
 function getFallbackPath(pathname: string): string {
@@ -26,7 +27,13 @@ function getFallbackPath(pathname: string): string {
   if (pathname.startsWith('/settings')) return '/dashboard'
   if (pathname.startsWith('/vendors')) return '/dashboard'
   if (pathname.startsWith('/track')) return '/dashboard'
-  if (pathname.startsWith('/kyc/')) return '/dashboard'
+  if (pathname.startsWith('/kyc')) return '/dashboard'
+  if (pathname.startsWith('/crm/contacts')) return '/crm'
+  if (pathname.startsWith('/crm/quotes')) return '/crm'
+  if (pathname.startsWith('/crm')) return '/dashboard'
+  if (pathname.startsWith('/fleetbase/')) return '/dashboard'
+  if (pathname.startsWith('/admin/')) return '/dashboard'
+  if (pathname.startsWith('/analytics')) return '/dashboard'
   return '/dashboard'
 }
 

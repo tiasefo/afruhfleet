@@ -17,22 +17,22 @@ import { useAuth } from '@/hooks/useAuth'
 const navLinks = [
   { 
     label: 'Solutions', 
-    href: '#solutions',
+    href: '/solutions',
     submenu: [
       { label: 'Shipment Tracking', href: '/track' },
-      { label: 'Freight Management', href: '#freight' },
-      { label: 'Customs Clearance', href: '#customs' },
-      { label: 'Warehouse Services', href: '#warehouse' },
+      { label: 'Freight Management', href: '/shipments' },
+      { label: 'Customs Clearance', href: '/support?type=customs' },
+      { label: 'Warehouse Services', href: '/pricing#warehouse' },
     ]
   },
   { 
     label: 'Platform', 
-    href: '#platform',
+    href: '/platform',
     submenu: [
-      { label: 'AI Assistant', href: '#ai' },
+      { label: 'AI Assistant', href: '/dashboard#ai-chat' },
       { label: 'Real-time Tracking', href: '/track' },
-      { label: 'Document Management', href: '#documents' },
-      { label: 'API Integration', href: '/support' },
+      { label: 'Document Management', href: '/shipments' },
+      { label: 'API Integration', href: '/support#api-integration' },
       { label: 'Vendor Verification (KYC)', href: '/vendors#vendor-registration' },
     ]
   },

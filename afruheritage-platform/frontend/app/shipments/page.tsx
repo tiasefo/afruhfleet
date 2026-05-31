@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import React from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
@@ -30,9 +31,17 @@ import {
 export default function ShipmentsPage() {
   const allStatusesValue = '__all_statuses__'
   const allPaymentsValue = '__all_payments__'
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
+
+  // Gate: must be authenticated and onboarded
+  const router = useRouter()
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) { router.replace('/login'); return }
+    if (!user.onboarding_complete) { router.replace('/onboarding'); return }
+  }, [authLoading, user, router])
   
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')

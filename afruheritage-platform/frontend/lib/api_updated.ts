@@ -118,6 +118,9 @@ export const authApi = {
 
   me: () => api.get('/auth/me'),
 
+  completeOnboarding: (data: { role: string; full_name?: string }) =>
+    api.post('/auth/complete-onboarding', data),
+
   logout: () => {
     clearToken()
     return Promise.resolve({})

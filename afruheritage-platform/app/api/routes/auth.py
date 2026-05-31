@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel
 from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -70,9 +71,44 @@ def me(current_user: User=Depends(get_current_user_no_tenant_check)) -> dict[str
         'id': str(current_user.id),
         'email': current_user.email,
         'full_name': current_user.full_name,
+        'role': current_user.role.value if current_user.role else 'personal_shipper',
         'is_tenant_admin': current_user.is_tenant_admin,
         'is_superuser': current_user.is_superuser,
+        'onboarding_complete': current_user.onboarding_complete,
         'tenant_id': str(getattr(current_user, 'tenant_id', None)) if getattr(current_user, 'tenant_id', None) else None,
+    }
+
+
+class CompleteOnboardingRequest(BaseModel):
+    role: str  # personal_shipper | delivery_driver | company_admin
+    full_name: str | None = None
+
+
+@router.post('/complete-onboarding')
+def complete_onboarding(
+    payload: CompleteOnboardingRequest,
+    current_user: User = Depends(get_current_user_no_tenant_check),
+    db: Session = Depends(get_db),
+) -> dict[str, str | bool | None]:
+    from app.models.user import UserRole
+    role_map = {
+        'personal_shipper': UserRole.personal_shipper,
+        'delivery_driver': UserRole.delivery_driver,
+        'company_admin': UserRole.company_admin,
+    }
+    if payload.role not in role_map:
+        raise HTTPException(status_code=400, detail=f'Invalid role: {payload.role}')
+    current_user.role = role_map[payload.role]
+    if payload.full_name:
+        current_user.full_name = payload.full_name
+    current_user.onboarding_complete = True
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+    return {
+        'status': 'ok',
+        'role': current_user.role.value,
+        'onboarding_complete': True,
     }
 
 

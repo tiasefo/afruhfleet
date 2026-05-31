@@ -9,7 +9,10 @@ interface User {
   id: string
   email: string
   full_name: string
+  role?: string
   is_superuser?: boolean
+  is_tenant_admin?: boolean
+  onboarding_complete?: boolean
   tenant_id?: string
 }
 
@@ -40,8 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     persistTenantId(userData.tenant_id)
     if (userData.is_superuser) {
       router.push('/dashboard')
+    } else if (!userData.onboarding_complete) {
+      router.push('/onboarding')
     } else {
-      router.push('/shipments')
+      router.push('/dashboard')
     }
   }
 
@@ -71,8 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect based on user role
       if (userData.is_superuser) {
         router.push('/dashboard')
+      } else if (!userData.onboarding_complete) {
+        router.push('/onboarding')
       } else {
-        router.push('/shipments')
+        router.push('/dashboard')
       }
     } catch (error) {
       throw error

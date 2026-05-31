@@ -16,10 +16,19 @@ import { ArrowLeft, Package, User, MapPin, DollarSign, AlertCircle } from 'lucid
 
 export default function CreateShipmentPage() {
   const unassignedMemberValue = '__unassigned__'
-  const { user } = useAuth()
+  const { user, isLoading: authLoading } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
   const router = useRouter()
+
+  // Gate: must be authenticated and onboarded
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) { router.replace('/login'); return }
+    if (!user.onboarding_complete) { router.replace('/onboarding'); return }
+    // Delivery drivers cannot create shipments — they bid on them
+    if (user.role === 'delivery_driver') { router.replace('/dashboard'); return }
+  }, [authLoading, user, router])
 
   const [formData, setFormData] = useState({
     // Shipment Info
