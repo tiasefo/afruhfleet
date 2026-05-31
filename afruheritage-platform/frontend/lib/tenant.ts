@@ -56,6 +56,14 @@ export function resolveTenantId(options?: { preferHost?: boolean }): string | nu
   return preferHost ? (hostTenant || stored) : (stored || hostTenant)
 }
 
+/** For fully custom domains the Next.js middleware resolves hostname → tenant_id
+ *  and stores it in a meta tag injected via the x-tenant-id response header. */
+export function getTenantFromMetaTag(): string | null {
+  if (typeof document === 'undefined') return null
+  const meta = document.querySelector('meta[name="x-tenant-id"]') as HTMLMetaElement | null
+  return meta?.content?.trim() || null
+}
+
 export function resolvePublicTenantId(): string | null {
-  return getQueryTenantId() || resolveTenantId({ preferHost: true })
+  return getQueryTenantId() || getTenantFromMetaTag() || resolveTenantId({ preferHost: true })
 }

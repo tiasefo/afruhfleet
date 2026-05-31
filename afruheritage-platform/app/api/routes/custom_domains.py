@@ -1,14 +1,65 @@
 from __future__ import annotations
 from app.core.config import settings
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_superuser
 from app.db.session import get_db
-from app.models.custom_domains import CustomDomain, CustomDomainEvent, TenantDomainSettings
+from app.models.custom_domains import CustomDomain, CustomDomainEvent, DomainStatus, TenantDomainSettings
 from app.models.user import User
 from app.schemas.custom_domains import DomainActivateRequest, DomainEventResponse, DomainFailRequest, DomainRequestCreate, DomainResponse, TenantDomainSettingsResponse
 from app.services.custom_domain_service import activate_domain, ensure_tenant_domain_settings, list_tenant_domains, mark_domain_failed, request_custom_domain
+from app.services.cloudflare_domains import get_custom_hostname_status
 router = APIRouter(prefix='/domains', tags=['Custom Domains'])
+
+
+@router.get('/resolve', response_model=dict)
+def resolve_hostname(hostname: str = Query(..., description="Full hostname to resolve"), db: Session = Depends(get_db)):
+    """Public endpoint — resolves any hostname (subdomain OR custom domain) to a tenant_id.
+    Called by Next.js middleware on every request from unknown hostnames."""
+    hostname = hostname.strip().lower()
+
+    # 1. Check custom domain table for an active match
+    domain = db.query(CustomDomain).filter(
+        CustomDomain.hostname == hostname,
+        CustomDomain.status == DomainStatus.ACTIVE,
+    ).first()
+    if domain:
+        return {'tenant_id': str(domain.tenant_id), 'hostname': hostname, 'source': 'custom_domain'}
+
+    # 2. Also allow pending-verification domains so companies can test before SSL is live
+    domain = db.query(CustomDomain).filter(
+        CustomDomain.hostname == hostname,
+    ).first()
+    if domain:
+        return {'tenant_id': str(domain.tenant_id), 'hostname': hostname, 'source': 'custom_domain', 'status': domain.status.value}
+
+    # 3. Try subdomain → tenant slug lookup via TenantDomainSettings
+    settings_row = db.query(TenantDomainSettings).filter(
+        TenantDomainSettings.platform_subdomain == hostname,
+    ).first()
+    if settings_row:
+        return {'tenant_id': str(settings_row.tenant_id), 'hostname': hostname, 'source': 'platform_subdomain'}
+
+    raise HTTPException(status_code=404, detail='Hostname not associated with any tenant.')
+
+
+@router.get('/{domain_id}/refresh-status', response_model=DomainResponse)
+def refresh_domain_status(domain_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Polls Cloudflare for the latest SSL/verification status and updates the record."""
+    domain = db.query(CustomDomain).filter(CustomDomain.id == domain_id).first()
+    if not domain:
+        raise HTTPException(status_code=404, detail='Domain not found')
+    if domain.cloudflare_hostname_id:
+        cf_result = get_custom_hostname_status(domain.cloudflare_hostname_id)
+        if cf_result:
+            ssl = cf_result.get('ssl', {})
+            domain.ssl_status = ssl.get('status', domain.ssl_status)
+            if cf_result.get('status') == 'active':
+                domain.status = DomainStatus.ACTIVE
+            db.commit()
+            db.refresh(domain)
+    return DomainResponse(id=str(domain.id), tenant_id=str(domain.tenant_id), hostname=domain.hostname, domain_type=domain.domain_type.value, status=domain.status.value, provider=domain.provider.value, verification_method=domain.verification_method.value, verification_name=domain.verification_name, verification_value=domain.verification_value, ssl_status=domain.ssl_status, fallback_hostname=domain.fallback_hostname, fallback_active=domain.fallback_active, last_error=domain.last_error)
+
 
 @router.post('/request', response_model=DomainResponse)
 def request_domain(tenant_id: str, request: DomainRequestCreate, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):

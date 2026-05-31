@@ -375,6 +375,25 @@ export const brandingAPI = {
   },
 }
 
+export const domainsAPI = {
+  /** Get all custom domains for the current tenant */
+  list: (tenantId: string) => api.get(`/domains/tenant/${tenantId}`),
+
+  /** Get domain settings (platform subdomain, active hostname) */
+  settings: (tenantId: string) => api.get(`/domains/settings/${tenantId}`),
+
+  /** Request a new custom domain (calls Cloudflare Custom Hostnames API) */
+  request: (tenantId: string, hostname: string, createdBy?: string) =>
+    api.post(`/domains/request?tenant_id=${tenantId}`, {
+      hostname,
+      domain_type: 'customer_domain',
+      created_by: createdBy,
+    }),
+
+  /** Poll Cloudflare for latest SSL/verification status */
+  refreshStatus: (domainId: string) => api.get(`/domains/${domainId}/refresh-status`),
+}
+
 export const supportAPI = {
   createTicket: (data: any) => api.post('/support-crm/public/tickets', data),
   

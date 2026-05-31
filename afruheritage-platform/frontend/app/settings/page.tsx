@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
-import { brandingAPI } from '@/lib/api'
+import { brandingAPI, domainsAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -17,7 +17,14 @@ import {
   Save, 
   Upload,
   Eye,
-  Loader2
+  Loader2,
+  Link2,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  Copy,
+  ExternalLink,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -45,6 +52,96 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [logoPreview, setLogoPreview] = useState('')
 
+  // Custom domain state
+  const [customDomains, setCustomDomains] = useState<any[]>([])
+  const [domainSettings, setDomainSettings] = useState<any>(null)
+  const [newHostname, setNewHostname] = useState('')
+  const [domainLoading, setDomainLoading] = useState(false)
+  const [domainError, setDomainError] = useState('')
+  const [domainSuccess, setDomainSuccess] = useState('')
+  const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [copiedText, setCopiedText] = useState('')
+
+  const isAdmin = user?.role === 'company_admin' || user?.is_tenant_admin
+
+  const loadDomains = useCallback(async () => {
+    if (!user?.tenant_id) return
+    try {
+      const [domains, settings] = await Promise.all([
+        domainsAPI.list(user.tenant_id),
+        domainsAPI.settings(user.tenant_id),
+      ])
+      setCustomDomains(Array.isArray(domains) ? domains : [])
+      setDomainSettings(settings)
+    } catch {
+      // Non-critical — domain section just stays empty
+    }
+  }, [user?.tenant_id])
+
+  const handleRequestDomain = async () => {
+    if (!newHostname.trim() || !user?.tenant_id) return
+    const hostname = newHostname.trim().toLowerCase()
+    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z]{2,})+$/.test(hostname)) {
+      setDomainError('Enter a valid domain (e.g. portal.yourcompany.com)')
+      return
+    }
+    setDomainLoading(true)
+    setDomainError('')
+    setDomainSuccess('')
+    try {
+      const domain = await domainsAPI.request(user.tenant_id, hostname, user.email)
+      setCustomDomains(prev => [domain, ...prev.filter((d: any) => d.hostname !== hostname)])
+      setNewHostname('')
+      setDomainSuccess(`Domain ${hostname} requested. Add the DNS record below to verify.`)
+    } catch (err: any) {
+      setDomainError(err?.message || 'Failed to request domain')
+    } finally {
+      setDomainLoading(false)
+    }
+  }
+
+  const handleRefreshStatus = async (domainId: string) => {
+    setRefreshingId(domainId)
+    try {
+      const updated = await domainsAPI.refreshStatus(domainId)
+      setCustomDomains(prev => prev.map((d: any) => d.id === domainId ? updated : d))
+    } catch {
+      // Silently fail — user can try again
+    } finally {
+      setRefreshingId(null)
+    }
+  }
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedText(label)
+      setTimeout(() => setCopiedText(''), 2000)
+    } catch {
+      // Clipboard API may not be available on non-HTTPS
+    }
+  }
+
+  const domainStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="w-4 h-4 text-green-500" />
+      case 'failed': return <AlertCircle className="w-4 h-4 text-red-500" />
+      default: return <Clock className="w-4 h-4 text-yellow-500" />
+    }
+  }
+
+  const domainStatusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      requested: 'Requested',
+      pending_verification: 'Pending DNS Verification',
+      pending_ssl: 'Pending SSL',
+      active: 'Active',
+      failed: 'Failed',
+    }
+    return map[status] ?? status
+  }
+
+
   // Load current branding
   useEffect(() => {
     if (branding) {
@@ -66,6 +163,14 @@ export default function SettingsPage() {
       setLogoPreview(branding.logo_url || '')
     }
   }, [branding])
+
+  // Load domains when user is available
+  useEffect(() => {
+    if (user?.tenant_id) {
+      loadDomains()
+    }
+  }, [user?.tenant_id, loadDomains])
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -317,6 +422,170 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Custom Domain — visible to company_admin / tenant admins only */}
+            {isAdmin && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Link2 className="w-5 h-5 mr-2" />
+                    Custom Domain
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {/* Platform subdomain info */}
+                  {domainSettings?.platform_subdomain && (
+                    <div className="bg-blue-50 rounded-lg p-3 text-sm">
+                      <p className="font-medium text-blue-800 mb-1">Your platform address</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-blue-700">{domainSettings.platform_subdomain}</code>
+                        <a
+                          href={`https://${domainSettings.platform_subdomain}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Existing custom domains */}
+                  {customDomains.filter((d: any) => d.domain_type !== 'provider_subdomain').length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium text-gray-700">Custom domains</p>
+                      {customDomains
+                        .filter((d: any) => d.domain_type !== 'provider_subdomain')
+                        .map((domain: any) => (
+                          <div key={domain.id} className="border rounded-lg p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {domainStatusIcon(domain.status)}
+                                <span className="font-mono text-sm">{domain.hostname}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                  domain.status === 'active'
+                                    ? 'bg-green-100 text-green-700'
+                                    : domain.status === 'failed'
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {domainStatusLabel(domain.status)}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRefreshStatus(domain.id)}
+                                  disabled={refreshingId === domain.id}
+                                  title="Refresh verification status"
+                                >
+                                  <RefreshCw className={`w-3.5 h-3.5 ${refreshingId === domain.id ? 'animate-spin' : ''}`} />
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Show CNAME + TXT records when pending */}
+                            {domain.status !== 'active' && (
+                              <div className="bg-gray-50 rounded p-3 text-xs space-y-2">
+                                <p className="font-medium text-gray-700">Add a CNAME record in your DNS provider:</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <p className="text-gray-500 mb-0.5">Name</p>
+                                    <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                      <code className="flex-1 truncate">{domain.hostname}</code>
+                                      <button onClick={() => copyToClipboard(domain.hostname, 'name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                        <Copy className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    {copiedText === 'name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-500 mb-0.5">Points to</p>
+                                    <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                      <code className="flex-1 truncate">{domain.fallback_hostname || 'afruheritage.com'}</code>
+                                      <button onClick={() => copyToClipboard(domain.fallback_hostname || 'afruheritage.com', 'value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                        <Copy className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                    {copiedText === 'value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                  </div>
+                                </div>
+                                {domain.verification_name && (
+                                  <div className="mt-2 pt-2 border-t">
+                                    <p className="font-medium text-gray-700 mb-1">Also add this TXT record for SSL:</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <p className="text-gray-500 mb-0.5">TXT Name</p>
+                                        <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                          <code className="flex-1 truncate">{domain.verification_name}</code>
+                                          <button onClick={() => copyToClipboard(domain.verification_name, 'txt-name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                            <Copy className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                        {copiedText === 'txt-name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                      </div>
+                                      <div>
+                                        <p className="text-gray-500 mb-0.5">TXT Value</p>
+                                        <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                          <code className="flex-1 truncate">{domain.verification_value}</code>
+                                          <button onClick={() => copyToClipboard(domain.verification_value, 'txt-value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                            <Copy className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                        {copiedText === 'txt-value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                <p className="text-gray-500 pt-1">DNS changes can take up to 48 hours to propagate. Use the refresh button to check status.</p>
+                              </div>
+                            )}
+                            {domain.last_error && (
+                              <p className="text-xs text-red-600 bg-red-50 rounded p-2">{domain.last_error}</p>
+                            )}
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Request new domain */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Request a custom domain
+                    </label>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Use your own domain (e.g. <code>portal.mycompany.com</code>). You will add a CNAME record pointing to this platform and a TXT record for SSL verification.
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newHostname}
+                        onChange={(e) => setNewHostname(e.target.value)}
+                        placeholder="portal.yourcompany.com"
+                        className="flex-1"
+                        onKeyDown={(e) => e.key === 'Enter' && handleRequestDomain()}
+                      />
+                      <Button onClick={handleRequestDomain} disabled={domainLoading || !newHostname.trim()}>
+                        {domainLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Request'}
+                      </Button>
+                    </div>
+                    {domainError && (
+                      <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        {domainError}
+                      </p>
+                    )}
+                    {domainSuccess && (
+                      <p className="text-sm text-green-600 mt-2 flex items-center gap-1">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        {domainSuccess}
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Logo Preview */}
