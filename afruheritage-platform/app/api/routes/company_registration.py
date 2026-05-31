@@ -157,6 +157,7 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
         tenant_id=tenant.id,
         is_tenant_admin=True,
         is_active=True,
+        onboarding_complete=True,  # Registration IS the onboarding for company admins
     )
     db.add(admin_user)
     db.flush()
