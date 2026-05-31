@@ -214,6 +214,70 @@ def shipment_dashboard_summary_route(
     }
 
 
+# ── Group Members (must be defined BEFORE /{tenant_id}/{shipment_id} wildcard) ──
+
+@router.post("/{tenant_id}/members", response_model=GroupMemberResponse)
+def create_member_route(
+    tenant_id: str,
+    payload: GroupMemberCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _ensure_tenant_writable(tenant_id)
+    member = create_group_member(db, tenant_id, **payload.model_dump())
+    return _member_to_response(db, member)
+
+
+@router.get("/{tenant_id}/members", response_model=dict)
+def list_members_route(
+    tenant_id: str,
+    q: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    items, total = list_group_members(db, tenant_id, query=q, page=page, page_size=page_size)
+    pages = max(1, (total + page_size - 1) // page_size)
+    return {
+        "items": [_member_to_response(db, m).model_dump() for m in items],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "pages": pages,
+    }
+
+
+@router.get("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
+def get_member_route(
+    tenant_id: str,
+    member_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    member = get_group_member(db, member_id, tenant_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Group member not found")
+    return _member_to_response(db, member)
+
+
+@router.patch("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
+def update_member_route(
+    tenant_id: str,
+    member_id: str,
+    payload: GroupMemberUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    _ensure_tenant_writable(tenant_id)
+    member = update_group_member(db, member_id, tenant_id, **payload.model_dump(exclude_unset=True))
+    if not member:
+        raise HTTPException(status_code=404, detail="Group member not found")
+    return _member_to_response(db, member)
+
+
+# ── Individual Shipment routes (wildcard — must stay AFTER static sub-paths above) ──
+
 @router.get("/{tenant_id}/{shipment_id}", response_model=ShipmentResponse)
 def get_shipment_route(
     tenant_id: str,
@@ -510,68 +574,6 @@ def import_csv_route(
         raise HTTPException(status_code=400, detail="File size exceeds 10MB limit")
     result = import_shipments_csv(db, tenant_id, content, created_by=current_user.email)
     return CSVUploadResponse(**result)
-
-
-# ── Group Members ───────────────────────────────────────────────
-
-@router.post("/{tenant_id}/members", response_model=GroupMemberResponse)
-def create_member_route(
-    tenant_id: str,
-    payload: GroupMemberCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    _ensure_tenant_writable(tenant_id)
-    member = create_group_member(db, tenant_id, **payload.model_dump())
-    return _member_to_response(db, member)
-
-
-@router.get("/{tenant_id}/members", response_model=dict)
-def list_members_route(
-    tenant_id: str,
-    q: str | None = Query(None),
-    page: int = Query(1, ge=1),
-    page_size: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    items, total = list_group_members(db, tenant_id, query=q, page=page, page_size=page_size)
-    pages = max(1, (total + page_size - 1) // page_size)
-    return {
-        "items": [_member_to_response(db, m).model_dump() for m in items],
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "pages": pages,
-    }
-
-
-@router.get("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
-def get_member_route(
-    tenant_id: str,
-    member_id: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    member = get_group_member(db, member_id, tenant_id)
-    if not member:
-        raise HTTPException(status_code=404, detail="Group member not found")
-    return _member_to_response(db, member)
-
-
-@router.patch("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
-def update_member_route(
-    tenant_id: str,
-    member_id: str,
-    payload: GroupMemberUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    _ensure_tenant_writable(tenant_id)
-    member = update_group_member(db, member_id, tenant_id, **payload.model_dump(exclude_unset=True))
-    if not member:
-        raise HTTPException(status_code=404, detail="Group member not found")
-    return _member_to_response(db, member)
 
 
 # ── Helpers ─────────────────────────────────────────────────────

@@ -24,6 +24,8 @@ def _resolve_tenant_uuid(db: Session, tenant_identifier: str) -> str:
 
 @router.post('/accounts', response_model=CRMAccountResponse)
 def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
     data['tenant_id'] = str(current_user.tenant_id)
     obj = create_crm_account(db, **data)
@@ -31,6 +33,8 @@ def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session
 
 @router.get('/accounts', response_model=list[CRMAccountResponse])
 def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     accounts = db.query(CRMAccount).filter(CRMAccount.tenant_id == str(current_user.tenant_id)).order_by(CRMAccount.created_at.desc()).all()
     return [
         CRMAccountResponse(
@@ -46,6 +50,8 @@ def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
 
 @router.get('/contacts', response_model=list[CRMContactResponse])
 def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     contacts = db.query(CRMContact).filter(CRMContact.tenant_id == str(current_user.tenant_id)).order_by(CRMContact.created_at.desc()).all()
     return [
         CRMContactResponse(
@@ -62,6 +68,8 @@ def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
 
 @router.post('/contacts', response_model=CRMContactResponse)
 def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
     data['tenant_id'] = str(current_user.tenant_id)
     obj = create_crm_contact(db, **data)
@@ -69,6 +77,8 @@ def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session
 
 @router.get('/opportunities', response_model=list[OpportunityResponse])
 def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     opportunities = db.query(Opportunity).filter(Opportunity.tenant_id == str(current_user.tenant_id)).order_by(Opportunity.created_at.desc()).all()
     return [
         OpportunityResponse(
@@ -84,6 +94,8 @@ def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user
 
 @router.post('/opportunities', response_model=OpportunityResponse)
 def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
     data['tenant_id'] = str(current_user.tenant_id)
     obj = create_opportunity(db, **data)
@@ -91,6 +103,8 @@ def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, 
 
 @router.get('/quotes', response_model=list[QuoteResponse])
 def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     quotes = db.query(Quote).filter(Quote.tenant_id == str(current_user.tenant_id)).order_by(Quote.created_at.desc()).all()
     return [
         QuoteResponse(
@@ -106,6 +120,8 @@ def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=
 
 @router.post('/quotes', response_model=QuoteResponse)
 def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
     data['tenant_id'] = str(current_user.tenant_id)
     obj = create_quote(db, **data)

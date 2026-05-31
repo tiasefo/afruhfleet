@@ -85,7 +85,7 @@ export default function OnboardingPage() {
       if (selectedRole === 'delivery_driver') {
         router.push('/kyc')
       } else if (selectedRole === 'company_admin') {
-        router.push('/pricing')
+        router.push('/register/company')
       } else {
         router.push('/dashboard')
       }
