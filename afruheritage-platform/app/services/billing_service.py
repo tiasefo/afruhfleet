@@ -60,6 +60,7 @@ PLAN_FEATURES: dict[PlanCode, list[str]] = {
         "customer_portal",
         "shipment_tracking",
         "manual_kyc",
+        "ai_assistant",
     ],
     PlanCode.PROFESSIONAL: [
         "customer_portal",
@@ -90,7 +91,7 @@ PLAN_FEATURES: dict[PlanCode, list[str]] = {
 }
 
 FEATURE_CREDIT_COSTS: dict[str, int] = {
-    "ai_chat_message": 2,
+    "ai_chat_message": 0,
     "kyc_manual_submission": 15,
     "vendor_document_upload": 8,
 }

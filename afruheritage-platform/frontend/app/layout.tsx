@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from './providers'
-import { GlobalBackButton } from '@/components/navigation/global-back-button'
+import { AppShell } from '@/components/app-shell'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -34,8 +34,9 @@ export default function RootLayout({
     <html lang="en" className="font-sans">
       <body className="font-sans antialiased">
         <Providers>
-          <GlobalBackButton />
-          {children}
+          <AppShell>
+            {children}
+          </AppShell>
         </Providers>
         <Analytics />
       </body>

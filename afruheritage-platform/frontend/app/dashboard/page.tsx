@@ -16,7 +16,6 @@ import {
   Users,
   CreditCard,
   Globe,
-  LogOut,
   Plus,
   Ship,
   ArrowRight,
@@ -75,29 +74,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top nav */}
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <span className="text-lg font-bold text-primary-foreground">A</span>
-            </div>
-            <span className="text-lg font-semibold">Afruheritage</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium">{user?.full_name}</p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
-            </div>
-            {user?.is_superuser && <Badge>Superuser</Badge>}
-            <Button variant="ghost" size="icon" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <>
+      {/* Top nav removed - AppShell sidebar handles navigation */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -397,6 +375,6 @@ export default function DashboardPage() {
       </main>
 
       <AIChatWidget />
-    </div>
+    </>
   )
 }

@@ -471,6 +471,8 @@ export const adminSubscriptionsApi = {
 }
 
 export const marketplaceApi = {
+  listShipments: () => api.get('/marketplace/shipments'),
+
   createShipment: (data: {
     tenant_id: string
     customer_name: string
@@ -534,4 +536,26 @@ export const adminMarketplaceApi = {
 
   reassignJob: (jobId: string, driverId: string) =>
     api.post(`/admin/marketplace/jobs/${jobId}/reassign/${driverId}`),
+}
+
+export const tenantApi = {
+  getAll: (params?: { page?: number; page_size?: number }) => {
+    const q = params ? `?page=${params.page ?? 1}&page_size=${params.page_size ?? 50}` : ''
+    return api.get(`/tenants${q}`)
+  },
+}
+
+export const usersApi = {
+  list: (tenantId: string) => api.get(`/users?tenant_id=${tenantId}`),
+  invite: (tenantId: string, data: {
+    email: string
+    full_name: string
+    send_invite_email: boolean
+    is_tenant_admin?: boolean
+    password?: string
+  }) => api.post(`/users?tenant_id=${tenantId}`, data),
+  updateStatus: (userId: string, tenantId: string, is_active: boolean) =>
+    api.patch(`/users/${userId}/status?tenant_id=${tenantId}`, { is_active }),
+  resendInvite: (userId: string, tenantId: string) =>
+    api.post(`/users/${userId}/resend-invite?tenant_id=${tenantId}`, {}),
 }

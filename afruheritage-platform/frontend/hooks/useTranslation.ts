@@ -63,12 +63,19 @@ const defaultTranslations = {
     
     // Billing
     'billing.title': 'Billing',
+    'billing.manage_subscription': 'Manage your subscription and payment methods',
     'billing.subscription': 'Subscription',
     'billing.wallet_balance': 'Wallet Balance',
     'billing.add_funds': 'Add Funds',
     'billing.payment_history': 'Payment History',
     'billing.current_plan': 'Current Plan',
-    'billing.upgrade': 'Upgrade',
+    'billing.upgrade': 'Upgrade Plan',
+    'billing.available_plans': 'Available Plans',
+    'billing.no_active_subscription': 'No Active Subscription',
+    'billing.choose_plan_to_start': 'Choose a plan to get started with Afruheritage',
+    'billing.available_credits': 'Available Credits',
+    'billing.no_wallet': 'No Wallet',
+    'billing.wallet_created_on_subscribe': 'Your wallet will be created when you subscribe',
   },
   zh: {
     // Common
@@ -118,12 +125,19 @@ const defaultTranslations = {
     
     // Billing
     'billing.title': '账单',
+    'billing.manage_subscription': '管理您的订阅和支付方式',
     'billing.subscription': '订阅',
     'billing.wallet_balance': '钱包余额',
     'billing.add_funds': '添加资金',
     'billing.payment_history': '支付历史',
     'billing.current_plan': '当前计划',
-    'billing.upgrade': '升级',
+    'billing.upgrade': '升级计划',
+    'billing.available_plans': '可用计划',
+    'billing.no_active_subscription': '没有活跃订阅',
+    'billing.choose_plan_to_start': '选择一个计划开始使用Afruheritage',
+    'billing.available_credits': '可用积分',
+    'billing.no_wallet': '没有钱包',
+    'billing.wallet_created_on_subscribe': '订阅后将创建您的钱包',
   },
 }
 
