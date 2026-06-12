@@ -42,6 +42,14 @@ const footerLinks = {
   },
 }
 
+const countries = [
+  { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
+  { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
+  { code: 'SO', name: 'Somalia', flag: '🇸🇴' },
+  { code: 'DJ', name: 'Djibouti', flag: '🇩🇯' },
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+]
+
 const languages = [
   { code: 'en', label: 'English' },
   { code: 'zh', label: '中文' },
@@ -63,12 +71,21 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              AI-powered freight forwarding platform built for Africa. 
-              Connecting Ghana, China, and the world.
+              The only African TransUnion Multi-Tenant Freight Forwarding platform.
+              Connecting Ghana, Kenya, Somalia, Djibouti, Nigeria, and the world.
             </p>
             
+            {/* Country Flags */}
+            <div className="mt-6 flex flex-wrap gap-2">
+              {countries.map((country) => (
+                <span key={country.code} className="text-2xl" title={country.name}>
+                  {country.flag}
+                </span>
+              ))}
+            </div>
+            
             {/* Language Selector */}
-            <div className="mt-6 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-2">
               <Globe className="h-4 w-4 text-muted-foreground" />
               <select className="bg-transparent text-sm text-muted-foreground focus:outline-none">
                 {languages.map((lang) => (
@@ -103,7 +120,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Afruheritage. Powered by Infotech Freight Forwarding. All rights reserved.
+            &copy; {new Date().getFullYear()} Afruheritage - African Union Heritage. Powered by Infotech Freight Forwarding. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-muted-foreground hover:text-foreground">

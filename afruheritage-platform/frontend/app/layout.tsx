@@ -5,12 +5,12 @@ import { AppShell } from '@/components/app-shell'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Afruheritage | AI-Powered Freight Forwarding Platform',
-  description: 'The complete logistics platform for Africa. Track shipments, manage cargo, and streamline your supply chain with AI-powered intelligence. Serving Ghana, China, and global trade corridors.',
-  keywords: ['freight forwarding', 'logistics', 'shipping', 'cargo', 'Africa', 'Ghana', 'China trade', 'supply chain', 'AI logistics'],
+  title: 'Afruheritage | The Only African TransUnion Multi-Tenant Freight Forwarding Platform',
+  description: 'The complete logistics platform for Africa. Track shipments, manage cargo, and streamline your supply chain with AI-powered intelligence. Serving Ghana, Kenya, Somalia, Djibouti, Nigeria, and global trade corridors.',
+  keywords: ['freight forwarding', 'logistics', 'shipping', 'cargo', 'Africa', 'Ghana', 'Kenya', 'Somalia', 'Djibouti', 'Nigeria', 'TransUnion', 'multi-tenant', 'supply chain', 'AI logistics'],
   authors: [{ name: 'Afruheritage' }],
   openGraph: {
-    title: 'Afruheritage | AI-Powered Freight Forwarding Platform',
+    title: 'Afruheritage | The Only African TransUnion Multi-Tenant Freight Forwarding Platform',
     description: 'The complete logistics platform for Africa. Track shipments, manage cargo, and streamline your supply chain.',
     type: 'website',
   },

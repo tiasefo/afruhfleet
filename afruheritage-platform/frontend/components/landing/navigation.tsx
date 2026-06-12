@@ -14,6 +14,14 @@ import {
 import { useTranslation } from '@/hooks/useTranslation'
 import { useAuth } from '@/hooks/useAuth'
 
+const countries = [
+  { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
+  { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
+  { code: 'SO', name: 'Somalia', flag: '🇸🇴' },
+  { code: 'DJ', name: 'Djibouti', flag: '🇩🇯' },
+  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+]
+
 const navLinks = [
   {
     label: 'Solutions',
@@ -30,26 +38,31 @@ const navLinks = [
     label: 'Platform',
     href: '/platform',
     submenu: [
-      { label: 'AI Assistant', href: '/dashboard' },
-      { label: 'Real-time Tracking', href: '/track' },
-      { label: 'Document Management', href: '/shipments' },
-      { label: 'API Integration', href: '/support' },
-      { label: 'Vendor Verification (KYC)', href: '/vendors' },
+      { label: 'Dashboard', href: '/dashboard' },
+      { label: 'Fleetbase Console', href: '/fleetbase/console' },
+      { label: 'Live Map', href: '/fleetbase/live-map' },
+      { label: 'API Documentation', href: '/docs' },
     ],
   },
-  { label: 'For Vendors', href: '/vendors' },
-  { label: 'Documentation', href: '/docs' },
-  { label: 'Support', href: '/support' },
-  { label: 'Pricing', href: '/pricing' },
+  {
+    label: 'Resources',
+    href: '/resources',
+    submenu: [
+      { label: 'Help Center', href: '/support' },
+      { label: 'Documentation', href: '/docs' },
+      { label: 'Vendor Portal', href: '/vendors' },
+    ],
+  },
 ]
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
-  const { t, lang, setLang } = useTranslation()
+  const { t } = useTranslation()
   const { user, token } = useAuth()
+  const [lang, setLang] = useState('en')
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
@@ -91,14 +104,26 @@ export function Navigation() {
             <Link href="/customs">Customs Clearance</Link>
           </Button>
 
-          <button
-            onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
-            type="button"
-          >
-            <span className="text-base">{lang === 'en' ? '🇨🇳' : '🇬🇧'}</span>
-            {lang === 'en' ? '中文' : 'English'}
-          </button>
+          {/* Country Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="gap-2">
+                <span className="text-lg">🌍</span>
+                <span>Locations</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {countries.map((country) => (
+                <DropdownMenuItem key={country.code} asChild>
+                  <Link href={`/locations/${country.code.toLowerCase()}`} className="flex items-center gap-2">
+                    <span className="text-xl">{country.flag}</span>
+                    <span>{country.name}</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {token ? (
             <Button asChild>
@@ -174,16 +199,25 @@ export function Navigation() {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-2 pt-4 border-t">
-                <button
-                  onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
-                  type="button"
-                >
-                  <span className="text-base">{lang === 'en' ? '🇨🇳' : '🇬🇧'}</span>
-                  {lang === 'en' ? '中文' : 'English'}
-                </button>
+              {/* Mobile Country Selector */}
+              <div className="space-y-2 pt-4 border-t">
+                <span className="text-sm font-medium text-foreground">Our Locations</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {countries.map((country) => (
+                    <Link
+                      key={country.code}
+                      href={`/locations/${country.code.toLowerCase()}`}
+                      className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <span className="text-xl">{country.flag}</span>
+                      <span>{country.name}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
 
+              <div className="flex flex-col gap-2 pt-4 border-t">
                 {token ? (
                   <Button asChild className="w-full">
                     <Link href="/dashboard" onClick={() => setIsOpen(false)}>
