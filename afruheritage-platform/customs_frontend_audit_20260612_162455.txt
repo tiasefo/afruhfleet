@@ -1,0 +1,96 @@
+=== AfruHeritage Customs Frontend Integrity Audit ===
+Timestamp: 20260612_162455
+Project: /mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform
+
+## 1. File presence
+OK: frontend/app/customs/page.tsx
+OK: frontend/app/customs/duty-calculator/page.tsx
+OK: frontend/app/tenant-request/page.tsx
+OK: frontend/components/landing/navigation.tsx
+
+## 2. Git status for touched frontend files
+AM frontend/app/customs/duty-calculator/page.tsx
+A  frontend/app/customs/page.tsx
+ M frontend/app/tenant-request/page.tsx
+
+## 3. Customs calculator critical flow checks
+34:  const decodeVin = async () => {
+46:      const res = await fetch('/api/v1/customs/vin-decode', {
+83:  const calculate = async () => {
+187:                  {loading ? 'Decoding VIN...' : 'Decode VIN'}
+190:                <button type="button" onClick={() => setMode('manual')} className="w-full rounded border px-4 py-3">
+256:                <button onClick={() => setMode('manual')} className="mt-4 rounded bg-black px-4 py-2 text-white">
+257:                  Continue to Duty Calculation
+
+## 4. Supported country checks in calculator
+Country option lines:
+169:                <option value="GH">Ghana — GHS</option>
+170:                <option value="KE">Kenya — KES</option>
+205:                    <option value="vehicle">Vehicle</option>
+206:                    <option value="cargo">Cargo / Goods</option>
+WARNING: Unsupported countries found in calculator:
+<option value="vehicle"
+<option value="cargo"
+
+## 5. Backend endpoint references from calculator
+46:      const res = await fetch('/api/v1/customs/vin-decode', {
+89:      let url = '/api/v1/customs/calculate'
+105:          url = '/api/v1/customs/ghana/vehicle-duty'
+107:          url = '/api/v1/customs/kenya/vehicle-duty'
+122:          url = '/api/v1/customs/ghana/goods-duty'
+
+## 6. Header/Footer wrapper checks
+--- frontend/app/customs/page.tsx ---
+WARNING: Navigation/Footer not found in frontend/app/customs/page.tsx
+--- frontend/app/customs/duty-calculator/page.tsx ---
+WARNING: Navigation/Footer not found in frontend/app/customs/duty-calculator/page.tsx
+--- frontend/app/tenant-request/page.tsx ---
+5:import { Navigation } from '@/components/landing/navigation'
+6:import { Footer } from '@/components/landing/footer'
+29:      <Navigation />
+173:      <Footer />
+
+## 7. Suspicious syntax markers
+--- frontend/app/customs/page.tsx ---
+--- frontend/app/customs/duty-calculator/page.tsx ---
+156:            Start with a VIN, or enter vehicle and cargo details manually for Ghana, Kenya, Somalia, Djibouti, and Nigeria duty estimates.
+--- frontend/app/tenant-request/page.tsx ---
+--- frontend/components/landing/navigation.tsx ---
+17:const countries = [
+22:  { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
+117:              {countries.map((country) => (
+206:                  {countries.map((country) => (
+
+## 8. TypeScript / JSX compile check
+Running pnpm build dry check via normal build command...
+
+> my-project@0.1.0 build /mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform/frontend
+> next build
+
+▲ Next.js 16.2.0 (Turbopack)
+- Environments: .env.local, .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./app/customs/page.tsx:355:8
+Unterminated regexp literal
+  [90m353 |[0m           </div>
+  [90m354 |[0m         </div>
+[31m[1m>[0m [90m355 |[0m       </section>
+  [90m    |[0m        [31m[1m^^^^^^^^^[0m
+  [90m356 |[0m
+  [90m357 |[0m       <section className=[32m"mx-auto max-w-7xl px-6 py-20 lg:px-8"[0m>
+  [90m358 |[0m         <div className=[32m"max-w-3xl"[0m>
+
+Parsing ecmascript source code failed
+
+
+    at <unknown> (./app/customs/page.tsx:355:8)
+ ELIFECYCLE  Command failed with exit code 1.
+
+BUILD_FAILED: Review error above.
+
+Audit written to: customs_frontend_audit_20260612_162455.txt
