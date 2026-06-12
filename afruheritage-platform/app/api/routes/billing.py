@@ -122,14 +122,24 @@ def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(
 
 @router.post('/payments/verify/{reference}', response_model=PaymentVerifyResponse)
 def verify_payment(tenant_id: str | None = None, reference: str = '', db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
-    payload = verify_transaction(reference)
-    data = payload.get('data', {})
-    status = data.get('status')
     payment = db.query(Payment).filter(Payment.reference == reference).first()
     if not payment:
         raise HTTPException(status_code=404, detail='Payment not found')
     if not current_user.is_superuser and str(payment.tenant_id) != str(current_user.tenant_id):
         raise HTTPException(status_code=403, detail='Tenant access denied')
+    try:
+        payload = verify_transaction(reference)
+    except Exception:
+        # Paystack can't find it yet — return current DB status so callback page
+        # shows "pending" rather than a hard error
+        return PaymentVerifyResponse(
+            reference=payment.reference,
+            status=payment.status.value,
+            provider_status='pending',
+            message='Payment not yet confirmed by payment provider. If you completed payment, please wait a moment and refresh.',
+        )
+    data = payload.get('data', {})
+    status = data.get('status')
     if status == 'success':
         if payment.status != PaymentStatus.VERIFIED:
             payment = mark_payment_verified(db, payment, payload)

@@ -70,6 +70,32 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Marketing Video Hero */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white py-16">
+        <div className="absolute inset-0 opacity-25">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source src="/assets/videos/Vans-2220419522-640_adpp_is.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-slate-900/80 to-slate-900/40" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl sm:text-4xl font-bold">Connect with Vetted Logistics Partners</h2>
+            <p className="mt-4 text-lg text-white/85">
+              Access a marketplace of trusted vendors and delivery partners. Post shipments and get instant quotes, 
+              or browse available jobs for your fleet.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Page header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

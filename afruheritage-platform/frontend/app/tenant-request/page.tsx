@@ -1,179 +1,170 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { ArrowRight, Building2, CheckCircle2, Globe2, Ship, ArrowLeft } from 'lucide-react'
 
 export default function TenantRequestPage() {
-  const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<any>(null)
-  const [error, setError] = useState('')
+  const [form, setForm] = useState({
+    company_name: '',
+    business_type: 'freight_forwarder',
+    country: 'GH',
+    city: '',
+    phone: '',
+    address: '',
+    contact_name: '',
+    contact_email: '',
+    website: '',
+    message: '',
+  })
 
-  const [checking, setChecking] = useState(false)
-  const [statusRequestId, setStatusRequestId] = useState('')
-  const [statusResult, setStatusResult] = useState<any>(null)
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setSubmitting(true)
-    setError('')
-    setResult(null)
-
-    const form = new FormData(e.currentTarget)
-    const payload = {
-      companyName: String(form.get('companyName') || ''),
-      businessType: String(form.get('businessType') || ''),
-      country: String(form.get('country') || ''),
-      city: String(form.get('city') || ''),
-      address: String(form.get('address') || ''),
-      contactName: String(form.get('contactName') || ''),
-      contactEmail: String(form.get('contactEmail') || ''),
-      phone: String(form.get('phone') || ''),
-      website: String(form.get('website') || '') || null,
-      message: String(form.get('message') || '') || null,
-      terms: true,
-    }
-
-    try {
-      const res = await fetch('/api/v1/tenants/register-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to submit tenant request')
-      }
-      setResult(data)
-      ;(e.currentTarget as HTMLFormElement).reset()
-    } catch (err: any) {
-      setError(err.message || 'Failed to submit tenant request')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleCheckStatus = async () => {
-    if (!statusRequestId.trim()) return
-    setChecking(true)
-    setStatusResult(null)
-    setError('')
-
-    try {
-      const res = await fetch(`/api/v1/tenants/registration-status/${encodeURIComponent(statusRequestId.trim())}`)
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to fetch request status')
-      }
-      setStatusResult(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch request status')
-    } finally {
-      setChecking(false)
-    }
+  const update = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }))
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6 sm:p-10">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Request Tenant Onboarding</h1>
-        <p className="text-muted-foreground">Submit your company details to request a new tenant workspace.</p>
+    <main className="min-h-screen bg-background">
+      {/* Back Button */}
+      <div className="bg-white border-b">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <Link
+            href="/"
+            className="inline-flex items-center text-sm font-medium text-[#063f4f] hover:text-[#052f3b] transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Link>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>New Tenant Request</CardTitle>
-          <CardDescription>Our team reviews requests and provisions approved tenants.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input id="companyName" name="companyName" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="businessType">Business Type</Label>
-              <Input id="businessType" name="businessType" required placeholder="freight_forwarder" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="country">Country</Label>
-              <Input id="country" name="country" required placeholder="GH" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" name="city" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" name="phone" required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" name="address" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactName">Contact Name</Label>
-              <Input id="contactName" name="contactName" required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Contact Email</Label>
-              <Input id="contactEmail" name="contactEmail" type="email" required />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="website">Website (optional)</Label>
-              <Input id="website" name="website" />
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="message">Message (optional)</Label>
-              <Textarea id="message" name="message" rows={4} />
-            </div>
-            <div className="md:col-span-2 flex items-center gap-3">
-              <Button type="submit" disabled={submitting}>{submitting ? 'Submitting...' : 'Submit Request'}</Button>
-              <Button type="button" variant="outline" asChild>
-                <Link href="/register">Create user account</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <section className="relative overflow-hidden bg-[#063f4f] text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:32px_32px]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#063f4f] via-[#07586b] to-[#021f2a]" />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Check Request Status</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex gap-2">
-            <Input
-              value={statusRequestId}
-              onChange={(e) => setStatusRequestId(e.target.value)}
-              placeholder="Paste your request ID"
-            />
-            <Button onClick={handleCheckStatus} disabled={checking || !statusRequestId.trim()}>
-              {checking ? 'Checking...' : 'Check'}
-            </Button>
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-2 lg:px-8">
+          <div>
+            <div className="mb-5 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium">
+              Tenant Onboarding
+            </div>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+              Launch your freight forwarding workspace.
+            </h1>
+            <p className="mt-5 max-w-2xl text-lg text-white/85">
+              Submit your company details and Afruheritage will review, approve, and provision your freight forwarding portal.
+            </p>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/15 bg-white/10 p-4">
+                <Building2 className="h-6 w-6" />
+                <p className="mt-3 font-semibold">Company Setup</p>
+              </div>
+              <div className="rounded-xl border border-white/15 bg-white/10 p-4">
+                <Ship className="h-6 w-6" />
+                <p className="mt-3 font-semibold">Fleetbase Runtime</p>
+              </div>
+              <div className="rounded-xl border border-white/15 bg-white/10 p-4">
+                <Globe2 className="h-6 w-6" />
+                <p className="mt-3 font-semibold">Custom Domain</p>
+              </div>
+            </div>
           </div>
-          {statusResult && (
-            <div className="rounded-md border p-3 text-sm">
-              <div><strong>Status:</strong> {statusResult.status}</div>
-              {statusResult.message && <div><strong>Message:</strong> {statusResult.message}</div>}
-              {statusResult.tenant_id && <div><strong>Tenant ID:</strong> {statusResult.tenant_id}</div>}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {result && (
-        <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-          Submitted successfully. Request ID: <strong>{result.request_id}</strong>
+          <div className="rounded-2xl border border-white/15 bg-white/10 p-6 backdrop-blur">
+            <div className="rounded-xl bg-white p-6 text-slate-900">
+              <h2 className="text-xl font-bold">What happens after approval?</h2>
+              <div className="mt-5 space-y-4">
+                {[
+                  'Tenant workspace is created',
+                  'Freight forwarding portal is provisioned',
+                  'Fleetbase operations can be connected',
+                  'Billing, KYC, marketplace, and customs modules remain under Afruheritage',
+                ].map((item) => (
+                  <div key={item} className="flex gap-3">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 text-[#063f4f]" />
+                    <p className="text-sm text-slate-700">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                href="/customs"
+                className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-black px-5 py-3 font-semibold text-white hover:bg-black/80"
+              >
+                Explore Customs Clearance
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </div>
+          </div>
         </div>
-      )}
-      {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>
-      )}
-    </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-6 py-12 lg:px-8">
+        <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-bold">New Tenant Request</h2>
+          <p className="mt-2 text-muted-foreground">
+            Our team reviews requests and provisions approved tenants.
+          </p>
+
+          <form className="mt-8 space-y-5">
+            <div>
+              <label className="font-medium">Company Name</label>
+              <input className="mt-2 w-full rounded-lg border p-3" value={form.company_name} onChange={(e) => update('company_name', e.target.value)} />
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="font-medium">Business Type</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.business_type} onChange={(e) => update('business_type', e.target.value)} />
+              </div>
+              <div>
+                <label className="font-medium">Country</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.country} onChange={(e) => update('country', e.target.value)} />
+              </div>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="font-medium">City</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.city} onChange={(e) => update('city', e.target.value)} />
+              </div>
+              <div>
+                <label className="font-medium">Phone</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.phone} onChange={(e) => update('phone', e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <label className="font-medium">Address</label>
+              <input className="mt-2 w-full rounded-lg border p-3" value={form.address} onChange={(e) => update('address', e.target.value)} />
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="font-medium">Contact Name</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.contact_name} onChange={(e) => update('contact_name', e.target.value)} />
+              </div>
+              <div>
+                <label className="font-medium">Contact Email</label>
+                <input className="mt-2 w-full rounded-lg border p-3" value={form.contact_email} onChange={(e) => update('contact_email', e.target.value)} />
+              </div>
+            </div>
+
+            <div>
+              <label className="font-medium">Website optional</label>
+              <input className="mt-2 w-full rounded-lg border p-3" value={form.website} onChange={(e) => update('website', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="font-medium">Message optional</label>
+              <textarea className="mt-2 min-h-32 w-full rounded-lg border p-3" value={form.message} onChange={(e) => update('message', e.target.value)} />
+            </div>
+
+            <button type="button" className="w-full rounded-lg bg-black px-5 py-3 font-semibold text-white hover:bg-black/80">
+              Submit Tenant Request
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
   )
 }

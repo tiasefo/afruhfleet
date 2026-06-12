@@ -15,18 +15,19 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { useAuth } from '@/hooks/useAuth'
 
 const navLinks = [
-  { 
-    label: 'Solutions', 
+  {
+    label: 'Solutions',
     href: '/solutions',
     submenu: [
       { label: 'Shipment Tracking', href: '/track' },
       { label: 'Freight Management', href: '/shipments' },
-      { label: 'Customs Clearance', href: '/support' },
+      { label: 'Customs Clearance', href: '/customs' },
+      { label: 'Duty Calculator', href: '/customs/duty-calculator' },
       { label: 'Warehouse Services', href: '/pricing' },
-    ]
+    ],
   },
-  { 
-    label: 'Platform', 
+  {
+    label: 'Platform',
     href: '/platform',
     submenu: [
       { label: 'AI Assistant', href: '/dashboard' },
@@ -34,9 +35,10 @@ const navLinks = [
       { label: 'Document Management', href: '/shipments' },
       { label: 'API Integration', href: '/support' },
       { label: 'Vendor Verification (KYC)', href: '/vendors' },
-    ]
+    ],
   },
   { label: 'For Vendors', href: '/vendors' },
+  { label: 'Documentation', href: '/docs' },
   { label: 'Support', href: '/support' },
   { label: 'Pricing', href: '/pricing' },
 ]
@@ -49,7 +51,6 @@ export function Navigation() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
             <span className="text-lg font-bold text-primary-foreground">A</span>
@@ -59,9 +60,8 @@ export function Navigation() {
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) => (
+          {navLinks.map((link) =>
             link.submenu ? (
               <DropdownMenu key={link.label}>
                 <DropdownMenuTrigger asChild>
@@ -70,7 +70,7 @@ export function Navigation() {
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuContent align="start" className="w-56">
                   {link.submenu.map((sublink) => (
                     <DropdownMenuItem key={sublink.label} asChild>
                       <Link href={sublink.href}>{sublink.label}</Link>
@@ -82,12 +82,15 @@ export function Navigation() {
               <Button key={link.label} variant="ghost" asChild className="text-muted-foreground hover:text-foreground">
                 <Link href={link.href}>{link.label}</Link>
               </Button>
-            )
-          ))}
+            ),
+          )}
         </div>
 
-        {/* Desktop Actions */}
         <div className="hidden items-center gap-3 lg:flex">
+          <Button variant="outline" asChild>
+            <Link href="/customs">Customs Clearance</Link>
+          </Button>
+
           <button
             onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
             className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium hover:bg-muted transition-colors"
@@ -116,7 +119,6 @@ export function Navigation() {
           )}
         </div>
 
-        {/* Mobile Menu */}
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="icon">
@@ -124,6 +126,7 @@ export function Navigation() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
+
           <SheetContent side="right" className="w-80">
             <div className="flex flex-col gap-6 pt-6">
               <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
@@ -132,7 +135,13 @@ export function Navigation() {
                 </div>
                 <span className="text-xl font-semibold">Afruheritage</span>
               </Link>
-              
+
+              <Button asChild className="w-full">
+                <Link href="/customs" onClick={() => setIsOpen(false)}>
+                  Customs Clearance
+                </Link>
+              </Button>
+
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
                   <div key={link.label}>
@@ -174,9 +183,12 @@ export function Navigation() {
                   <span className="text-base">{lang === 'en' ? '🇨🇳' : '🇬🇧'}</span>
                   {lang === 'en' ? '中文' : 'English'}
                 </button>
+
                 {token ? (
                   <Button asChild className="w-full">
-                    <Link href="/dashboard" onClick={() => setIsOpen(false)}>{user?.full_name || 'Dashboard'}</Link>
+                    <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                      {user?.full_name || 'Dashboard'}
+                    </Link>
                   </Button>
                 ) : (
                   <>

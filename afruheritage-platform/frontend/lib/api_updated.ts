@@ -24,6 +24,18 @@ function encodeBody(body: any): BodyInit | undefined {
   return JSON.stringify(body)
 }
 
+function toQueryString(params?: Record<string, unknown>): string {
+  if (!params) return ''
+
+  const query = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null) return
+    if (typeof value === 'string' && value.trim() === '') return
+    query.set(key, String(value))
+  })
+  return query.toString()
+}
+
 export class ApiError extends Error {
   status: number
   constructor(message: string, status: number) {
@@ -149,7 +161,10 @@ export const tenantApi = {
     page?: number
     page_size?: number
     status?: string
-  }) => api.get('/tenants' + (params ? `?${new URLSearchParams(params as any)}` : '')),
+  }) => {
+    const query = toQueryString(params as Record<string, unknown>)
+    return api.get('/tenants' + (query ? `?${query}` : ''))
+  },
 
   getById: (tenantId: string) =>
     api.get(`/tenants/${tenantId}`),
@@ -332,7 +347,10 @@ export const shipmentApi = {
     page?: number
     page_size?: number
     status?: string
-  }) => api.get(`/shipments/${tenantId}` + (params ? `?${new URLSearchParams(params as any)}` : '')),
+  }) => {
+    const query = toQueryString(params as Record<string, unknown>)
+    return api.get(`/shipments/${tenantId}` + (query ? `?${query}` : ''))
+  },
 
   getById: (tenantId: string, shipmentId: string) =>
     api.get(`/shipments/${tenantId}/${shipmentId}`),

@@ -1,0 +1,31 @@
+frontend/lib/api_updated.ts:649:  }) => api.get(`/fleetbase-runtime/${tenantId}/vehicles` + (params ? `?${new URLSearchParams(params as any)}` : '')),
+frontend/lib/api_updated.ts:652:    api.get(`/fleetbase-runtime/${tenantId}/vehicles/${vehicleId}`),
+frontend/lib/api_updated.ts:675:  }) => api.post(`/fleetbase-runtime/${tenantId}/vehicles`, data),
+frontend/lib/api_updated.ts:678:    api.patch(`/fleetbase-runtime/${tenantId}/vehicles/${vehicleId}`, data),
+frontend/lib/api_updated.ts:681:    api.delete(`/fleetbase-runtime/${tenantId}/vehicles/${vehicleId}`),
+frontend/lib/api_updated.ts:684:    api.get(`/fleetbase-runtime/${tenantId}/extensions`),
+frontend/lib/api_updated.ts:690:  }) => api.post(`/fleetbase-runtime/${tenantId}/extensions/install`, data),
+frontend/lib/api_updated.ts:693:    api.delete(`/fleetbase-runtime/${tenantId}/extensions/${extensionName}`),
+frontend/lib/api_updated.ts:706:  }) => api.get('/fleetbase-runtime' + (params ? `?${new URLSearchParams(params as any)}` : '')),
+frontend/lib/api_updated.ts:709:    api.get(`/fleetbase-runtime/${runtimeId}`),
+frontend/lib/api_updated.ts:717:  }) => api.post('/fleetbase-runtime', data),
+frontend/lib/api_updated.ts:720:    api.patch(`/fleetbase-runtime/${runtimeId}`, data),
+frontend/lib/api_updated.ts:723:    api.delete(`/fleetbase-runtime/${runtimeId}`),
+frontend/lib/api_updated.ts:726:    api.post(`/fleetbase-runtime/${runtimeId}/deploy`),
+frontend/lib/api_updated.ts:729:    api.get(`/fleetbase-runtime/${runtimeId}/events`),
+frontend/lib/api_updated.ts:1185:export const commercialApi = {
+frontend/lib/api_updated.ts:1205:export const paymentHubApi = {
+frontend/lib/api_updated.ts:1244:export const marketplaceApi = {
+frontend/lib/api.ts:337:    return api.get('/fleetbase-runtime/runners')
+frontend/lib/api.ts:345:    return api.post('/fleetbase-runtime/deploy', data)
+frontend/lib/api.ts:349:    return api.get(`/fleetbase-runtime/tenant/${tenantId}`)
+frontend/lib/api.ts:353:    return api.post(`/fleetbase-runtime/retry`, { runtime_id: runtimeId })
+frontend/lib/api.ts:357:    return api.post(`/fleetbase-runtime/suspend`, { runtime_id: runtimeId })
+frontend/lib/api.ts:423:export const commercialApi = {
+frontend/lib/api.ts:444:export const paymentHubApi = {
+frontend/lib/api.ts:480:export const marketplaceApi = {
+frontend/app/marketplace/page.tsx:6:import { marketplaceApi } from '@/lib/api'
+frontend/app/marketplace/page.tsx:46:      const data = await marketplaceApi.listShipments()
+frontend/app/billing/callback/page.tsx:6:import { paymentHubApi, billingAPI } from '@/lib/api'
+frontend/app/billing/callback/page.tsx:36:          const verifyRes: any = await paymentHubApi.verify(ref)
+frontend/app/billing/callback/page.tsx:58:          const receiptRes: any = await paymentHubApi.receipt(ref)

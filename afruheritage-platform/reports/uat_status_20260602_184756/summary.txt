@@ -1,0 +1,36 @@
+Afruheritage UAT Status Scan - Tue Jun  2 06:47:56 PM UTC 2026
+=================================================
+[1] Docker containers
+[2] API health
+❌ API health failed
+[3] Public domain checks
+✅ Frontend onboarding reachable
+✅ Commercial catalog reachable
+[4] OpenAPI route scan
+⚠️ Route missing/not exposed: /commercial/signup/start
+⚠️ Route missing/not exposed: /commercial/signup/select-plan
+⚠️ Route missing/not exposed: /payment-hub/initialize
+⚠️ Route missing/not exposed: /payment-hub/webhook/paystack
+⚠️ Route missing/not exposed: /marketplace/shipments
+⚠️ Route missing/not exposed: /fleetbase-runtime/deploy
+⚠️ Route missing/not exposed: provision-runtime
+⚠️ Route missing/not exposed: provision-runtime-async
+⚠️ Route missing/not exposed: reconcile-runtime
+[5] Backend source scan
+[6] Frontend integration scan
+[7] Database runtime/subscription status
+[8] Runtime filesystem scan
+✅ Runtime root exists: /mnt/storage/afruheritage-runtimes
+[9] Fleetbase running runtime scan
+[10] Runtime port checks
+⚠️ Port 4202 not HTTP reachable or not expected HTTP
+⚠️ Port 8003 not HTTP reachable or not expected HTTP
+⚠️ Port 38002 not HTTP reachable or not expected HTTP
+⚠️ Port 3308 not HTTP reachable or not expected HTTP
+[11] Fresh client + subscription + runtime readiness dry-run
+❌ Fresh signup failed
+[12] Build checks
+✅ Frontend build passed
+✅ Backend Python compile passed
+=================================================
+Report directory: reports/uat_status_20260602_184756

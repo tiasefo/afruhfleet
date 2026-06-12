@@ -365,3 +365,81 @@ def revoke_kyc_submission(
     row.reviewed_at = datetime.utcnow()
     db.commit()
     return {'status': 'revoked'}
+
+
+@router.post('/ocr-parse')
+async def ocr_parse_id(
+    id_image: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Accept an ID document image and attempt to extract:
+      full_name, id_number, date_of_birth, nationality
+    Uses pytesseract if available; falls back to regex heuristics.
+    Returns empty strings for fields that could not be extracted.
+    """
+    import re
+    content = await id_image.read()
+    text = ''
+
+    # Try pytesseract OCR
+    try:
+        import pytesseract
+        from PIL import Image
+        import io
+        img = Image.open(io.BytesIO(content))
+        text = pytesseract.image_to_string(img)
+    except Exception:
+        pass  # pytesseract not available or failed — fall back to heuristics
+
+    result = {
+        'full_name': '',
+        'id_number': '',
+        'date_of_birth': '',
+        'nationality': '',
+        'raw_text': text[:500] if text else '',
+        'ocr_available': bool(text),
+    }
+
+    if text:
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+
+        # Ghana Card: GHA-XXXXXXXXXX-X
+        ghana_card = re.search(r'GHA-[A-Z0-9]{9,12}-\d', text, re.IGNORECASE)
+        if ghana_card:
+            result['id_number'] = ghana_card.group(0).upper()
+            result['nationality'] = 'Ghanaian'
+
+        # Passport number: letter + 7-8 digits
+        if not result['id_number']:
+            passport = re.search(r'\b[A-Z]{1,2}\d{7,8}\b', text)
+            if passport:
+                result['id_number'] = passport.group(0)
+
+        # Date patterns: DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD
+        dob_match = re.search(
+            r'\b(\d{2}[\/\-]\d{2}[\/\-]\d{4}|\d{4}[\/\-]\d{2}[\/\-]\d{2})\b', text
+        )
+        if dob_match:
+            result['date_of_birth'] = dob_match.group(0)
+
+        # Name: look for lines with 2–4 capitalised words after keywords
+        name_keywords = ['name', 'surname', 'given name', 'full name']
+        for i, line in enumerate(lines):
+            if any(kw in line.lower() for kw in name_keywords):
+                # Take the next non-empty line as the name
+                for j in range(i + 1, min(i + 3, len(lines))):
+                    candidate = lines[j]
+                    if re.match(r'^[A-Z][a-zA-Z]+(\s[A-Z][a-zA-Z]+)+$', candidate):
+                        result['full_name'] = candidate
+                        break
+
+        # Nationality from text
+        nations = ['ghanaian', 'kenyan', 'nigerian', 'south african', 'ugandan',
+                   'tanzanian', 'zimbabwean', 'zambian', 'cameroonian']
+        for nation in nations:
+            if nation in text.lower():
+                result['nationality'] = nation.capitalize()
+                break
+
+    return result

@@ -1,0 +1,68 @@
+
+> my-project@0.1.0 build
+> next build
+
+▲ Next.js 16.2.0 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.2s
+  Running TypeScript ...
+  Finished TypeScript in 12.8s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/35) ...
+  Generating static pages using 3 workers (8/35) 
+  Generating static pages using 3 workers (17/35) 
+  Generating static pages using 3 workers (26/35) 
+✓ Generating static pages using 3 workers (35/35) in 670ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/runtime
+├ ○ /billing
+├ ○ /billing/callback
+├ ○ /cookie-policy
+├ ○ /crm
+├ ○ /crm/contacts
+├ ○ /crm/quotes
+├ ○ /dashboard
+├ ○ /docs
+├ ○ /fleetbase/drivers
+├ ○ /fleetbase/extensions
+├ ○ /fleetbase/vehicles
+├ ○ /gdpr
+├ ○ /kyc
+├ ƒ /login
+├ ○ /marketplace
+├ ○ /members
+├ ƒ /members/[id]
+├ ƒ /members/[id]/edit
+├ ○ /members/import
+├ ○ /members/new
+├ ○ /onboarding
+├ ○ /pricing
+├ ○ /privacy-policy
+├ ○ /register
+├ ○ /register/company
+├ ○ /settings
+├ ○ /shipments
+├ ƒ /shipments/[id]
+├ ƒ /shipments/[id]/edit
+├ ○ /shipments/new
+├ ○ /support
+├ ƒ /support/ticket/[token]
+├ ○ /tenant-request
+├ ○ /terms-of-service
+├ ○ /track
+└ ○ /vendors
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

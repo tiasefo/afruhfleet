@@ -18,16 +18,42 @@ import { api } from '@/lib/api'
 import { toast } from 'sonner'
 import { Plus, RefreshCw, Search, Shield, UserCog } from 'lucide-react'
 
-interface AdminUser {
+interface User {
   id: string
   email: string
   full_name: string
-  role: 'super_admin' | 'admin' | 'viewer'
+  role: string
+  tenant_id?: string
+  is_tenant_admin: boolean
+  is_superuser: boolean
   is_active: boolean
+  onboarding_complete: boolean
+  created_at: string
+  roles: string[]
+  permissions: string[]
+}
+
+interface Role {
+  id: string
+  name: string
+  display_name: string
+  description?: string
+  is_system_role: boolean
+  is_active: boolean
+  permissions: string[]
+}
+
+interface Permission {
+  id: string
+  name: string
+  display_name: string
+  description?: string
+  resource_type: string
+  permission_type: string
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>([])
+  const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -42,7 +68,7 @@ export default function UsersPage() {
   const loadUsers = async () => {
     setLoading(true)
     try {
-      const data = await api.get<AdminUser[]>('/admin/auth/users')
+      const data = await api.get<User[]>('/admin/users/')
       setUsers(Array.isArray(data) ? data : [])
     } catch (e: any) {
       toast.error(e.message || 'Failed to load admin users')

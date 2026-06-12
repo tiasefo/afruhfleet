@@ -1,0 +1,459 @@
+time="2026-06-02T17:25:10Z" level=warning msg="/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+name: afruheritage-platform
+services:
+  admin-console:
+    build:
+      context: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/admin-console
+      dockerfile: Dockerfile
+      target: production
+    container_name: afruheritage-admin-console
+    depends_on:
+      api:
+        condition: service_healthy
+        required: true
+      postgres:
+        condition: service_healthy
+        required: true
+    environment:
+      ADMIN_ACCESS_TOKEN_EXPIRE_MINUTES: "120"
+      ADMIN_APP_ENV: development
+      ADMIN_APP_NAME: Afruheritage Admin Console
+      ADMIN_CORS_ORIGINS: '["*"]'
+      ADMIN_DATABASE_URL: postgresql+psycopg://afruheritage:afruheritage@postgres:5432/admin_console
+      ADMIN_SECRET_KEY: admin-smoke-test-secret-change-in-prod
+      CONTROL_PLANE_API_PREFIX: /api/v1
+      CONTROL_PLANE_BASE_URL: http://api:8000
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:4000/openapi.json
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 4000
+        published: "4000"
+        protocol: tcp
+    restart: unless-stopped
+  api:
+    build:
+      context: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform
+      dockerfile: Dockerfile
+      target: production
+    container_name: afruheritage-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    environment:
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+      API_V1_PREFIX: /api/v1
+      APP_ENV: development
+      APP_NAME: Afruheritage Control Plane
+      APPLE_CLIENT_ID: ""
+      APPLE_KEY_ID: ""
+      APPLE_PRIVATE_KEY: ""
+      APPLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/apple/callback
+      APPLE_TEAM_ID: ""
+      BASE_URL: https://api.afruheritage.com
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CLOUDFLARE_API_TOKEN: i29WTNmwOcNo2ejM4tWbxiBNkLPPHUr1waUo3Ecv
+      CLOUDFLARE_ZONE_ID: 5f6465e7efcb4dcd9bc5d643f7e56e91
+      CORS_ORIGINS: '["https://afruheritage.com","https://api.afruheritage.com","http://localhost:3000","http://localhost:8100"]'
+      DATABASE_URL: postgresql+psycopg://afruheritage:afruheritage@postgres:5432/afruheritage
+      DEFAULT_SUBDOMAIN_BASE: afruheritage.com
+      EMAIL_PROVIDER: smtp
+      ENABLE_BOOTSTRAP_ADMIN: "true"
+      FACEBOOK_CLIENT_ID: "957602050624672"
+      FACEBOOK_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      FACEBOOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/facebook/callback
+      FLEETBASE_CLI_PACKAGE: '@fleetbase/cli'
+      FLEETBASE_DEFAULT_INSTALL_HOST: 0.0.0.0
+      FLEETBASE_INSTALL_ENVIRONMENT: production
+      FLUTTERWAVE_PUBLIC_KEY: FLWPUBK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_SECRET_KEY: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_WEBHOOK_SECRET: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FROM_EMAIL: sales@ssdc.cloud
+      FROM_NAME: Afruheritage
+      GLPI_API_URL: http://10.0.0.175:8080/apirest.php
+      GLPI_APP_TOKEN: UrahJhUjU64rhUZUeRNhEz0sllwWJNRkT7iptkCR
+      GLPI_USER_TOKEN: nY9GQCIIG9dTUT57jcbFm4E8WqhgO5mOtkDQ41RO
+      GOOGLE_CLIENT_ID: 323603411941-i8568psnbp3038jpbqhn6llab21hmcud.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      GOOGLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/google/callback
+      INSTAGRAM_CLIENT_ID: "957602050624672"
+      INSTAGRAM_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      INSTAGRAM_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/instagram/callback
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      PAYMENT_WEBHOOK_URL: https://afruheritage.com/wc-api/Tbz_WC_Paystack_Webhook/
+      PAYPAL_BASE_URL: https://api-m.sandbox.paypal.com
+      PAYPAL_CLIENT_ID: AZQO2WIyImE0rf8G2nz7fZtNyAUoH2Srw3ypHLJteNBw2cHZ4khclrDtUZc2N9Ki9L0-i1N0pPBsjNOY
+      PAYPAL_CLIENT_SECRET: EKUOTcSX2ZoMr4paf3qebSJPWC1VvTvU0gHg4qxScFvntkPKdCI_xLlOHnrgsXnhyPhc3GHZi9jClWRE
+      PAYSTACK_PUBLIC_KEY: pk_test_fb14b11d2b19a3a31df54bfb40008e5986daf55f
+      PAYSTACK_SECRET_KEY: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PAYSTACK_WEBHOOK_SECRET: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PROVISIONING_TIMEOUT_SECONDS: "3600"
+      REDIS_URL: redis://redis:6379/0
+      RUNNER_DEFAULT_FLEET_ENGINE_ROOT: /srv/afruheritage/tenants
+      RUNNER_DEFAULT_SSH_KEY_PATH: ./secrets/runner_key
+      RUNNER_DEFAULT_SSH_PORT: "22"
+      RUNNER_DEFAULT_SSH_USER: ubuntu
+      SECRET_KEY: 4VzCYd3qn-OstPtxXIT-Az-e72tlW232GhXpqwFG2Lk
+      SMTP_HOST: smtppro.zoho.com
+      SMTP_PASS: jPCJpNP3wBsp
+      SMTP_PORT: "465"
+      SMTP_SECURE: "true"
+      SMTP_USER: sales@ssdc.cloud
+      TIKTOK_CLIENT_ID: awn3pjvanmd66teg
+      TIKTOK_CLIENT_SECRET: 9qWADKK7rKXFeM7AZEo7tVnXZfgrRt1L
+      TIKTOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/tiktok/callback
+      WEBHOOK_SHARED_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      ZURI_PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+    extra_hosts:
+      - host.docker.internal=host-gateway
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8000/health
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 40s
+    networks:
+      default: null
+      fleetbase_default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8100"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/logs
+        target: /app/logs
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/secrets/runner_key
+        target: /run/secrets/afruheritage_runner_key
+        read_only: true
+        bind:
+          create_host_path: true
+  beat:
+    build:
+      context: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform
+      dockerfile: Dockerfile
+      target: production
+    command:
+      - celery
+      - -A
+      - app.tasks.celery_app.celery_app
+      - beat
+      - --loglevel=INFO
+      - --schedule=/app/logs/celerybeat-schedule
+    container_name: afruheritage-beat
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    environment:
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+      API_V1_PREFIX: /api/v1
+      APP_ENV: development
+      APP_NAME: Afruheritage Control Plane
+      APPLE_CLIENT_ID: ""
+      APPLE_KEY_ID: ""
+      APPLE_PRIVATE_KEY: ""
+      APPLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/apple/callback
+      APPLE_TEAM_ID: ""
+      BASE_URL: https://api.afruheritage.com
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CLOUDFLARE_API_TOKEN: i29WTNmwOcNo2ejM4tWbxiBNkLPPHUr1waUo3Ecv
+      CLOUDFLARE_ZONE_ID: 5f6465e7efcb4dcd9bc5d643f7e56e91
+      CORS_ORIGINS: '["https://afruheritage.com","https://api.afruheritage.com","http://localhost:3000","http://localhost:8100"]'
+      DATABASE_URL: postgresql+psycopg://afruheritage:afruheritage@postgres:5432/afruheritage
+      DEFAULT_SUBDOMAIN_BASE: afruheritage.com
+      EMAIL_PROVIDER: smtp
+      ENABLE_BOOTSTRAP_ADMIN: "true"
+      FACEBOOK_CLIENT_ID: "957602050624672"
+      FACEBOOK_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      FACEBOOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/facebook/callback
+      FLEETBASE_CLI_PACKAGE: '@fleetbase/cli'
+      FLEETBASE_DEFAULT_INSTALL_HOST: 0.0.0.0
+      FLEETBASE_INSTALL_ENVIRONMENT: production
+      FLUTTERWAVE_PUBLIC_KEY: FLWPUBK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_SECRET_KEY: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_WEBHOOK_SECRET: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FROM_EMAIL: sales@ssdc.cloud
+      FROM_NAME: Afruheritage
+      GLPI_API_URL: http://10.0.0.175:8080/apirest.php
+      GLPI_APP_TOKEN: UrahJhUjU64rhUZUeRNhEz0sllwWJNRkT7iptkCR
+      GLPI_USER_TOKEN: nY9GQCIIG9dTUT57jcbFm4E8WqhgO5mOtkDQ41RO
+      GOOGLE_CLIENT_ID: 323603411941-i8568psnbp3038jpbqhn6llab21hmcud.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      GOOGLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/google/callback
+      INSTAGRAM_CLIENT_ID: "957602050624672"
+      INSTAGRAM_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      INSTAGRAM_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/instagram/callback
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      PAYMENT_WEBHOOK_URL: https://afruheritage.com/wc-api/Tbz_WC_Paystack_Webhook/
+      PAYPAL_BASE_URL: https://api-m.sandbox.paypal.com
+      PAYPAL_CLIENT_ID: AZQO2WIyImE0rf8G2nz7fZtNyAUoH2Srw3ypHLJteNBw2cHZ4khclrDtUZc2N9Ki9L0-i1N0pPBsjNOY
+      PAYPAL_CLIENT_SECRET: EKUOTcSX2ZoMr4paf3qebSJPWC1VvTvU0gHg4qxScFvntkPKdCI_xLlOHnrgsXnhyPhc3GHZi9jClWRE
+      PAYSTACK_PUBLIC_KEY: pk_test_fb14b11d2b19a3a31df54bfb40008e5986daf55f
+      PAYSTACK_SECRET_KEY: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PAYSTACK_WEBHOOK_SECRET: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PROVISIONING_TIMEOUT_SECONDS: "3600"
+      REDIS_URL: redis://redis:6379/0
+      RUNNER_DEFAULT_FLEET_ENGINE_ROOT: /srv/afruheritage/tenants
+      RUNNER_DEFAULT_SSH_KEY_PATH: ./secrets/runner_key
+      RUNNER_DEFAULT_SSH_PORT: "22"
+      RUNNER_DEFAULT_SSH_USER: ubuntu
+      SECRET_KEY: 4VzCYd3qn-OstPtxXIT-Az-e72tlW232GhXpqwFG2Lk
+      SMTP_HOST: smtppro.zoho.com
+      SMTP_PASS: jPCJpNP3wBsp
+      SMTP_PORT: "465"
+      SMTP_SECURE: "true"
+      SMTP_USER: sales@ssdc.cloud
+      TIKTOK_CLIENT_ID: awn3pjvanmd66teg
+      TIKTOK_CLIENT_SECRET: 9qWADKK7rKXFeM7AZEo7tVnXZfgrRt1L
+      TIKTOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/tiktok/callback
+      WEBHOOK_SHARED_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      ZURI_PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+    networks:
+      default: null
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/logs
+        target: /app/logs
+        bind:
+          create_host_path: true
+  frontend:
+    build:
+      context: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/frontend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: afruheritage-frontend
+    depends_on:
+      api:
+        condition: service_healthy
+        required: true
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: https://api.afruheritage.com/api/v1
+      NEXT_PUBLIC_TENANT_ID: demo
+      NODE_ENV: production
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget -qO- http://localhost:3000/ > /dev/null 2>&1 || node -e "require(''http'').get(''http://localhost:3000/'', r => process.exit(r.statusCode < 400 ? 0 : 1)).on(''error'', () => process.exit(1))"'
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3002"
+        protocol: tcp
+    restart: unless-stopped
+  postgres:
+    container_name: afruheritage-postgres
+    environment:
+      POSTGRES_DB: afruheritage
+      POSTGRES_INITDB_ARGS: --encoding=UTF-8 --lc-collate=C --lc-ctype=C
+      POSTGRES_PASSWORD: afruheritage
+      POSTGRES_USER: afruheritage
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U afruheritage -d afruheritage
+      timeout: 5s
+      interval: 10s
+      retries: 5
+    image: postgres:16-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5433"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
+        volume: {}
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/database/init
+        target: /docker-entrypoint-initdb.d
+        bind:
+          create_host_path: true
+  redis:
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    container_name: afruheritage-redis
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      timeout: 3s
+      interval: 10s
+      retries: 3
+    image: redis:7-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6380"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: redis_data
+        target: /data
+        volume: {}
+  worker:
+    build:
+      context: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform
+      dockerfile: Dockerfile
+      target: production
+    command:
+      - celery
+      - -A
+      - app.tasks.celery_app.celery_app
+      - worker
+      - --loglevel=INFO
+    container_name: afruheritage-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: true
+      redis:
+        condition: service_healthy
+        required: true
+    environment:
+      ACCESS_TOKEN_EXPIRE_MINUTES: "480"
+      API_V1_PREFIX: /api/v1
+      APP_ENV: development
+      APP_NAME: Afruheritage Control Plane
+      APPLE_CLIENT_ID: ""
+      APPLE_KEY_ID: ""
+      APPLE_PRIVATE_KEY: ""
+      APPLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/apple/callback
+      APPLE_TEAM_ID: ""
+      BASE_URL: https://api.afruheritage.com
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CLOUDFLARE_API_TOKEN: i29WTNmwOcNo2ejM4tWbxiBNkLPPHUr1waUo3Ecv
+      CLOUDFLARE_ZONE_ID: 5f6465e7efcb4dcd9bc5d643f7e56e91
+      CORS_ORIGINS: '["https://afruheritage.com","https://api.afruheritage.com","http://localhost:3000","http://localhost:8100"]'
+      DATABASE_URL: postgresql+psycopg://afruheritage:afruheritage@postgres:5432/afruheritage
+      DEFAULT_SUBDOMAIN_BASE: afruheritage.com
+      EMAIL_PROVIDER: smtp
+      ENABLE_BOOTSTRAP_ADMIN: "true"
+      FACEBOOK_CLIENT_ID: "957602050624672"
+      FACEBOOK_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      FACEBOOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/facebook/callback
+      FLEETBASE_CLI_PACKAGE: '@fleetbase/cli'
+      FLEETBASE_DEFAULT_INSTALL_HOST: 0.0.0.0
+      FLEETBASE_INSTALL_ENVIRONMENT: production
+      FLUTTERWAVE_PUBLIC_KEY: FLWPUBK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_SECRET_KEY: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FLUTTERWAVE_WEBHOOK_SECRET: FLWSECK_TEST-REPLACE_WITH_REAL_KEY
+      FROM_EMAIL: sales@ssdc.cloud
+      FROM_NAME: Afruheritage
+      GLPI_API_URL: http://10.0.0.175:8080/apirest.php
+      GLPI_APP_TOKEN: UrahJhUjU64rhUZUeRNhEz0sllwWJNRkT7iptkCR
+      GLPI_USER_TOKEN: nY9GQCIIG9dTUT57jcbFm4E8WqhgO5mOtkDQ41RO
+      GOOGLE_CLIENT_ID: 323603411941-i8568psnbp3038jpbqhn6llab21hmcud.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      GOOGLE_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/google/callback
+      INSTAGRAM_CLIENT_ID: "957602050624672"
+      INSTAGRAM_CLIENT_SECRET: ef8cc4b598e00a5897143f707a1480ae
+      INSTAGRAM_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/instagram/callback
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      PAYMENT_WEBHOOK_URL: https://afruheritage.com/wc-api/Tbz_WC_Paystack_Webhook/
+      PAYPAL_BASE_URL: https://api-m.sandbox.paypal.com
+      PAYPAL_CLIENT_ID: AZQO2WIyImE0rf8G2nz7fZtNyAUoH2Srw3ypHLJteNBw2cHZ4khclrDtUZc2N9Ki9L0-i1N0pPBsjNOY
+      PAYPAL_CLIENT_SECRET: EKUOTcSX2ZoMr4paf3qebSJPWC1VvTvU0gHg4qxScFvntkPKdCI_xLlOHnrgsXnhyPhc3GHZi9jClWRE
+      PAYSTACK_PUBLIC_KEY: pk_test_fb14b11d2b19a3a31df54bfb40008e5986daf55f
+      PAYSTACK_SECRET_KEY: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PAYSTACK_WEBHOOK_SECRET: sk_test_a29da6ab75f722230998eadc462991dfa0f04d59
+      PROVISIONING_TIMEOUT_SECONDS: "3600"
+      REDIS_URL: redis://redis:6379/0
+      RUNNER_DEFAULT_FLEET_ENGINE_ROOT: /srv/afruheritage/tenants
+      RUNNER_DEFAULT_SSH_KEY_PATH: ./secrets/runner_key
+      RUNNER_DEFAULT_SSH_PORT: "22"
+      RUNNER_DEFAULT_SSH_USER: ubuntu
+      SECRET_KEY: 4VzCYd3qn-OstPtxXIT-Az-e72tlW232GhXpqwFG2Lk
+      SMTP_HOST: smtppro.zoho.com
+      SMTP_PASS: jPCJpNP3wBsp
+      SMTP_PORT: "465"
+      SMTP_SECURE: "true"
+      SMTP_USER: sales@ssdc.cloud
+      TIKTOK_CLIENT_ID: awn3pjvanmd66teg
+      TIKTOK_CLIENT_SECRET: 9qWADKK7rKXFeM7AZEo7tVnXZfgrRt1L
+      TIKTOK_REDIRECT_URI: https://api.afruheritage.com/api/v1/auth/social/tiktok/callback
+      WEBHOOK_SHARED_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+      ZURI_PAYMENT_WEBHOOK_SECRET: bgoVum-cjWiPBaGcVzgyKrCYE-zeEhdrJ0DZWb4U9iYo9gmSR1kuCHwerUEgxaRDaKgeNKnMGyx32ow455Sa4w
+    extra_hosts:
+      - host.docker.internal=host-gateway
+    networks:
+      default: null
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/logs
+        target: /app/logs
+        bind:
+          create_host_path: true
+      - type: bind
+        source: /home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/secrets/runner_key
+        target: /run/secrets/afruheritage_runner_key
+        read_only: true
+        bind:
+          create_host_path: true
+networks:
+  default:
+    name: afruheritage-platform_default
+    driver: bridge
+  fleetbase_default:
+    name: fleetbase_default
+    external: true
+volumes:
+  postgres_data:
+    name: afruheritage-platform_postgres_data
+    driver: local
+  redis_data:
+    name: afruheritage-platform_redis_data
+    driver: local

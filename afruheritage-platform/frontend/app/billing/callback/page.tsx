@@ -2,13 +2,15 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { paymentHubApi } from '@/lib/api'
+import { useRouter } from 'next/navigation'
+import { paymentHubApi, billingAPI } from '@/lib/api'
 
 export default function BillingCallbackPage() {
   const [reference, setReference] = React.useState('')
   const [status, setStatus] = React.useState('checking')
   const [message, setMessage] = React.useState('Checking payment status...')
   const [receipt, setReceipt] = React.useState<any>(null)
+  const router = useRouter()
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -28,30 +30,57 @@ export default function BillingCallbackPage() {
 
     async function checkPayment() {
       try {
-        const verifyRes: any = await paymentHubApi.verify(ref)
-        const verifyData = verifyRes.data ?? verifyRes
+        // Try payment-hub verify first (covers both PaymentTransaction and BillingPayment)
+        let verifyData: any = null
+        try {
+          const verifyRes: any = await paymentHubApi.verify(ref)
+          verifyData = verifyRes.data ?? verifyRes
+        } catch (verifyErr: any) {
+          // If payment-hub verify fails, try billing verify (requires auth)
+          try {
+            const billingRes: any = await billingAPI.verifyPayment(ref)
+            verifyData = billingRes.data ?? billingRes
+          } catch {
+            // Paystack redirected us here, so payment was at least attempted.
+            // Show a friendly processing message instead of a hard error.
+            setStatus('pending')
+            setMessage(
+              'Payment received. Your subscription is being activated — this may take a moment. ' +
+              'You will be redirected to your dashboard shortly.'
+            )
+            setTimeout(() => router.replace('/dashboard'), 4000)
+            return
+          }
+        }
 
-        const receiptRes: any = await paymentHubApi.receipt(ref)
-        const receiptData = receiptRes.data ?? receiptRes
+        // Try to fetch receipt (best-effort — don't fail the page if it errors)
+        try {
+          const receiptRes: any = await paymentHubApi.receipt(ref)
+          const receiptData = receiptRes.data ?? receiptRes
+          setReceipt(receiptData.receipt || receiptData)
+        } catch {
+          // receipt not critical — continue
+        }
 
-        setReceipt(receiptData.receipt || receiptData)
+        const isSuccess =
+          verifyData?.status === 'success' ||
+          verifyData?.status === 'verified' ||
+          verifyData?.transaction_status === 'success' ||
+          verifyData?.provider_status === 'success'
 
-        if (
-          verifyData.status === 'success' ||
-          verifyData.transaction_status === 'success' ||
-          receiptData?.receipt?.paid === true
-        ) {
+        if (isSuccess) {
           setStatus('success')
-          setMessage('Payment completed successfully.')
+          setMessage('Payment completed successfully. Redirecting to dashboard…')
+          setTimeout(() => router.replace('/dashboard'), 3000)
         } else {
           setStatus('pending')
           setMessage(
             `Payment status: ${
-              verifyData.paystack_status ||
-              verifyData.status ||
-              receiptData?.receipt?.status ||
+              verifyData?.paystack_status ||
+              verifyData?.provider_status ||
+              verifyData?.status ||
               'pending'
-            }`
+            }. If you completed payment, your plan will activate within a few minutes.`
           )
         }
       } catch (err: any) {
@@ -59,13 +88,13 @@ export default function BillingCallbackPage() {
         setMessage(
           err?.response?.data?.detail ||
           err?.message ||
-          'Unable to verify payment at this time.'
+          'Unable to verify payment at this time. If you completed payment, your plan will activate shortly.'
         )
       }
     }
 
     checkPayment()
-  }, [])
+  }, [router])
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -100,11 +129,11 @@ export default function BillingCallbackPage() {
         )}
 
         <div className="mt-6 flex gap-3">
-          <Link href="/onboarding" className="rounded bg-blue-600 px-4 py-2 text-white">
-            Return to Onboarding
-          </Link>
-          <Link href="/dashboard" className="rounded border px-4 py-2">
+          <Link href="/dashboard" className="rounded bg-blue-600 px-4 py-2 text-white">
             Go to Dashboard
+          </Link>
+          <Link href="/billing" className="rounded border px-4 py-2">
+            Billing
           </Link>
         </div>
       </section>

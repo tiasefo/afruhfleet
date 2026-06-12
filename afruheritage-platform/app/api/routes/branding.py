@@ -1,13 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from datetime import datetime, timezone
+import io
 import uuid
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.branding import BrandingResponse, BrandingUpdate
+from app.services.storage_service import storage_service
 from app.services.tenant_branding_service import get_tenant_branding, update_tenant_branding
 
 router = APIRouter(prefix="/branding", tags=["Tenant Branding"])
@@ -44,6 +46,36 @@ def update_branding_route(
     current_user: User = Depends(get_current_user),
 ):
     branding = update_tenant_branding(db, tenant_id, **payload.model_dump(exclude_unset=True))
+    if not branding:
+        raise HTTPException(status_code=404, detail="Branding not found for this tenant")
+    return _to_response(branding)
+
+
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"}
+_MAX_LOGO_BYTES = 5 * 1024 * 1024  # 5 MB
+
+
+@router.post("/{tenant_id}/logo", response_model=BrandingResponse)
+def upload_branding_logo(
+    tenant_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload a logo image and store the public URL in tenant branding."""
+    if file.content_type not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, WebP, GIF, SVG")
+    content = file.file.read()
+    if len(content) > _MAX_LOGO_BYTES:
+        raise HTTPException(status_code=413, detail="File too large (max 5 MB)")
+    ext = (file.filename or "logo").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "png"
+    object_key = f"branding/{tenant_id}/logo.{ext}"
+    logo_url = storage_service.upload(
+        file_data=io.BytesIO(content),
+        filename=object_key,
+        content_type=file.content_type,
+    )
+    branding = update_tenant_branding(db, tenant_id, logo_url=logo_url)
     if not branding:
         raise HTTPException(status_code=404, detail="Branding not found for this tenant")
     return _to_response(branding)

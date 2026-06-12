@@ -43,7 +43,22 @@ def register(payload: RegisterRequest, db: Session=Depends(get_db)) -> TokenResp
         plan_code=normalize_plan_code(payload.plan_code).value,
     )
     db.refresh(user)
-    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    # Fetch the tenant's slug to build the portal URL
+    subdomain: str | None = None
+    portal_url: str | None = None
+    if user.tenant_id:
+        from app.models.tenant import Tenant
+        tenant = db.scalar(select(Tenant).where(Tenant.id == user.tenant_id))
+        if tenant and tenant.slug:
+            subdomain = tenant.slug
+            portal_url = f"https://{tenant.slug}.afruheritage.com"
+    return TokenResponse(
+        access_token=create_access_token(str(user.id)),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+        subdomain=subdomain,
+        portal_url=portal_url,
+        requires_subscription=True if user.tenant_id else False,
+    )
 
 @router.post('/login', response_model=TokenResponse)
 @rate_limit(category='public', rule='login')

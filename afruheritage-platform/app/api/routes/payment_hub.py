@@ -261,7 +261,33 @@ def verify_payment(reference: str):
     db = SessionLocal()
     try:
         tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
+
+        # Fallback: check the billing Payment table (used by /billing/payments/init flow)
         if not tx:
+            from app.models.billing import Payment as BillingPayment
+            bp = db.query(BillingPayment).filter(BillingPayment.reference == reference).first()
+            if bp:
+                # Verify with Paystack and return in a compatible format
+                try:
+                    response = requests.get(
+                        f"{PAYSTACK_BASE_URL}/transaction/verify/{reference}",
+                        headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"},
+                        timeout=30,
+                    )
+                    ps_data = response.json().get("data", {})
+                    ps_status = ps_data.get("status", "")
+                except Exception:
+                    ps_status = ""
+                return {
+                    "reference": bp.reference,
+                    "provider_reference": None,
+                    "status": ps_status if ps_status else bp.status.value,
+                    "tenant_id": str(bp.tenant_id),
+                    "purpose": bp.purpose,
+                    "amount": bp.amount_minor / 100 if bp.amount_minor else 0,
+                    "currency": bp.currency,
+                    "paystack_status": ps_status,
+                }
             raise HTTPException(status_code=404, detail="transaction_not_found")
 
         response = requests.get(
@@ -282,6 +308,9 @@ def verify_payment(reference: str):
                 if sub:
                     sub.credits_balance += int(tx.amount)
                     db.add(sub)
+
+            if tx.purpose == "subscription":
+                activate_subscription_after_payment(db, tx)
 
             if tx.purpose == "subscription":
                 activate_subscription_after_payment(db, tx)
@@ -408,6 +437,9 @@ async def paystack_webhook(request: Request):
             if tx.purpose == "subscription":
                 activate_subscription_after_payment(db, tx)
 
+            if tx.purpose == "subscription":
+                activate_subscription_after_payment(db, tx)
+
         elif status:
             tx.status = status
 
@@ -429,52 +461,46 @@ def payment_receipt(reference: str):
     db = SessionLocal()
     try:
         tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
-        if not tx:
-            raise HTTPException(status_code=404, detail="transaction_not_found")
+        if tx:
+            return {
+                "receipt": {
+                    "reference": tx.reference,
+                    "provider_reference": tx.provider_reference,
+                    "tenant_id": tx.tenant_id,
+                    "provider": tx.provider,
+                    "purpose": tx.purpose,
+                    "amount": tx.amount,
+                    "currency": tx.currency,
+                    "status": tx.status,
+                    "checkout_url": tx.checkout_url,
+                    "created_at": tx.created_at.isoformat(),
+                    "paid": tx.status == "success",
+                },
+                "message": "Payment receipt generated successfully" if tx.status == "success" else "Payment is not completed yet",
+            }
 
-        return {
-            "receipt": {
-                "reference": tx.reference,
-                "provider_reference": tx.provider_reference,
-                "tenant_id": tx.tenant_id,
-                "provider": tx.provider,
-                "purpose": tx.purpose,
-                "amount": tx.amount,
-                "currency": tx.currency,
-                "status": tx.status,
-                "checkout_url": tx.checkout_url,
-                "created_at": tx.created_at.isoformat(),
-                "paid": tx.status == "success",
-            },
-            "message": "Payment receipt generated successfully" if tx.status == "success" else "Payment is not completed yet",
-        }
-    finally:
-        db.close()
+        # Fallback: billing/payments/init flow stores records in the billing Payment table
+        from app.models.billing import Payment as BillingPayment
+        bp = db.query(BillingPayment).filter(BillingPayment.reference == reference).first()
+        if bp:
+            paid = bp.status.value in ("paid", "verified", "completed")
+            return {
+                "receipt": {
+                    "reference": bp.reference,
+                    "provider_reference": None,
+                    "tenant_id": str(bp.tenant_id),
+                    "provider": "paystack",
+                    "purpose": bp.purpose,
+                    "amount": float(bp.amount_minor) / 100 if bp.amount_minor else 0,
+                    "currency": bp.currency,
+                    "status": bp.status.value,
+                    "checkout_url": None,
+                    "created_at": bp.created_at.isoformat(),
+                    "paid": paid,
+                },
+                "message": "Payment receipt generated successfully" if paid else "Payment received and being processed",
+            }
 
-
-@router.get("/receipt/{reference}")
-def payment_receipt(reference: str):
-    db = SessionLocal()
-    try:
-        tx = db.query(PaymentTransaction).filter(PaymentTransaction.reference == reference).first()
-        if not tx:
-            raise HTTPException(status_code=404, detail="transaction_not_found")
-
-        return {
-            "receipt": {
-                "reference": tx.reference,
-                "provider_reference": tx.provider_reference,
-                "tenant_id": tx.tenant_id,
-                "provider": tx.provider,
-                "purpose": tx.purpose,
-                "amount": tx.amount,
-                "currency": tx.currency,
-                "status": tx.status,
-                "checkout_url": tx.checkout_url,
-                "created_at": tx.created_at.isoformat(),
-                "paid": tx.status == "success",
-            },
-            "message": "Payment receipt generated successfully" if tx.status == "success" else "Payment is not completed yet",
-        }
+        raise HTTPException(status_code=404, detail="transaction_not_found")
     finally:
         db.close()

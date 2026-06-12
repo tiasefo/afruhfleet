@@ -149,4 +149,92 @@ def retry_job(job_id: str, db: Session=Depends(get_db), current_user: User=Depen
     db.refresh(job)
 
     record_audit_event(db, current_user, 'tenant.launch.retried', 'tenant', str(tenant.id), {'job_id': str(job.id)})
+
+
+# ── Support: lookup tenant + resend portal URL ────────────────────────────────
+
+from fastapi import Query as QueryParam  # noqa: E402 — local import to avoid collision
+
+@router.get('/lookup', response_model=TenantResponse)
+def lookup_tenant(
+    email: str | None = QueryParam(None, description="Tenant admin email"),
+    slug: str | None = QueryParam(None, description="Tenant slug"),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+) -> Tenant:
+    """Admin: find a tenant by contact email or slug (support use case)."""
+    if not email and not slug:
+        raise HTTPException(status_code=400, detail="Provide 'email' or 'slug' query parameter")
+
+    filters = []
+    if email:
+        filters.append(Tenant.contact_email == email.lower().strip())
+    if slug:
+        filters.append(Tenant.slug == slug.lower().strip())
+
+    from sqlalchemy import or_
+    tenant = db.scalar(select(Tenant).where(or_(*filters)))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return tenant
+
+
+@router.post('/{tenant_id}/resend-portal-url')
+def resend_portal_url(
+    tenant_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+) -> dict:
+    """
+    Admin / support: re-send the tenant portal URL to the company admin's email.
+    Also returns the portal_url so it can be copied from the admin console.
+    """
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    portal_url = f"https://{tenant.slug}.{settings.default_subdomain_base}"
+
+    try:
+        ns = get_notification_service(db)
+        plain = (
+            f"Hello,\n\n"
+            f"Your company portal on AfruHeritage is ready and can be accessed at:\n\n"
+            f"  {portal_url}\n\n"
+            f"Share this URL with your team. Each user logs in with their own credentials.\n\n"
+            f"— AfruHeritage Support"
+        )
+        html = (
+            f"<p>Hello,</p>"
+            f"<p>Your company portal on AfruHeritage is ready and can be accessed at:</p>"
+            f"<p><a href='{portal_url}'>{portal_url}</a></p>"
+            f"<p>Share this URL with your team. Each user logs in with their own credentials.</p>"
+            f"<p>— AfruHeritage Support</p>"
+        )
+        ns.send_generic_email(
+            to=tenant.contact_email,
+            subject=f"Your {tenant.company_name} portal URL",
+            html_body=html,
+            plain_body=plain,
+        )
+        sent = True
+    except Exception:
+        sent = False
+
+    record_audit_event(
+        db, current_user,
+        'tenant.portal_url.resent',
+        'tenant', str(tenant.id),
+        {'portal_url': portal_url, 'email_sent': sent, 'contact_email': tenant.contact_email},
+    )
+
+    return {
+        "tenant_id": str(tenant.id),
+        "company_name": tenant.company_name,
+        "slug": tenant.slug,
+        "contact_email": tenant.contact_email,
+        "portal_url": portal_url,
+        "email_sent": sent,
+    }
+
     return job

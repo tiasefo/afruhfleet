@@ -1,0 +1,1763 @@
+{
+  "Client Onboarding / Commercial": [
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/credits/purchase",
+      "summary": "Purchase Credits",
+      "request_schema": "CreditPurchaseRequest",
+      "response_schema": "CreditPurchaseResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/billing/plans",
+      "summary": "List Plans",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/PlanResponse\"\n  },\n  \"title\": \"Response List Plans Api V1 Billing Plans Get\"\n}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/subscriptions/trial/{tenant_id}",
+      "summary": "Start Trial",
+      "request_schema": null,
+      "response_schema": "SubscriptionResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/billing/subscriptions/{tenant_id}",
+      "summary": "Get Subscription",
+      "request_schema": null,
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/SubscriptionResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Get Subscription Api V1 Billing Subscriptions  Tenant Id  Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/billing/wallets/{tenant_id}",
+      "summary": "Get Wallet",
+      "request_schema": null,
+      "response_schema": "WalletResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/billing/wallets/{tenant_id}/transactions",
+      "summary": "List Wallet Transactions",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/WalletTransactionResponse\"\n  },\n  \"title\": \"Response List Wallet Transactions Api V1 Billing Wallets  Tenant Id  Transactions Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/billing/usage-costs",
+      "summary": "Get Usage Costs",
+      "request_schema": null,
+      "response_schema": "{\n  \"items\": {\n    \"$ref\": \"#/components/schemas/UsageCreditCostResponse\"\n  },\n  \"type\": \"array\",\n  \"title\": \"Response Get Usage Costs Api V1 Billing Usage Costs Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/payments/init",
+      "summary": "Init Payment",
+      "request_schema": "PaymentInitRequest",
+      "response_schema": "PaymentInitResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/payments/verify/{reference}",
+      "summary": "Verify Payment",
+      "request_schema": null,
+      "response_schema": "PaymentVerifyResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/payments/reinit/{reference}",
+      "summary": "Reinit Payment",
+      "request_schema": "PaymentReinitRequest",
+      "response_schema": "PaymentInitResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/credits/consume",
+      "summary": "Consume Credits",
+      "request_schema": "CreditConsumeRequest",
+      "response_schema": "WalletResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/admin/read-only",
+      "summary": "Admin Set Read Only",
+      "request_schema": "BillingAdminSetReadOnlyRequest",
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/SubscriptionResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Admin Set Read Only Api V1 Billing Admin Read Only Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/admin/credits/adjust",
+      "summary": "Admin Credits Adjust",
+      "request_schema": "BillingAdminAdjustCreditsRequest",
+      "response_schema": "WalletResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/billing/admin/subscriptions/assign",
+      "summary": "Admin Assign Plan",
+      "request_schema": "BillingAdminAssignPlanRequest",
+      "response_schema": "SubscriptionResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/commercial/catalog",
+      "summary": "Catalog",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/commercial/signup/start",
+      "summary": "Signup Start",
+      "request_schema": "SignupStart",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/commercial/signup/select-plan",
+      "summary": "Select Plan",
+      "request_schema": "PlanSelect",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/commercial/signup/{signup_id}",
+      "summary": "Signup Status",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/commercial/signup/{signup_id}/provision-runtime",
+      "summary": "Provision Signup Runtime",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/commercial/signup/{signup_id}/reconcile-runtime",
+      "summary": "Reconcile Signup Runtime",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/commercial/signup/{signup_id}/provision-runtime-async",
+      "summary": "Provision Signup Runtime Async",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/subscriptions/demo/activate/{tenant_id}/{plan_code}",
+      "summary": "Activate Demo Subscription",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/subscriptions/{tenant_id}/features/{feature_code}",
+      "summary": "Check Feature",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/credits/{tenant_id}",
+      "summary": "Tenant Credits",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/credits/{tenant_id}/topup/{credits}",
+      "summary": "Topup Credits",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    }
+  ],
+  "Payment Hub / Paystack": [
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/webhook/paystack",
+      "summary": "Paystack Webhook",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/webhook/paypal",
+      "summary": "Paypal Webhook",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payment-hub/initialize",
+      "summary": "Initialize Payment",
+      "request_schema": "InitializePaymentRequest",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payment-hub/verify/{reference}",
+      "summary": "Verify Payment",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payment-hub/transactions/{tenant_id}",
+      "summary": "List Transactions",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payment-hub/webhook/paystack",
+      "summary": "Paystack Webhook",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payment-hub/receipt/{reference}",
+      "summary": "Payment Receipt",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    }
+  ],
+  "Marketplace": [
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/send-shipment-update",
+      "summary": "Send Shipment Update",
+      "request_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Shipment Data\"\n}",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/transition",
+      "summary": "Transition Shipment Status Route",
+      "request_schema": null,
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}",
+      "summary": "Create Shipment Route",
+      "request_schema": "ShipmentCreate",
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}",
+      "summary": "Search Shipments Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Search Shipments Route Api V1 Shipments  Tenant Id  Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/summary",
+      "summary": "Shipment Dashboard Summary Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Shipment Dashboard Summary Route Api V1 Shipments  Tenant Id  Summary Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/members",
+      "summary": "Create Member Route",
+      "request_schema": "GroupMemberCreate",
+      "response_schema": "GroupMemberResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/members",
+      "summary": "List Members Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response List Members Route Api V1 Shipments  Tenant Id  Members Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/members/{member_id}",
+      "summary": "Get Member Route",
+      "request_schema": null,
+      "response_schema": "GroupMemberResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/shipments/{tenant_id}/members/{member_id}",
+      "summary": "Update Member Route",
+      "request_schema": "GroupMemberUpdate",
+      "response_schema": "GroupMemberResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}",
+      "summary": "Get Shipment Route",
+      "request_schema": null,
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}",
+      "summary": "Update Shipment Route",
+      "request_schema": "ShipmentUpdate",
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/events",
+      "summary": "Add Event Route",
+      "request_schema": "ShipmentEventCreate",
+      "response_schema": "ShipmentEventResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/events",
+      "summary": "Get Events Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/ShipmentEventResponse\"\n  },\n  \"title\": \"Response Get Events Route Api V1 Shipments  Tenant Id   Shipment Id  Events Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/location",
+      "summary": "Update Location Route",
+      "request_schema": "ShipmentLocationUpdate",
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/tracking/point",
+      "summary": "Ingest Tracking Point Route",
+      "request_schema": "TrackingPointIngestRequest",
+      "response_schema": "TrackingPointIngestResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/tracking/latest",
+      "summary": "Latest Tracking Point Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/TrackingPointResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Latest Tracking Point Route Api V1 Shipments  Tenant Id   Shipment Id  Tracking Latest Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/tracking/history",
+      "summary": "Tracking History Route",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/TrackingPointResponse\"\n  },\n  \"title\": \"Response Tracking History Route Api V1 Shipments  Tenant Id   Shipment Id  Tracking History Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/shipments/public/track/{tenant_id}/{tracking_number}",
+      "summary": "Public Track Route",
+      "request_schema": null,
+      "response_schema": "ShipmentPublicTrackResponse",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/{shipment_id}/upload-image",
+      "summary": "Upload Shipment Image",
+      "request_schema": null,
+      "response_schema": "ShipmentResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/shipments/{tenant_id}/import/csv",
+      "summary": "Import Csv Route",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/customer-portal/{tenant_id}/shipments",
+      "summary": "Get Customer Portal Shipments",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/{tenant_id}/shipment-routes",
+      "summary": "Get Active Shipment Routes",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/register",
+      "summary": "Register Vendor Route",
+      "request_schema": null,
+      "response_schema": "VendorRegisterResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/admin",
+      "summary": "List Vendors Admin",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response List Vendors Admin Api V1 Vendors Admin Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/admin/{vendor_id}",
+      "summary": "Get Vendor Admin",
+      "request_schema": null,
+      "response_schema": "VendorResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/admin/{vendor_id}/review",
+      "summary": "Review Vendor Route",
+      "request_schema": "VendorReviewRequest",
+      "response_schema": "VendorResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/admin/{vendor_id}/suspend",
+      "summary": "Suspend Vendor Route",
+      "request_schema": null,
+      "response_schema": "VendorResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/admin/{vendor_id}/documents",
+      "summary": "Upload Vendor Documents Route",
+      "request_schema": null,
+      "response_schema": "VendorResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/me/documents",
+      "summary": "Submit My Vendor Documents Route",
+      "request_schema": null,
+      "response_schema": "VendorDocumentSubmitResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/vendors/me/availability",
+      "summary": "Update My Availability Route",
+      "request_schema": "VendorAvailabilityUpdateRequest",
+      "response_schema": "VendorAvailabilityResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/marketplace",
+      "summary": "Search Vendor Marketplace",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Search Vendor Marketplace Api V1 Vendors Marketplace Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/marketplace/{vendor_id}",
+      "summary": "Get Marketplace Vendor",
+      "request_schema": null,
+      "response_schema": "VendorResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/{tenant_id}/marketplace/match",
+      "summary": "Suggest Marketplace Matches",
+      "request_schema": "VendorMatchRequest",
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/VendorMatchResult\"\n  },\n  \"title\": \"Response Suggest Marketplace Matches Api V1 Vendors  Tenant Id  Marketplace Match Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/{tenant_id}/dispatch/auto",
+      "summary": "Auto Dispatch Route",
+      "request_schema": "AutoDispatchRequest",
+      "response_schema": "AutoDispatchResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/{tenant_id}/bookings",
+      "summary": "Create Booking Route",
+      "request_schema": "BookingCreateRequest",
+      "response_schema": "BookingResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/{tenant_id}/bookings",
+      "summary": "List Tenant Bookings",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response List Tenant Bookings Api V1 Vendors  Tenant Id  Bookings Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/me/bookings",
+      "summary": "List My Bookings",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response List My Bookings Api V1 Vendors Me Bookings Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/vendors/{tenant_id}/bookings/{booking_id}",
+      "summary": "Get Booking Route",
+      "request_schema": null,
+      "response_schema": "BookingResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/vendors/{tenant_id}/bookings/{booking_id}",
+      "summary": "Update Booking Route",
+      "request_schema": "BookingUpdateRequest",
+      "response_schema": "BookingResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/me/bookings/{booking_id}/accept",
+      "summary": "Accept My Booking Route",
+      "request_schema": "BookingDecisionRequest",
+      "response_schema": "BookingResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/vendors/me/bookings/{booking_id}/reject",
+      "summary": "Reject My Booking Route",
+      "request_schema": "BookingDecisionRequest",
+      "response_schema": "BookingResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/marketplace/shipments",
+      "summary": "List My Shipments",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments",
+      "summary": "Post Shipment",
+      "request_schema": "ShipmentPost",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}",
+      "summary": "Get Shipment",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/drivers/search",
+      "summary": "Search Jobs",
+      "request_schema": "DriverSearch",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{job_id}/accept",
+      "summary": "Accept Job",
+      "request_schema": "AcceptJob",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{job_id}/tracking/{status}",
+      "summary": "Update Tracking",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{job_id}/gps",
+      "summary": "Add Gps Ping",
+      "request_schema": "GpsPingRequest",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/marketplace/shipments/{job_id}/gps",
+      "summary": "Get Gps History",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids",
+      "summary": "Submit Bid",
+      "request_schema": "BidCreate",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids",
+      "summary": "List Bids",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/accept",
+      "summary": "Accept Bid",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/reject",
+      "summary": "Reject Bid",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/counter",
+      "summary": "Counter Bid",
+      "request_schema": "BidCounter",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/respond-counter",
+      "summary": "Respond To Counter",
+      "request_schema": "BidResponse",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/marketplace/dashboard/driver",
+      "summary": "Driver Dashboard",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/marketplace/jobs",
+      "summary": "List Jobs",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/marketplace/jobs/{job_id}/cancel",
+      "summary": "Cancel Job",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/marketplace/jobs/{job_id}/reassign/{driver_id}",
+      "summary": "Reassign Job",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    }
+  ],
+  "Vendor Registration": [],
+  "Driver / Fleet / GPS": [
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/{tenant_id}/runtime-auth",
+      "summary": "Update Tenant Runtime Auth",
+      "request_schema": "TenantRuntimeAuthUpdate",
+      "response_schema": "TenantResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fleetbase-runtime/runners",
+      "summary": "Create Runner",
+      "request_schema": "RunnerCreateRequest",
+      "response_schema": "app__schemas__fleetbase_runtime__RunnerResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fleetbase-runtime/runners",
+      "summary": "List Runners",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/app__schemas__fleetbase_runtime__RunnerResponse\"\n  },\n  \"title\": \"Response List Runners Api V1 Fleetbase Runtime Runners Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fleetbase-runtime/deploy",
+      "summary": "Deploy Runtime",
+      "request_schema": "RuntimeDeployRequest",
+      "response_schema": "RuntimeResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fleetbase-runtime/tenant/{tenant_id}",
+      "summary": "Get Runtime By Tenant",
+      "request_schema": null,
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/RuntimeResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Get Runtime By Tenant Api V1 Fleetbase Runtime Tenant  Tenant Id  Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fleetbase-runtime/retry",
+      "summary": "Retry Runtime Route",
+      "request_schema": "RuntimeRetryRequest",
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/RuntimeResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Retry Runtime Route Api V1 Fleetbase Runtime Retry Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/fleetbase-runtime/suspend",
+      "summary": "Suspend Runtime Route",
+      "request_schema": "RuntimeSuspendRequest",
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/RuntimeResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Suspend Runtime Route Api V1 Fleetbase Runtime Suspend Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/fleetbase-runtime/{runtime_id}/events",
+      "summary": "Get Runtime Events",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/RuntimeEventResponse\"\n  },\n  \"title\": \"Response Get Runtime Events Api V1 Fleetbase Runtime  Runtime Id  Events Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/navigator/{tenant_id}/drivers",
+      "summary": "Get Navigator Drivers",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/navigator/{tenant_id}/tracking",
+      "summary": "Get Navigator Tracking",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/customer-portal/{tenant_id}/tracking",
+      "summary": "Get Customer Portal Tracking",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    }
+  ],
+  "KYC / Identity": [
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/submit-manual",
+      "summary": "Submit Manual Kyc",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/upload-id",
+      "summary": "Upload Id Document",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/liveness",
+      "summary": "Upload Liveness Capture",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/kyc/status",
+      "summary": "Get Kyc Status",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/kyc/admin/pending",
+      "summary": "List Pending Kyc",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/kyc/admin/list",
+      "summary": "List Kyc Submissions",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/{submission_id}/review",
+      "summary": "Review Kyc Submission",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/admin/approve/{kyc_id}",
+      "summary": "Approve Kyc Submission",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/admin/revoke/{kyc_id}",
+      "summary": "Revoke Kyc Submission",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/kyc/ocr-parse",
+      "summary": "Ocr Parse Id",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    }
+  ],
+  "Admin / Operations": [
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/register-request",
+      "summary": "Create Tenant Registration Request",
+      "request_schema": "TenantRegistrationRequest",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/registration-status/{request_id}",
+      "summary": "Get Registration Status",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/register-requests",
+      "summary": "List Registration Requests",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/tenants/register-requests/{request_id}",
+      "summary": "Review Registration Request",
+      "request_schema": "TenantRequestReviewPayload",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/create",
+      "summary": "Create Tenant",
+      "request_schema": "TenantCreationRequest",
+      "response_schema": "TenantCreationResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/{tenant_id}/setup-infrastructure",
+      "summary": "Setup Tenant Infrastructure",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/{tenant_id}/status",
+      "summary": "Get Tenant Status",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/{tenant_id}/portal-url",
+      "summary": "Get Tenant Portal Url",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/auto-provision",
+      "summary": "Auto Provision Tenant",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants",
+      "summary": "List Tenants",
+      "request_schema": null,
+      "response_schema": "{\n  \"items\": {\n    \"$ref\": \"#/components/schemas/TenantResponse\"\n  },\n  \"type\": \"array\",\n  \"title\": \"Response List Tenants Api V1 Tenants Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants",
+      "summary": "Create Tenant",
+      "request_schema": "TenantCreate",
+      "response_schema": "TenantResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/{tenant_id}/approve",
+      "summary": "Approve Tenant",
+      "request_schema": "ApprovalRequest",
+      "response_schema": "TenantResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/{tenant_id}/launch",
+      "summary": "Launch Tenant",
+      "request_schema": "LaunchRequest",
+      "response_schema": "JobResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/jobs/{job_id}",
+      "summary": "Get Job",
+      "request_schema": null,
+      "response_schema": "JobResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/jobs/{job_id}/retry",
+      "summary": "Retry Job",
+      "request_schema": null,
+      "response_schema": "JobResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tenants/lookup",
+      "summary": "Lookup Tenant",
+      "request_schema": null,
+      "response_schema": "TenantResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tenants/{tenant_id}/resend-portal-url",
+      "summary": "Resend Portal Url",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Resend Portal Url Api V1 Tenants  Tenant Id  Resend Portal Url Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/admin/tickets",
+      "summary": "List Admin Tickets",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response List Admin Tickets Api V1 Support Crm Admin Tickets Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/support-crm/admin/tickets/{ticket_id}/status",
+      "summary": "Update Admin Ticket Status",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Update Admin Ticket Status Api V1 Support Crm Admin Tickets  Ticket Id  Status Patch\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/domains/tenant/{tenant_id}",
+      "summary": "Get Tenant Domains",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/DomainResponse\"\n  },\n  \"title\": \"Response Get Tenant Domains Api V1 Domains Tenant  Tenant Id  Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/domains/settings/{tenant_id}",
+      "summary": "Get Tenant Domain Settings",
+      "request_schema": null,
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/TenantDomainSettingsResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Get Tenant Domain Settings Api V1 Domains Settings  Tenant Id  Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/storefront/{tenant_id}/orders",
+      "summary": "Get Storefront Orders",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/storefront/{tenant_id}/customers",
+      "summary": "Get Storefront Customers",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pallet/{tenant_id}/inventory",
+      "summary": "Get Pallet Inventory",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/pallet/{tenant_id}/warehouses",
+      "summary": "Get Pallet Warehouses",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branding/{tenant_id}",
+      "summary": "Get Branding Route",
+      "request_schema": null,
+      "response_schema": "BrandingResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/branding/{tenant_id}",
+      "summary": "Update Branding Route",
+      "request_schema": "BrandingUpdate",
+      "response_schema": "BrandingResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/branding/public/{tenant_id}",
+      "summary": "Get Public Branding Route",
+      "request_schema": null,
+      "response_schema": "BrandingResponse",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/companies/retry-provisioning/{tenant_id}",
+      "summary": "Retry Fleetbase Provisioning",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/analytics/admin/summary",
+      "summary": "Admin Analytics Summary",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/dns/records",
+      "summary": "Get Dns Records",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/dns/provision/{slug}",
+      "summary": "Provision Dns",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/admin/dns/provision/{slug}",
+      "summary": "Remove Dns",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/dns/ensure-wildcard",
+      "summary": "Ensure Wildcard",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    }
+  ],
+  "Support": [
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/accounts",
+      "summary": "Create Account",
+      "request_schema": "CRMAccountCreateRequest",
+      "response_schema": "CRMAccountResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/accounts",
+      "summary": "List Accounts",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/CRMAccountResponse\"\n  },\n  \"title\": \"Response List Accounts Api V1 Support Crm Accounts Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/contacts",
+      "summary": "List Contacts",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/CRMContactResponse\"\n  },\n  \"title\": \"Response List Contacts Api V1 Support Crm Contacts Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/contacts",
+      "summary": "Create Contact",
+      "request_schema": "CRMContactCreateRequest",
+      "response_schema": "CRMContactResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/opportunities",
+      "summary": "List Opportunities",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/OpportunityResponse\"\n  },\n  \"title\": \"Response List Opportunities Api V1 Support Crm Opportunities Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/opportunities",
+      "summary": "Create Opportunity Route",
+      "request_schema": "OpportunityCreateRequest",
+      "response_schema": "OpportunityResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/quotes",
+      "summary": "List Quotes",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/QuoteResponse\"\n  },\n  \"title\": \"Response List Quotes Api V1 Support Crm Quotes Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/quotes",
+      "summary": "Create Quote Route",
+      "request_schema": "QuoteCreateRequest",
+      "response_schema": "QuoteResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/public/tickets",
+      "summary": "Create Public Ticket Route",
+      "request_schema": "PublicTicketCreateRequest",
+      "response_schema": "SupportTicketResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/public/tickets/{public_token}",
+      "summary": "Get Public Ticket",
+      "request_schema": null,
+      "response_schema": "SupportTicketResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/support-crm/public/tickets/{public_token}/messages",
+      "summary": "Get Public Ticket Messages",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/SupportTicketMessageResponse\"\n  },\n  \"title\": \"Response Get Public Ticket Messages Api V1 Support Crm Public Tickets  Public Token  Messages Get\"\n}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/support-crm/public/tickets/{public_token}/reply",
+      "summary": "Reply Public Ticket",
+      "request_schema": "TicketReplyRequest",
+      "response_schema": "SupportTicketMessageResponse",
+      "security": false
+    }
+  ],
+  "Other APIs": [
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/bootstrap",
+      "summary": "Bootstrap Admin",
+      "request_schema": "BootstrapAdminRequest",
+      "response_schema": "TokenResponse",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "summary": "Register",
+      "request_schema": "RegisterRequest",
+      "response_schema": "TokenResponse",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "summary": "Login",
+      "request_schema": "LoginRequest",
+      "response_schema": "TokenResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "summary": "Me",
+      "request_schema": null,
+      "response_schema": "{\n  \"additionalProperties\": {\n    \"anyOf\": [\n      {\n        \"type\": \"string\"\n      },\n      {\n        \"type\": \"boolean\"\n      },\n      {\n        \"type\": \"null\"\n      }\n    ]\n  },\n  \"type\": \"object\",\n  \"title\": \"Response Me Api V1 Auth Me Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/complete-onboarding",
+      "summary": "Complete Onboarding",
+      "request_schema": "CompleteOnboardingRequest",
+      "response_schema": "{\n  \"additionalProperties\": {\n    \"anyOf\": [\n      {\n        \"type\": \"string\"\n      },\n      {\n        \"type\": \"boolean\"\n      },\n      {\n        \"type\": \"null\"\n      }\n    ]\n  },\n  \"type\": \"object\",\n  \"title\": \"Response Complete Onboarding Api V1 Auth Complete Onboarding Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/password-reset/confirm",
+      "summary": "Confirm Password Reset",
+      "request_schema": "PasswordResetConfirmRequest",
+      "response_schema": "{\n  \"additionalProperties\": {\n    \"type\": \"string\"\n  },\n  \"type\": \"object\",\n  \"title\": \"Response Confirm Password Reset Api V1 Auth Password Reset Confirm Post\"\n}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/providers",
+      "summary": "Get Supported Providers",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/{provider}/login",
+      "summary": "Social Login",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/{provider}",
+      "summary": "Social Login Url",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/{provider}/callback",
+      "summary": "Social Callback",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/social/{provider}/token",
+      "summary": "Exchange Code For Token",
+      "request_schema": "TokenExchangeRequest",
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/disconnect/{provider}",
+      "summary": "Disconnect Social Account",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/social/connected",
+      "summary": "Get Connected Social Accounts",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/login",
+      "summary": "Login Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/register",
+      "summary": "Register Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard",
+      "summary": "Dashboard Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "summary": "Home Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/forgot-password",
+      "summary": "Forgot Password Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/reset-password",
+      "summary": "Reset Password Page",
+      "request_schema": null,
+      "response_schema": null,
+      "security": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/payments/initiate",
+      "summary": "Initiate Payment",
+      "request_schema": "PaymentInitiateRequest",
+      "response_schema": "PaymentInitiateResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/status/{payment_reference}",
+      "summary": "Get Payment Status",
+      "request_schema": null,
+      "response_schema": "PaymentStatusResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/statistics",
+      "summary": "Get Payment Statistics",
+      "request_schema": null,
+      "response_schema": "PaymentStatistics",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/methods",
+      "summary": "Get Payment Methods",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/payments/balance",
+      "summary": "Get Account Balance",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/configure-groups",
+      "summary": "Configure Whatsapp Groups",
+      "request_schema": "{\n  \"items\": {\n    \"type\": \"object\"\n  },\n  \"type\": \"array\",\n  \"title\": \"Groups\"\n}",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/test-connection",
+      "summary": "Test Whatsapp Connection",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/send-customer-notification",
+      "summary": "Send Customer Notification",
+      "request_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Shipment Data\"\n}",
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/whatsapp/status",
+      "summary": "Get Whatsapp Status",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp-csv/upload",
+      "summary": "Upload Csv And Notify",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/runners",
+      "summary": "List Runners",
+      "request_schema": null,
+      "response_schema": "{\n  \"items\": {\n    \"$ref\": \"#/components/schemas/app__schemas__runner__RunnerResponse\"\n  },\n  \"type\": \"array\",\n  \"title\": \"Response List Runners Api V1 Runners Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/runners",
+      "summary": "Create Runner",
+      "request_schema": "RunnerCreate",
+      "response_schema": "app__schemas__runner__RunnerResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai/chat",
+      "summary": "Ai Chat",
+      "request_schema": "AIChatRequest",
+      "response_schema": "AIChatResponse",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai/widget/config",
+      "summary": "Get Widget Config",
+      "request_schema": null,
+      "response_schema": "AIWidgetConfigResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/domains/resolve",
+      "summary": "Resolve Hostname",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"object\",\n  \"title\": \"Response Resolve Hostname Api V1 Domains Resolve Get\"\n}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/domains/{domain_id}/refresh-status",
+      "summary": "Refresh Domain Status",
+      "request_schema": null,
+      "response_schema": "DomainResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/domains/request",
+      "summary": "Request Domain",
+      "request_schema": "DomainRequestCreate",
+      "response_schema": "DomainResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/domains/activate",
+      "summary": "Activate Domain Route",
+      "request_schema": "DomainActivateRequest",
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/DomainResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Activate Domain Route Api V1 Domains Activate Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/domains/{domain_id}/fail",
+      "summary": "Fail Domain",
+      "request_schema": "DomainFailRequest",
+      "response_schema": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/DomainResponse\"\n    },\n    {\n      \"type\": \"null\"\n    }\n  ],\n  \"title\": \"Response Fail Domain Api V1 Domains  Domain Id  Fail Post\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/domains/{domain_id}/events",
+      "summary": "Get Domain Events",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/DomainEventResponse\"\n  },\n  \"title\": \"Response Get Domain Events Api V1 Domains  Domain Id  Events Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/i18n/translations/{lang}",
+      "summary": "Get Translations",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/i18n/languages",
+      "summary": "Get Supported Languages",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/i18n/detect",
+      "summary": "Detect User Language",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/geocode",
+      "summary": "Geocode Address",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/geocode/priority",
+      "summary": "Geocode Priority Address",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/geocode/city",
+      "summary": "Geocode City Region",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/route",
+      "summary": "Calculate Route",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/route/priority",
+      "summary": "Calculate Priority Route",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/nearby-cities",
+      "summary": "Get Nearby Priority Cities",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/geo/validate/address",
+      "summary": "Validate Priority Address",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/geo/country/{country}",
+      "summary": "Get Country Info",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users",
+      "summary": "List Users",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/TenantUserResponse\"\n  },\n  \"title\": \"Response List Users Api V1 Users Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/users",
+      "summary": "Create User",
+      "request_schema": "TenantUserCreateRequest",
+      "response_schema": "TenantUserResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/users/{user_id}/status",
+      "summary": "Update User Status",
+      "request_schema": "TenantUserStatusUpdateRequest",
+      "response_schema": "TenantUserResponse",
+      "security": true
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/users/{user_id}/role",
+      "summary": "Update User Role",
+      "request_schema": "TenantUserRoleUpdateRequest",
+      "response_schema": "TenantUserResponse",
+      "security": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/users/{user_id}",
+      "summary": "Delete User",
+      "request_schema": null,
+      "response_schema": null,
+      "security": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/users/audit",
+      "summary": "List User Audit Events",
+      "request_schema": null,
+      "response_schema": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"$ref\": \"#/components/schemas/TenantUserAuditResponse\"\n  },\n  \"title\": \"Response List User Audit Events Api V1 Users Audit Get\"\n}",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/users/{user_id}/send-reset-link",
+      "summary": "Send User Reset Link",
+      "request_schema": null,
+      "response_schema": "TenantUserResetResponse",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/users/bulk-import",
+      "summary": "Bulk Import Users",
+      "request_schema": null,
+      "response_schema": "BulkImportResult",
+      "security": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/companies/register",
+      "summary": "Register Company",
+      "request_schema": null,
+      "response_schema": "CompanyRegisterResponse",
+      "security": false
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "summary": "Health",
+      "request_schema": null,
+      "response_schema": "{}",
+      "security": false
+    }
+  ]
+}

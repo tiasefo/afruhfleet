@@ -24,6 +24,7 @@ import logging
 import secrets
 from dataclasses import dataclass
 from typing import Any
+import time
 
 import httpx
 
@@ -65,6 +66,9 @@ class FleetbaseAPIClient:
     def __init__(self, base_url: str | None = None, timeout: int = 30) -> None:
         self._base = (base_url or settings.fleetbase_internal_url).rstrip("/")
         self._timeout = timeout
+        # Retry/backoff settings for provisioning
+        self._retries = getattr(settings, "fleetbase_provisioning_retries", 3)
+        self._backoff = getattr(settings, "fleetbase_provisioning_backoff_seconds", 2)
 
     # ------------------------------------------------------------------
     # Public API
@@ -94,31 +98,50 @@ class FleetbaseAPIClient:
             },
         }
 
-        data = self._post(_SIGN_UP_PATH, payload)
+        last_exc: Exception | None = None
+        for attempt in range(max(1, int(self._retries))):
+            try:
+                data = self._post(_SIGN_UP_PATH, payload)
 
-        # sign-up returns {"token": "..."} — call bootstrap to get user+org details
-        token = data.get("token") or self._extract(data, "token")
-        bootstrap = self._get("/int/v1/auth/bootstrap", token=token)
+                # sign-up returns {"token": "..."} — call bootstrap to get user+org details
+                token = data.get("token") or self._extract(data, "token")
+                bootstrap = self._get("/int/v1/auth/bootstrap", token=token)
 
-        session      = bootstrap.get("session", {})
-        user_id      = session.get("user") or ""  # session.user is a UUID string
-        organizations = bootstrap.get("organizations", [])
-        org          = organizations[0] if organizations else {}
-        org_id       = org.get("uuid") or org.get("public_id") or ""
-        api_key      = self._issue_api_key(token, org_id)
-        console_url  = self._build_console_url()
+                session = bootstrap.get("session", {})
+                user_id = session.get("user") or ""  # session.user is a UUID string
+                organizations = bootstrap.get("organizations", [])
+                org = organizations[0] if organizations else {}
+                org_id = org.get("uuid") or org.get("public_id") or ""
 
-        logger.info(
-            "Fleetbase org provisioned",
-            extra={"company": company_name, "email": admin_email, "org_id": org_id},
-        )
-        return FleetbaseOrg(
-            org_id=str(org_id),
-            admin_user_id=str(user_id),
-            api_key=api_key,
-            admin_token=token,
-            console_url=console_url,
-        )
+                api_key = self._issue_api_key(token, org_id)
+                console_url = self._build_console_url()
+
+                logger.info(
+                    "Fleetbase org provisioned",
+                    extra={"company": company_name, "email": admin_email, "org_id": org_id},
+                )
+                return FleetbaseOrg(
+                    org_id=str(org_id),
+                    admin_user_id=str(user_id),
+                    api_key=api_key,
+                    admin_token=token,
+                    console_url=console_url,
+                )
+            except Exception as exc:
+                last_exc = exc
+                # if not last attempt, wait with exponential backoff and retry
+                if attempt < max(0, int(self._retries) - 1):
+                    sleep_for = int(self._backoff) * (2 ** attempt)
+                    logger.warning(
+                        "Fleetbase provisioning attempt %d failed, retrying in %ds: %s",
+                        attempt + 1,
+                        sleep_for,
+                        exc,
+                    )
+                    time.sleep(sleep_for)
+                    continue
+                # final failure — re-raise
+                raise
 
     def login(self, email: str, password: str) -> str:
         """Return a session token for an existing Fleetbase user."""
@@ -185,9 +208,26 @@ class FleetbaseAPIClient:
                 {"name": "afruheritage-platform", "company_uuid": org_id},
                 token=token,
             )
-            key = self._extract(data, "key", "api_key", "apiKey")
-            if key:
-                return key
+            # Accept a wider variety of response shapes used across Fleetbase versions
+            possible_paths = [
+                "key",
+                "api_key",
+                "apiKey",
+                "api_credential",
+                "api_credential.key",
+                "api_credential.api_key",
+                "data.key",
+                "data.api_key",
+                "apiCredential.key",
+                "apiCredential.apiKey",
+            ]
+            try:
+                key = self._extract(data, *possible_paths)
+                if key:
+                    return key
+            except Exception:
+                # fall through to token fallback
+                pass
         except Exception as exc:
             logger.warning("Could not issue Fleetbase API key — using token as key: %s", exc)
         # Fall back: the admin token itself can act as a bearer for management calls

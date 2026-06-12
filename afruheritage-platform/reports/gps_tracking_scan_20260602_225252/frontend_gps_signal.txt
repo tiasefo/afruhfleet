@@ -1,0 +1,481 @@
+frontend/components/vendors/vendor-faq.tsx:50:          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/vendors/vendor-faq.tsx:59:          {faqs.map((faq, index) => (
+frontend/components/vendors/vendor-hero.tsx:23:          <h1 className="mx-auto max-w-4xl text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+frontend/components/vendors/vendor-benefits.tsx:12:  MapPin
+frontend/components/vendors/vendor-benefits.tsx:52:    icon: MapPin,
+frontend/components/vendors/vendor-benefits.tsx:63:          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/vendors/vendor-benefits.tsx:72:          {benefits.map((benefit, index) => (
+frontend/components/vendors/vendor-registration.tsx:121:        .map((item: any) => {
+frontend/components/vendors/vendor-registration.tsx:226:          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/vendors/vendor-registration.tsx:237:            {[1, 2, 3, 4].map((s) => (
+frontend/components/vendors/vendor-registration.tsx:345:                    {vehicleTypes.map((type) => (
+frontend/components/vendors/vendor-registration.tsx:424:                          const names = Array.from(files).map(f => f.name)
+frontend/components/vendors/vendor-registration.tsx:432:                      {(formData.documentNames as string[]).map((name: string, i: number) => (
+frontend/components/vendors/vendor-registration.tsx:491:                    {regions.map((region) => (
+frontend/components/app-shell.tsx:165:        {visibleNavItems.map((item) => (
+frontend/components/app-shell.tsx:177:            <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+frontend/components/app-shell.tsx:180:            {adminItems.map((item) => (
+frontend/components/tracking/tracking-search.tsx:12:  MapPin, 
+frontend/components/tracking/tracking-search.tsx:31:  trackingNumber: 'AFR-2024-12847',
+frontend/components/tracking/tracking-search.tsx:65:  liveTracking: null,
+frontend/components/tracking/tracking-search.tsx:129:export function TrackingSearch() {
+frontend/components/tracking/tracking-search.tsx:156:          trackingNumber: data.tracking_number,
+frontend/components/tracking/tracking-search.tsx:167:          liveTracking: data.current_latitude != null && data.current_longitude != null ? {
+frontend/components/tracking/tracking-search.tsx:169:            latitude: data.current_latitude,
+frontend/components/tracking/tracking-search.tsx:170:            longitude: data.current_longitude,
+frontend/components/tracking/tracking-search.tsx:172:            provider: data.live_tracking_provider || 'gps',
+frontend/components/tracking/tracking-search.tsx:174:          events: (data.events || []).map((ev: any, i: number) => ({
+frontend/components/tracking/tracking-search.tsx:227:              Real-time Tracking
+frontend/components/tracking/tracking-search.tsx:229:            <h1 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl">
+frontend/components/tracking/tracking-search.tsx:233:              Enter your tracking number to see the current status, location, and estimated delivery time.
+frontend/components/tracking/tracking-search.tsx:244:                  placeholder="Enter tracking number (try: AFR-2024-12847)"
+frontend/components/tracking/tracking-search.tsx:271:            Search by tracking number, reference number, or receiver name
+frontend/components/tracking/tracking-search.tsx:289:                We couldn&apos;t find a shipment with that tracking number. Please check the number and try again, or contact support for assistance.
+frontend/components/tracking/tracking-search.tsx:314:                    <CardDescription>Tracking Number</CardDescription>
+frontend/components/tracking/tracking-search.tsx:315:                    <CardTitle className="text-2xl">{shipment.trackingNumber}</CardTitle>
+frontend/components/tracking/tracking-search.tsx:371:                {shipment.liveTracking && (
+frontend/components/tracking/tracking-search.tsx:375:                        <p className="text-sm font-medium text-primary">Live GPS</p>
+frontend/components/tracking/tracking-search.tsx:377:                          {shipment.liveTracking.location || 'Location update received'}
+frontend/components/tracking/tracking-search.tsx:380:                          {shipment.liveTracking.latitude.toFixed(5)}, {shipment.liveTracking.longitude.toFixed(5)}
+frontend/components/tracking/tracking-search.tsx:384:                        <p>Source: {shipment.liveTracking.provider}</p>
+frontend/components/tracking/tracking-search.tsx:385:                        {shipment.liveTracking.lastUpdated && (
+frontend/components/tracking/tracking-search.tsx:386:                          <p>Updated: {formatDate(shipment.liveTracking.lastUpdated)} at {formatTime(shipment.liveTracking.lastUpdated)}</p>
+frontend/components/tracking/tracking-search.tsx:397:              {/* Tracking Timeline */}
+frontend/components/tracking/tracking-search.tsx:400:                  <CardTitle className="text-lg">Tracking History</CardTitle>
+frontend/components/tracking/tracking-search.tsx:404:                    {shipment.events.map((event: any, index: number) => (
+frontend/components/tracking/tracking-search.tsx:445:                            <MapPin className="h-3.5 w-3.5" />
+frontend/components/tracking/tracking-search.tsx:472:                      <MapPin className="h-4 w-4" />
+frontend/components/tracking/tracking-search.tsx:493:                      <MapPin className="h-4 w-4" />
+frontend/components/tracking/tracking-search.tsx:544:              Enter a tracking number above
+frontend/components/ai-chat-widget.tsx:167:      const recentContext = messages.slice(-4).map((message) => ({
+frontend/components/ai-chat-widget.tsx:199:        ? data.sources.map((source) => source.source_path || 'knowledge').filter(Boolean)
+frontend/components/ai-chat-widget.tsx:305:              {messages.map((message) => (
+frontend/components/ui/empty.tsx:65:      className={cn('text-lg font-medium tracking-tight', className)}
+frontend/components/ui/dropdown-menu.tsx:187:        'text-muted-foreground ml-auto text-xs tracking-widest',
+frontend/components/ui/chart.tsx:85:          .map(
+frontend/components/ui/chart.tsx:89:  .map(([key, itemConfig]) => {
+frontend/components/ui/chart.tsx:182:        {payload.map((item, index) => {
+frontend/components/ui/chart.tsx:278:      {payload.map((item) => {
+frontend/components/ui/field.tsx:209:        {errors.map(
+frontend/components/ui/use-toast.ts:56:const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+frontend/components/ui/use-toast.ts:85:        toasts: state.toasts.map((t) =>
+frontend/components/ui/use-toast.ts:105:        toasts: state.toasts.map((t) =>
+frontend/components/ui/menubar.tsx:205:        'text-muted-foreground ml-auto text-xs tracking-widest',
+frontend/components/ui/alert.tsx:42:        'col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight',
+frontend/components/ui/command.tsx:166:        'text-muted-foreground ml-auto text-xs tracking-widest',
+frontend/components/ui/context-menu.tsx:228:        'text-muted-foreground ml-auto text-xs tracking-widest',
+frontend/components/ui/toaster.tsx:18:      {toasts.map(function ({ id, title, description, action, ...props }) {
+frontend/components/support/create-ticket-form.tsx:23:  { value: 'tracking', label: 'Tracking Problem' },
+frontend/components/support/create-ticket-form.tsx:40:  trackingUrl: string
+frontend/components/support/create-ticket-form.tsx:62:    const tracking = (form.querySelector('#tracking') as HTMLInputElement)?.value || ''
+frontend/components/support/create-ticket-form.tsx:83:          shipment_reference: tracking || null,
+frontend/components/support/create-ticket-form.tsx:84:          tracking_reference: tracking || null,
+frontend/components/support/create-ticket-form.tsx:97:        trackingUrl: `/support/ticket/${data.public_token}`,
+frontend/components/support/create-ticket-form.tsx:144:                <span className="text-sm text-muted-foreground">Tracking Token</span>
+frontend/components/support/create-ticket-form.tsx:165:              Save your tracking token to check the status of your ticket at any time. 
+frontend/components/support/create-ticket-form.tsx:172:              <a href={ticketResult.trackingUrl}>
+frontend/components/support/create-ticket-form.tsx:218:                    {categories.map((cat) => (
+frontend/components/support/create-ticket-form.tsx:233:                    {priorities.map((p) => (
+frontend/components/support/create-ticket-form.tsx:248:            <FieldLabel htmlFor="tracking">Shipment Reference (Optional)</FieldLabel>
+frontend/components/support/create-ticket-form.tsx:249:            <Input id="tracking" placeholder="Tracking number or reference" />
+frontend/components/support/ticket-detail.tsx:89:        if (res.status === 404) throw new Error('Ticket not found. Please check your tracking token.')
+frontend/components/support/ticket-detail.tsx:160:              Please check your tracking token and try again.
+frontend/components/support/ticket-detail.tsx:234:            messages.map((message, index) => (
+frontend/components/support/faq-section.tsx:14:    answer: 'You can track your shipment using our public tracking page. Simply enter your tracking number or use the quick search on your dashboard. For registered users, all your shipments are automatically tracked and visible in real-time on the map view.',
+frontend/components/support/faq-section.tsx:30:    answer: 'Our AI assistant is available 24/7 to help you with common questions about shipments, quotes, and customs. It can provide instant tracking updates, generate preliminary quotes, and answer FAQs in both English and Chinese. For complex issues, it will create a support ticket for our team.',
+frontend/components/support/faq-section.tsx:54:          <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+frontend/components/support/faq-section.tsx:64:            {faqs.map((faq, index) => (
+frontend/components/support/track-ticket-section.tsx:35:        setError('Ticket not found. Please check your tracking token.')
+frontend/components/support/track-ticket-section.tsx:56:            Enter your tracking token to view ticket status and conversation
+frontend/components/support/track-ticket-section.tsx:62:              <FieldLabel htmlFor="ticket-search">Tracking Token</FieldLabel>
+frontend/components/support/track-ticket-section.tsx:68:                  placeholder="Paste your tracking token here"
+frontend/components/support/support-hero.tsx:37:          <h1 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl lg:text-5xl">
+frontend/components/support/support-hero.tsx:48:          {supportFeatures.map((feature) => (
+frontend/components/landing/how-it-works.tsx:22:    description: 'Monitor all shipments on an interactive map. Update statuses, add events, and keep customers informed automatically.',
+frontend/components/landing/how-it-works.tsx:23:    features: ['Live GPS tracking', 'Automated notifications', 'Event timeline'],
+frontend/components/landing/how-it-works.tsx:42:          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/landing/how-it-works.tsx:52:          {steps.map((step, index) => (
+frontend/components/landing/how-it-works.tsx:74:                  {step.features.map((feature) => (
+frontend/components/landing/navigation.tsx:22:      { label: 'Shipment Tracking', href: '/track' },
+frontend/components/landing/navigation.tsx:33:      { label: 'Real-time Tracking', href: '/track' },
+frontend/components/landing/navigation.tsx:58:          <span className="text-xl font-semibold tracking-tight text-foreground">
+frontend/components/landing/navigation.tsx:65:          {navLinks.map((link) => (
+frontend/components/landing/navigation.tsx:75:                  {link.submenu.map((sublink) => (
+frontend/components/landing/navigation.tsx:138:                {navLinks.map((link) => (
+frontend/components/landing/navigation.tsx:144:                          {link.submenu.map((sublink) => (
+frontend/components/landing/footer.tsx:12:      { label: 'Tracking', href: '/track' },
+frontend/components/landing/footer.tsx:61:              <span className="text-xl font-semibold tracking-tight text-foreground">
+frontend/components/landing/footer.tsx:74:                {languages.map((lang) => (
+frontend/components/landing/footer.tsx:84:          {Object.values(footerLinks).map((section) => (
+frontend/components/landing/footer.tsx:88:                {section.links.map((link) => (
+frontend/components/landing/features-section.tsx:4:  MapPin, 
+frontend/components/landing/features-section.tsx:22:    icon: MapPin,
+frontend/components/landing/features-section.tsx:23:    title: 'Real-time Tracking',
+frontend/components/landing/features-section.tsx:24:    description: 'Track every shipment from origin to destination with live GPS updates and milestone notifications.',
+frontend/components/landing/features-section.tsx:54:    description: 'Streamlined customs processing with automated document verification and status tracking.',
+frontend/components/landing/features-section.tsx:75:          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/landing/features-section.tsx:79:            From tracking to customs, our platform handles the complexity so you can focus on growing your business.
+frontend/components/landing/features-section.tsx:85:          {stats.map((stat) => (
+frontend/components/landing/features-section.tsx:99:          {features.map((feature) => (
+frontend/components/landing/cta-section.tsx:19:          <h2 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground sm:text-4xl lg:text-5xl">
+frontend/components/landing/testimonials-section.tsx:17:    quote: "The bulk CSV import feature is a game-changer. We import 500+ shipments weekly from our China warehouse and everything syncs perfectly with customer tracking.",
+frontend/components/landing/testimonials-section.tsx:24:    quote: "Our customers love the real-time tracking. The WeChat-friendly interface means our Chinese suppliers can check shipment status without language barriers.",
+frontend/components/landing/testimonials-section.tsx:50:          <h2 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+frontend/components/landing/testimonials-section.tsx:60:          {testimonials.map((testimonial, index) => (
+frontend/components/landing/testimonials-section.tsx:93:            {trustedBy.map((company) => (
+frontend/components/landing/hero-section.tsx:30:            <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+frontend/components/landing/hero-section.tsx:60:                  {[1, 2, 3, 4].map((i) => (
+frontend/components/auth/login-form.tsx:82:            <span className="text-xl font-semibold tracking-tight text-foreground">
+frontend/components/auth/login-form.tsx:271:            <h2 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground">
+frontend/components/auth/register-form.tsx:101:            <span className="text-xl font-semibold tracking-tight text-foreground">
+frontend/components/auth/register-form.tsx:332:            <h2 className="text-balance text-3xl font-bold tracking-tight text-primary-foreground">
+frontend/lib/api_updated.ts:53:      .map((item: any) => {
+frontend/lib/api_updated.ts:256:export const crmApi = {
+frontend/lib/api_updated.ts:364:      latitude: number
+frontend/lib/api_updated.ts:365:      longitude: number
+frontend/lib/api_updated.ts:370:      latitude: number
+frontend/lib/api_updated.ts:371:      longitude: number
+frontend/lib/api_updated.ts:394:  getTracking: (tenantId: string, shipmentId: string) =>
+frontend/lib/api_updated.ts:395:    api.get(`/shipments/${tenantId}/${shipmentId}/tracking/latest`),
+frontend/lib/api_updated.ts:397:  getTrackingHistory: (tenantId: string, shipmentId: string) =>
+frontend/lib/api_updated.ts:398:    api.get(`/shipments/${tenantId}/${shipmentId}/tracking/history`),
+frontend/lib/api_updated.ts:400:  addTrackingPoint: (tenantId: string, shipmentId: string, data: {
+frontend/lib/api_updated.ts:403:      latitude: number
+frontend/lib/api_updated.ts:404:      longitude: number
+frontend/lib/api_updated.ts:409:  }) => api.post(`/shipments/${tenantId}/${shipmentId}/tracking/point`, data),
+frontend/lib/api_updated.ts:420:  getGpsPings: (tenantId: string, shipmentId: string) =>
+frontend/lib/api_updated.ts:421:    api.get(`/shipments/${shipmentId}/gps`),
+frontend/lib/api_updated.ts:423:  addGpsPing: (shipmentId: string, data: {
+frontend/lib/api_updated.ts:425:    latitude: number
+frontend/lib/api_updated.ts:426:    longitude: number
+frontend/lib/api_updated.ts:429:  }) => api.post(`/shipments/${shipmentId}/gps`, data),
+frontend/lib/api_updated.ts:431:  publicTrack: (tenantId: string, trackingNumber: string) =>
+frontend/lib/api_updated.ts:432:    api.get(`/shipments/public/track/${tenantId}/${trackingNumber}`),
+frontend/lib/api_updated.ts:514:    pickup_latitude: number
+frontend/lib/api_updated.ts:515:    pickup_longitude: number
+frontend/lib/api_updated.ts:516:    dropoff_latitude: number
+frontend/lib/api_updated.ts:517:    dropoff_longitude: number
+frontend/lib/api_updated.ts:695:  getTracking: (tenantId: string, params?: {
+frontend/lib/api_updated.ts:700:  }) => api.get(`/navigator/${tenantId}/tracking` + (params ? `?${new URLSearchParams(params as any)}` : '')),
+frontend/lib/api_updated.ts:1252:      latitude: number
+frontend/lib/api_updated.ts:1253:      longitude: number
+frontend/lib/api_updated.ts:1257:      latitude: number
+frontend/lib/api_updated.ts:1258:      longitude: number
+frontend/lib/api_updated.ts:1274:    current_latitude: number
+frontend/lib/api_updated.ts:1275:    current_longitude: number
+frontend/lib/api_updated.ts:1282:  updateTracking: (jobId: string, status: string) =>
+frontend/lib/api_updated.ts:1283:    api.post(`/marketplace/shipments/${jobId}/tracking/${status}`),
+frontend/lib/api_updated.ts:1285:  addGpsPing: (
+frontend/lib/api_updated.ts:1289:      latitude: number
+frontend/lib/api_updated.ts:1290:      longitude: number
+frontend/lib/api_updated.ts:1294:  ) => api.post(`/marketplace/shipments/${jobId}/gps`, data),
+frontend/lib/api.ts:41:      .map((item: any) => {
+frontend/lib/api.ts:156:  publicTrack: (trackingNumber: string) => {
+frontend/lib/api.ts:158:    return api.get(`/shipments/public/track/${tenantId}/${trackingNumber}`)
+frontend/lib/api.ts:228:export const crmAPI = {
+frontend/lib/api.ts:490:      latitude: number
+frontend/lib/api.ts:491:      longitude: number
+frontend/lib/api.ts:495:      latitude: number
+frontend/lib/api.ts:496:      longitude: number
+frontend/lib/api.ts:512:    current_latitude: number
+frontend/lib/api.ts:513:    current_longitude: number
+frontend/lib/api.ts:520:  updateTracking: (jobId: string, status: string) =>
+frontend/lib/api.ts:521:    api.post(`/marketplace/shipments/${jobId}/tracking/${status}`),
+frontend/lib/api.ts:523:  addGpsPing: (
+frontend/lib/api.ts:527:      latitude: number
+frontend/lib/api.ts:528:      longitude: number
+frontend/lib/api.ts:532:  ) => api.post(`/marketplace/shipments/${jobId}/gps`, data),
+frontend/lib/api.ts:534:  gpsHistory: (jobId: string) =>
+frontend/lib/api.ts:535:    api.get(`/marketplace/shipments/${jobId}/gps`),
+frontend/lib/geo-data.ts:81:export const COUNTRY_MAP: Record<string, GeoCountry> = Object.fromEntries(
+frontend/lib/geo-data.ts:82:  GEO_COUNTRIES.map(c => [c.code, c])
+frontend/lib/geo-data.ts:85:export const COUNTRY_OPTIONS = GEO_COUNTRIES.map(c => ({
+frontend/lib/geo-data.ts:91:  return COUNTRY_MAP[countryCode]?.cities ?? []
+frontend/types/index.ts:58:  tracking_number: string
+frontend/types/index.ts:90:  current_latitude?: number
+frontend/types/index.ts:91:  current_longitude?: number
+frontend/types/index.ts:93:  live_tracking_provider?: string
+frontend/types/index.ts:116:  tracking_number: string
+frontend/types/index.ts:133:  latitude?: number
+frontend/types/index.ts:134:  longitude?: number
+frontend/types/index.ts:141:  tracking_number: string
+frontend/types/index.ts:343:  maps_enabled: boolean
+frontend/types/index.ts:344:  public_tracking_enabled: boolean
+frontend/hooks/useBranding.ts:17:  maps_enabled: boolean
+frontend/hooks/useBranding.ts:18:  public_tracking_enabled: boolean
+frontend/hooks/useBranding.ts:49:  maps_enabled: true,
+frontend/hooks/useBranding.ts:50:  public_tracking_enabled: true,
+frontend/hooks/use-toast.ts:56:const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+frontend/hooks/use-toast.ts:85:        toasts: state.toasts.map((t) =>
+frontend/hooks/use-toast.ts:105:        toasts: state.toasts.map((t) =>
+frontend/hooks/useTranslation.ts:52:    'shipments.tracking_number': 'Tracking Number',
+frontend/hooks/useTranslation.ts:114:    'shipments.tracking_number': '跟踪号码',
+frontend/app/fleetbase/drivers/page.tsx:17:  MapPin, 
+frontend/app/fleetbase/drivers/page.tsx:211:                    {driverStatuses.map((status) => (
+frontend/app/fleetbase/drivers/page.tsx:225:                    {availabilityStatuses.map((status) => (
+frontend/app/fleetbase/drivers/page.tsx:240:                    {vehicleTypes.map((type) => (
+frontend/app/fleetbase/drivers/page.tsx:260:                {filteredDrivers.map((driver) => {
+frontend/app/fleetbase/drivers/page.tsx:315:                                <MapPin className="h-3 w-3" />
+frontend/app/fleetbase/drivers/page.tsx:322:                                {driver.vehicle_types.map((vehicleType: string) => {
+frontend/app/fleetbase/extensions/page.tsx:155:            tracking_enabled: true,
+frontend/app/fleetbase/extensions/page.tsx:352:                            {extensionTypes.map((type) => (
+frontend/app/fleetbase/extensions/page.tsx:477:                {runtimes.map((runtime) => {
+frontend/app/fleetbase/extensions/page.tsx:587:                {extensions.map((extension) => {
+frontend/app/fleetbase/vehicles/page.tsx:22:  MapPin,
+frontend/app/fleetbase/vehicles/page.tsx:95:      const extractedVehicles = driversData.flatMap((driver: any) => {
+frontend/app/fleetbase/vehicles/page.tsx:98:        return driver.vehicle_types.map((vehicleType: string, index: number) => ({
+frontend/app/fleetbase/vehicles/page.tsx:229:                          {vehicleTypes.map((type) => (
+frontend/app/fleetbase/vehicles/page.tsx:245:                          {drivers.filter(d => d.status === 'approved').map((driver) => (
+frontend/app/fleetbase/vehicles/page.tsx:426:                    {vehicleTypes.map((type) => (
+frontend/app/fleetbase/vehicles/page.tsx:441:                    {vehicleStatuses.map((status) => (
+frontend/app/fleetbase/vehicles/page.tsx:456:                    {drivers.map((driver) => (
+frontend/app/fleetbase/vehicles/page.tsx:476:                {filteredVehicles.map((vehicle) => {
+frontend/app/fleetbase/vehicles/page.tsx:543:                            <MapPin className="w-4 h-4 mr-2" />
+frontend/app/track/page.tsx:4:import { TrackingSearch } from '@/components/tracking/tracking-search'
+frontend/app/track/page.tsx:9:  description: 'Track your shipment in real-time. Enter your tracking number to see the current status, location, and estimated delivery time.',
+frontend/app/track/page.tsx:17:        <TrackingSearch />
+frontend/app/marketplace/page.tsx:14:  MapPin,
+frontend/app/marketplace/page.tsx:24:  const map: Record<string, string> = {
+frontend/app/marketplace/page.tsx:32:  return map[status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+frontend/app/marketplace/page.tsx:63:      s.tracking_number?.toLowerCase().includes(q) ||
+frontend/app/marketplace/page.tsx:107:            placeholder="Search by tracking number, origin, destination..."
+frontend/app/marketplace/page.tsx:146:            {filtered.map((shipment) => (
+frontend/app/marketplace/page.tsx:151:                      <p className="text-xs text-gray-500 font-mono">{shipment.tracking_number}</p>
+frontend/app/marketplace/page.tsx:163:                    <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+frontend/app/billing/page.tsx:29:    'Basic shipment tracking',
+frontend/app/billing/page.tsx:36:    'Real-time shipment tracking',
+frontend/app/billing/page.tsx:263:                                    .map((plan) => (
+frontend/app/billing/page.tsx:287:                                    {(planFeatures[selectedPlan] || []).map((feature) => (
+frontend/app/billing/page.tsx:336:                                  {plans.map((plan) => (
+frontend/app/billing/page.tsx:348:                                  {(planFeatures[selectedPlan] || []).map((feature) => (
+frontend/app/billing/page.tsx:462:                {plans.map((plan) => (
+frontend/app/billing/page.tsx:474:                          {(planFeatures[plan.code] || []).map((feature) => (
+frontend/app/billing/page.tsx:510:                {walletTransactions.map((transaction) => (
+frontend/app/register/company/page.tsx:205:                  {COUNTRIES.map(c => (
+frontend/app/onboarding/page.tsx:114:          <span className="text-xl font-semibold tracking-tight">Afruheritage</span>
+frontend/app/onboarding/page.tsx:121:          {STEPS.map((label, i) => (
+frontend/app/onboarding/page.tsx:163:                {ROLES.map((role) => {
+frontend/app/onboarding/page.tsx:188:                {ROLES.map((role) => {
+frontend/app/privacy-policy/page.tsx:32:              <li>Shipment, route, tracking, marketplace, and transactional data required to deliver logistics services.</li>
+frontend/app/privacy-policy/page.tsx:41:              <li>To provide shipment management, marketplace dispatching, and GPS tracking services.</li>
+frontend/app/crm/quotes/page.tsx:8:import { crmAPI } from '@/lib/api'
+frontend/app/crm/quotes/page.tsx:62:        crmAPI.getQuotes(),
+frontend/app/crm/quotes/page.tsx:63:        crmAPI.getOpportunities(),
+frontend/app/crm/quotes/page.tsx:87:      await crmAPI.createQuote(payload)
+frontend/app/crm/quotes/page.tsx:201:                        {opportunities.map((opportunity) => (
+frontend/app/crm/quotes/page.tsx:285:                {quotes.map((quote) => {
+frontend/app/crm/contacts/page.tsx:8:import { crmAPI } from '@/lib/api'
+frontend/app/crm/contacts/page.tsx:56:        crmAPI.getContacts(),
+frontend/app/crm/contacts/page.tsx:57:        crmAPI.getAccounts(),
+frontend/app/crm/contacts/page.tsx:88:      await crmAPI.createContact(payload)
+frontend/app/crm/contacts/page.tsx:151:                        {accounts.map((account) => (
+frontend/app/crm/contacts/page.tsx:286:                {filteredContacts.map((contact) => (
+frontend/app/crm/page.tsx:8:import { crmAPI } from '@/lib/api'
+frontend/app/crm/page.tsx:64:        crmAPI.getOpportunities(),
+frontend/app/crm/page.tsx:65:        crmAPI.getAccounts(),
+frontend/app/crm/page.tsx:92:      await crmAPI.createOpportunity(payload)
+frontend/app/crm/page.tsx:163:                          {opportunityStages.map((stage) => (
+frontend/app/crm/page.tsx:205:                        {accounts.map((account) => (
+frontend/app/crm/page.tsx:289:                {opportunities.map((opportunity) => {
+frontend/app/kyc/page.tsx:330:          ].map(card => (
+frontend/app/pricing/page.tsx:28:    'Basic shipment tracking',
+frontend/app/pricing/page.tsx:35:    'Real-time tracking & maps',
+frontend/app/pricing/page.tsx:112:              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+frontend/app/pricing/page.tsx:131:                {plans.map((plan) => {
+frontend/app/pricing/page.tsx:166:                          {features.map((feature) => (
+frontend/app/admin/runtime/page.tsx:421:                          {runners.filter(r => r.status === 'online').map((runner) => (
+frontend/app/admin/runtime/page.tsx:519:                {runners.map((runner) => {
+frontend/app/admin/runtime/page.tsx:631:                    {runtimeStatuses.map((status) => (
+frontend/app/admin/runtime/page.tsx:646:                    {runners.map((runner) => (
+frontend/app/admin/runtime/page.tsx:659:                {filteredRuntimes.map((runtime) => {
+frontend/app/admin/page.tsx:208:                {filteredTenants.map((tenant) => (
+frontend/app/settings/page.tsx:107:      setCustomDomains(prev => prev.map((d: any) => d.id === domainId ? updated : d))
+frontend/app/settings/page.tsx:134:    const map: Record<string, string> = {
+frontend/app/settings/page.tsx:141:    return map[status] ?? status
+frontend/app/settings/page.tsx:460:                        .map((domain: any) => (
+frontend/app/docs/page.tsx:64:          'Submit and keep the request reference for status tracking.',
+frontend/app/docs/page.tsx:96:        detail: 'Choose subscription and enable modules like marketplace and GPS tracking.',
+frontend/app/docs/page.tsx:99:          'Enable add-ons such as marketplace and gps_tracking.',
+frontend/app/docs/page.tsx:189:        detail: 'Accept shipment and confirm pickup to begin active tracking.',
+frontend/app/docs/page.tsx:193:          'Update tracking stage from assigned to in-transit.',
+frontend/app/docs/page.tsx:200:        title: 'Send Live GPS Pings',
+frontend/app/docs/page.tsx:203:          'Open shipment tracking panel during active delivery.',
+frontend/app/docs/page.tsx:205:          'Confirm latest GPS appears in shipment history.',
+frontend/app/docs/page.tsx:208:        actionLabel: 'Open Live Tracking',
+frontend/app/docs/page.tsx:214:    id: 'shipper-gps',
+frontend/app/docs/page.tsx:215:    label: 'Shipper + GPS Tracking',
+frontend/app/docs/page.tsx:257:        title: 'Track Live GPS',
+frontend/app/docs/page.tsx:260:          'Open tracking timeline for the active shipment.',
+frontend/app/docs/page.tsx:261:          'Monitor latest latitude and longitude updates.',
+frontend/app/docs/page.tsx:265:        actionLabel: 'Open Tracking Timeline',
+frontend/app/docs/page.tsx:270:        detail: 'Follow pickup, in-transit, and delivery events from tracking history.',
+frontend/app/docs/page.tsx:381:  'GPS Tracking',
+frontend/app/docs/page.tsx:492:                  {sideNav.map((item) => (
+frontend/app/docs/page.tsx:518:                  Pick your use case and follow a step-by-step flow simulation for GPS tracking, tenant creation, vendor onboarding, and day-to-day operations.
+frontend/app/docs/page.tsx:526:                  {categories.map((category) => {
+frontend/app/docs/page.tsx:597:                    {simulationSteps.map((step, index) => {
+frontend/app/docs/page.tsx:646:                  {current.steps.map((step, index) => {
+frontend/app/docs/page.tsx:692:                            {step.howTo.map((tip) => (
+frontend/app/docs/page.tsx:718:                    <Link href="/track">Try Tracking Demo</Link>
+frontend/app/members/import/page.tsx:149:                      {result.errors.map((e, i) => <li key={i}>{e}</li>)}
+frontend/app/members/page.tsx:313:                {filtered.map((member) => (
+frontend/app/dashboard/page.tsx:25:  MapPin,
+frontend/app/dashboard/page.tsx:183:                      <MapPin className="h-6 w-6" />
+frontend/app/dashboard/page.tsx:187:                      <p className="text-sm text-muted-foreground">Real-time tracking</p>
+frontend/app/dashboard/page.tsx:332:                    <MapPin className="h-6 w-6" />
+frontend/app/dashboard/page.tsx:336:                    <p className="text-sm text-muted-foreground">Public tracking</p>
+frontend/app/dashboard/page.tsx:420:                  {tenants.map((t: any) => (
+frontend/app/shipments/new/page.tsx:16:import { ArrowLeft, Package, User, MapPin, DollarSign, AlertCircle } from 'lucide-react'
+frontend/app/shipments/new/page.tsx:36:    tracking_number: '',
+frontend/app/shipments/new/page.tsx:184:                    Tracking Number
+frontend/app/shipments/new/page.tsx:187:                    value={formData.tracking_number}
+frontend/app/shipments/new/page.tsx:188:                    onChange={(e) => handleInputChange('tracking_number', e.target.value)}
+frontend/app/shipments/new/page.tsx:471:                <MapPin className="w-5 h-5 mr-2" />
+frontend/app/shipments/new/page.tsx:483:                    <SelectContent>{COUNTRY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+frontend/app/shipments/new/page.tsx:492:                    <SelectContent>{getCitiesForCountry(formData.origin_country).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+frontend/app/shipments/new/page.tsx:501:                    <SelectContent>{COUNTRY_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+frontend/app/shipments/new/page.tsx:510:                    <SelectContent>{getCitiesForCountry(formData.destination_country).map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+frontend/app/shipments/new/page.tsx:610:                    {members.map((member) => (
+frontend/app/shipments/[id]/edit/page.tsx:22:    tracking_number: '',
+frontend/app/shipments/[id]/edit/page.tsx:60:          tracking_number: shipment.tracking_number || '',
+frontend/app/shipments/[id]/edit/page.tsx:103:    if (!formData.tracking_number.trim() || !formData.sender_name.trim() || !formData.receiver_name.trim()) {
+frontend/app/shipments/[id]/edit/page.tsx:104:      setError('Tracking number, sender name, and receiver name are required.')
+frontend/app/shipments/[id]/edit/page.tsx:111:        tracking_number: formData.tracking_number.trim(),
+frontend/app/shipments/[id]/edit/page.tsx:174:                  <label className="text-sm font-medium text-gray-700">Tracking Number</label>
+frontend/app/shipments/[id]/edit/page.tsx:175:                  <Input value={formData.tracking_number} onChange={(event) => handleInputChange('tracking_number', event.target.value)} required />
+frontend/app/shipments/[id]/edit/page.tsx:281:                      {members.map((member) => (
+frontend/app/shipments/[id]/page.tsx:19:  MapPin, 
+frontend/app/shipments/[id]/page.tsx:101:    const statusMap: Record<string, string> = {
+frontend/app/shipments/[id]/page.tsx:113:    return statusMap[status] || 'bg-gray-100 text-gray-800'
+frontend/app/shipments/[id]/page.tsx:117:    const statusMap: Record<string, string> = {
+frontend/app/shipments/[id]/page.tsx:124:    return statusMap[status] || 'bg-gray-100 text-gray-800'
+frontend/app/shipments/[id]/page.tsx:157:      setLocationError('Browser GPS is not available on this device.')
+frontend/app/shipments/[id]/page.tsx:167:            latitude: position.coords.latitude,
+frontend/app/shipments/[id]/page.tsx:168:            longitude: position.coords.longitude,
+frontend/app/shipments/[id]/page.tsx:171:            provider: 'browser_gps',
+frontend/app/shipments/[id]/page.tsx:184:        setLocationError(geoError.message || 'Unable to capture current GPS location.')
+frontend/app/shipments/[id]/page.tsx:228:                  {shipment.tracking_number}
+frontend/app/shipments/[id]/page.tsx:243:                    <DialogTitle>Add Tracking Event</DialogTitle>
+frontend/app/shipments/[id]/page.tsx:497:                  Tracking Events
+frontend/app/shipments/[id]/page.tsx:504:                    <h3 className="mt-2 text-lg font-medium text-gray-900">No tracking events</h3>
+frontend/app/shipments/[id]/page.tsx:511:                    {events.map((event: any, index: number) => (
+frontend/app/shipments/[id]/page.tsx:532:                              <MapPin className="w-3 h-3 mr-1" />
+frontend/app/shipments/[id]/page.tsx:552:                  <MapPin className="w-5 h-5 mr-2" />
+frontend/app/shipments/[id]/page.tsx:588:                  {(shipment.current_location || shipment.current_latitude != null || shipment.current_longitude != null) && (
+frontend/app/shipments/[id]/page.tsx:590:                      <p className="text-sm font-medium text-blue-900">Latest GPS</p>
+frontend/app/shipments/[id]/page.tsx:592:                      {shipment.current_latitude != null && shipment.current_longitude != null && (
+frontend/app/shipments/[id]/page.tsx:594:                          {Number(shipment.current_latitude).toFixed(5)}, {Number(shipment.current_longitude).toFixed(5)}
+frontend/app/shipments/[id]/page.tsx:655:                    <MapPin className="w-4 h-4 mr-2" />
+frontend/app/shipments/[id]/page.tsx:656:                    {isUpdatingLocation ? 'Capturing GPS...' : 'Capture Current GPS'}
+frontend/app/shipments/page.tsx:83:    const statusMap: Record<string, string> = {
+frontend/app/shipments/page.tsx:95:    return statusMap[status] || 'bg-gray-100 text-gray-800'
+frontend/app/shipments/page.tsx:99:    const statusMap: Record<string, string> = {
+frontend/app/shipments/page.tsx:106:    return statusMap[status] || 'bg-gray-100 text-gray-800'
+frontend/app/shipments/page.tsx:255:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:256:                          {t('shipments.tracking_number')}
+frontend/app/shipments/page.tsx:258:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:261:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:264:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:267:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:270:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:273:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:276:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:279:                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+frontend/app/shipments/page.tsx:285:                      {shipments.map((shipment: any) => (
+frontend/app/shipments/page.tsx:292:                              {shipment.tracking_number}
+admin-console/frontend/components/ui/empty.tsx:65:      className={cn('text-lg font-medium tracking-tight', className)}
+admin-console/frontend/components/ui/dropdown-menu.tsx:187:        'text-muted-foreground ml-auto text-xs tracking-widest',
+admin-console/frontend/components/ui/chart.tsx:85:          .map(
+admin-console/frontend/components/ui/chart.tsx:89:  .map(([key, itemConfig]) => {
+admin-console/frontend/components/ui/chart.tsx:182:        {payload.map((item, index) => {
+admin-console/frontend/components/ui/chart.tsx:278:      {payload.map((item) => {
+admin-console/frontend/components/ui/field.tsx:209:        {errors.map(
+admin-console/frontend/components/ui/use-toast.ts:56:const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+admin-console/frontend/components/ui/use-toast.ts:85:        toasts: state.toasts.map((t) =>
+admin-console/frontend/components/ui/use-toast.ts:105:        toasts: state.toasts.map((t) =>
+admin-console/frontend/components/ui/menubar.tsx:205:        'text-muted-foreground ml-auto text-xs tracking-widest',
+admin-console/frontend/components/ui/alert.tsx:42:        'col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight',
+admin-console/frontend/components/ui/command.tsx:166:        'text-muted-foreground ml-auto text-xs tracking-widest',
+admin-console/frontend/components/ui/context-menu.tsx:228:        'text-muted-foreground ml-auto text-xs tracking-widest',
+admin-console/frontend/components/ui/toaster.tsx:18:      {toasts.map(function ({ id, title, description, action, ...props }) {
+admin-console/frontend/components/admin-layout.tsx:47:  { href: '/dashboard/tracking', label: 'Tracking', icon: Truck },
+admin-console/frontend/components/admin-layout.tsx:109:          {navItems.map((item) => {
+admin-console/frontend/lib/api.ts:19:      .map((item: any) => {
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:13:    purpose: 'Onboard, approve, and launch isolated tenant environments with lifecycle status tracking.',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:52:    name: 'Shipments, Tracking & Marketplace',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:53:    purpose: 'Create shipments, assign drivers, stream GPS events, and support bid-based matching.',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:58:      { label: 'Tracking UI', href: `${ROOT_REPO_TREE}/admin-console/frontend/app/dashboard/tracking/page.tsx` },
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:156:    issue: 'Tracking updates stop arriving',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:159:      `${ROOT_REPO_TREE}/app/services/tracking_realtime.py`,
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:240:    outcome: 'Shipments, vendors, tracking, and marketplace operations become active.',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:242:    systems: 'Shipments, vendor, tracking, and marketplace modules',
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:279:    Admin->>API: Ongoing operations (vendors, shipments, tracking, support)
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:306:      Maps[Geo Providers]
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:323:    API --> Maps
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:416:          {featureDomains.map((feature) => (
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:424:                {feature.maintenance.map((ref) => (
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:447:          {integrations.map((integration) => (
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:471:          {processFlow.map((step) => (
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:530:          {troubleshooting.map((item) => (
+admin-console/frontend/app/dashboard/knowledge-base/page.tsx:535:                {item.inspect.map((link) => (
+admin-console/frontend/app/dashboard/billing/page.tsx:203:            {plans.map((p: any) => (
+admin-console/frontend/app/dashboard/billing/page.tsx:318:                {plans.map((p: any) => (
+admin-console/frontend/app/dashboard/vendor-actions/page.tsx:71:          {vendors.map((v: any) => (
+admin-console/frontend/app/dashboard/domains/page.tsx:112:          {domains.map((d: any, i: number) => (
+admin-console/frontend/app/dashboard/vendors/page.tsx:27:  MapPin,
+admin-console/frontend/app/dashboard/vendors/page.tsx:143:          {statuses.map((s) => (
+admin-console/frontend/app/dashboard/vendors/page.tsx:160:          {vendors.map((v: any) => (
+admin-console/frontend/app/dashboard/vendors/page.tsx:176:                  {(v.vehicle_types || v.vehicles?.map((vh: any) => vh.vehicle_type) || []).map((vt: string) => {
+admin-console/frontend/app/dashboard/vendors/page.tsx:235:                  {(selectedVendor.operating_regions || []).map((r: string) => (
+admin-console/frontend/app/dashboard/vendors/page.tsx:236:                    <Badge key={r} variant="outline" className="text-xs"><MapPin className="mr-1 h-3 w-3" />{r}</Badge>
+admin-console/frontend/app/dashboard/vendors/page.tsx:244:                  {(selectedVendor.vehicles || []).map((vh: any) => (
+admin-console/frontend/app/dashboard/users/page.tsx:218:          {filtered.map((u) => (
+admin-console/frontend/app/dashboard/tenants/page.tsx:214:          {filtered.map((t: any) => (
+admin-console/frontend/app/dashboard/tenants/page.tsx:272:              {tenantRequests.map((r: any) => (
+admin-console/frontend/app/dashboard/tracking/page.tsx:10:import { MapPin, Search } from "lucide-react"
+admin-console/frontend/app/dashboard/tracking/page.tsx:12:export default function TrackingDashboardPage() {
+admin-console/frontend/app/dashboard/tracking/page.tsx:14:  const [trackingNumber, setTrackingNumber] = useState("")
+admin-console/frontend/app/dashboard/tracking/page.tsx:19:    if (!tenantId || !trackingNumber) return
+admin-console/frontend/app/dashboard/tracking/page.tsx:23:      const data = await api.get(`/admin/tracking/public?tenant_id=${encodeURIComponent(tenantId)}&tracking_number=${encodeURIComponent(trackingNumber)}`)
+admin-console/frontend/app/dashboard/tracking/page.tsx:26:      toast.error(e.message || "Tracking lookup failed")
+admin-console/frontend/app/dashboard/tracking/page.tsx:35:        <h1 className="text-3xl font-bold">Tracking Overview</h1>
+admin-console/frontend/app/dashboard/tracking/page.tsx:36:        <p className="mt-1 text-muted-foreground">Search public shipment tracking as admin support</p>
+admin-console/frontend/app/dashboard/tracking/page.tsx:41:          <CardTitle>Tracking Lookup</CardTitle>
+admin-console/frontend/app/dashboard/tracking/page.tsx:46:            <Input placeholder="Tracking number" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} />
+admin-console/frontend/app/dashboard/tracking/page.tsx:48:          <Button onClick={lookup} disabled={loading || !tenantId || !trackingNumber}>
+admin-console/frontend/app/dashboard/tracking/page.tsx:59:              <MapPin className="h-5 w-5" />
+admin-console/frontend/app/dashboard/tracking/page.tsx:60:              {result.tracking_number}
+admin-console/frontend/app/dashboard/tracking/page.tsx:77:                  {result.events.map((e: any) => (
+admin-console/frontend/app/dashboard/runners/page.tsx:140:          {runners.map((r: any) => {
+admin-console/frontend/app/dashboard/tickets/page.tsx:68:            {statuses.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+admin-console/frontend/app/dashboard/tickets/page.tsx:82:          {tickets.map((t: any) => (
+admin-console/frontend/app/dashboard/tickets/page.tsx:98:                  {statuses.filter((s) => s !== t.status).map((s) => (
+admin-console/frontend/app/dashboard/kyc/page.tsx:28:        prev.map((k) =>
+admin-console/frontend/app/dashboard/kyc/page.tsx:53:          {kycList.map((k) => (
+admin-console/frontend/app/dashboard/architecture/page.tsx:213:                Customer-facing SaaS interface for shipments, tracking, vendors, and account management.
+admin-console/frontend/app/dashboard/architecture/page.tsx:219:                Per-tenant logistics engine providing shipment lifecycle, driver management, and GPS tracking.
+admin-console/frontend/app/dashboard/architecture/page.tsx:280:              <li>GPS Updates → Redis Pub/Sub</li>
+admin-console/frontend/app/dashboard/architecture/page.tsx:281:              <li>Real-time Tracking → Frontend WebSocket</li>
+admin-console/frontend/app/dashboard/architecture/page.tsx:294:              <li>Usage Tracking → Billing Debit</li>
+admin-console/frontend/app/dashboard/blueprint/page.tsx:34:    purpose: 'Customer-facing SaaS interface for shipments, tracking, vendors, and account management.',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:45:    purpose: 'Per-tenant logistics engine providing shipment lifecycle, driver management, and GPS tracking.',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:104:    role: 'Support ticketing system integration for incident tracking and escalation',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:110:    role: 'Shipment notifications, tracking updates, customer communication',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:134:      'GPS Updates → Redis Pub/Sub',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:135:      'Real-time Tracking → Frontend WebSocket',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:149:      'Usage Tracking → Billing Debit',
+admin-console/frontend/app/dashboard/blueprint/page.tsx:208:          {systemComponents.map((component) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:220:                {component.maintenance.map((ref) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:246:          {infrastructureStack.map((stack) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:254:                {stack.components.map((component) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:273:          {integrations.map((integration) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:281:                {integration.endpoints.map((endpoint) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:300:          {dataFlow.map((flow) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:304:                {flow.steps.map((step, index) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:314:                {flow.systems.map((system) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:334:          {securityMeasures.map((security) => (
+admin-console/frontend/app/dashboard/blueprint/page.tsx:341:                {security.measures.map((measure) => (
+admin-console/frontend/app/dashboard/page.tsx:122:        {statCards.map((s) => (
+admin-console/frontend/app/dashboard/page.tsx:213:                {alerts.slice(0, 5).map((alert) => (
+admin-console/frontend/app/dashboard/page.tsx:248:                {tenants.map((t: any) => (
+admin-console/frontend/app/dashboard/page.tsx:273:                {vendors.map((v: any) => (

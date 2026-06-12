@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { AIChatWidget } from '@/components/ai-chat-widget'
 
 // Routes where the AppShell should NOT render
 const PUBLIC_ROUTES = [
@@ -34,6 +35,7 @@ const PUBLIC_ROUTES = [
   '/register',
   '/register/company',
   '/pricing',
+  '/docs',
   '/track',
   '/support/ticket',
   '/onboarding',
@@ -270,6 +272,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      {/* AI Chat Widget */}
+      <AIChatWidget />
     </div>
   )
 }

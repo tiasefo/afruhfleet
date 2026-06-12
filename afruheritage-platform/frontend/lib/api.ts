@@ -373,6 +373,13 @@ export const brandingAPI = {
     const tenantId = requireTenantId()
     return api.patch(`/branding/${tenantId}`, data)
   },
+
+  uploadLogo: (file: File) => {
+    const tenantId = requireTenantId()
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`/branding/${tenantId}/logo`, form)
+  },
 }
 
 export const domainsAPI = {
@@ -559,3 +566,6 @@ export const usersApi = {
   resendInvite: (userId: string, tenantId: string) =>
     api.post(`/users/${userId}/resend-invite?tenant_id=${tenantId}`, {}),
 }
+
+// Fleetbase-backed logistics API
+

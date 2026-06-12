@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     # When both stacks are on the same host, use the host-gateway or exposed port.
     fleetbase_internal_url: str = Field(default='http://fleetbase-httpd-1', alias='FLEETBASE_INTERNAL_URL')
 
+    # Fleetbase provisioning retry/backoff
+    fleetbase_provisioning_retries: int = Field(default=3, alias='FLEETBASE_PROVISIONING_RETRIES')
+    fleetbase_provisioning_backoff_seconds: int = Field(default=2, alias='FLEETBASE_PROVISIONING_BACKOFF_SECONDS')
+
     # Rate limiting
     enable_rate_limiting: bool = Field(default=True, alias='ENABLE_RATE_LIMITING')
     rate_limit_storage_uri: str = Field(default='redis://localhost:6379', alias='RATE_LIMIT_STORAGE_URI')

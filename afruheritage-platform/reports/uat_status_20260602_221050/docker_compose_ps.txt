@@ -1,0 +1,6 @@
+NAME                    IMAGE                          COMMAND                  SERVICE    CREATED         STATUS                    PORTS
+afruheritage-api        afruheritage-platform-api      "gunicorn app.main:a…"   api        5 minutes ago   Up 5 minutes (healthy)    0.0.0.0:8100->8000/tcp, [::]:8100->8000/tcp
+afruheritage-beat       afruheritage-platform-beat     "celery -A app.tasks…"   beat       23 hours ago    Up 23 hours (unhealthy)   8000/tcp
+afruheritage-postgres   postgres:16-alpine             "docker-entrypoint.s…"   postgres   23 hours ago    Up 23 hours (healthy)     0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+afruheritage-redis      redis:7-alpine                 "docker-entrypoint.s…"   redis      26 hours ago    Up 26 hours (healthy)     0.0.0.0:6380->6379/tcp, [::]:6380->6379/tcp
+afruheritage-worker     afruheritage-platform-worker   "celery -A app.tasks…"   worker     23 hours ago    Up 23 hours (unhealthy)   8000/tcp

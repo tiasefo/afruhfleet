@@ -1,0 +1,127 @@
+from __future__ import annotations
+
+import hashlib
+import os
+import uuid
+import requests
+from fastapi import APIRouter, Request, HTTPException
+from pydantic import BaseModel
+
+from app.services.customs.ghana_rules import ghana_vehicle_fallback, ghana_goods_fallback
+from app.services.customs.engine import calculate_with_fallback
+
+router = APIRouter(prefix="/customs/guest", tags=["Customs Guest"])
+
+FREE_CHECK_LIMIT = int(os.getenv("CUSTOMS_GUEST_FREE_LIMIT", "2"))
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "")
+PAYSTACK_CALLBACK_URL = os.getenv(
+    "CUSTOMS_PAYSTACK_CALLBACK_URL",
+    "https://afruheritage.com/customs/duty-calculator?payment=callback",
+)
+
+PRICES = {
+    ("GH", "vehicle"): ("GHS", 10000),
+    ("GH", "cargo"): ("GHS", 7000),
+    ("KE", "vehicle"): ("KES", 115000),
+    ("KE", "cargo"): ("KES", 80000),
+}
+
+
+class GuestDutyRequest(BaseModel):
+    guest_id: str
+    country: str
+    commodity_type: str
+    payload: dict
+
+
+def fingerprint(request: Request, guest_id: str) -> str:
+    ip = request.client.host if request.client else ""
+    ua = request.headers.get("user-agent", "")
+    raw = f"{guest_id}|{ip}|{ua}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def price_for(country: str, commodity_type: str):
+    key = (country.upper(), commodity_type.lower())
+    if key not in PRICES:
+        raise HTTPException(status_code=400, detail="Unsupported country/commodity pricing")
+    return PRICES[key]
+
+
+def run_customs(payload: dict):
+    country = payload.get("country")
+    commodity = payload.get("commodity_type")
+
+    if country == "GH" and commodity == "vehicle":
+        return ghana_vehicle_fallback(payload)
+
+    if country == "GH" and commodity in ["cargo", "goods"]:
+        return ghana_goods_fallback(payload)
+
+    return calculate_with_fallback(payload)
+
+
+@router.post("/calculate")
+def guest_calculate(body: GuestDutyRequest, request: Request):
+    fp = fingerprint(request, body.guest_id)
+
+    # TODO: replace these in-memory stubs with SQLAlchemy session calls if your project already has DB deps.
+    # This structure is intentionally explicit so your agent wires it to your DB session.
+    raise HTTPException(
+        status_code=501,
+        detail={
+            "message": "Wire this route to DB session: count guest_customs_checks by fingerprint, insert check if free, otherwise create Paystack payment intent.",
+            "fingerprint": fp,
+            "price": price_for(body.country, body.commodity_type),
+        },
+    )
+
+
+def create_paystack_payment(email: str, amount_minor: int, currency: str, reference: str):
+    if not PAYSTACK_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="PAYSTACK_SECRET_KEY missing")
+
+    r = requests.post(
+        "https://api.paystack.co/transaction/initialize",
+        headers={
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "email": email,
+            "amount": amount_minor,
+            "currency": currency,
+            "reference": reference,
+            "callback_url": PAYSTACK_CALLBACK_URL,
+        },
+        timeout=30,
+    )
+
+    if r.status_code >= 400:
+        raise HTTPException(status_code=502, detail=r.text)
+
+    return r.json()["data"]
+
+
+@router.get("/payment/verify/{reference}")
+def verify_payment(reference: str):
+    if not PAYSTACK_SECRET_KEY:
+        raise HTTPException(status_code=500, detail="PAYSTACK_SECRET_KEY missing")
+
+    r = requests.get(
+        f"https://api.paystack.co/transaction/verify/{reference}",
+        headers={"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"},
+        timeout=30,
+    )
+
+    if r.status_code >= 400:
+        raise HTTPException(status_code=502, detail=r.text)
+
+    data = r.json()["data"]
+    return {
+        "reference": reference,
+        "paid": data.get("status") == "success",
+        "status": data.get("status"),
+        "amount": data.get("amount"),
+        "currency": data.get("currency"),
+    }

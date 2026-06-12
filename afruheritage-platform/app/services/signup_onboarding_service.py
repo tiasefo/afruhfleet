@@ -12,6 +12,7 @@ from app.models.user import User
 from app.services.billing_service import create_trial_subscription, ensure_wallet, grant_subscription_allowance, normalize_plan_code
 from app.services.tenant_ai_service import ensure_tenant_ai_settings
 from app.services.tenant_branding_service import ensure_tenant_branding
+from app.services.dns_provisioning import provision_tenant_subdomain
 
 logger = get_logger("afruheritage.signup_onboarding")
 
@@ -68,6 +69,12 @@ class SignupOnboardingService:
 
         self._initialize_tenant_defaults(tenant, resolved_plan.value)
 
+        # Async-safe: DNS provisioning is fire-and-forget (never blocks registration)
+        try:
+            provision_tenant_subdomain(tenant.slug)
+        except Exception as exc:
+            logger.warning("dns_provisioning_failed", extra={"slug": tenant.slug, "error": str(exc)})
+
         logger.info(
             "signup_tenant_provisioned",
             extra={
@@ -101,18 +108,12 @@ class SignupOnboardingService:
         except Exception as exc:
             logger.warning("tenant_branding_defaults_failed", extra={"tenant_id": tenant_id, "error": str(exc)})
 
-        try:
-            create_trial_subscription(self.db, tenant_id=tenant_id, plan_code=plan_code)
-            ensure_wallet(self.db, tenant_id=tenant_id)
-            grant_subscription_allowance(
-                self.db,
-                tenant_id=tenant_id,
-                plan_code=plan_code,
-                currency='GHS',
-                reference=f'signup:{tenant_id}:{plan_code}',
-            )
-        except Exception as exc:
-            logger.warning("tenant_billing_defaults_failed", extra={"tenant_id": tenant_id, "error": str(exc)})
+        # Do NOT auto-create trial subscriptions or grant allowances here.
+        # Trials and subscription selection must be chosen explicitly by
+        # customers during the signup/checkout flow so billing state and
+        # consent are explicit. Wallets and allowances will be created when
+        # a subscription is initialized (through the billing endpoints
+        # /payments/init and the payment webhook flow).
 
     def _resolve_company_name(self, user: User, company_name: str | None) -> str:
         value = (company_name or "").strip()

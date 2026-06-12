@@ -152,3 +152,36 @@ def get_job(
     current_admin: AdminUser = Depends(get_current_admin),
 ):
     return cp.get_job(_get_cp_token(request), job_id)
+
+
+# ── Support: lookup + resend portal URL ─────────────────────────────────────────
+
+@router.get("/lookup")
+def lookup_tenant(
+    request: Request,
+    email: str | None = Query(None),
+    slug: str | None = Query(None),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    """Support: find a tenant by email or slug and return their portal URL."""
+    return cp.lookup_tenant(_get_cp_token(request), email=email, slug=slug)
+
+
+@router.post("/{tenant_id}/resend-portal-url")
+def resend_portal_url(
+    tenant_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    """Support: re-send portal URL email to tenant admin and return the URL."""
+    result = cp.resend_portal_url(_get_cp_token(request), tenant_id)
+    record_admin_audit(
+        db,
+        admin_email=current_admin.email,
+        action="tenant.portal_url.resent_via_admin",
+        entity_type="tenant",
+        entity_id=tenant_id,
+        details={"portal_url": result.get("portal_url"), "email_sent": result.get("email_sent")},
+    )
+    return result

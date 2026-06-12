@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1'
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api:8000/api/v1'
 
 // Hosts that are the platform itself — never resolve as tenant subdomains
 const PLATFORM_HOSTS = new Set([

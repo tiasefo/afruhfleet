@@ -3,9 +3,10 @@ import enum
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+from app.models.rbac import UserRole as UserRBACRole
 
 
 class UserRole(str, enum.Enum):
@@ -34,3 +35,13 @@ class User(Base):
     password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    
+    # RBAC Relationships
+    # NOTE: Role enum is stored in `role`; do not map enum UserRole as relationship.
+    user_roles: Mapped[list[UserRBACRole]] = relationship(
+        UserRBACRole,
+        back_populates="user",
+        foreign_keys=[UserRBACRole.user_id],
+    )
+    activity_logs: Mapped[list["UserActivityLog"]] = relationship("UserActivityLog", back_populates="user")
+    sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user")

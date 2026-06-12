@@ -1,10 +1,10 @@
 {
-  "timestamp": "2026-05-27T05:05:43.823672",
+  "timestamp": "2026-06-01T20:03:45.292985",
   "summary": {
-    "total": 8,
-    "passed": 8,
-    "failed": 0,
-    "success_rate": 100.0
+    "total": 7,
+    "passed": 5,
+    "failed": 2,
+    "success_rate": 71.43
   },
   "results": [
     {
@@ -16,10 +16,10 @@
     },
     {
       "name": "Frontend Onboarding Page",
-      "status": "PASS",
-      "response_time": 0.0125,
-      "details": "HTTP 200",
-      "error": "HTTP 200"
+      "status": "FAIL",
+      "response_time": 0.001,
+      "details": "",
+      "error": "HTTPConnectionPool(host='localhost', port=3002): Max retries exceeded with url: /onboarding (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=3002): Failed to establish a new connection: [Errno 111] Connection refused\"))"
     },
     {
       "name": "Commercial Catalog",
@@ -30,36 +30,29 @@
     },
     {
       "name": "Commercial Signup Checkout",
-      "status": "PASS",
-      "response_time": 0.7955,
-      "details": "signup_id=47347645-b429-4db4-b92a-64ba9bbe6efe, reference=afr_b18cb4a008624a46",
-      "error": "missing reference/checkout_url"
-    },
-    {
-      "name": "Payment Receipt Endpoint",
-      "status": "PASS",
-      "response_time": 0.0297,
-      "details": "reference=afr_b18cb4a008624a46",
-      "error": "HTTP 200: {\"receipt\":{\"reference\":\"afr_b18cb4a008624a46\",\"provider_reference\":\"afr_b18cb4a008624a46\",\"tenant_id\":\"47347645-b429-4db4-b92a-64ba9bbe6efe\",\"provider\":\"paystack\",\"purpose\":\"subscription\",\"amount\":3100.0,\"currency\":\"GHS\",\"status\":\"initialized\",\"checkout_url\":\"https://checkout.paystack.com/8l27d85vv"
+      "status": "FAIL",
+      "response_time": 0.0528,
+      "details": "",
+      "error": "HTTP 500: {\"detail\":\"PAYSTACK_SECRET_KEY_missing\"}"
     },
     {
       "name": "Marketplace Shipment + Driver + GPS Flow",
       "status": "PASS",
-      "response_time": 0.1996,
-      "details": "job_id=70025e5b-f9bb-44c8-bb07-449236ce66df",
+      "response_time": 0.0813,
+      "details": "job_id=fad0c233-fbfd-473c-abeb-6738fc83fa31",
       "error": "statuses=[200, 200, 200, 200]"
     },
     {
       "name": "Admin Credits Visibility",
       "status": "PASS",
-      "response_time": 0.0076,
-      "details": "{\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1589},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05",
-      "error": "HTTP 200: {\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1589},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05:43.536496\"},{\"feature_code\":\"marketplace_post\",\"units_used\":1,\"created_at\":\"2026-05-27T05:05:43.415"
+      "response_time": 0.0327,
+      "details": "{\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1487},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-06-01T20:03",
+      "error": "HTTP 200: {\"tenant_id\":\"tenant-001\",\"subscription\":{\"plan_code\":\"business\",\"status\":\"active\",\"credits_balance\":1487},\"usage\":[{\"feature_code\":\"marketplace_gps_ping\",\"units_used\":1,\"created_at\":\"2026-06-01T20:03:44.978583\"},{\"feature_code\":\"marketplace_post\",\"units_used\":1,\"created_at\":\"2026-06-01T20:03:44.938"
     },
     {
       "name": "Runtime Routes Present",
       "status": "PASS",
-      "response_time": 0.2426,
+      "response_time": 0.257,
       "details": "runtime_paths=4/4",
       "error": "missing=[]"
     }

@@ -14,6 +14,13 @@ import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
 import { authApi } from '@/lib/api_updated'
 
+const PLANS = [
+  { code: 'free_trial', name: 'Free Trial (14 days)', price: '0 GHS', monthly: 'Includes basic features' },
+  { code: 'professional', name: 'Starter', price: '1,000 GHS/month', monthly: 'Advanced tracking & vendors' },
+  { code: 'business', name: 'Growth', price: '2,500 GHS/month', monthly: 'Custom domain & priority support' },
+  { code: 'delivery_services', name: 'Enterprise', price: '6,000 GHS/month', monthly: 'Full platform + API access' },
+]
+
 export function RegisterForm() {
   const router = useRouter()
   const { t } = useTranslation()
@@ -23,6 +30,10 @@ export function RegisterForm() {
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<string>('professional')
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -49,15 +60,27 @@ export function RegisterForm() {
     }
 
     try {
-      await authApi.register({
+      const regRes = await authApi.register({
         email,
         password,
         full_name: fullName,
         company_name: companyName || fullName,
-        plan_code: 'free_trial',
       })
-      await login(email, password)
-      router.push('/dashboard')
+      // Store portal URL before login so dashboard can show it
+      const regData = (regRes as any)?.data ?? regRes
+      if (regData?.portal_url) {
+        localStorage.setItem('portal_url', regData.portal_url)
+        localStorage.setItem('tenant_subdomain', regData.subdomain ?? '')
+      }
+      // If tenant was created, require subscription selection before provisioning
+      if (regData?.requires_subscription) {
+        setRegisteredEmail(email)
+        setShowSubscriptionModal(true)
+      } else {
+        // Regular user registration (no tenant created)
+        await login(email, password)
+        router.push('/onboarding')
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed')
     } finally {
@@ -77,6 +100,39 @@ export function RegisterForm() {
     } catch (err) {
       setError(`Failed to register with ${provider}`)
       setSocialLoading(null)
+    }
+  }
+
+  const handleSelectSubscription = async () => {
+    setSubscriptionLoading(true)
+    try {
+      // Initialize payment for selected plan
+      const selectedPlanObj = PLANS.find(p => p.code === selectedPlan)
+      const res = await fetch('/api/v1/billing/payments/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount_major: selectedPlan === 'free_trial' ? 0 : 1000,
+          email: registeredEmail,
+          purpose: 'subscription',
+          plan_code: selectedPlan,
+          currency: 'GHS',
+        }),
+      })
+      const paymentData = await res.json()
+      
+      if (paymentData.authorization_url) {
+        // Redirect to Paystack checkout
+        window.location.href = paymentData.authorization_url
+      } else if (selectedPlan === 'free_trial') {
+        // Free trial: close modal and proceed (webhook will handle provisioning)
+        setShowSubscriptionModal(false)
+        router.push('/dashboard')
+      }
+    } catch (err: any) {
+      setError('Failed to initialize payment: ' + (err.message || 'Unknown error'))
+    } finally {
+      setSubscriptionLoading(false)
     }
   }
 
@@ -332,6 +388,72 @@ export function RegisterForm() {
           </div>
         </div>
       </div>
+
+      {/* Subscription Modal */}
+      {showSubscriptionModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">Choose Your Plan</CardTitle>
+              <CardDescription>Select a plan that fits your needs. You can upgrade or downgrade anytime.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {PLANS.map((plan) => (
+                  <div
+                    key={plan.code}
+                    onClick={() => setSelectedPlan(plan.code)}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedPlan === plan.code
+                        ? 'border-orange-500 bg-orange-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="radio"
+                        checked={selectedPlan === plan.code}
+                        onChange={() => setSelectedPlan(plan.code)}
+                        className="h-4 w-4"
+                      />
+                      <h3 className="font-semibold">{plan.name}</h3>
+                    </div>
+                    <p className="text-sm font-bold text-orange-600 mb-1">{plan.price}</p>
+                    <p className="text-xs text-gray-600">{plan.monthly}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSubscriptionModal(false)}
+                  disabled={subscriptionLoading}
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+                <Button
+                  onClick={handleSelectSubscription}
+                  disabled={subscriptionLoading}
+                  className="flex-1 gap-2"
+                >
+                  {subscriptionLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      Continue to Payment
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

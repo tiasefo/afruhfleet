@@ -273,3 +273,24 @@ def track_public_shipment(cp_token: str, tenant_id: str, tracking_number: str) -
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.get(_url(f"/shipments/public/track/{tenant_id}/{tracking_number}"), headers=_headers(cp_token))
         return _handle(resp)
+
+
+# ── Tenant support helpers ─────────────────────────────────────────────────────────────────
+
+def lookup_tenant(cp_token: str, email: str | None = None, slug: str | None = None) -> dict:
+    """Find a tenant by contact email or slug."""
+    params = {}
+    if email:
+        params["email"] = email
+    if slug:
+        params["slug"] = slug
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/tenants/lookup"), params=params, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def resend_portal_url(cp_token: str, tenant_id: str) -> dict:
+    """Re-send the portal URL email to the tenant admin and return the URL."""
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/tenants/{tenant_id}/resend-portal-url"), headers=_headers(cp_token))
+        return _handle(resp)

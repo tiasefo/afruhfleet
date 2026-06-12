@@ -1,0 +1,34 @@
+[
+  {
+    "vin": "KNME5C2M7HP026137",
+    "make": "SAMSUNG",
+    "model": "QM6",
+    "vehicle_type": "STATION WAGON",
+    "vehicle_year": 2017,
+    "engine_cc": 2000,
+    "origin_country": "KR",
+    "fob_ghs": 151056.7,
+    "freight_ghs": 10449.98,
+    "insurance_ghs": 1413.14,
+    "customs_value_ghs": 162919.82,
+    "total_tax_ghs": 62138.6,
+    "import_duty_rate": 0.1,
+    "source": "GRA BOE 40126069182"
+  },
+  {
+    "vin": "2T3P1RFV1SW611866",
+    "make": "TOYOTA",
+    "model": "RAV4",
+    "vehicle_type": "SUV",
+    "vehicle_year": 2025,
+    "engine_cc": 2500,
+    "origin_country": "US",
+    "fob_ghs": 329649.42,
+    "freight_ghs": 11382.14,
+    "insurance_ghs": 2984.02,
+    "customs_value_ghs": 344015.58,
+    "total_tax_ghs": 127407.99,
+    "import_duty_rate": 0.1,
+    "source": "GRA BOE 40626422194"
+  }
+]

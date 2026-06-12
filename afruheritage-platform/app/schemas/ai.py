@@ -28,4 +28,4 @@ class AIWidgetConfigResponse(BaseModel):
     welcome_message: str = "Welcome to Afruheritage Assistant. How can I help you today?"
     theme: str = "light"
     primary_color: str = "#0ea5e9"
-    api_endpoint: str = "/api/v1/ai/chat"
+    api_endpoint: str = "/api/v1/ai/chat/public"

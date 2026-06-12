@@ -1,0 +1,260 @@
+{
+  "timestamp": "2026-05-31T15:58:08.755121",
+  "pass": 40,
+  "fail": 2,
+  "total": 42,
+  "results": [
+    {
+      "name": "API health endpoint",
+      "pass": true,
+      "detail": "{\"status\":\"ok\",\"service\":\"afruheritage-control-plane\"}",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Commercial catalog",
+      "pass": true,
+      "detail": "4 plans, 5 addons",
+      "err": "HTTP 200: {\"plans\":[{\"code\":\"free\",\"name\":\"Free\",\"monthly_price\":0,\"credits\":50},{\"code\":\"professional\",\"name\":\"Professional\",\"monthly_price\":1000,\"credits\":500},{\"code\":\"business\",\"name\":\"Business\",\"monthly_pr"
+    },
+    {
+      "name": "Frontend page /",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /register/company",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /login",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /track",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /onboarding",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /kyc",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Frontend page /pricing",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "Register company",
+      "pass": true,
+      "detail": "tenant=93c1bd94\u2026 slug=smoke-test-co-smoke-eae7c9",
+      "err": "HTTP 200: {\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"company_name\":\"Smoke Test Co smoke-eae7c9\",\"subdomain\":\"smoke-test-co-smoke-eae7c9\",\"portal_url\":\"https://smoke-test-co-smoke-eae7c9.afruheritage.com\",\"fleetbase_console_url\":\"http://api.afruheritage.com:4203\",\"message\":\"Your freight portal has be"
+    },
+    {
+      "name": "Login",
+      "pass": true,
+      "detail": "tenant_id=93c1bd94",
+      "err": "HTTP 200: {\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODAyNzE4ODcsInN1YiI6IjExMjhiOWY0LTMwNzEtNDM4MC1hYjdhLTk1ZWJiYTIwNjQ3MyJ9.KUgwbFiJz6aMaHjfEHcR8DqNgZBA0BgbPBMuIoZX1Cs\",\"token_type\":\"bearer\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\"}"
+    },
+    {
+      "name": "GET /me",
+      "pass": true,
+      "detail": "role=company_admin onboarding=True tenant=93c1bd94",
+      "err": ""
+    },
+    {
+      "name": "onboarding_complete is True (no redirect loop)",
+      "pass": true,
+      "detail": "",
+      "err": "company_admin has onboarding_complete=False \u2014 would cause redirect loop!"
+    },
+    {
+      "name": "GET branding",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200: {\"id\":\"0f03c072-9abd-4acb-829a-e4774dbb356f\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"company_name\":\"Smoke Test Co smoke-eae7c9\",\"tagline\":null,\"logo_url\":null,\"favicon_url\":null,\"primary_c"
+    },
+    {
+      "name": "PATCH branding",
+      "pass": true,
+      "detail": "Smoke Co Rebranded",
+      "err": "HTTP 200: {\"id\":\"0f03c072-9abd-4acb-829a-e4774dbb356f\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"company_name\":\"Smoke Co Rebranded\",\"tagline\":null,\"logo_url\":null,\"favicon_url\":null,\"primary_color\":\"#"
+    },
+    {
+      "name": "Create shipment",
+      "pass": true,
+      "detail": "id=cd6c4035\u2026",
+      "err": "HTTP 200: {\"id\":\"cd6c4035-eda7-4ca4-871e-46f327a018f6\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"tracking_number\":\"AFR-93C1BD-20260531-2014EA\",\"reference_number\":null,\"sender_name\":\"Smoke Sender\",\"sender_phone\":\"+233200000010\",\"receiver_name\":\"Smoke Receiver\",\"receiver_phone\":\"+228200000011\",\"origin"
+    },
+    {
+      "name": "List shipments",
+      "pass": true,
+      "detail": "? shipments",
+      "err": "HTTP 200: {\"items\":[{\"id\":\"cd6c4035-eda7-4ca4-871e-46f327a018f6\",\"tracking_number\":\"AFR-93C1BD-20260531-2014EA\",\"receiver_name\":\"Smoke Receiver\",\"sender_name\":\"Smoke Sender\",\"status\":\"draft\",\"payment_status\":\"u"
+    },
+    {
+      "name": "Create member",
+      "pass": true,
+      "detail": "id=b4a0494c\u2026",
+      "err": "HTTP 200: {\"id\":\"b4a0494c-f0a4-4ad5-ab0c-a125f190f5c5\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"full_name\":\"Test Driver\",\"phone\":null,\"email\":\"driver-307695@smoke.com\",\"id_number\":null,\"company\":null,\"notes\":null,\"preferred_language\":\"en\",\"is_active\":true,\"shipment_count\":0,\"created_at\":\"2026-05-31"
+    },
+    {
+      "name": "List members (route ordering fix)",
+      "pass": true,
+      "detail": "? members",
+      "err": "HTTP 200: {\"items\":[{\"id\":\"b4a0494c-f0a4-4ad5-ab0c-a125f190f5c5\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"full_name\":\"Test Driver\",\"phone\":null,\"email\":\"driver-307695@smoke.com\",\"id_number\":null,\"com"
+    },
+    {
+      "name": "CRM list accounts",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 200: []"
+    },
+    {
+      "name": "CRM create account",
+      "pass": true,
+      "detail": "id=26263744\u2026",
+      "err": "HTTP 200: {\"id\":\"26263744-dfa6-4663-9b2d-7733c3ef7b0b\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"account_type\":\"customer\",\"company_name\":\"Smoke Account\",\"email\":null,\"phone\":null}"
+    },
+    {
+      "name": "CRM list contacts (null tenant guard)",
+      "pass": true,
+      "detail": "0 contacts",
+      "err": "HTTP 200: []"
+    },
+    {
+      "name": "CRM create contact",
+      "pass": true,
+      "detail": "id=9233595d\u2026",
+      "err": "HTTP 200: {\"id\":\"9233595d-e749-4ad4-bfe7-af1e6c1cd46a\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"account_id\":\"26263744-dfa6-4663-9b2d-7733c3ef7b0b\",\"first_name\":\"Smoke\",\"last_name\":\"Contact\",\"email\":\"contact-d038@smoke.com\",\"phone\":\"+233200000002\"}"
+    },
+    {
+      "name": "CRM list quotes",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 200: []"
+    },
+    {
+      "name": "CRM list opportunities",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 200: []"
+    },
+    {
+      "name": "Create public support ticket",
+      "pass": false,
+      "detail": "",
+      "err": "HTTP 422: {\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"description\"],\"msg\":\"Field required\",\"input\":{\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"subject\":\"Smoke Test Ticket 39e835c127\",\"message\":\"This is an automated smoke test.\",\"public_submitter_name\":\"Smoke Tester\",\"public_submitter_email\":\"tester-3"
+    },
+    {
+      "name": "Resolve unknown hostname \u2192 404",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 404: {\"detail\":\"Hostname not associated with any tenant.\"}"
+    },
+    {
+      "name": "List tenant domains",
+      "pass": true,
+      "detail": "0 domains",
+      "err": "HTTP 200: []"
+    },
+    {
+      "name": "Domain settings",
+      "pass": true,
+      "detail": "(no settings yet)",
+      "err": "HTTP 200: null"
+    },
+    {
+      "name": "Request custom domain",
+      "pass": true,
+      "detail": "id=f1052a5f\u2026 status=failed",
+      "err": "HTTP 200: {\"id\":\"f1052a5f-a22a-4fda-bfc7-5bf0f911abf2\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"hostname\":\"smoke-7e5b74.example.com\",\"domain_type\":\"customer_domain\",\"status\":\"failed\",\"provider\":\"cloudflare\",\"verification_method\":\"txt\",\"verification_name\":null,\"verification_value\":null,\"ssl_status\":"
+    },
+    {
+      "name": "Refresh domain status",
+      "pass": true,
+      "detail": "status=failed",
+      "err": "HTTP 200: {\"id\":\"f1052a5f-a22a-4fda-bfc7-5bf0f911abf2\",\"tenant_id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"hostname\":\"smoke-7e5b74.example.com\",\"domain_type\":\"customer_domain\",\"status\":\"failed\",\"provider\":\"clou"
+    },
+    {
+      "name": "GET subscription",
+      "pass": true,
+      "detail": "HTTP 404",
+      "err": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "name": "GET invoices",
+      "pass": true,
+      "detail": "? invoices",
+      "err": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "name": "KYC status endpoint",
+      "pass": true,
+      "detail": "status=not_started",
+      "err": "HTTP 200: {\"user_id\":\"1128b9f4-3071-4380-ab7a-95ebba206473\",\"status\":\"not_started\"}"
+    },
+    {
+      "name": "Frontend /kyc page",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    },
+    {
+      "name": "List marketplace jobs",
+      "pass": true,
+      "detail": "? jobs",
+      "err": "HTTP 200: {\"total\":0,\"items\":[]}"
+    },
+    {
+      "name": "Superadmin login",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 200: {\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3ODAyNzE4ODgsInN1YiI6IjI3MTViNzU1LWMyOTUtNGYwZS05Y2IwLWNjNzEzMThhOTE4MiJ9.To_su9NAhwJBCdOht4NhVnbvypiWf5JjCchQ5O9cGfM\",\"token_type\":\"be"
+    },
+    {
+      "name": "Admin list tenants",
+      "pass": true,
+      "detail": "23 tenants",
+      "err": "HTTP 200: [{\"id\":\"93c1bd94-bd2c-4dd7-950a-9c96bb18fddf\",\"company_name\":\"Smoke Test Co smoke-eae7c9\",\"slug\":\"smoke-test-co-smoke-eae7c9\",\"contact_email\":\"admin@smoke-eae7c9.com\",\"plan_code\":\"free_trial\",\"request"
+    },
+    {
+      "name": "Admin list users",
+      "pass": false,
+      "detail": "? users",
+      "err": "HTTP 400: {\"detail\":\"tenant_id is required for superuser user-management operations\"}"
+    },
+    {
+      "name": "Admin credits",
+      "pass": true,
+      "detail": "",
+      "err": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "name": "Shipment tracking events",
+      "pass": true,
+      "detail": "HTTP 404",
+      "err": "HTTP 404: {\"detail\":\"Not Found\"}"
+    },
+    {
+      "name": "Frontend /track page",
+      "pass": true,
+      "detail": "HTTP 200",
+      "err": "HTTP 200"
+    }
+  ]
+}

@@ -116,6 +116,31 @@ export default function ShipmentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Marketing Hero Section with Delivery Video */}
+      <div className="relative overflow-hidden bg-slate-900 text-white py-16">
+        <div className="absolute inset-0 opacity-30">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover"
+          >
+            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/80 to-slate-900/40" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h2 className="text-3xl sm:text-4xl font-bold">Track Every Mile in Real-Time</h2>
+            <p className="mt-4 text-lg text-white/85">
+              Monitor your shipments from pickup to delivery. Get instant updates on location, 
+              status, and estimated arrival times across all your freight operations.
+            </p>
+          </div>
+        </div>
+      </div>
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

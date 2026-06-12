@@ -1,0 +1,39 @@
+time="2026-06-02T18:47:59Z" level=warning msg="/home/afruheritage/fleetbase/afruhfleet/afruheritage-platform/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+                  id                  |               email               | payment_completed | runtime_provisioned |             provisioning_status              |              tenant_id               |   subscription_id    |         created_at         
+--------------------------------------+-----------------------------------+-------------------+---------------------+----------------------------------------------+--------------------------------------+----------------------+----------------------------
+ f3c6b71a-6f81-4603-88fa-b1ed15cc35a0 | uat-e1df9a50@example.com          | f                 | f                   | awaiting_payment                             |                                      | afr_d39b328897a54a9b | 2026-06-01 18:17:20.670875
+ 74e530f9-2f62-4804-a619-0f7a583a0cae | uat-client-1780111832@example.com | t                 | f                   | runtime_failed:Fleetbase installation failed | 74e530f9-2f62-4804-a619-0f7a583a0cae | afr_06a4ba9cfd994e72 | 2026-05-30 03:30:32.22426
+ c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | runtime-test2@example.com         | t                 | f                   | runtime_installing                           | c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | afr_ab10d917cdec46ca | 2026-05-27 07:03:26.993399
+ 8e4310fb-a890-489e-bb78-f7db36cab30f | runtime-test@example.com          | t                 | f                   | runtime_error:No active runner available     | 8e4310fb-a890-489e-bb78-f7db36cab30f | afr_9f420a4fd4dc4fcf | 2026-05-27 06:47:50.886967
+ 47347645-b429-4db4-b92a-64ba9bbe6efe | uat-b7904eb2@example.com          | f                 | f                   | awaiting_payment                             |                                      | afr_b18cb4a008624a46 | 2026-05-27 05:05:42.550224
+ 9b21d9d9-8431-4baf-bcc3-5de7bd5a5908 | mrbswiftidentity@gmail.com        | f                 | f                   | awaiting_payment                             |                                      | afr_ba0c796714d04081 | 2026-05-27 02:00:52.250252
+ 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | newcustomer2@example.com          | t                 | f                   | subscription_active_runtime_pending          | 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | afr_4fbec1bec175439d | 2026-05-26 23:03:14.652731
+ 2eaf511a-ed57-407c-8a95-e694c825999e | newcustomer@example.com           | f                 | f                   | awaiting_payment                             |                                      | afr_201d2e1604614e70 | 2026-05-26 22:03:35.526747
+(8 rows)
+
+              tenant_id               | plan_code | status | credits_balance |         selected_addons_json          
+--------------------------------------+-----------+--------+-----------------+---------------------------------------
+ tenant-002                           | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+ tenant-001                           | business  | active |            1583 | ["marketplace", "gps_tracking"]
+ c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | business  | active |            1500 | ["marketplace", "gps_tracking"]
+ 8e4310fb-a890-489e-bb78-f7db36cab30f | business  | active |            1500 | ["marketplace", "gps_tracking"]
+ 74e530f9-2f62-4804-a619-0f7a583a0cae | business  | active |            1500 | ["marketplace", "gps_tracking"]
+ 2eaf511a-ed57-407c-8a95-e694c825999e | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+ 01a35485-3ef9-4b3a-941b-f03ed44a25e2 | business  | active |            1500 | ["marketplace", "gps_tracking", "ai"]
+(7 rows)
+
+                  id                  |              tenant_id               |             tenant_slug              |   status   |                          runtime_url                          |                              console_url                              |                              api_url                              |          last_error           |         created_at         
+--------------------------------------+--------------------------------------+--------------------------------------+------------+---------------------------------------------------------------+-----------------------------------------------------------------------+-------------------------------------------------------------------+-------------------------------+----------------------------
+ 3706ef0d-ec71-4ca3-ae03-c5f867fb7671 | 38c350f3-f55c-4f06-9d56-51df26fbca05 | uat-post-freight-1780340213393       | requested  | https://uat-post-freight-1780340213393.afruheritage.com       | https://uat-post-freight-1780340213393.afruheritage.com               |                                                                   |                               | 2026-06-01 23:01:31.699095
+ 0b2193c2-c30b-4831-a3ac-0a3cce9e9843 | 3e69f20c-3450-41ea-852c-9f480181d957 | uat-freight-co-ltd                   | requested  | https://uat-freight-test2.afruheritage.com                    | https://uat-freight-test2.afruheritage.com                            |                                                                   |                               | 2026-06-01 15:24:20.634928
+ 9df3addf-c814-4b0a-b4ff-5063307df5e4 | b60f6aae-e84e-429a-afea-3f39313f896b | susu-kredit                          | requested  | https://susu-kredit.afruheritage.com                          | https://susu-kredit.afruheritage.com                                  |                                                                   |                               | 2026-06-01 15:06:56.004536
+ 9628484d-03b7-49ff-933c-70c9f6a26a8b | 6a853004-b9fd-4f75-bbb4-54ab00e40e14 | identity-well-architected-workspace  | requested  | https://identity-well-architected-workspace.afruheritage.com  | https://identity-well-architected-workspace.afruheritage.com          |                                                                   |                               | 2026-05-31 15:11:09.449068
+ b2041bb3-7962-4ebc-9e53-23e5275d3258 | 241c25a8-521e-4c39-b13e-84b00086ba46 | 74e530f9-2f62-4804-a619-0f7a583a0cae | failed     | https://74e530f9-2f62-4804-a619-0f7a583a0cae.afruheritage.com | https://74e530f9-2f62-4804-a619-0f7a583a0cae.afruheritage.com/console | https://74e530f9-2f62-4804-a619-0f7a583a0cae.afruheritage.com/api | Fleetbase installation failed | 2026-05-30 04:02:23.993448
+ ba90f19f-fb4b-49d3-86ed-da7a3b363917 | d63c65c0-d5ad-46e1-8d45-ff802ed9ac47 | c34425fb-8b25-4910-b1dc-d5fb630e3fa0 | installing | https://c34425fb-8b25-4910-b1dc-d5fb630e3fa0.afruheritage.com | http://10.0.0.115:4202                                                | http://10.0.0.115:8003                                            |                               | 2026-05-29 03:16:08.03728
+(6 rows)
+
+                  id                  |      name       |  hostname  | ssh_port |   ssh_user   |         root_runtime_path          | status | current_tenants | max_tenants 
+--------------------------------------+-----------------+------------+----------+--------------+------------------------------------+--------+-----------------+-------------
+ 440acea2-76e1-4c43-9d98-348913e6d774 | local-runner-01 | 10.0.0.115 |       22 | afruheritage | /mnt/storage/afruheritage-runtimes | active |               0 |          10
+(1 row)
+

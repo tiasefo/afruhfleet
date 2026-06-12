@@ -39,6 +39,7 @@ class ShipmentCreate(BaseModel):
 
     group_member_id: str | None = None
     notes: str | None = None
+    cargo_image_url: str | None = None
 
 
 class ShipmentUpdate(BaseModel):
@@ -74,6 +75,7 @@ class ShipmentUpdate(BaseModel):
     status: str | None = None
     group_member_id: str | None = None
     notes: str | None = None
+    cargo_image_url: str | None = None
 
 
 class ShipmentEventCreate(BaseModel):
@@ -174,6 +176,7 @@ class ShipmentResponse(BaseModel):
     group_member_id: str | None = None
     group_member_name: str | None = None
     notes: str | None = None
+    cargo_image_url: str | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -782,9 +782,15 @@ def search_shipments(
             )
         )
     if status:
-        q = q.filter(Shipment.status == ShipmentStatus(status))
+        try:
+            q = q.filter(Shipment.status == ShipmentStatus(status))
+        except ValueError:
+            logger.warning("Ignoring invalid shipment status filter", extra={"status": status})
     if payment_status:
-        q = q.filter(Shipment.payment_status == PaymentStatus(payment_status))
+        try:
+            q = q.filter(Shipment.payment_status == PaymentStatus(payment_status))
+        except ValueError:
+            logger.warning("Ignoring invalid payment status filter", extra={"payment_status": payment_status})
 
     total = q.count()
     items = q.order_by(Shipment.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()

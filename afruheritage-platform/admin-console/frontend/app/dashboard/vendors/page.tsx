@@ -56,10 +56,10 @@ export default function VendorsPage() {
       const params = new URLSearchParams()
       if (statusFilter) params.set('status', statusFilter)
       if (search) params.set('q', search)
-      const data = await api.get(`/admin/vendors?${params.toString()}`)
-      setVendors(data.items || [])
+      const data = await api.get(`/api/v1/vendors/admin?${params.toString()}`)
+      setVendors(Array.isArray(data) ? data : (data.items || []))
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to load vendors: ' + (e.message || 'Unknown error'))
     } finally {
       setLoading(false)
     }
@@ -69,48 +69,48 @@ export default function VendorsPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      await api.post(`/admin/vendors/${id}/review`, { action: 'approve' })
-      toast.success('Vendor approved')
+      await api.post(`/api/v1/vendors/admin/${id}/review`, { action: 'approve' })
+      toast.success('Vendor approved successfully')
       load()
       setDetailOpen(false)
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to approve vendor: ' + (e.message || 'Unknown error'))
     }
   }
 
   const handleReject = async () => {
     if (!rejectTarget) return
     try {
-      await api.post(`/admin/vendors/${rejectTarget}/review`, { action: 'reject', rejection_reason: rejectReason })
-      toast.success('Vendor rejected')
+      await api.post(`/api/v1/vendors/admin/${rejectTarget}/review`, { action: 'reject', rejection_reason: rejectReason })
+      toast.success('Vendor rejected successfully')
       setRejectOpen(false)
       setRejectReason('')
       setRejectTarget(null)
       load()
       setDetailOpen(false)
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to reject vendor: ' + (e.message || 'Unknown error'))
     }
   }
 
   const handleSuspend = async (id: string) => {
     try {
-      await api.post(`/admin/vendors/${id}/suspend`)
-      toast.success('Vendor suspended')
+      await api.post(`/api/v1/vendors/admin/${id}/suspend`)
+      toast.success('Vendor suspended successfully')
       load()
       setDetailOpen(false)
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to suspend vendor: ' + (e.message || 'Unknown error'))
     }
   }
 
   const openDetail = async (id: string) => {
     try {
-      const data = await api.get(`/admin/vendors/${id}`)
+      const data = await api.get(`/api/v1/vendors/admin/${id}`)
       setSelectedVendor(data)
       setDetailOpen(true)
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to load vendor details: ' + (e.message || 'Unknown error'))
     }
   }
 

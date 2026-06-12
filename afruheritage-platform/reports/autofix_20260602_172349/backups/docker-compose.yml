@@ -1,0 +1,186 @@
+version: '3.8'
+
+services:
+  # Main Backend API (FastAPI)
+  api:
+    build: 
+      context: .
+      target: production
+    container_name: afruheritage-api
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./logs:/app/logs
+      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8100:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - default
+      - fleetbase_default
+
+  # Celery Worker for Background Tasks
+  worker:
+    build: 
+      context: .
+      target: production
+    container_name: afruheritage-worker
+    command: celery -A app.tasks.celery_app.celery_app worker --loglevel=INFO
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./logs:/app/logs
+      - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Celery Beat for Scheduled Tasks
+  beat:
+    build: 
+      context: .
+      target: production
+    container_name: afruheritage-beat
+    command: celery -A app.tasks.celery_app.celery_app beat --loglevel=INFO --schedule=/app/logs/celerybeat-schedule
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: afruheritage-postgres
+    environment:
+      POSTGRES_DB: afruheritage
+      POSTGRES_USER: afruheritage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-afruheritage}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U afruheritage -d afruheritage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache and Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: afruheritage-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Frontend Application (Next.js)
+  frontend:
+    build: 
+      context: ./frontend
+      target: runner
+    container_name: afruheritage-frontend
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_BASE_URL=https://api.afruheritage.com/api/v1
+      - NEXT_PUBLIC_TENANT_ID=${NEXT_PUBLIC_TENANT_ID:-demo}
+    ports:
+      - "3002:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ > /dev/null 2>&1 || node -e \"require('http').get('http://localhost:3000/', r => process.exit(r.statusCode < 400 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Admin Console
+  admin-console:
+    build: 
+      context: ./admin-console
+      target: production
+    container_name: afruheritage-admin-console
+    env_file:
+      - ./admin-console/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (Optional for production)
+  nginx:
+    image: nginx:alpine
+    container_name: afruheritage-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - frontend
+      - api
+      - admin-console
+    restart: unless-stopped
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
+  # Join the Fleetbase network so `fleetbase-httpd` hostname resolves
+  # from within the afruheritage-api container.
+  fleetbase_default:
+    external: true

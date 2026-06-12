@@ -1,0 +1,7 @@
+time="2026-06-02T22:52:56Z" level=warning msg="/mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+        table_name        
+--------------------------
+ marketplace_gps_pings
+ shipment_tracking_points
+(2 rows)
+

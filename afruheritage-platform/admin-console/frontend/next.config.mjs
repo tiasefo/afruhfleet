@@ -15,6 +15,18 @@ const nextConfig = {
         source: '/admin/:path*',
         destination: `${adminApiBase}/admin/:path*`,
       },
+      {
+        source: '/api/admin/:path*',
+        destination: `${adminApiBase}/admin/:path*`,
+      },
+      {
+        source: '/api/v1/billing/:path*',
+        destination: 'http://localhost:8100/api/v1/billing/:path*',
+      },
+      {
+        source: '/api/v1/vendors/:path*',
+        destination: 'http://localhost:8100/api/v1/vendors/:path*',
+      },
     ]
   },
 }

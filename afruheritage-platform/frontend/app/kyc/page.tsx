@@ -32,6 +32,10 @@ export default function KYCPage() {
   const [idType, setIdType] = useState('national_id')
   const [idFile, setIdFile] = useState<File | null>(null)
 
+  // OCR state
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrMessage, setOcrMessage] = useState('')
+
   useEffect(() => {
     if (!isLoading && !user) {
       router.push('/login')
@@ -55,6 +59,34 @@ export default function KYCPage() {
     }
   }
 
+  async function handleIdFileChange(file: File | null) {
+    setIdFile(file)
+    if (!file || file.type === 'application/pdf') return
+    setOcrLoading(true)
+    setOcrMessage('Scanning ID document…')
+    try {
+      const fd = new FormData()
+      fd.append('id_image', file)
+      const res = await api.post('/kyc/ocr-parse', fd)
+      const data = res.data ?? res
+      let filled = 0
+      if (data.full_name && !fullName) { setFullName(data.full_name); filled++ }
+      if (data.nationality && !nationality) { setNationality(data.nationality); filled++ }
+      if (data.id_number && !idNumber) { setIdNumber(data.id_number); filled++ }
+      if (data.ocr_available && filled > 0) {
+        setOcrMessage(`✅ Auto-filled ${filled} field${filled > 1 ? 's' : ''} from your ID. Please review and correct if needed.`)
+      } else if (data.ocr_available) {
+        setOcrMessage('ID scanned but fields could not be extracted. Please fill manually.')
+      } else {
+        setOcrMessage('Auto-scan not available. Please fill the fields below manually.')
+      }
+    } catch {
+      setOcrMessage('Could not scan ID — please fill the fields below manually.')
+    } finally {
+      setOcrLoading(false)
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -62,6 +94,11 @@ export default function KYCPage() {
 
     if (!fullName.trim() || !nationality.trim() || !idNumber.trim()) {
       setError('Please fill in all required fields.')
+      return
+    }
+
+    if (!idFile) {
+      setError('Please upload a photo or scan of your ID document.')
       return
     }
 
@@ -250,14 +287,27 @@ export default function KYCPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upload ID Document (Optional)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Upload ID Document *
+                  <span className="ml-2 text-xs font-normal text-orange-600">(We'll auto-fill your details)</span>
+                </label>
                 <input
                   type="file"
                   accept="image/*,.pdf"
-                  onChange={e => setIdFile(e.target.files?.[0] ?? null)}
+                  onChange={e => handleIdFileChange(e.target.files?.[0] ?? null)}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-orange-50 file:text-orange-600 file:text-sm"
+                  required
                 />
                 <p className="text-xs text-gray-400 mt-1">Accepted: JPG, PNG, PDF. Max 10MB.</p>
+                {ocrLoading && (
+                  <p className="text-xs text-orange-500 mt-1 flex items-center gap-1">
+                    <span className="inline-block w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                    {ocrMessage}
+                  </p>
+                )}
+                {!ocrLoading && ocrMessage && (
+                  <p className={`text-xs mt-1 ${ocrMessage.startsWith('✅') ? 'text-green-600' : 'text-gray-500'}`}>{ocrMessage}</p>
+                )}
               </div>
 
               <button

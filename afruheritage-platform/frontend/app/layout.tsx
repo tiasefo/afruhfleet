@@ -30,6 +30,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const showAnalytics = process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true'
+
   return (
     <html lang="en" className="font-sans">
       <body className="font-sans antialiased">
@@ -38,7 +40,7 @@ export default function RootLayout({
             {children}
           </AppShell>
         </Providers>
-        <Analytics />
+        {showAnalytics ? <Analytics /> : null}
       </body>
     </html>
   )

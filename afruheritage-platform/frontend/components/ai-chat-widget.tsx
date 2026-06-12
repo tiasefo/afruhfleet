@@ -50,7 +50,7 @@ const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   welcome_message: 'Welcome to Afruheritage Assistant. How can I help you today?',
   theme: 'light',
   primary_color: '#0ea5e9',
-  api_endpoint: '/api/v1/ai/chat',
+  api_endpoint: '/api/v1/ai/chat/public',
 }
 
 function createWelcomeMessage(content: string): Message {
@@ -183,13 +183,16 @@ export function AIChatWidget() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(typeof window !== 'undefined' && localStorage.getItem('auth_token')
+            ? { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+            : {}),
         },
         body: JSON.stringify(payload),
       })
 
-      const data = (await response.json()) as AIChatResponse
+      const data = (await response.json()) as AIChatResponse & { detail?: string }
       if (!response.ok || !data.answer) {
-        throw new Error('AI response failed')
+        throw new Error(data.detail || 'AI response failed')
       }
 
       const sourcePaths = Array.isArray(data.sources)
@@ -209,15 +212,16 @@ export function AIChatWidget() {
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-    } catch {
+    } catch (err) {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I could not reach the AI service right now. Please try again in a moment.',
+        content: 'I could not reach the AI service right now. Please try again in a moment or ask a narrower platform question.',
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, assistantMessage])
-      setError('Live AI is temporarily unavailable.')
+      const detail = err instanceof Error ? err.message : 'Live AI is temporarily unavailable.'
+      setError(detail)
     } finally {
       setIsTyping(false)
     }

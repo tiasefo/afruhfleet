@@ -39,6 +39,9 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     tenant_id: str | None = None
+    subdomain: str | None = None
+    portal_url: str | None = None
+    requires_subscription: bool = False
 
 
 class PasswordResetConfirmRequest(BaseModel):

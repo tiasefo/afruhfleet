@@ -11,6 +11,8 @@ from app.db.session import get_db
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.services.signup_onboarding_service import ensure_user_tenant_context
+from app.services.billing_service import evaluate_subscription_state
+from app.models.billing import SubscriptionStatus
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.api_v1_prefix}/auth/login")
@@ -104,4 +106,43 @@ def get_current_user_no_tenant_check(request: Request, token: str = Depends(oaut
 def require_superuser(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Superuser access required')
+    return current_user
+
+
+def require_active_subscription(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> User:
+    """Require tenant to have an active subscription before allowing action.
+    Raises 402 (Payment Required) if no active subscription found or if it's read_only/suspended.
+    """
+    if current_user.is_superuser:
+        return current_user
+    
+    if not current_user.tenant_id:
+        raise HTTPException(
+            status_code=402,
+            detail="No tenant context. Please create or select a tenant first.",
+        )
+    
+    sub = evaluate_subscription_state(db, str(current_user.tenant_id))
+    if not sub:
+        raise HTTPException(
+            status_code=402,
+            detail="No active subscription found. Please select a plan and complete payment.",
+        )
+    
+    # Block actions if subscription is in an unusable state
+    if sub.status == SubscriptionStatus.READ_ONLY:
+        raise HTTPException(
+            status_code=402,
+            detail=f"Subscription is read-only: {sub.read_only_reason or 'Account suspended'}",
+        )
+    
+    if sub.status in (SubscriptionStatus.CANCELED, SubscriptionStatus.EXPIRED, SubscriptionStatus.SUSPENDED):
+        raise HTTPException(
+            status_code=402,
+            detail=f"Subscription is {sub.status.value}. Please renew to continue.",
+        )
+    
     return current_user

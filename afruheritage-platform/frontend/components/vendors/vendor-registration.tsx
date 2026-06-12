@@ -536,7 +536,7 @@ export function VendorRegistration() {
                         Terms of Service *
                       </Label>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Partner Agreement</a>.
+                        I agree to the <a href="/terms-of-service" className="text-primary hover:underline">Terms of Service</a> and <a href="/privacy-policy" className="text-primary hover:underline">Partner Agreement</a>.
                       </p>
                     </div>
                   </div>

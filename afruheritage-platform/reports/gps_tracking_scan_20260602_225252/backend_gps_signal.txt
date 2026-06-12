@@ -1,0 +1,1006 @@
+app/api/routes/custom_domains.py:3:from fastapi import APIRouter, Depends, HTTPException, Query
+app/api/routes/custom_domains.py:12:router = APIRouter(prefix='/domains', tags=['Custom Domains'])
+app/api/routes/custom_domains.py:15:@router.get('/resolve', response_model=dict)
+app/api/routes/custom_domains.py:46:@router.get('/{domain_id}/refresh-status', response_model=DomainResponse)
+app/api/routes/custom_domains.py:64:@router.post('/request', response_model=DomainResponse)
+app/api/routes/custom_domains.py:74:@router.get('/tenant/{tenant_id}', response_model=list[DomainResponse])
+app/api/routes/custom_domains.py:79:@router.post('/activate', response_model=DomainResponse | None)
+app/api/routes/custom_domains.py:80:def activate_domain_route(tenant_id: str, request: DomainActivateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+app/api/routes/custom_domains.py:86:@router.post('/{domain_id}/fail', response_model=DomainResponse | None)
+app/api/routes/custom_domains.py:93:@router.get('/{domain_id}/events', response_model=list[DomainEventResponse])
+app/api/routes/custom_domains.py:98:@router.get('/settings/{tenant_id}', response_model=TenantDomainSettingsResponse | None)
+app/api/routes/users.py:10:from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile, status
+app/api/routes/users.py:30:router = APIRouter(prefix='/users', tags=['User Directory'])
+app/api/routes/users.py:120:@router.get('', response_model=list[TenantUserResponse])
+app/api/routes/users.py:131:@router.post('', response_model=TenantUserResponse, status_code=status.HTTP_201_CREATED)
+app/api/routes/users.py:174:@router.patch('/{user_id}/status', response_model=TenantUserResponse)
+app/api/routes/users.py:214:@router.patch('/{user_id}/role', response_model=TenantUserResponse)
+app/api/routes/users.py:257:@router.delete('/{user_id}', status_code=status.HTTP_204_NO_CONTENT)
+app/api/routes/users.py:292:@router.get('/audit', response_model=list[TenantUserAuditResponse])
+app/api/routes/users.py:325:@router.post('/{user_id}/send-reset-link', response_model=TenantUserResetResponse)
+app/api/routes/users.py:373:@router.post('/bulk-import', response_model=BulkImportResult)
+app/api/routes/runners.py:2:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/runners.py:11:router = APIRouter(prefix='/runners', tags=['runners'])
+app/api/routes/runners.py:13:@router.post('', response_model=RunnerResponse)
+app/api/routes/runners.py:25:@router.get('', response_model=list[RunnerResponse])
+app/api/routes/social_auth.py:5:from fastapi import APIRouter, Depends, HTTPException, Query, Request
+app/api/routes/social_auth.py:17:router = APIRouter(prefix="/auth/social", tags=["Social Authentication"])
+app/api/routes/social_auth.py:20:@router.get("/providers")
+app/api/routes/social_auth.py:40:@router.get("/{provider}/login")
+app/api/routes/social_auth.py:72:@router.get("/{provider}")
+app/api/routes/social_auth.py:85:@router.get("/{provider}/callback")
+app/api/routes/social_auth.py:145:@router.post("/{provider}/token")
+app/api/routes/social_auth.py:171:@router.get("/disconnect/{provider}")
+app/api/routes/social_auth.py:219:@router.get("/connected")
+app/api/routes/geo.py:3:from fastapi import APIRouter, Depends, HTTPException, Query
+app/api/routes/geo.py:12:router = APIRouter(prefix='/geo', tags=['Geo & Maps'])
+app/api/routes/geo.py:15:@router.get('/geocode')
+app/api/routes/geo.py:31:@router.get('/geocode/priority')
+app/api/routes/geo.py:41:@router.get('/geocode/city')
+app/api/routes/geo.py:51:@router.get('/route')
+app/api/routes/geo.py:52:def calculate_route(tenant_id: str, origin_lat: float=Query(...), origin_lng: float=Query(...), dest_lat: float=Query(...), dest_lng: float=Query(...), origin_city: str | None=Query(None), dest_city: str | None=Query(None), country: str | None=Query(None), use_priority_service: bool=Query(False), current_user: User=Depends(get_current_user)):
+app/api/routes/geo.py:53:    """Calculate route with optional priority country optimizations"""
+app/api/routes/geo.py:55:        result = global_geo_service.calculate_priority_route((origin_lat, origin_lng), (dest_lat, dest_lng), origin_city, dest_city, country)
+app/api/routes/geo.py:57:        result = geo_service.calculate_route((origin_lat, origin_lng), (dest_lat, dest_lng))
+app/api/routes/geo.py:59:        logger.warning('Route calculation failed')
+app/api/routes/geo.py:60:        raise HTTPException(status_code=404, detail='Could not calculate route')
+app/api/routes/geo.py:61:    logger.info('Route calculation successful: %s km', result.get('distance_km'))
+app/api/routes/geo.py:64:@router.get('/route/priority')
+app/api/routes/geo.py:65:def calculate_priority_route(tenant_id: str, origin: str=Query(..., min_length=2), destination: str=Query(..., min_length=2), country: str | None=Query(None), current_user: User=Depends(get_current_user)):
+app/api/routes/geo.py:66:    """Calculate priority route using city names"""
+app/api/routes/geo.py:67:    result = global_geo_service.calculate_priority_route(origin, destination, country=country)
+app/api/routes/geo.py:69:        logger.warning('Priority route calculation failed for %s to %s', origin, destination)
+app/api/routes/geo.py:70:        raise HTTPException(status_code=404, detail='Could not calculate route')
+app/api/routes/geo.py:71:    logger.info('Priority route successful: %s km', result.get('distance_km'))
+app/api/routes/geo.py:74:@router.get('/nearby-cities')
+app/api/routes/geo.py:81:@router.post('/validate/address')
+app/api/routes/geo.py:88:@router.get('/country/{country}')
+app/api/routes/geo.py:96:@router.get('/{tenant_id}/shipment-routes')
+app/api/routes/geo.py:97:def get_active_shipment_routes(tenant_id: str, use_priority_service: bool=Query(False), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/geo.py:98:    """Get active shipment routes with optional priority country geocoding"""
+app/api/routes/geo.py:101:    routes = []
+app/api/routes/geo.py:112:            routes.append({'shipment_id': str(s.id), 'tracking_number': s.tracking_number, 'status': s.status.value, 'sender_name': s.sender_name, 'receiver_name': s.receiver_name, 'estimated_arrival': s.estimated_arrival.isoformat() if s.estimated_arrival else None, 'origin': {'lat': origin['lat'], 'lng': origin['lng'], 'city': s.origin_city, 'country': s.origin_country}, 'destination': {'lat': dest['lat'], 'lng': dest['lng'], 'city': s.destination_city, 'country': s.destination_country}})
+app/api/routes/geo.py:113:    logger.info('Generated %d shipment routes for tenant %s (geocoded: %d/%d)', len(routes), tenant_id, successful_geocodes, len(shipments))
+app/api/routes/geo.py:114:    return {'routes': routes, 'count': len(routes), 'geocoded': successful_geocodes}
+app/api/routes/support_crm.py:3:from fastapi import APIRouter, Depends, HTTPException, Query, Request
+app/api/routes/support_crm.py:14:router = APIRouter(prefix='/support-crm', tags=['Support & CRM'])
+app/api/routes/support_crm.py:25:@router.post('/accounts', response_model=CRMAccountResponse)
+app/api/routes/support_crm.py:34:@router.get('/accounts', response_model=list[CRMAccountResponse])
+app/api/routes/support_crm.py:51:@router.get('/contacts', response_model=list[CRMContactResponse])
+app/api/routes/support_crm.py:69:@router.post('/contacts', response_model=CRMContactResponse)
+app/api/routes/support_crm.py:78:@router.get('/opportunities', response_model=list[OpportunityResponse])
+app/api/routes/support_crm.py:95:@router.post('/opportunities', response_model=OpportunityResponse)
+app/api/routes/support_crm.py:96:def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/support_crm.py:104:@router.get('/quotes', response_model=list[QuoteResponse])
+app/api/routes/support_crm.py:121:@router.post('/quotes', response_model=QuoteResponse)
+app/api/routes/support_crm.py:122:def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/support_crm.py:130:@router.post('/public/tickets', response_model=SupportTicketResponse)
+app/api/routes/support_crm.py:131:def create_public_ticket_route(tenant_id: str, request: Request, payload: PublicTicketCreateRequest, db: Session=Depends(get_db)):
+app/api/routes/support_crm.py:136:    return SupportTicketResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), public_token=obj.public_token, subject=obj.subject, description=obj.description, category=obj.category, priority=obj.priority.value, status=obj.status.value, shipment_reference=obj.shipment_reference, tracking_reference=obj.tracking_reference, glpi_ticket_id=obj.glpi_ticket_id)
+app/api/routes/support_crm.py:138:@router.get('/public/tickets/{public_token}', response_model=SupportTicketResponse)
+app/api/routes/support_crm.py:143:    return SupportTicketResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), public_token=obj.public_token, subject=obj.subject, description=obj.description, category=obj.category, priority=obj.priority.value, status=obj.status.value, shipment_reference=obj.shipment_reference, tracking_reference=obj.tracking_reference, glpi_ticket_id=obj.glpi_ticket_id)
+app/api/routes/support_crm.py:145:@router.get('/public/tickets/{public_token}/messages', response_model=list[SupportTicketMessageResponse])
+app/api/routes/support_crm.py:153:@router.post('/public/tickets/{public_token}/reply', response_model=SupportTicketMessageResponse)
+app/api/routes/support_crm.py:162:@router.get('/admin/tickets', response_model=dict)
+app/api/routes/support_crm.py:190:                'tracking_reference': x.tracking_reference,
+app/api/routes/support_crm.py:205:@router.patch('/admin/tickets/{ticket_id}/status', response_model=dict)
+app/api/routes/admin_subscriptions.py:1:from fastapi import APIRouter
+app/api/routes/admin_subscriptions.py:7:router = APIRouter(prefix="/admin/subscriptions", tags=["Admin Subscriptions"])
+app/api/routes/admin_subscriptions.py:13:@router.post("/demo/activate/{tenant_id}/{plan_code}")
+app/api/routes/admin_subscriptions.py:29:@router.get("/{tenant_id}/features/{feature_code}")
+app/api/routes/admin_credits.py:1:from fastapi import APIRouter
+app/api/routes/admin_credits.py:7:router = APIRouter(prefix="/admin/credits", tags=["Admin Credits"])
+app/api/routes/admin_credits.py:12:@router.get("/{tenant_id}")
+app/api/routes/admin_credits.py:44:@router.post("/{tenant_id}/topup/{credits}")
+app/api/routes/analytics.py:2:from fastapi import APIRouter, Depends
+app/api/routes/analytics.py:10:router = APIRouter(prefix='/analytics', tags=['analytics'])
+app/api/routes/analytics.py:12:@router.get('/admin/summary')
+app/api/routes/vendors.py:6:from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
+app/api/routes/vendors.py:30:router = APIRouter(prefix='/vendors', tags=['Delivery Vendors'])
+app/api/routes/vendors.py:32:@router.post('/register', response_model=VendorRegisterResponse)
+app/api/routes/vendors.py:34:async def register_vendor_route(request: Request, db: Session=Depends(get_db)):
+app/api/routes/vendors.py:97:@router.get('/admin', response_model=dict)
+app/api/routes/vendors.py:103:@router.get('/admin/{vendor_id}', response_model=VendorResponse)
+app/api/routes/vendors.py:110:@router.post('/admin/{vendor_id}/review', response_model=VendorResponse)
+app/api/routes/vendors.py:111:def review_vendor_route(vendor_id: str, payload: VendorReviewRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+app/api/routes/vendors.py:120:@router.post('/admin/{vendor_id}/suspend', response_model=VendorResponse)
+app/api/routes/vendors.py:121:def suspend_vendor_route(vendor_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+app/api/routes/vendors.py:128:@router.post('/admin/{vendor_id}/documents', response_model=VendorResponse)
+app/api/routes/vendors.py:129:async def upload_vendor_documents_route(
+app/api/routes/vendors.py:145:@router.post('/me/documents', response_model=VendorDocumentSubmitResponse)
+app/api/routes/vendors.py:146:async def submit_my_vendor_documents_route(
+app/api/routes/vendors.py:226:@router.patch('/me/availability', response_model=VendorAvailabilityResponse)
+app/api/routes/vendors.py:227:def update_my_availability_route(
+app/api/routes/vendors.py:242:            current_latitude=payload.current_latitude,
+app/api/routes/vendors.py:243:            current_longitude=payload.current_longitude,
+app/api/routes/vendors.py:252:        current_latitude=float(vendor.last_known_latitude) if vendor.last_known_latitude is not None else None,
+app/api/routes/vendors.py:253:        current_longitude=float(vendor.last_known_longitude) if vendor.last_known_longitude is not None else None,
+app/api/routes/vendors.py:257:@router.get('/marketplace', response_model=dict)
+app/api/routes/vendors.py:263:@router.get('/marketplace/{vendor_id}', response_model=VendorResponse)
+app/api/routes/vendors.py:271:@router.post('/{tenant_id}/marketplace/match', response_model=list[VendorMatchResult])
+app/api/routes/vendors.py:281:        pickup_latitude=payload.pickup_latitude,
+app/api/routes/vendors.py:282:        pickup_longitude=payload.pickup_longitude,
+app/api/routes/vendors.py:290:@router.post('/{tenant_id}/dispatch/auto', response_model=AutoDispatchResponse)
+app/api/routes/vendors.py:291:def auto_dispatch_route(
+app/api/routes/vendors.py:304:            pickup_latitude=payload.pickup_latitude,
+app/api/routes/vendors.py:305:            pickup_longitude=payload.pickup_longitude,
+app/api/routes/vendors.py:321:@router.post('/{tenant_id}/bookings', response_model=BookingResponse)
+app/api/routes/vendors.py:322:def create_booking_route(tenant_id: str, payload: BookingCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/vendors.py:329:@router.get('/{tenant_id}/bookings', response_model=dict)
+app/api/routes/vendors.py:336:@router.get('/me/bookings', response_model=dict)
+app/api/routes/vendors.py:351:@router.get('/{tenant_id}/bookings/{booking_id}', response_model=BookingResponse)
+app/api/routes/vendors.py:352:def get_booking_route(tenant_id: str, booking_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/vendors.py:358:@router.patch('/{tenant_id}/bookings/{booking_id}', response_model=BookingResponse)
+app/api/routes/vendors.py:359:def update_booking_route(tenant_id: str, booking_id: str, payload: BookingUpdateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+app/api/routes/vendors.py:369:@router.post('/me/bookings/{booking_id}/accept', response_model=BookingResponse)
+app/api/routes/vendors.py:370:def accept_my_booking_route(
+app/api/routes/vendors.py:388:@router.post('/me/bookings/{booking_id}/reject', response_model=BookingResponse)
+app/api/routes/vendors.py:389:def reject_my_booking_route(
+app/api/routes/vendors.py:408:    return VendorResponse(id=str(v.id), full_name=v.full_name, email=v.email, phone=v.phone, id_type=v.id_type.value, id_number=v.id_number, business_name=v.business_name, business_type=v.business_type.value, operating_regions=[r.strip() for r in regions if r.strip()], years_experience=v.years_experience, status=v.status.value, availability_status=v.availability_status.value, availability_updated_at=v.availability_updated_at, last_known_location=v.last_known_location, last_known_latitude=float(v.last_known_latitude) if v.last_known_latitude is not None else None, last_known_longitude=float(v.last_known_longitude) if v.last_known_longitude is not None else None, last_seen_at=v.last_seen_at, average_rating=float(v.average_rating), total_deliveries=v.total_deliveries, vehicles=[VendorVehicleResponse(id=str(veh.id), vehicle_type=veh.vehicle_type.value, registration_number=veh.registration_number, make_model=veh.make_model, year=veh.year, insurance_doc_url=veh.insurance_doc_url, roadworthy_doc_url=veh.roadworthy_doc_url, is_active=veh.is_active) for veh in v.vehicles or []], documents=[VendorDocumentResponse(id=str(doc.id), document_type=doc.document_type, file_url=doc.file_url, created_at=doc.created_at) for doc in v.documents or []], terms_accepted=v.terms_accepted, insurance_accepted=v.insurance_accepted, background_check_accepted=v.background_check_accepted, reviewed_by=v.reviewed_by, reviewed_at=v.reviewed_at, rejection_reason=v.rejection_reason, created_at=v.created_at, updated_at=v.updated_at)
+app/api/routes/vendors.py:416:    return BookingResponse(id=str(b.id), tenant_id=str(b.tenant_id), vendor_id=str(b.vendor_id), vendor_name=b.vendor.full_name if b.vendor else '', shipment_id=str(b.shipment_id) if b.shipment_id else None, status=b.status.value, pickup_address=b.pickup_address, delivery_address=b.delivery_address, vehicle_type_requested=b.vehicle_type_requested.value if b.vehicle_type_requested else None, driver_name=b.driver_name, driver_phone=b.driver_phone, current_location=b.current_location, current_latitude=float(b.current_latitude) if b.current_latitude is not None else None, current_longitude=float(b.current_longitude) if b.current_longitude is not None else None, last_location_at=b.last_location_at, live_tracking_provider=b.live_tracking_provider, notes=b.notes, credit_cost=b.credit_cost, currency=b.currency, tenant_rating=b.tenant_rating, tenant_review=b.tenant_review, booked_by=b.booked_by, offered_at=b.offered_at, offer_expires_at=b.offer_expires_at, responded_at=b.responded_at, accepted_at=b.accepted_at, started_at=b.started_at, completed_at=b.completed_at, canceled_at=b.canceled_at, created_at=b.created_at, updated_at=b.updated_at)
+app/api/routes/ai.py:2:from fastapi import APIRouter, Depends, HTTPException, Request
+app/api/routes/ai.py:15:router = APIRouter(prefix='/ai', tags=['AI'])
+app/api/routes/ai.py:20:- Understanding platform features (shipments, tracking, billing, vendors, KYC)
+app/api/routes/ai.py:65:@router.post('/chat/public', response_model=AIChatResponse)
+app/api/routes/ai.py:84:@router.post('/chat', response_model=AIChatResponse)
+app/api/routes/admin_marketplace.py:1:from fastapi import APIRouter, HTTPException
+app/api/routes/admin_marketplace.py:6:from app.api.routes.marketplace import serialize
+app/api/routes/admin_marketplace.py:8:router = APIRouter(prefix="/admin/marketplace", tags=["Admin Marketplace"])
+app/api/routes/admin_marketplace.py:13:@router.get("/jobs")
+app/api/routes/admin_marketplace.py:21:@router.post("/jobs/{job_id}/cancel")
+app/api/routes/admin_marketplace.py:29:        job.tracking_status = "cancelled"
+app/api/routes/admin_marketplace.py:37:@router.post("/jobs/{job_id}/reassign/{driver_id}")
+app/api/routes/admin_marketplace.py:46:        job.tracking_status = "driver_assigned"
+app/api/routes/billing.py:4:from fastapi import APIRouter, Body, Depends, HTTPException, Query
+app/api/routes/billing.py:15:router = APIRouter(prefix='/billing', tags=['Billing'])
+app/api/routes/billing.py:24:@router.get('/plans', response_model=list[PlanResponse])
+app/api/routes/billing.py:42:@router.post('/subscriptions/trial/{tenant_id}', response_model=SubscriptionResponse)
+app/api/routes/billing.py:50:@router.get('/subscriptions/{tenant_id}', response_model=SubscriptionResponse | None)
+app/api/routes/billing.py:58:@router.get('/wallets/{tenant_id}', response_model=WalletResponse)
+app/api/routes/billing.py:65:@router.get('/wallets/{tenant_id}/transactions', response_model=list[WalletTransactionResponse])
+app/api/routes/billing.py:94:@router.get('/usage-costs', response_model=list[UsageCreditCostResponse])
+app/api/routes/billing.py:99:@router.post('/payments/init', response_model=PaymentInitResponse)
+app/api/routes/billing.py:123:@router.post('/payments/verify/{reference}', response_model=PaymentVerifyResponse)
+app/api/routes/billing.py:161:@router.post('/payments/reinit/{reference}', response_model=PaymentInitResponse)
+app/api/routes/billing.py:183:@router.post('/credits/consume', response_model=WalletResponse)
+app/api/routes/billing.py:192:@router.post('/admin/read-only', response_model=SubscriptionResponse | None)
+app/api/routes/billing.py:199:@router.post('/admin/credits/adjust', response_model=WalletResponse)
+app/api/routes/billing.py:204:@router.post('/admin/subscriptions/assign', response_model=SubscriptionResponse)
+app/api/routes/tenants.py:4:from fastapi import APIRouter, Depends, HTTPException, Request
+app/api/routes/tenants.py:17:router = APIRouter(prefix='/tenants', tags=['tenants'])
+app/api/routes/tenants.py:26:@router.post('', response_model=TenantResponse)
+app/api/routes/tenants.py:59:@router.get('', response_model=list[TenantResponse])
+app/api/routes/tenants.py:63:@router.post('/{tenant_id}/approve', response_model=TenantResponse)
+app/api/routes/tenants.py:81:@router.post('/{tenant_id}/launch', response_model=JobResponse)
+app/api/routes/tenants.py:97:@router.post('/{tenant_id}/runtime-auth', response_model=TenantResponse)
+app/api/routes/tenants.py:116:@router.get('/jobs/{job_id}', response_model=JobResponse)
+app/api/routes/tenants.py:123:@router.post('/jobs/{job_id}/retry', response_model=JobResponse)
+app/api/routes/tenants.py:158:@router.get('/lookup', response_model=TenantResponse)
+app/api/routes/tenants.py:182:@router.post('/{tenant_id}/resend-portal-url')
+app/api/routes/payments.py:4:from fastapi import APIRouter, Depends, HTTPException, Request
+app/api/routes/payments.py:30:router = APIRouter(prefix="/payments", tags=["Platform Payments"])
+app/api/routes/payments.py:74:@router.post("/initiate", response_model=PaymentInitiateResponse)
+app/api/routes/payments.py:126:@router.get("/status/{payment_reference}", response_model=PaymentStatusResponse)
+app/api/routes/payments.py:213:@router.post("/webhook/paystack")
+app/api/routes/payments.py:264:@router.post("/webhook/paypal")
+app/api/routes/payments.py:296:@router.get("/statistics", response_model=PaymentStatistics)
+app/api/routes/payments.py:347:@router.post("/credits/purchase", response_model=CreditPurchaseResponse)
+app/api/routes/payments.py:409:@router.get("/methods")
+app/api/routes/payments.py:466:@router.get("/balance")
+app/api/routes/navigator.py:2:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/navigator.py:10:router = APIRouter()
+app/api/routes/navigator.py:12:@router.get("/navigator/{tenant_id}/drivers")
+app/api/routes/navigator.py:27:@router.get("/navigator/{tenant_id}/tracking")
+app/api/routes/navigator.py:28:def get_navigator_tracking(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+app/api/routes/navigator.py:29:    """Fetch real-time tracking data for Navigator module for a tenant."""
+app/api/routes/navigator.py:38:    # Proxy real tracking data from Fleetbase
+app/api/routes/navigator.py:39:    tracking = proxy_fleetbase_api(tenant.live_api_url, "tracking", token=resolve_fleetbase_token(tenant.live_api_token), auth_scheme=tenant.live_api_auth_scheme)
+app/api/routes/navigator.py:40:    return {"tracking": tracking, "tenant_id": tenant_id}
+app/api/routes/tenant_requests.py:6:from fastapi import APIRouter, Depends, HTTPException, Query
+app/api/routes/tenant_requests.py:18:router = APIRouter(prefix="/tenants", tags=["Tenant Requests"])
+app/api/routes/tenant_requests.py:39:@router.post("/register-request")
+app/api/routes/tenant_requests.py:112:@router.get("/registration-status/{request_id}")
+app/api/routes/tenant_requests.py:126:@router.get("/register-requests")
+app/api/routes/tenant_requests.py:167:@router.patch("/register-requests/{request_id}")
+app/api/routes/shipments.py:6:from fastapi import UploadFile, File, Request, APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+app/api/routes/shipments.py:27:    TrackingPointIngestRequest,
+app/api/routes/shipments.py:28:    TrackingPointIngestResponse,
+app/api/routes/shipments.py:29:    TrackingPointResponse,
+app/api/routes/shipments.py:37:    get_live_tracking_snapshot,
+app/api/routes/shipments.py:38:    get_latest_tracking_point,
+app/api/routes/shipments.py:42:    get_tracking_history,
+app/api/routes/shipments.py:43:    ingest_tracking_point,
+app/api/routes/shipments.py:45:    merge_tracking_events,
+app/api/routes/shipments.py:54:from app.services.tracking_realtime import tracking_realtime_hub
+app/api/routes/shipments.py:58:router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
+app/api/routes/shipments.py:61:@router.post("/{tenant_id}/{shipment_id}/transition", response_model=ShipmentResponse)
+app/api/routes/shipments.py:62:def transition_shipment_status_route(
+app/api/routes/shipments.py:86:@router.post("/{tenant_id}", response_model=ShipmentResponse)
+app/api/routes/shipments.py:87:def create_shipment_route(
+app/api/routes/shipments.py:100:@router.get("/{tenant_id}", response_model=dict)
+app/api/routes/shipments.py:101:def search_shipments_route(
+app/api/routes/shipments.py:103:    q: str | None = Query(None, description="Search by tracking number, name"),
+app/api/routes/shipments.py:118:        tracking_numbers=[shipment.tracking_number for shipment in items],
+app/api/routes/shipments.py:127:            _to_search_result(s, live_index.get(s.tracking_number)).model_dump()
+app/api/routes/shipments.py:137:@router.get("/{tenant_id}/summary", response_model=dict)
+app/api/routes/shipments.py:138:def shipment_dashboard_summary_route(
+app/api/routes/shipments.py:170:            "tracking_number": s.tracking_number,
+app/api/routes/shipments.py:172:            "route": f"{s.origin_city or '-'} to {s.destination_city or '-'}",
+app/api/routes/shipments.py:220:@router.post("/{tenant_id}/members", response_model=GroupMemberResponse)
+app/api/routes/shipments.py:221:def create_member_route(
+app/api/routes/shipments.py:232:@router.get("/{tenant_id}/members", response_model=dict)
+app/api/routes/shipments.py:233:def list_members_route(
+app/api/routes/shipments.py:252:@router.get("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
+app/api/routes/shipments.py:253:def get_member_route(
+app/api/routes/shipments.py:265:@router.patch("/{tenant_id}/members/{member_id}", response_model=GroupMemberResponse)
+app/api/routes/shipments.py:266:def update_member_route(
+app/api/routes/shipments.py:280:# ── Individual Shipment routes (wildcard — must stay AFTER static sub-paths above) ──
+app/api/routes/shipments.py:282:@router.get("/{tenant_id}/{shipment_id}", response_model=ShipmentResponse)
+app/api/routes/shipments.py:283:def get_shipment_route(
+app/api/routes/shipments.py:292:    live_snapshot = get_live_tracking_snapshot(db, shipment)
+app/api/routes/shipments.py:296:@router.patch("/{tenant_id}/{shipment_id}", response_model=ShipmentResponse)
+app/api/routes/shipments.py:297:def update_shipment_route(
+app/api/routes/shipments.py:313:@router.post("/{tenant_id}/{shipment_id}/events", response_model=ShipmentEventResponse)
+app/api/routes/shipments.py:314:def add_event_route(
+app/api/routes/shipments.py:329:        latitude=payload.latitude,
+app/api/routes/shipments.py:330:        longitude=payload.longitude,
+app/api/routes/shipments.py:338:        latitude=float(event.latitude) if event.latitude is not None else None,
+app/api/routes/shipments.py:339:        longitude=float(event.longitude) if event.longitude is not None else None,
+app/api/routes/shipments.py:346:@router.post("/{tenant_id}/{shipment_id}/location", response_model=ShipmentResponse)
+app/api/routes/shipments.py:347:def update_location_route(
+app/api/routes/shipments.py:359:        latitude=payload.latitude,
+app/api/routes/shipments.py:360:        longitude=payload.longitude,
+app/api/routes/shipments.py:373:@router.post("/{tenant_id}/{shipment_id}/tracking/point", response_model=TrackingPointIngestResponse)
+app/api/routes/shipments.py:374:def ingest_tracking_point_route(
+app/api/routes/shipments.py:377:    payload: TrackingPointIngestRequest,
+app/api/routes/shipments.py:382:    accepted, reason, point = ingest_tracking_point(
+app/api/routes/shipments.py:386:        latitude=payload.latitude,
+app/api/routes/shipments.py:387:        longitude=payload.longitude,
+app/api/routes/shipments.py:400:                tracking_realtime_hub.publish(
+app/api/routes/shipments.py:404:                        "type": "tracking.latest",
+app/api/routes/shipments.py:407:                        "latitude": float(point.latitude),
+app/api/routes/shipments.py:408:                        "longitude": float(point.longitude),
+app/api/routes/shipments.py:416:        return TrackingPointIngestResponse(accepted=True, point=_tracking_point_to_response(point))
+app/api/routes/shipments.py:417:    return TrackingPointIngestResponse(accepted=False, reason=reason)
+app/api/routes/shipments.py:420:@router.get("/{tenant_id}/{shipment_id}/tracking/latest", response_model=TrackingPointResponse | None)
+app/api/routes/shipments.py:421:def latest_tracking_point_route(
+app/api/routes/shipments.py:430:    point = get_latest_tracking_point(db, shipment_id, tenant_id)
+app/api/routes/shipments.py:431:    return _tracking_point_to_response(point) if point else None
+app/api/routes/shipments.py:434:@router.get("/{tenant_id}/{shipment_id}/tracking/history", response_model=list[TrackingPointResponse])
+app/api/routes/shipments.py:435:def tracking_history_route(
+app/api/routes/shipments.py:447:    points = get_tracking_history(
+app/api/routes/shipments.py:455:    return [_tracking_point_to_response(p) for p in points]
+app/api/routes/shipments.py:458:@router.websocket("/{tenant_id}/{shipment_id}/tracking/ws")
+app/api/routes/shipments.py:459:async def tracking_ws_route(websocket: WebSocket, tenant_id: str, shipment_id: str):
+app/api/routes/shipments.py:464:            await websocket.close(code=1008, reason="Tenant not found")
+app/api/routes/shipments.py:467:        user = _authenticate_websocket_user(db, websocket, resolved_tenant_id)
+app/api/routes/shipments.py:469:            await websocket.close(code=1008, reason="Unauthorized")
+app/api/routes/shipments.py:474:    topic = await tracking_realtime_hub.connect(tenant_id, shipment_id, websocket)
+app/api/routes/shipments.py:477:            await websocket.receive_text()
+app/api/routes/shipments.py:478:    except WebSocketDisconnect:
+app/api/routes/shipments.py:479:        await tracking_realtime_hub.disconnect(topic, websocket)
+app/api/routes/shipments.py:482:@router.get("/{tenant_id}/{shipment_id}/events", response_model=list[ShipmentEventResponse])
+app/api/routes/shipments.py:483:def get_events_route(
+app/api/routes/shipments.py:493:    events = merge_tracking_events(
+app/api/routes/shipments.py:495:        get_live_tracking_snapshot(db, shipment),
+app/api/routes/shipments.py:500:            latitude=e.get("latitude"), longitude=e.get("longitude"),
+app/api/routes/shipments.py:507:# ── Public Tracking (no auth — customer facing) ────────────────
+app/api/routes/shipments.py:509:@router.get("/public/track/{tenant_id}/{tracking_number}", response_model=ShipmentPublicTrackResponse)
+app/api/routes/shipments.py:511:def public_track_route(
+app/api/routes/shipments.py:514:    tracking_number: str,
+app/api/routes/shipments.py:522:    shipment = public_track_shipment(db, resolved_tenant_id, tracking_number)
+app/api/routes/shipments.py:525:    live_snapshot = get_live_tracking_snapshot(db, shipment)
+app/api/routes/shipments.py:526:    events = merge_tracking_events(get_shipment_events(db, str(shipment.id)), live_snapshot)
+app/api/routes/shipments.py:528:        tracking_number=_live_value(live_snapshot, "tracking_number", shipment.tracking_number),
+app/api/routes/shipments.py:537:        current_latitude=_live_value(live_snapshot, "current_latitude", float(shipment.current_latitude) if shipment.current_latitude is not None else None),
+app/api/routes/shipments.py:538:        current_longitude=_live_value(live_snapshot, "current_longitude", float(shipment.current_longitude) if shipment.current_longitude is not None else None),
+app/api/routes/shipments.py:540:        live_tracking_provider=_live_value(live_snapshot, "live_tracking_provider", shipment.live_tracking_provider),
+app/api/routes/shipments.py:551:                latitude=e.get("latitude"), longitude=e.get("longitude"),
+app/api/routes/shipments.py:568:@router.post("/{tenant_id}/{shipment_id}/upload-image", response_model=ShipmentResponse)
+app/api/routes/shipments.py:624:@router.post("/{tenant_id}/import/csv", response_model=None)
+app/api/routes/shipments.py:625:def import_csv_route(
+app/api/routes/shipments.py:654:        tracking_number=_live_value(live_snapshot, "tracking_number", s.tracking_number),
+app/api/routes/shipments.py:665:        current_latitude=_live_value(live_snapshot, "current_latitude", float(s.current_latitude) if s.current_latitude is not None else None),
+app/api/routes/shipments.py:666:        current_longitude=_live_value(live_snapshot, "current_longitude", float(s.current_longitude) if s.current_longitude is not None else None),
+app/api/routes/shipments.py:668:        live_tracking_provider=_live_value(live_snapshot, "live_tracking_provider", s.live_tracking_provider),
+app/api/routes/shipments.py:690:def _tracking_point_to_response(point) -> TrackingPointResponse:
+app/api/routes/shipments.py:691:    return TrackingPointResponse(
+app/api/routes/shipments.py:695:        latitude=float(point.latitude),
+app/api/routes/shipments.py:696:        longitude=float(point.longitude),
+app/api/routes/shipments.py:709:        tracking_number=_live_value(live_snapshot, "tracking_number", s.tracking_number),
+app/api/routes/shipments.py:756:def _authenticate_websocket_user(db: Session, websocket: WebSocket, tenant_id: str) -> User | None:
+app/api/routes/shipments.py:757:    auth_header = websocket.headers.get("authorization", "")
+app/api/routes/shipments.py:758:    token = websocket.query_params.get("token")
+app/api/routes/whatsapp_bot.py:2:from fastapi import APIRouter, Request, HTTPException
+app/api/routes/whatsapp_bot.py:5:router = APIRouter(prefix="/whatsapp-bot", tags=["WhatsApp Bot"])
+app/api/routes/whatsapp_bot.py:7:@router.post("/webhook")
+app/api/routes/tenant_creation.py:3:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/tenant_creation.py:15:router = APIRouter(prefix='/tenants', tags=['Tenant Creation'])
+app/api/routes/tenant_creation.py:24:@router.post('/create', response_model=TenantCreationResponse)
+app/api/routes/tenant_creation.py:38:@router.post('/{tenant_id}/setup-infrastructure')
+app/api/routes/tenant_creation.py:59:@router.get('/{tenant_id}/status')
+app/api/routes/tenant_creation.py:72:@router.get('/{tenant_id}/portal-url')
+app/api/routes/tenant_creation.py:89:@router.post('/auto-provision')
+app/api/routes/storefront.py:2:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/storefront.py:10:router = APIRouter()
+app/api/routes/storefront.py:12:@router.get("/storefront/{tenant_id}/orders")
+app/api/routes/storefront.py:21:@router.get("/storefront/{tenant_id}/customers")
+app/api/routes/kyc.py:8:from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+app/api/routes/kyc.py:18:router = APIRouter(prefix='/kyc', tags=['KYC Verification'])
+app/api/routes/kyc.py:43:@router.post('/submit-manual')
+app/api/routes/kyc.py:147:@router.post('/upload-id')
+app/api/routes/kyc.py:191:@router.post('/liveness')
+app/api/routes/kyc.py:248:@router.get('/status')
+app/api/routes/kyc.py:253:@router.get('/admin/pending')
+app/api/routes/kyc.py:284:@router.get('/admin/list')
+app/api/routes/kyc.py:312:@router.post('/{submission_id}/review')
+app/api/routes/kyc.py:338:@router.post('/admin/approve/{kyc_id}')
+app/api/routes/kyc.py:354:@router.post('/admin/revoke/{kyc_id}')
+app/api/routes/kyc.py:370:@router.post('/ocr-parse')
+app/api/routes/fleetbase_runtime.py:4:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/fleetbase_runtime.py:14:router = APIRouter(prefix='/fleetbase-runtime', tags=['Fleetbase Runtime'])
+app/api/routes/fleetbase_runtime.py:23:@router.post('/runners', response_model=RunnerResponse)
+app/api/routes/fleetbase_runtime.py:31:@router.get('/runners', response_model=list[RunnerResponse])
+app/api/routes/fleetbase_runtime.py:36:@router.post('/deploy', response_model=RuntimeResponse)
+app/api/routes/fleetbase_runtime.py:50:@router.get('/tenant/{tenant_id}', response_model=RuntimeResponse | None)
+app/api/routes/fleetbase_runtime.py:61:@router.post('/retry', response_model=RuntimeResponse | None)
+app/api/routes/fleetbase_runtime.py:62:def retry_runtime_route(tenant_id: str, request: RuntimeRetryRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+app/api/routes/fleetbase_runtime.py:68:@router.post('/suspend', response_model=RuntimeResponse | None)
+app/api/routes/fleetbase_runtime.py:69:def suspend_runtime_route(tenant_id: str, request: RuntimeSuspendRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+app/api/routes/fleetbase_runtime.py:75:@router.get('/{runtime_id}/events', response_model=list[RuntimeEventResponse])
+app/api/routes/pallet.py:2:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/pallet.py:10:router = APIRouter()
+app/api/routes/pallet.py:12:@router.get("/pallet/{tenant_id}/inventory")
+app/api/routes/pallet.py:21:@router.get("/pallet/{tenant_id}/warehouses")
+app/api/routes/branding.py:1:from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+app/api/routes/branding.py:15:router = APIRouter(prefix="/branding", tags=["Tenant Branding"])
+app/api/routes/branding.py:18:@router.get("/{tenant_id}", response_model=BrandingResponse)
+app/api/routes/branding.py:19:def get_branding_route(
+app/api/routes/branding.py:30:@router.get("/public/{tenant_id}", response_model=BrandingResponse)
+app/api/routes/branding.py:31:def get_public_branding_route(
+app/api/routes/branding.py:41:@router.patch("/{tenant_id}", response_model=BrandingResponse)
+app/api/routes/branding.py:42:def update_branding_route(
+app/api/routes/branding.py:58:@router.post("/{tenant_id}/logo", response_model=BrandingResponse)
+app/api/routes/branding.py:108:        public_tracking_enabled=b.public_tracking_enabled,
+app/api/routes/branding.py:142:        public_tracking_enabled=True,
+app/api/routes/admin_dns.py:4:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/admin_dns.py:15:router = APIRouter(prefix="/admin/dns", tags=["Admin DNS"])
+app/api/routes/admin_dns.py:18:@router.get("/records")
+app/api/routes/admin_dns.py:24:@router.post("/provision/{slug}")
+app/api/routes/admin_dns.py:33:@router.delete("/provision/{slug}")
+app/api/routes/admin_dns.py:40:@router.post("/ensure-wildcard")
+app/api/routes/i18n.py:3:from fastapi import APIRouter, Header, Query
+app/api/routes/i18n.py:5:router = APIRouter(prefix='/i18n', tags=['Internationalization'])
+app/api/routes/i18n.py:7:@router.get('/translations/{lang}')
+app/api/routes/i18n.py:13:@router.get('/languages')
+app/api/routes/i18n.py:17:@router.get('/detect')
+app/api/routes/auth_pages.py:2:from fastapi import APIRouter, Depends, HTTPException, Request
+app/api/routes/auth_pages.py:10:router = APIRouter()
+app/api/routes/auth_pages.py:13:@router.get('/login', response_class=HTMLResponse)
+app/api/routes/auth_pages.py:18:@router.get('/register', response_class=HTMLResponse)
+app/api/routes/auth_pages.py:23:@router.get('/dashboard', response_class=HTMLResponse)
+app/api/routes/auth_pages.py:28:@router.get('/', response_class=HTMLResponse)
+app/api/routes/auth_pages.py:33:@router.get('/forgot-password', response_class=HTMLResponse)
+app/api/routes/auth_pages.py:38:@router.get('/reset-password', response_class=HTMLResponse)
+app/api/routes/health.py:2:from fastapi import APIRouter
+app/api/routes/health.py:3:router = APIRouter(tags=['health'])
+app/api/routes/health.py:5:@router.get('/health')
+app/api/routes/whatsapp.py:4:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/whatsapp.py:15:router = APIRouter(prefix="/whatsapp", tags=["WhatsApp Notifications"])
+app/api/routes/whatsapp.py:18:@router.post("/configure-groups")
+app/api/routes/whatsapp.py:50:@router.post("/test-connection")
+app/api/routes/whatsapp.py:80:@router.post("/send-shipment-update")
+app/api/routes/whatsapp.py:95:            "tracking_number": shipment_data.get("tracking_number"),
+app/api/routes/whatsapp.py:105:            "tracking_number": shipment_data.get("tracking_number"),
+app/api/routes/whatsapp.py:114:@router.post("/send-customer-notification")
+app/api/routes/whatsapp.py:131:            "tracking_number": shipment_data.get("tracking_number"),
+app/api/routes/whatsapp.py:142:            "tracking_number": shipment_data.get("tracking_number"),
+app/api/routes/whatsapp.py:151:@router.get("/status")
+app/api/routes/customer_portal.py:2:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/customer_portal.py:10:router = APIRouter()
+app/api/routes/customer_portal.py:12:@router.get("/customer-portal/{tenant_id}/shipments")
+app/api/routes/customer_portal.py:21:@router.get("/customer-portal/{tenant_id}/tracking")
+app/api/routes/customer_portal.py:22:def get_customer_portal_tracking(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+app/api/routes/customer_portal.py:23:    """Fetch tracking data for Customer Portal module for a tenant."""
+app/api/routes/customer_portal.py:27:    tracking = proxy_fleetbase_api(tenant.live_api_url, "tracking", token=resolve_fleetbase_token(tenant.live_api_token), auth_scheme=tenant.live_api_auth_scheme)
+app/api/routes/customer_portal.py:28:    return {"tracking": tracking, "tenant_id": tenant_id}
+app/api/routes/ai_widget.py:3:from fastapi import APIRouter, Depends, Query, Request
+app/api/routes/ai_widget.py:8:router = APIRouter(prefix='/ai/widget', tags=['AI Widget'])
+app/api/routes/ai_widget.py:11:@router.get('/config', response_model=AIWidgetConfigResponse)
+app/api/routes/company_registration.py:23:from fastapi import APIRouter, Depends, HTTPException, Request
+app/api/routes/company_registration.py:42:router = APIRouter(prefix="/companies", tags=["Company Registration"])
+app/api/routes/company_registration.py:92:# Route
+app/api/routes/company_registration.py:95:@router.post("/register", response_model=CompanyRegisterResponse)
+app/api/routes/company_registration.py:258:@router.post('/retry-provisioning/{tenant_id}')
+app/api/routes/auth.py:1:from fastapi import APIRouter, Depends, HTTPException, Request, status
+app/api/routes/auth.py:16:router = APIRouter(prefix='/auth', tags=['auth'])
+app/api/routes/auth.py:18:@router.post('/bootstrap', response_model=TokenResponse)
+app/api/routes/auth.py:21:        raise HTTPException(status_code=403, detail='Bootstrap admin route disabled')
+app/api/routes/auth.py:31:@router.post('/register', response_model=TokenResponse)
+app/api/routes/auth.py:62:@router.post('/login', response_model=TokenResponse)
+app/api/routes/auth.py:82:@router.get('/me')
+app/api/routes/auth.py:101:@router.post('/complete-onboarding')
+app/api/routes/auth.py:129:@router.post('/password-reset/confirm')
+app/api/routes/payment_hub.py:8:from fastapi import APIRouter, HTTPException
+app/api/routes/payment_hub.py:17:router = APIRouter(prefix="/payment-hub", tags=["Payment Hub"])
+app/api/routes/payment_hub.py:155:@router.post("/initialize")
+app/api/routes/payment_hub.py:256:@router.get("/verify/{reference}")
+app/api/routes/payment_hub.py:339:@router.get("/transactions/{tenant_id}")
+app/api/routes/payment_hub.py:379:@router.post("/webhook/paystack")
+app/api/routes/payment_hub.py:453:@router.get("/receipt/{reference}")
+app/api/routes/whatsapp_csv.py:2:from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+app/api/routes/whatsapp_csv.py:15:router = APIRouter(prefix="/whatsapp-csv", tags=["WhatsApp CSV Upload"])
+app/api/routes/whatsapp_csv.py:17:# Candidate column names for tracking/container numbers in uploaded CSVs
+app/api/routes/whatsapp_csv.py:18:_TRACKING_COLS = ("tracking_number", "tracking", "container", "container_number", "waybill", "awb", "shipment_id")
+app/api/routes/whatsapp_csv.py:32:@router.post("/upload")
+app/api/routes/whatsapp_csv.py:38:    """Upload CSV of phone numbers (+ optional tracking numbers) and send WhatsApp notifications.
+app/api/routes/whatsapp_csv.py:43:    - tracking_number / container / waybill / awb (optional — linked to shipment record)
+app/api/routes/whatsapp_csv.py:65:        tracking_number = _find_col(row, _TRACKING_COLS)
+app/api/routes/whatsapp_csv.py:68:        # Build message — include tracking number if present, or use custom message
+app/api/routes/whatsapp_csv.py:71:        elif tracking_number:
+app/api/routes/whatsapp_csv.py:75:                .filter(MarketplaceShipment.tracking_number == tracking_number)
+app/api/routes/whatsapp_csv.py:80:                f"Update on your shipment {tracking_number}: "
+app/api/routes/whatsapp_csv.py:82:                f"Track at {settings.base_url}/track/{tracking_number}"
+app/api/routes/whatsapp_csv.py:90:            "tracking_number": tracking_number,
+app/api/routes/marketplace.py:8:from fastapi import APIRouter, Depends, HTTPException
+app/api/routes/marketplace.py:21:router = APIRouter(prefix="/marketplace", tags=["Delivery Marketplace"])
+app/api/routes/marketplace.py:50:    latitude: float
+app/api/routes/marketplace.py:51:    longitude: float
+app/api/routes/marketplace.py:75:    current_latitude: float
+app/api/routes/marketplace.py:76:    current_longitude: float
+app/api/routes/marketplace.py:112:        "tracking_number": job.tracking_number,
+app/api/routes/marketplace.py:120:        "pickup": {"label": job.pickup_label, "latitude": job.pickup_latitude, "longitude": job.pickup_longitude},
+app/api/routes/marketplace.py:121:        "dropoff": {"label": job.dropoff_label, "latitude": job.dropoff_latitude, "longitude": job.dropoff_longitude},
+app/api/routes/marketplace.py:137:        "tracking_status": job.tracking_status,
+app/api/routes/marketplace.py:141:def _generate_tracking_number(db: Session) -> str:
+app/api/routes/marketplace.py:142:    """Generate a unique human-readable tracking number: AFR-YYYY-NNNNNN."""
+app/api/routes/marketplace.py:149:@router.get("/shipments")
+app/api/routes/marketplace.py:168:@router.get("/shipments/{shipment_id}")
+app/api/routes/marketplace.py:210:@router.post("/shipments")
+app/api/routes/marketplace.py:216:            payload.pickup.latitude, payload.pickup.longitude,
+app/api/routes/marketplace.py:217:            payload.dropoff.latitude, payload.dropoff.longitude,
+app/api/routes/marketplace.py:220:        tracking_number = _generate_tracking_number(db)
+app/api/routes/marketplace.py:223:            tracking_number=tracking_number,
+app/api/routes/marketplace.py:229:            pickup_latitude=payload.pickup.latitude,
+app/api/routes/marketplace.py:230:            pickup_longitude=payload.pickup.longitude,
+app/api/routes/marketplace.py:232:            dropoff_latitude=payload.dropoff.latitude,
+app/api/routes/marketplace.py:233:            dropoff_longitude=payload.dropoff.longitude,
+app/api/routes/marketplace.py:255:@router.post("/drivers/search")
+app/api/routes/marketplace.py:262:                payload.current_latitude, payload.current_longitude,
+app/api/routes/marketplace.py:263:                job.pickup_latitude, job.pickup_longitude,
+app/api/routes/marketplace.py:271:@router.post("/shipments/{job_id}/accept")
+app/api/routes/marketplace.py:281:        job.tracking_status = "driver_assigned"
+app/api/routes/marketplace.py:287:@router.post("/shipments/{job_id}/tracking/{status}")
+app/api/routes/marketplace.py:288:def update_tracking(job_id: str, status: str):
+app/api/routes/marketplace.py:297:        job.tracking_status = status
+app/api/routes/marketplace.py:308:from app.models.marketplace_gps import MarketplaceGpsPing
+app/api/routes/marketplace.py:310:class GpsPingRequest(BaseModel):
+app/api/routes/marketplace.py:312:    latitude: float
+app/api/routes/marketplace.py:313:    longitude: float
+app/api/routes/marketplace.py:318:@router.post("/shipments/{job_id}/gps")
+app/api/routes/marketplace.py:319:def add_gps_ping(job_id: str, payload: GpsPingRequest):
+app/api/routes/marketplace.py:331:                detail="gps_updates_closed_for_completed_or_cancelled_job",
+app/api/routes/marketplace.py:334:        require_feature_or_raise(db, job.tenant_id, "marketplace_gps")
+app/api/routes/marketplace.py:335:        consume_credits(db, job.tenant_id, "marketplace_gps_ping")
+app/api/routes/marketplace.py:338:            payload.latitude,
+app/api/routes/marketplace.py:339:            payload.longitude,
+app/api/routes/marketplace.py:340:            job.dropoff_latitude,
+app/api/routes/marketplace.py:341:            job.dropoff_longitude,
+app/api/routes/marketplace.py:344:        ping = MarketplaceGpsPing(
+app/api/routes/marketplace.py:347:            latitude=payload.latitude,
+app/api/routes/marketplace.py:348:            longitude=payload.longitude,
+app/api/routes/marketplace.py:354:        if job.tracking_status in ["driver_assigned", "pickup_started", "picked_up"]:
+app/api/routes/marketplace.py:355:            job.tracking_status = "in_transit"
+app/api/routes/marketplace.py:366:            "latitude": ping.latitude,
+app/api/routes/marketplace.py:367:            "longitude": ping.longitude,
+app/api/routes/marketplace.py:372:            "tracking_status": job.tracking_status,
+app/api/routes/marketplace.py:376:@router.get("/shipments/{job_id}/gps")
+app/api/routes/marketplace.py:377:def get_gps_history(job_id: str):
+app/api/routes/marketplace.py:384:            db.query(MarketplaceGpsPing)
+app/api/routes/marketplace.py:385:            .filter(MarketplaceGpsPing.shipment_id == job.id)
+app/api/routes/marketplace.py:386:            .order_by(MarketplaceGpsPing.created_at.desc())
+app/api/routes/marketplace.py:395:            "tracking_status": job.tracking_status,
+app/api/routes/marketplace.py:399:                "latitude": latest.latitude,
+app/api/routes/marketplace.py:400:                "longitude": latest.longitude,
+app/api/routes/marketplace.py:410:                    "latitude": x.latitude,
+app/api/routes/marketplace.py:411:                    "longitude": x.longitude,
+app/api/routes/marketplace.py:426:@router.post("/shipments/{shipment_id}/bids", status_code=201)
+app/api/routes/marketplace.py:463:    return {"bid_id": str(bid.id), "status": bid.status, "tracking_number": shipment.tracking_number}
+app/api/routes/marketplace.py:466:@router.get("/shipments/{shipment_id}/bids")
+app/api/routes/marketplace.py:500:@router.post("/shipments/{shipment_id}/bids/{bid_id}/accept")
+app/api/routes/marketplace.py:527:@router.post("/shipments/{shipment_id}/bids/{bid_id}/reject")
+app/api/routes/marketplace.py:543:@router.post("/shipments/{shipment_id}/bids/{bid_id}/counter")
+app/api/routes/marketplace.py:562:@router.post("/shipments/{shipment_id}/bids/{bid_id}/respond-counter")
+app/api/routes/marketplace.py:602:@router.get("/dashboard/driver")
+app/api/routes/marketplace.py:631:        pickup_lat = s.pickup_latitude or 0.0
+app/api/routes/marketplace.py:632:        pickup_lon = s.pickup_longitude or 0.0
+app/api/routes/marketplace.py:640:            "tracking_number": s.tracking_number,
+app/api/routes/commercial_orchestration.py:7:from fastapi import APIRouter, HTTPException, BackgroundTasks
+app/api/routes/commercial_orchestration.py:13:from app.api.routes.payment_hub import PAYSTACK_SECRET_KEY, PAYSTACK_BASE_URL
+app/api/routes/commercial_orchestration.py:17:router = APIRouter(prefix="/commercial", tags=["Commercial Orchestration"])
+app/api/routes/commercial_orchestration.py:32:    "gps_tracking": {"name": "GPS Tracking", "monthly_price": 150},
+app/api/routes/commercial_orchestration.py:53:@router.get("/catalog")
+app/api/routes/commercial_orchestration.py:69:@router.post("/signup/start")
+app/api/routes/commercial_orchestration.py:94:@router.post("/signup/select-plan")
+app/api/routes/commercial_orchestration.py:225:@router.get("/signup/{signup_id}")
+app/api/routes/commercial_orchestration.py:253:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py:343:@router.post("/signup/{signup_id}/provision-runtime")
+app/api/routes/commercial_orchestration.py:433:@router.post("/signup/{signup_id}/reconcile-runtime")
+app/api/routes/commercial_orchestration.py:595:@router.post("/signup/{signup_id}/provision-runtime-async")
+app/main.py:1:from app.api.routes.payment_hub import router as payment_hub_router
+app/main.py:2:from app.api.routes.admin_credits import router as admin_credits_router
+app/main.py:3:from app.api.routes.admin_subscriptions import router as admin_subscriptions_router
+app/main.py:4:from app.api.routes.admin_marketplace import router as admin_marketplace_router
+app/main.py:5:from app.api.routes.admin_dns import router as admin_dns_router
+app/main.py:6:from app.api.routes.marketplace import router as marketplace_router
+app/main.py:7:from app.api.routes.commercial_orchestration import router as commercial_orchestration_router
+app/main.py:8:from app.api.routes.analytics import router as analytics_router
+app/main.py:9:from app.api.routes.kyc import router as kyc_router
+app/main.py:10:from app.api.routes.whatsapp_bot import router as whatsapp_bot_router
+app/main.py:27:from app.api.routes import auth, auth_pages, runners, tenants, tenant_creation, tenant_requests
+app/main.py:28:from app.api.routes.navigator import router as navigator_router
+app/main.py:29:from app.api.routes.storefront import router as storefront_router
+app/main.py:30:from app.api.routes.pallet import router as pallet_router
+app/main.py:31:from app.api.routes.customer_portal import router as customer_portal_router
+app/main.py:32:from app.api.routes.ai import router as ai_router
+app/main.py:33:from app.api.routes.ai_widget import router as ai_widget_router
+app/main.py:34:from app.api.routes.billing import router as billing_router
+app/main.py:35:from app.api.routes.branding import router as branding_router
+app/main.py:36:from app.api.routes.custom_domains import router as custom_domains_router
+app/main.py:37:from app.api.routes.geo import router as geo_router
+app/main.py:38:from app.api.routes.fleetbase_runtime import router as fleetbase_runtime_router
+app/main.py:39:from app.api.routes.i18n import router as i18n_router
+app/main.py:40:from app.api.routes.payments import router as payments_router
+app/main.py:41:from app.api.routes.shipments import router as shipments_router
+app/main.py:42:from app.api.routes.social_auth import router as social_auth_router
+app/main.py:43:from app.api.routes.support_crm import router as support_crm_router
+app/main.py:44:from app.api.routes.whatsapp import router as whatsapp_router
+app/main.py:45:from app.api.routes.whatsapp_csv import router as whatsapp_csv_router
+app/main.py:46:from app.api.routes.vendors import router as vendors_router
+app/main.py:47:from app.api.routes.users import router as users_router
+app/main.py:48:from app.api.routes.company_registration import router as company_registration_router
+app/main.py:61:import app.models.marketplace_gps  # noqa: F401
+app/main.py:67:import app.models.shipment_tracking  # noqa: F401
+app/main.py:118:app.include_router(auth.router, prefix=settings.api_v1_prefix)
+app/main.py:119:app.include_router(social_auth_router, prefix=settings.api_v1_prefix)
+app/main.py:120:app.include_router(auth_pages.router)
+app/main.py:122:app.include_router(tenant_requests.router, prefix=settings.api_v1_prefix)
+app/main.py:123:app.include_router(tenant_creation.router, prefix=settings.api_v1_prefix)
+app/main.py:124:app.include_router(tenants.router, prefix=settings.api_v1_prefix)
+app/main.py:126:app.include_router(payments_router, prefix=settings.api_v1_prefix)
+app/main.py:127:app.include_router(billing_router, prefix=settings.api_v1_prefix)
+app/main.py:128:app.include_router(commercial_orchestration_router, prefix=settings.api_v1_prefix)
+app/main.py:130:app.include_router(whatsapp_router, prefix=settings.api_v1_prefix)
+app/main.py:131:app.include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)
+app/main.py:133:app.include_router(runners.router, prefix=settings.api_v1_prefix)
+app/main.py:134:app.include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)
+app/main.py:136:app.include_router(ai_router, prefix=settings.api_v1_prefix)
+app/main.py:137:app.include_router(ai_widget_router, prefix=settings.api_v1_prefix)
+app/main.py:139:app.include_router(support_crm_router, prefix=settings.api_v1_prefix)
+app/main.py:140:app.include_router(custom_domains_router, prefix=settings.api_v1_prefix)
+app/main.py:141:app.include_router(shipments_router, prefix=settings.api_v1_prefix)
+app/main.py:142:app.include_router(i18n_router, prefix=settings.api_v1_prefix)
+app/main.py:144:app.include_router(navigator_router, prefix=settings.api_v1_prefix)
+app/main.py:145:app.include_router(storefront_router, prefix=settings.api_v1_prefix)
+app/main.py:146:app.include_router(pallet_router, prefix=settings.api_v1_prefix)
+app/main.py:147:app.include_router(customer_portal_router, prefix=settings.api_v1_prefix)
+app/main.py:148:app.include_router(branding_router, prefix=settings.api_v1_prefix)
+app/main.py:149:app.include_router(geo_router, prefix=settings.api_v1_prefix)
+app/main.py:151:app.include_router(vendors_router, prefix=settings.api_v1_prefix)
+app/main.py:152:app.include_router(users_router, prefix=settings.api_v1_prefix)
+app/main.py:153:app.include_router(company_registration_router, prefix=settings.api_v1_prefix)
+app/main.py:154:app.include_router(analytics_router, prefix=settings.api_v1_prefix)
+app/main.py:155:app.include_router(kyc_router, prefix=settings.api_v1_prefix)
+app/main.py:162:app.include_router(marketplace_router, prefix=settings.api_v1_prefix)
+app/main.py:164:app.include_router(admin_marketplace_router, prefix=settings.api_v1_prefix)
+app/main.py:166:app.include_router(admin_subscriptions_router, prefix=settings.api_v1_prefix)
+app/main.py:168:app.include_router(admin_credits_router, prefix=settings.api_v1_prefix)
+app/main.py:169:app.include_router(admin_dns_router, prefix=settings.api_v1_prefix)
+app/main.py:171:app.include_router(payment_hub_router, prefix=settings.api_v1_prefix)
+app/core/config.py:49:    # Shipment GPS tracking
+app/core/config.py:50:    tracking_max_stale_minutes: int = Field(default=30, alias='TRACKING_MAX_STALE_MINUTES')
+app/core/config.py:51:    tracking_stale_timeout_minutes: int = Field(default=30, alias='TRACKING_STALE_TIMEOUT_MINUTES')
+app/core/config.py:52:    tracking_stale_check_interval_minutes: int = Field(default=5, alias='TRACKING_STALE_CHECK_INTERVAL_MINUTES')
+app/core/structured_logging.py:320:        tracking_number: str,
+app/core/structured_logging.py:330:            tracking_number=tracking_number,
+app/services/fleetbase_api_client.py:9:feature isolation (drivers, orders, fleet, dispatch, GPS, etc.) at low overhead.
+app/services/geo_service.py:27:    def calculate_route(
+app/services/geo_service.py:30:        """Returns route info: distance_km, duration_hours, polyline."""
+app/services/geo_service.py:69:    def calculate_route(
+app/services/geo_service.py:128:    def calculate_route(
+app/services/geo_service.py:139:            routes = data.get("routes", [])
+app/services/geo_service.py:140:            if routes:
+app/services/geo_service.py:141:                route = routes[0]
+app/services/geo_service.py:143:                    "distance_km": round(route["distance"] / 1000, 1),
+app/services/geo_service.py:144:                    "duration_hours": round(route["duration"] / 3600, 2),
+app/services/geo_service.py:145:                    "polyline": route.get("geometry"),
+app/services/geo_service.py:149:            logger.warning("Mapbox route failed: %s", exc)
+app/services/geo_service.py:193:    def calculate_route(
+app/services/geo_service.py:210:            if data.get("status") == "OK" and data.get("routes"):
+app/services/geo_service.py:211:                route = data["routes"][0]
+app/services/geo_service.py:212:                leg = route["legs"][0]
+app/services/geo_service.py:217:                polyline = route.get("overview_polyline", {}).get("points")
+app/services/geo_service.py:227:                logger.warning("Google Maps route failed: %s", data.get("status", "Unknown error"))
+app/services/geo_service.py:229:            logger.error("Google Maps route failed: %s", exc)
+app/services/geo_service.py:243:    def calculate_route(
+app/services/geo_service.py:246:        return self._provider.calculate_route(origin, destination)
+app/services/ghana_geo_service.py:162:    def calculate_priority_route(
+app/services/ghana_geo_service.py:170:        """Calculate route with country-specific optimizations"""
+app/services/ghana_geo_service.py:185:        route = self.geo_service.calculate_route(origin, destination)
+app/services/ghana_geo_service.py:186:        if route:
+app/services/ghana_geo_service.py:188:            route["priority_route"] = True
+app/services/ghana_geo_service.py:190:                route["country"] = country
+app/services/ghana_geo_service.py:199:                if route["distance_km"]:
+app/services/ghana_geo_service.py:200:                    base_duration = route["duration_hours"] or (route["distance_km"] / 60)
+app/services/ghana_geo_service.py:201:                    route["duration_hours"] = round(base_duration * traffic_factor, 2)
+app/services/ghana_geo_service.py:202:                    route["traffic_adjusted"] = True
+app/services/ghana_geo_service.py:205:                route["origin_city"] = origin_city
+app/services/ghana_geo_service.py:207:                route["destination_city"] = dest_city
+app/services/ghana_geo_service.py:209:        return route
+app/services/shipment_service.py:23:from app.models.shipment_tracking import ShipmentTrackingPoint
+app/services/shipment_service.py:109:def _generate_tracking_number(db: Session, tenant_id: str) -> str:
+app/services/shipment_service.py:115:            Shipment.tracking_number == candidate,
+app/services/shipment_service.py:119:    raise ValueError("Unable to generate a unique tracking number")
+app/services/shipment_service.py:132:        "latitude": _coerce_float(_pick_first(raw, "latitude", "lat")),
+app/services/shipment_service.py:133:        "longitude": _coerce_float(_pick_first(raw, "longitude", "lng", "lon", "long")),
+app/services/shipment_service.py:140:def _extract_tracking_payload(payload: Any, tracking_number: str) -> dict[str, Any] | None:
+app/services/shipment_service.py:143:            normalized = _extract_tracking_payload(item, tracking_number)
+app/services/shipment_service.py:151:    for key in ("data", "tracking", "shipment", "result"):
+app/services/shipment_service.py:153:        normalized = _extract_tracking_payload(nested, tracking_number)
+app/services/shipment_service.py:157:    candidate_tracking = _pick_first(payload, "tracking_number", "trackingNumber", "reference")
+app/services/shipment_service.py:158:    if candidate_tracking and str(candidate_tracking) != tracking_number:
+app/services/shipment_service.py:161:    latitude = _coerce_float(_pick_first(payload, "current_latitude", "latitude", "lat"))
+app/services/shipment_service.py:162:    longitude = _coerce_float(_pick_first(payload, "current_longitude", "longitude", "lng", "lon", "long"))
+app/services/shipment_service.py:171:    if not any([latitude is not None, longitude is not None, current_location, status, events]):
+app/services/shipment_service.py:175:        "tracking_number": tracking_number,
+app/services/shipment_service.py:178:        "current_latitude": latitude,
+app/services/shipment_service.py:179:        "current_longitude": longitude,
+app/services/shipment_service.py:181:        "live_tracking_provider": str(_pick_first(payload, "provider", "source", "integration") or "fleetbase"),
+app/services/shipment_service.py:186:def _extract_live_shipment_payload(payload: Any, tracking_number: str) -> dict[str, Any] | None:
+app/services/shipment_service.py:189:            normalized = _extract_live_shipment_payload(item, tracking_number)
+app/services/shipment_service.py:199:        normalized = _extract_live_shipment_payload(nested, tracking_number)
+app/services/shipment_service.py:206:            normalized = _extract_live_shipment_payload(nested, tracking_number)
+app/services/shipment_service.py:210:    candidate_tracking = _pick_first(payload, "tracking_number", "trackingNumber", "reference")
+app/services/shipment_service.py:211:    if candidate_tracking and str(candidate_tracking) != tracking_number:
+app/services/shipment_service.py:214:    tracking_value = _pick_first(payload, "tracking_number", "trackingNumber", "reference")
+app/services/shipment_service.py:224:        tracking_value,
+app/services/shipment_service.py:236:        "tracking_number": str(tracking_value or tracking_number),
+app/services/shipment_service.py:247:        "current_latitude": _coerce_float(_pick_first(payload, "current_latitude", "latitude", "lat")),
+app/services/shipment_service.py:248:        "current_longitude": _coerce_float(_pick_first(payload, "current_longitude", "longitude", "lng", "lon", "long")),
+app/services/shipment_service.py:250:        "live_tracking_provider": str(_pick_first(payload, "provider", "source", "integration") or "fleetbase"),
+app/services/shipment_service.py:274:        tracking_number = _pick_first(node, "tracking_number", "trackingNumber", "reference")
+app/services/shipment_service.py:275:        normalized = _extract_live_shipment_payload(node, str(tracking_number or ""))
+app/services/shipment_service.py:276:        if normalized and normalized.get("tracking_number"):
+app/services/shipment_service.py:307:        "tracking_number": shipment.tracking_number,
+app/services/shipment_service.py:318:        "current_latitude": _coerce_float(shipment.current_latitude),
+app/services/shipment_service.py:319:        "current_longitude": _coerce_float(shipment.current_longitude),
+app/services/shipment_service.py:321:        "live_tracking_provider": shipment.live_tracking_provider,
+app/services/shipment_service.py:348:        ("PATCH", f"shipments/{shipment.tracking_number}"),
+app/services/shipment_service.py:349:        ("PUT", f"shipments/{shipment.tracking_number}"),
+app/services/shipment_service.py:365:    logger.warning("Failed to sync shipment %s to tenant runtime %s", shipment.tracking_number, tenant.slug)
+app/services/shipment_service.py:375:    latitude: float | None = None,
+app/services/shipment_service.py:376:    longitude: float | None = None,
+app/services/shipment_service.py:385:        "tracking_number": shipment.tracking_number,
+app/services/shipment_service.py:388:        "latitude": latitude,
+app/services/shipment_service.py:389:        "longitude": longitude,
+app/services/shipment_service.py:395:        ("POST", f"shipments/{shipment.tracking_number}/tracking"),
+app/services/shipment_service.py:396:        ("POST", "tracking"),
+app/services/shipment_service.py:397:        ("PATCH", f"tracking/{shipment.tracking_number}"),
+app/services/shipment_service.py:413:    logger.warning("Failed to sync shipment event %s for %s to tenant runtime %s", event_type, shipment.tracking_number, tenant.slug)
+app/services/shipment_service.py:417:def get_live_tracking_snapshot(db: Session, shipment: Shipment) -> dict[str, Any] | None:
+app/services/shipment_service.py:422:    tracking_attempts = [
+app/services/shipment_service.py:423:        ("tracking", {"tracking_number": shipment.tracking_number}),
+app/services/shipment_service.py:424:        ("tracking", {"trackingNumber": shipment.tracking_number}),
+app/services/shipment_service.py:425:        (f"tracking/{shipment.tracking_number}", None),
+app/services/shipment_service.py:426:        (f"shipments/{shipment.tracking_number}/tracking", None),
+app/services/shipment_service.py:429:        ("shipments", {"tracking_number": shipment.tracking_number}),
+app/services/shipment_service.py:430:        ("shipments", {"trackingNumber": shipment.tracking_number}),
+app/services/shipment_service.py:431:        (f"shipments/{shipment.tracking_number}", None),
+app/services/shipment_service.py:434:    live_tracking: dict[str, Any] | None = None
+app/services/shipment_service.py:435:    for endpoint, params in tracking_attempts:
+app/services/shipment_service.py:436:        normalized = _extract_tracking_payload(_fetch_live_payload(tenant, endpoint, params), shipment.tracking_number)
+app/services/shipment_service.py:438:            live_tracking = normalized
+app/services/shipment_service.py:443:        normalized = _extract_live_shipment_payload(_fetch_live_payload(tenant, endpoint, params), shipment.tracking_number)
+app/services/shipment_service.py:448:    if not live_tracking and not live_shipment:
+app/services/shipment_service.py:454:    if live_tracking:
+app/services/shipment_service.py:455:        merged.update(live_tracking)
+app/services/shipment_service.py:463:    tracking_numbers: list[str],
+app/services/shipment_service.py:469:    if not tracking_numbers:
+app/services/shipment_service.py:476:    wanted = {tracking_number for tracking_number in tracking_numbers if tracking_number}
+app/services/shipment_service.py:491:            record["tracking_number"]: record
+app/services/shipment_service.py:493:            if record.get("tracking_number") in wanted
+app/services/shipment_service.py:501:def merge_tracking_events(local_events: list[ShipmentEvent], live_snapshot: dict[str, Any] | None) -> list[dict[str, Any]]:
+app/services/shipment_service.py:510:            "latitude": _coerce_float(event.latitude),
+app/services/shipment_service.py:511:            "longitude": _coerce_float(event.longitude),
+app/services/shipment_service.py:537:    tracking_number = str(kw.get("tracking_number") or "").strip() or _generate_tracking_number(db, tenant_id)
+app/services/shipment_service.py:541:        tracking_number=tracking_number,
+app/services/shipment_service.py:610:    latitude: float,
+app/services/shipment_service.py:611:    longitude: float,
+app/services/shipment_service.py:623:    shipment.current_latitude = latitude
+app/services/shipment_service.py:624:    shipment.current_longitude = longitude
+app/services/shipment_service.py:627:    shipment.live_tracking_provider = provider or shipment.live_tracking_provider or "manual"
+app/services/shipment_service.py:641:        latitude=latitude,
+app/services/shipment_service.py:642:        longitude=longitude,
+app/services/shipment_service.py:651:def ingest_tracking_point(
+app/services/shipment_service.py:656:    latitude: float,
+app/services/shipment_service.py:657:    longitude: float,
+app/services/shipment_service.py:663:) -> tuple[bool, str | None, ShipmentTrackingPoint | None]:
+app/services/shipment_service.py:668:    if latitude < -90 or latitude > 90 or longitude < -180 or longitude > 180:
+app/services/shipment_service.py:672:    stale_minutes = getattr(settings, "tracking_max_stale_minutes", 30)
+app/services/shipment_service.py:674:        return False, "Stale tracking point", None
+app/services/shipment_service.py:677:        db.query(ShipmentTrackingPoint)
+app/services/shipment_service.py:679:            ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
+app/services/shipment_service.py:680:            ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+app/services/shipment_service.py:682:        .order_by(ShipmentTrackingPoint.captured_at.desc())
+app/services/shipment_service.py:690:            float(latest.latitude), float(latest.longitude), float(latitude), float(longitude)
+app/services/shipment_service.py:701:    point = ShipmentTrackingPoint(
+app/services/shipment_service.py:704:        latitude=latitude,
+app/services/shipment_service.py:705:        longitude=longitude,
+app/services/shipment_service.py:720:        latitude=latitude,
+app/services/shipment_service.py:721:        longitude=longitude,
+app/services/shipment_service.py:726:        description="Tracking point accepted",
+app/services/shipment_service.py:731:def get_latest_tracking_point(db: Session, shipment_id: str, tenant_id: str) -> ShipmentTrackingPoint | None:
+app/services/shipment_service.py:733:        db.query(ShipmentTrackingPoint)
+app/services/shipment_service.py:735:            ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
+app/services/shipment_service.py:736:            ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+app/services/shipment_service.py:738:        .order_by(ShipmentTrackingPoint.captured_at.desc())
+app/services/shipment_service.py:743:def get_tracking_history(
+app/services/shipment_service.py:751:) -> list[ShipmentTrackingPoint]:
+app/services/shipment_service.py:752:    query = db.query(ShipmentTrackingPoint).filter(
+app/services/shipment_service.py:753:        ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
+app/services/shipment_service.py:754:        ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+app/services/shipment_service.py:757:        query = query.filter(ShipmentTrackingPoint.captured_at >= _to_utc(from_ts))
+app/services/shipment_service.py:759:        query = query.filter(ShipmentTrackingPoint.captured_at <= _to_utc(to_ts))
+app/services/shipment_service.py:760:    return query.order_by(ShipmentTrackingPoint.captured_at.asc()).limit(limit).all()
+app/services/shipment_service.py:778:                Shipment.tracking_number.ilike(pattern),
+app/services/shipment_service.py:806:def public_track_shipment(db: Session, tenant_id: str, tracking_number: str) -> Shipment | None:
+app/services/shipment_service.py:809:        Shipment.tracking_number == tracking_number,
+app/services/shipment_service.py:818:    latitude: float | None = None,
+app/services/shipment_service.py:819:    longitude: float | None = None,
+app/services/shipment_service.py:827:        latitude=latitude,
+app/services/shipment_service.py:828:        longitude=longitude,
+app/services/shipment_service.py:839:        if latitude is not None and longitude is not None:
+app/services/shipment_service.py:840:            shipment.current_latitude = latitude
+app/services/shipment_service.py:841:            shipment.current_longitude = longitude
+app/services/shipment_service.py:844:            shipment.live_tracking_provider = shipment.live_tracking_provider or "manual"
+app/services/shipment_service.py:867:                    tracking_number=shipment.tracking_number,
+app/services/shipment_service.py:878:                    tracking_number=shipment.tracking_number,
+app/services/shipment_service.py:890:            latitude=latitude,
+app/services/shipment_service.py:891:            longitude=longitude,
+app/services/shipment_service.py:963:    "tracking_number", "reference_number",
+app/services/shipment_service.py:996:        tracking = row.get("tracking_number", "").strip() or _generate_tracking_number(db, tenant_id)
+app/services/shipment_service.py:1026:                Shipment.tracking_number == tracking,
+app/services/shipment_service.py:1063:                    tracking_number=tracking,
+app/services/dns_provisioning.py:41:    No-op: Cloudflare Tunnel wildcard (*.afruheritage.com) already routes all
+app/services/flutterwave_client.py:55:    # Normalise to match Paystack-shaped response used by billing route:
+app/services/flutterwave_client.py:56:    # billing route expects: resp["data"]["authorization_url"]
+app/services/billing_service.py:10:# Restore get_plans for /plans route
+app/services/billing_service.py:61:        "shipment_tracking",
+app/services/billing_service.py:67:        "shipment_tracking",
+app/services/billing_service.py:74:        "shipment_tracking",
+app/services/billing_service.py:83:        "shipment_tracking",
+app/services/tenant_branding_service.py:46:        public_tracking_enabled=True,
+app/services/credits.py:7:    "marketplace_gps_ping": 1,
+app/services/fleetbase_install_script.py:14:    "AFRUHERITAGE_SOCKET_PORT",
+app/services/fleetbase_install_script.py:25:    socketcluster_secure = "true" if use_https else "false"
+app/services/fleetbase_install_script.py:46:            f'  "SOCKETCLUSTER_HOST": "{host}",',
+app/services/fleetbase_install_script.py:47:            '  "SOCKETCLUSTER_PORT": "__AFRU_SOCKET_PORT__",',
+app/services/fleetbase_install_script.py:48:            f'  "SOCKETCLUSTER_SECURE": {socketcluster_secure}',
+app/services/fleetbase_install_script.py:57:            "SOCKETCLUSTER_PATH=/socketcluster/",
+app/services/fleetbase_install_script.py:58:            f"SOCKETCLUSTER_HOST={host}",
+app/services/fleetbase_install_script.py:59:            "SOCKETCLUSTER_SECURE=false",
+app/services/fleetbase_install_script.py:60:            "SOCKETCLUSTER_PORT=__AFRU_SOCKET_PORT__",
+app/services/fleetbase_install_script.py:61:            "OSRM_HOST=https://router.project-osrm.org",
+app/services/fleetbase_install_script.py:70:            "SOCKETCLUSTER_PATH=/socketcluster/",
+app/services/fleetbase_install_script.py:71:            f"SOCKETCLUSTER_HOST={host}",
+app/services/fleetbase_install_script.py:72:            "SOCKETCLUSTER_SECURE=true",
+app/services/fleetbase_install_script.py:73:            "SOCKETCLUSTER_PORT=__AFRU_SOCKET_PORT__",
+app/services/fleetbase_install_script.py:74:            "OSRM_HOST=https://router.project-osrm.org",
+app/services/fleetbase_install_script.py:109:            "  AFRU_SOCKET_PORT=$(pick_port 38000 38999)",
+app/services/fleetbase_install_script.py:112:            "  export AFRU_DB_PORT AFRU_SOCKET_PORT AFRU_CONSOLE_PORT AFRU_HTTP_PORT",
+app/services/fleetbase_install_script.py:121:            "    AFRU_SOCKET_PORT=$(pick_port 38000 38999)",
+app/services/fleetbase_install_script.py:124:            "    export AFRU_DB_PORT AFRU_SOCKET_PORT AFRU_CONSOLE_PORT AFRU_HTTP_PORT",
+app/services/fleetbase_install_script.py:127:            "perl -0pi -e 's/\"3306:3306\"/\"$ENV{AFRU_DB_PORT}:3306\"/g; s/\"38000:8000\"/\"$ENV{AFRU_SOCKET_PORT}:8000\"/g; s/\"4200:4200\"/\"$ENV{AFRU_CONSOLE_PORT}:4200\"/g; s/\"8000:80\"/\"$ENV{AFRU_HTTP_PORT}:80\"/g' docker-compose.yml",
+app/services/fleetbase_install_script.py:129:            "printf '%s\n' \"AFRU_DB_PORT=$AFRU_DB_PORT\" \"AFRU_SOCKET_PORT=$AFRU_SOCKET_PORT\" \"AFRU_CONSOLE_PORT=$AFRU_CONSOLE_PORT\" \"AFRU_HTTP_PORT=$AFRU_HTTP_PORT\" > .afruheritage-runtime.env",
+app/services/fleetbase_install_script.py:134:            "perl -0pi -e 's/__AFRU_CONSOLE_PORT__/$ENV{AFRU_CONSOLE_PORT}/g; s/__AFRU_HTTP_PORT__/$ENV{AFRU_HTTP_PORT}/g; s/__AFRU_SOCKET_PORT__/$ENV{AFRU_SOCKET_PORT}/g' docker-compose.override.yml console/fleetbase.config.json console/environments/.env.development console/environments/.env.production",
+app/services/fleetbase_install_script.py:136:            "printf '%s\n' \"$AFRU_SOCKET_PORT\" > AFRUHERITAGE_SOCKET_PORT",
+app/services/notification_service.py:309:    def send_shipment_status_update_email(self, to: str, tracking_number: str, status: str, company_name: str) -> bool:
+app/services/notification_service.py:310:        subject = f"{company_name} — Shipment Update: {tracking_number}"
+app/services/notification_service.py:315:                Your shipment <strong>{tracking_number}</strong> has been updated to: <strong>{status}</strong>
+app/services/notification_service.py:318:                <a href="https://app.afruheritage.com/track/{tracking_number}"
+app/services/notification_service.py:327:    def send_shipment_delivered_email(self, to: str, tracking_number: str, company_name: str) -> bool:
+app/services/notification_service.py:328:        subject = f"{company_name} — Shipment Delivered: {tracking_number}"
+app/services/notification_service.py:333:                Great news! Your shipment <strong>{tracking_number}</strong> has been successfully delivered.
+app/services/notification_service.py:336:                <a href="https://app.afruheritage.com/track/{tracking_number}"
+app/services/notification_service.py:456:    def send_shipment_status_sms(self, to_phone: str, tracking_number: str, status: str) -> bool:
+app/services/notification_service.py:457:        message = f"Afruheritage: Shipment {tracking_number} updated to {status}. Track: app.afruheritage.com/track/{tracking_number}"
+app/services/runner_selection.py:1:import socket
+app/services/runner_selection.py:36:        with socket.create_connection((runner.host, runner.ssh_port), timeout=timeout_seconds):
+app/services/whatsapp_service.py:94:            # Create tracking link
+app/services/whatsapp_service.py:95:            tracking_url = f"https://{await self._get_tenant_subdomain()}.afruheritage.com/track/{shipment_data['tracking_number']}"
+app/services/whatsapp_service.py:98:            message = self._format_shipment_update_message(shipment_data, tracking_url)
+app/services/whatsapp_service.py:114:                "tracking_number": shipment_data["tracking_number"],
+app/services/whatsapp_service.py:121:                "tracking_number": shipment_data["tracking_number"],
+app/services/whatsapp_service.py:130:                "tracking_number": shipment_data.get("tracking_number"),
+app/services/whatsapp_service.py:141:            tracking_url = f"https://{await self._get_tenant_subdomain()}.afruheritage.com/track/{shipment_data['tracking_number']}"
+app/services/whatsapp_service.py:143:            message = self._format_customer_message(shipment_data, tracking_url)
+app/services/whatsapp_service.py:150:                "tracking_number": shipment_data["tracking_number"],
+app/services/whatsapp_service.py:160:                "tracking_number": shipment_data.get("tracking_number"),
+app/services/whatsapp_service.py:168:    def _format_shipment_update_message(self, shipment_data: dict[str, Any], tracking_url: str) -> str:
+app/services/whatsapp_service.py:185:📦 Tracking: {shipment_data['tracking_number']}
+app/services/whatsapp_service.py:190:🔗 Track: {tracking_url}
+app/services/whatsapp_service.py:196:    def _format_customer_message(self, shipment_data: dict[str, Any], tracking_url: str) -> str:
+app/services/whatsapp_service.py:209:        return f"""📦 {shipment_data['tracking_number']}
+app/services/whatsapp_service.py:213:🔗 Track your package: {tracking_url}
+app/services/whatsapp_service.py:223:        """Get tenant's subdomain for tracking URLs"""
+app/services/sms_client.py:95:    # Route to appropriate provider
+app/services/vendor_service.py:95:        booking.current_latitude is not None,
+app/services/vendor_service.py:96:        booking.current_longitude is not None,
+app/services/vendor_service.py:107:    if booking.current_latitude is None or booking.current_longitude is None:
+app/services/vendor_service.py:123:        latitude=_as_float(booking.current_latitude),
+app/services/vendor_service.py:124:        longitude=_as_float(booking.current_longitude),
+app/services/vendor_service.py:127:        provider=booking.live_tracking_provider or "vendor_marketplace",
+app/services/vendor_service.py:330:    pickup_latitude: float | None = None,
+app/services/vendor_service.py:331:    pickup_longitude: float | None = None,
+app/services/vendor_service.py:338:    target_lat = pickup_latitude
+app/services/vendor_service.py:339:    target_lng = pickup_longitude
+app/services/vendor_service.py:369:                VendorServiceBooking.current_latitude.isnot(None),
+app/services/vendor_service.py:370:                VendorServiceBooking.current_longitude.isnot(None),
+app/services/vendor_service.py:378:        vendor_lat = _as_float(vendor.last_known_latitude)
+app/services/vendor_service.py:379:        vendor_lng = _as_float(vendor.last_known_longitude)
+app/services/vendor_service.py:381:            vendor_lat = _as_float(last_location.current_latitude)
+app/services/vendor_service.py:382:            vendor_lng = _as_float(last_location.current_longitude)
+app/services/vendor_service.py:485:                vendor.availability_status = DriverAvailability.EN_ROUTE_PICKUP
+app/services/vendor_service.py:522:    if kwargs.get("current_latitude") is not None or kwargs.get("current_longitude") is not None:
+app/services/vendor_service.py:524:        booking.live_tracking_provider = kwargs.get("live_tracking_provider") or booking.live_tracking_provider or "vendor_marketplace"
+app/services/vendor_service.py:529:            if kwargs.get("current_latitude") is not None:
+app/services/vendor_service.py:530:                vendor.last_known_latitude = kwargs.get("current_latitude")
+app/services/vendor_service.py:531:            if kwargs.get("current_longitude") is not None:
+app/services/vendor_service.py:532:                vendor.last_known_longitude = kwargs.get("current_longitude")
+app/services/vendor_service.py:604:    current_latitude: float | None = None,
+app/services/vendor_service.py:605:    current_longitude: float | None = None,
+app/services/vendor_service.py:616:    if current_latitude is not None:
+app/services/vendor_service.py:617:        vendor.last_known_latitude = current_latitude
+app/services/vendor_service.py:618:    if current_longitude is not None:
+app/services/vendor_service.py:619:        vendor.last_known_longitude = current_longitude
+app/services/vendor_service.py:669:    pickup_latitude: float | None,
+app/services/vendor_service.py:670:    pickup_longitude: float | None,
+app/services/vendor_service.py:681:        pickup_latitude=pickup_latitude,
+app/services/vendor_service.py:682:        pickup_longitude=pickup_longitude,
+app/services/vendor_service.py:742:                pickup_latitude=None,
+app/services/vendor_service.py:743:                pickup_longitude=None,
+app/services/entitlements.py:9:    "free": ["marketplace_basic", "tracking_basic"],
+app/services/entitlements.py:10:    "professional": ["marketplace_basic", "marketplace_gps", "tracking_basic", "ai_basic"],
+app/services/entitlements.py:11:    "business": ["marketplace_basic", "marketplace_gps", "tracking_basic", "ai_basic", "admin_controls"],
+app/services/entitlements.py:12:    "vendor_driver": ["driver_marketplace_search", "marketplace_gps", "tracking_basic"],
+app/services/entitlements.py:54:        selected_addons_json=json.dumps(["marketplace", "gps_tracking"]),
+app/services/entitlements.py:79:        "gps_tracking": ["marketplace_gps"],
+app/services/support_crm_service.py:106:        tracking_reference=kwargs.get("tracking_reference"),
+app/services/support_crm_service.py:194:        f"Tracking ref: {ticket.tracking_reference or 'N/A'}\n\n"
+app/services/tracking_realtime.py:7:from fastapi import WebSocket
+app/services/tracking_realtime.py:10:class TrackingRealtimeHub:
+app/services/tracking_realtime.py:12:        self._connections: dict[str, set[WebSocket]] = defaultdict(set)
+app/services/tracking_realtime.py:17:        return f"tracking:{tenant_id}:{shipment_id}"
+app/services/tracking_realtime.py:19:    async def connect(self, tenant_id: str, shipment_id: str, websocket: WebSocket) -> str:
+app/services/tracking_realtime.py:21:        await websocket.accept()
+app/services/tracking_realtime.py:23:            self._connections[topic].add(websocket)
+app/services/tracking_realtime.py:26:    async def disconnect(self, topic: str, websocket: WebSocket) -> None:
+app/services/tracking_realtime.py:28:            self._connections[topic].discard(websocket)
+app/services/tracking_realtime.py:40:        stale: list[WebSocket] = []
+app/services/tracking_realtime.py:53:tracking_realtime_hub = TrackingRealtimeHub()
+app/middleware/rate_limit.py:50:        "track": "100/minute",    # Public tracking
+app/schemas/shipment.py:11:    tracking_number: str | None = Field(default=None, max_length=100)
+app/schemas/shipment.py:46:    tracking_number: str | None = None
+app/schemas/shipment.py:59:    current_latitude: float | None = None
+app/schemas/shipment.py:60:    current_longitude: float | None = None
+app/schemas/shipment.py:62:    live_tracking_provider: str | None = None
+app/schemas/shipment.py:84:    latitude: float | None = None
+app/schemas/shipment.py:85:    longitude: float | None = None
+app/schemas/shipment.py:91:    latitude: float
+app/schemas/shipment.py:92:    longitude: float
+app/schemas/shipment.py:101:class TrackingPointIngestRequest(BaseModel):
+app/schemas/shipment.py:102:    latitude: float
+app/schemas/shipment.py:103:    longitude: float
+app/schemas/shipment.py:111:class TrackingPointResponse(BaseModel):
+app/schemas/shipment.py:115:    latitude: float
+app/schemas/shipment.py:116:    longitude: float
+app/schemas/shipment.py:127:class TrackingPointIngestResponse(BaseModel):
+app/schemas/shipment.py:130:    point: TrackingPointResponse | None = None
+app/schemas/shipment.py:137:    latitude: float | None = None
+app/schemas/shipment.py:138:    longitude: float | None = None
+app/schemas/shipment.py:149:    tracking_number: str
+app/schemas/shipment.py:160:    current_latitude: float | None = None
+app/schemas/shipment.py:161:    current_longitude: float | None = None
+app/schemas/shipment.py:163:    live_tracking_provider: str | None = None
+app/schemas/shipment.py:188:    tracking_number: str
+app/schemas/shipment.py:201:    tracking_number: str
+app/schemas/shipment.py:210:    current_latitude: float | None = None
+app/schemas/shipment.py:211:    current_longitude: float | None = None
+app/schemas/shipment.py:213:    live_tracking_provider: str | None = None
+app/schemas/support_crm.py:60:    tracking_reference: str | None = None
+app/schemas/support_crm.py:119:    tracking_reference: str | None = None
+app/schemas/branding.py:55:    public_tracking_enabled: bool
+app/schemas/vendor.py:100:    last_known_latitude: float | None = None
+app/schemas/vendor.py:101:    last_known_longitude: float | None = None
+app/schemas/vendor.py:134:    pickup_latitude: float | None = None
+app/schemas/vendor.py:135:    pickup_longitude: float | None = None
+app/schemas/vendor.py:163:    current_latitude: float | None = None
+app/schemas/vendor.py:164:    current_longitude: float | None = None
+app/schemas/vendor.py:171:    current_latitude: float | None = None
+app/schemas/vendor.py:172:    current_longitude: float | None = None
+app/schemas/vendor.py:194:    current_latitude: float | None = None
+app/schemas/vendor.py:195:    current_longitude: float | None = None
+app/schemas/vendor.py:197:    live_tracking_provider: str | None = None
+app/schemas/vendor.py:209:    pickup_latitude: float | None = None
+app/schemas/vendor.py:210:    pickup_longitude: float | None = None
+app/schemas/vendor.py:236:    current_latitude: float | None = None
+app/schemas/vendor.py:237:    current_longitude: float | None = None
+app/schemas/vendor.py:239:    live_tracking_provider: str | None = None
+app/db/runtime_migrations.py:71:        if not inspector.has_table("shipment_tracking_points"):
+app/db/runtime_migrations.py:76:                        CREATE TABLE shipment_tracking_points (
+app/db/runtime_migrations.py:80:                            latitude NUMERIC(10,7) NOT NULL,
+app/db/runtime_migrations.py:81:                            longitude NUMERIC(10,7) NOT NULL,
+app/db/runtime_migrations.py:96:                        CREATE TABLE shipment_tracking_points (
+app/db/runtime_migrations.py:100:                            latitude NUMERIC(10,7) NOT NULL,
+app/db/runtime_migrations.py:101:                            longitude NUMERIC(10,7) NOT NULL,
+app/db/runtime_migrations.py:115:                    "CREATE INDEX IF NOT EXISTS ix_tracking_points_tenant_shipment_captured ON shipment_tracking_points (tenant_id, shipment_id, captured_at)"
+app/db/runtime_migrations.py:120:                    "CREATE INDEX IF NOT EXISTS ix_tracking_points_shipment_captured ON shipment_tracking_points (shipment_id, captured_at)"
+app/db/runtime_migrations.py:123:            logger.info("runtime_migration_added_shipment_tracking_points")
+app/db/runtime_migrations.py:137:            if "last_known_latitude" not in vendor_columns:
+app/db/runtime_migrations.py:138:                conn.execute(text("ALTER TABLE delivery_vendors ADD COLUMN last_known_latitude NUMERIC(10,7) NULL"))
+app/db/runtime_migrations.py:139:                logger.info("runtime_migration_added_delivery_vendors_last_known_latitude")
+app/db/runtime_migrations.py:140:            if "last_known_longitude" not in vendor_columns:
+app/db/runtime_migrations.py:141:                conn.execute(text("ALTER TABLE delivery_vendors ADD COLUMN last_known_longitude NUMERIC(10,7) NULL"))
+app/db/runtime_migrations.py:142:                logger.info("runtime_migration_added_delivery_vendors_last_known_longitude")
+app/models/shipment.py:39:        Index("ix_shipments_tenant_tracking", "tenant_id", "tracking_number", unique=True),
+app/models/shipment.py:45:    tracking_number: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+app/models/shipment.py:61:    current_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/shipment.py:62:    current_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/shipment.py:64:    live_tracking_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+app/models/shipment.py:109:    latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/shipment.py:110:    longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/support_crm.py:138:    tracking_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
+app/models/marketplace_gps.py:13:class MarketplaceGpsPing(Base):
+app/models/marketplace_gps.py:14:    __tablename__ = "marketplace_gps_pings"
+app/models/marketplace_gps.py:22:    latitude: Mapped[float] = mapped_column(Float)
+app/models/marketplace_gps.py:24:    longitude: Mapped[float] = mapped_column(Float)
+app/models/tenant_branding.py:47:    public_tracking_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+app/models/shipment_tracking.py:13:class ShipmentTrackingPoint(Base):
+app/models/shipment_tracking.py:14:    __tablename__ = "shipment_tracking_points"
+app/models/shipment_tracking.py:16:        Index("ix_tracking_points_tenant_shipment_captured", "tenant_id", "shipment_id", "captured_at"),
+app/models/shipment_tracking.py:17:        Index("ix_tracking_points_shipment_captured", "shipment_id", "captured_at"),
+app/models/shipment_tracking.py:24:    latitude: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)
+app/models/shipment_tracking.py:25:    longitude: Mapped[float] = mapped_column(Numeric(10, 7), nullable=False)
+app/models/__init__.py:5:from app.models.shipment_tracking import ShipmentTrackingPoint
+app/models/__init__.py:15:    'ShipmentTrackingPoint',
+app/models/rbac.py:34:    TRACKING = "tracking"
+app/models/marketplace.py:14:    # Human-readable tracking code shown to shippers and drivers e.g. AFR-2026-000042
+app/models/marketplace.py:15:    tracking_number: Mapped[str | None] = mapped_column(String(40), unique=True, index=True, nullable=True)
+app/models/marketplace.py:26:    pickup_latitude: Mapped[float] = mapped_column(Float)
+app/models/marketplace.py:27:    pickup_longitude: Mapped[float] = mapped_column(Float)
+app/models/marketplace.py:30:    dropoff_latitude: Mapped[float] = mapped_column(Float)
+app/models/marketplace.py:31:    dropoff_longitude: Mapped[float] = mapped_column(Float)
+app/models/marketplace.py:51:    tracking_status: Mapped[str] = mapped_column(String(100), default="not_started")
+app/models/vendor.py:59:    EN_ROUTE_PICKUP = "en_route_pickup"
+app/models/vendor.py:98:    last_known_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/vendor.py:99:    last_known_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/vendor.py:179:    current_latitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/vendor.py:180:    current_longitude: Mapped[float | None] = mapped_column(Numeric(10, 7), nullable=True)
+app/models/vendor.py:182:    live_tracking_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
+app/ai/platform_assistant.py:65:        "Please try again in a moment, or rephrase your question with specific keywords such as shipment tracking, vendor onboarding, tenant setup, billing, KYC, or support."
+app/ai/platform_knowledge.py:14:    "app/api/routes/**/*.py",
+app/tasks/tracking_monitor.py:12:logger = get_logger("afruheritage.tracking_monitor")
+app/tasks/tracking_monitor.py:15:@celery_app.task(name="app.tasks.tracking_monitor.mark_stale_tracking")
+app/tasks/tracking_monitor.py:16:def mark_stale_tracking() -> dict[str, int]:
+app/tasks/tracking_monitor.py:17:    cutoff = datetime.utcnow() - timedelta(minutes=settings.tracking_stale_timeout_minutes)
+app/tasks/tracking_monitor.py:36:                Shipment.live_tracking_provider != "tracking_stale",
+app/tasks/tracking_monitor.py:42:            shipment.live_tracking_provider = "tracking_stale"
+app/tasks/tracking_monitor.py:50:                event_type="tracking_stale",
+app/tasks/tracking_monitor.py:52:                latitude=float(shipment.current_latitude) if shipment.current_latitude is not None else None,
+app/tasks/tracking_monitor.py:53:                longitude=float(shipment.current_longitude) if shipment.current_longitude is not None else None,
+app/tasks/tracking_monitor.py:54:                description="Tracking has gone stale and requires driver refresh",
+app/tasks/tracking_monitor.py:62:        logger.info("tracking_stale_scan_complete", checked=len(stale_shipments), flagged=flagged)
+app/tasks/celery_app.py:19:    'app.tasks.tracking_monitor',
+app/tasks/celery_app.py:23:    'tracking-stale-monitor': {
+app/tasks/celery_app.py:24:        'task': 'app.tasks.tracking_monitor.mark_stale_tracking',
+app/tasks/celery_app.py:25:        'schedule': crontab(minute=f'*/{max(1, settings.tracking_stale_check_interval_minutes)}'),

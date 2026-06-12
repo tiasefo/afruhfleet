@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,7 +23,22 @@ import {
   BarChart3,
   Settings,
   MapPin,
+  X,
 } from 'lucide-react'
+
+/** Reads ?welcome=1 and returns the portal URL stored in localStorage. */
+function WelcomeReader({ onPortal }: { onPortal: (v: { portalUrl: string; subdomain: string } | null) => void }) {
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    if (searchParams?.get('welcome') === '1') {
+      const portalUrl = localStorage.getItem('portal_url') ?? ''
+      const subdomain = localStorage.getItem('tenant_subdomain') ?? ''
+      if (portalUrl) onPortal({ portalUrl, subdomain })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+  return null
+}
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -31,6 +46,7 @@ export default function DashboardPage() {
   const { branding } = useBranding()
   const [tenants, setTenants] = useState<any[]>([])
   const [tenantsLoading, setTenantsLoading] = useState(false)
+  const [welcomeBanner, setWelcomeBanner] = useState<{ portalUrl: string; subdomain: string } | null>(null)
 
   useEffect(() => {
     if (!isLoading && !token) {
@@ -75,8 +91,53 @@ export default function DashboardPage() {
 
   return (
     <>
+      {/* Reads ?welcome=1 query param safely (requires Suspense for SSR) */}
+      <Suspense fallback={null}>
+        <WelcomeReader onPortal={setWelcomeBanner} />
+      </Suspense>
       {/* Top nav removed - AppShell sidebar handles navigation */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
+        {/* Welcome Banner — shown once after registration */}
+        {welcomeBanner && (
+          <div className="mb-6 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 p-5 text-white shadow-lg">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-lg font-bold mb-1">🎉 Your company portal is ready!</h2>
+                <p className="text-orange-100 text-sm mb-3">
+                  Share this URL with your team and customers. Each company on AfruHeritage gets its own branded portal.
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    href={welcomeBanner.portalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-white text-orange-600 font-semibold text-sm px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors"
+                  >
+                    <Globe className="w-4 h-4" />
+                    {welcomeBanner.portalUrl}
+                  </a>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(welcomeBanner.portalUrl)
+                    }}
+                    className="text-orange-100 text-sm underline hover:text-white"
+                  >
+                    Copy link
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={() => setWelcomeBanner(null)}
+                className="p-1 hover:bg-orange-400 rounded transition-colors"
+                aria-label="Dismiss"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="mt-1 text-muted-foreground">
@@ -347,10 +408,10 @@ export default function DashboardPage() {
                   </p>
                   <div className="mt-4 flex justify-center gap-3">
                     <Button asChild>
-                      <a href="http://10.0.0.115:3001/dashboard/tenants">Create Tenant Instance</a>
+                      <a href="/admin/runtime">Create Tenant Instance</a>
                     </Button>
                     <Button variant="outline" asChild>
-                      <a href="http://10.0.0.115:3001/dashboard">Open Admin Console</a>
+                      <a href="/admin/runtime">Open Admin Console</a>
                     </Button>
                   </div>
                 </div>

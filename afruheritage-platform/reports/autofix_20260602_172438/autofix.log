@@ -1,0 +1,12 @@
+AfruHeritage Safe Autofix - apply
+Report: reports/autofix_20260602_172438
+PATCH: docker-compose.yml :: http://localhost:4000/docs -> http://localhost:4000/openapi.json
+PATCH: docker-compose.prod.yml :: http://localhost:4000/health -> http://localhost:4000/openapi.json
+PATCH: frontend/middleware.ts :: http://localhost:8000/api/v1 -> http://api:8000/api/v1
+PATCH: frontend/app/dashboard/page.tsx :: http://10.0.0.115:3001/dashboard/tenants -> /admin/runtime
+PATCH: frontend/app/dashboard/page.tsx :: http://10.0.0.115:3001/dashboard -> /admin/runtime
+PATCH: frontend/.env.docker :: NEXT_PUBLIC_APP_URL=http://localhost:3000 -> NEXT_PUBLIC_APP_URL=https://afruheritage.com
+PATCH: .env.docker :: http://localhost:3000 -> https://afruheritage.com
+PATCH: .env.docker :: http://localhost:8100 -> https://api.afruheritage.com
+Running checks...
+Done. Review: reports/autofix_20260602_172438

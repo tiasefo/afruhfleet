@@ -52,6 +52,7 @@ from app.services.shipment_service import (
     update_shipment,
 )
 from app.services.tracking_realtime import tracking_realtime_hub
+from app.services.storage_service import storage_service
 from app.middleware.rate_limit import rate_limit
 
 router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
@@ -557,6 +558,68 @@ def public_track_route(
 
 # ── CSV Import ──────────────────────────────────────────────────
 
+# ── Shipment Image Upload ────────────────────────────────────────
+
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+_MAX_IMAGE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+@rate_limit(category="auth", rule="upload")
+@router.post("/{tenant_id}/{shipment_id}/upload-image", response_model=ShipmentResponse)
+def upload_shipment_image(
+    request: Request,
+    tenant_id: str,
+    shipment_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Upload a cargo image for a shipment.
+    The image URL is stored on the shipment and returned in the response so it
+    can be displayed on the bidding dashboard.
+    Accepts: image/jpeg, image/png, image/webp, image/gif  (max 10 MB)
+    """
+    _ensure_tenant_writable(tenant_id)
+    shipment = get_shipment(db, shipment_id, tenant_id)
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+
+    content_type = (file.content_type or "").lower()
+    if content_type not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported image type '{content_type}'. Allowed: jpeg, png, webp, gif",
+        )
+
+    data = file.file.read()
+    if len(data) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image file exceeds 10 MB limit")
+
+    import io as _io
+    from pathlib import Path as _Path
+
+    suffix = _Path(file.filename or "image").suffix or ".jpg"
+    upload_path = f"shipments/{shipment_id}/cargo{suffix}"
+
+    try:
+        image_url = storage_service.upload(
+            tenant_id=tenant_id,
+            path=upload_path,
+            data=_io.BytesIO(data),
+            content_type=content_type,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Image upload failed: {exc}") from exc
+
+    shipment.cargo_image_url = image_url
+    db.commit()
+    db.refresh(shipment)
+    return _to_response(shipment)
+
+
+# ── CSV Import ──────────────────────────────────────────────────
+
 @rate_limit(category="auth", rule="upload")
 @router.post("/{tenant_id}/import/csv", response_model=None)
 def import_csv_route(
@@ -618,6 +681,7 @@ def _to_response(s, live_snapshot: dict | None = None) -> ShipmentResponse:
         group_member_id=str(s.group_member_id) if s.group_member_id else None,
         group_member_name=s.group_member.full_name if s.group_member else None,
         notes=s.notes,
+        cargo_image_url=s.cargo_image_url,
         created_at=s.created_at,
         updated_at=s.updated_at,
     )

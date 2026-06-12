@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { AIChatWidget } from '@/components/ai-chat-widget'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Check, Zap, Shield, Globe, Headphones } from 'lucide-react'
+import { Loader2, Check, Zap, Shield, Globe, Headphones, ArrowLeft } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { billingAPI } from '@/lib/api'
 import { resolvePublicTenantId, resolveTenantId } from '@/lib/tenant'
@@ -106,6 +107,45 @@ export default function PricingPage() {
     <div className="flex min-h-screen flex-col">
       <Navigation />
       <main className="flex-1">
+        {/* Back Button */}
+        <div className="bg-white border-b">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm font-medium text-[#063f4f] hover:text-[#052f3b] transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+          </div>
+        </div>
+
+        {/* Marketing Video Hero Section */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white py-16">
+          <div className="absolute inset-0 opacity-25">
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover"
+            >
+              <source src="/assets/videos/istockphoto-918314666-640_adpp_is.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-slate-900/70 to-blue-900/40" />
+
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl sm:text-4xl font-bold">Pricing for Every Logistics Scale</h2>
+              <p className="mt-4 text-lg text-white/85">
+                From startups to enterprises, choose a plan that grows with your freight forwarding business. 
+                No hidden fees, no surprises.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section className="py-20 lg:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">

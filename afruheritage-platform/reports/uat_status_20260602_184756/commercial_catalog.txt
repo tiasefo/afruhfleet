@@ -1,0 +1,16 @@
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    15  100    15    0     0     78      0 --:--:-- --:--:-- --:--:--    78
+HTTP/2 502 
+date: Tue, 02 Jun 2026 18:47:56 GMT
+content-type: text/plain; charset=UTF-8
+content-length: 15
+cache-control: private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+expires: Thu, 01 Jan 1970 00:00:01 GMT
+referrer-policy: same-origin
+x-frame-options: SAMEORIGIN
+server: cloudflare
+cf-ray: a058a1246e7b7696-SEA
+alt-svc: h3=":443"; ma=86400
+
+error code: 502

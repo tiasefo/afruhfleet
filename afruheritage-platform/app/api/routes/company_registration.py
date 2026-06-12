@@ -36,6 +36,7 @@ from app.services.billing_service import create_trial_subscription, ensure_walle
 from app.services.fleetbase_api_client import fleetbase_client
 from app.services.tenant_ai_service import ensure_tenant_ai_settings
 from app.services.tenant_branding_service import ensure_tenant_branding
+from app.services.dns_provisioning import provision_tenant_subdomain
 
 logger = logging.getLogger("afruheritage.company_registration")
 router = APIRouter(prefix="/companies", tags=["Company Registration"])
@@ -85,6 +86,7 @@ class CompanyRegisterResponse(BaseModel):
     portal_url: str
     fleetbase_console_url: str
     message: str
+    requires_subscription: bool = True
 
 
 # ---------------------------------------------------------------------------
@@ -162,47 +164,18 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
     db.add(admin_user)
     db.flush()
 
-    # --- Provision Fleetbase org -----------------------------------------
-    fleetbase_console_url = f"http://{settings.base_url.split('://')[1].split(':')[0]}:4203"
-    try:
-        fb_org = fleetbase_client.provision_org(
-            company_name=payload.company_name,
-            admin_email=payload.admin_email.lower(),
-            admin_password=payload.admin_password,
-            phone=payload.phone or "",
-        )
-        tenant.fleetbase_org_id = fb_org.org_id
-        tenant.fleetbase_api_key = fb_org.api_key
-        tenant.fleetbase_admin_token = fb_org.admin_token
-        tenant.live_api_url = f"{settings.fleetbase_internal_url}/api"
-        tenant.live_api_token = fb_org.api_key
-        tenant.live_console_url = fb_org.console_url
-        tenant.launch_status = LaunchStatus.active
-        fleetbase_console_url = fb_org.console_url
-        logger.info(
-            "Fleetbase org provisioned for company",
-            extra={"company": payload.company_name, "org_id": fb_org.org_id},
-        )
-    except Exception as exc:
-        # Fleetbase provisioning is non-blocking — the tenant is still created.
-        # An admin can retry provisioning later from the admin console.
-        tenant.launch_status = LaunchStatus.pending_verification
-        tenant.verification_notes = f"Fleetbase org provisioning deferred: {exc}"
-        logger.warning(
-            "Fleetbase org provisioning failed — tenant created without Fleetbase org",
-            extra={"company": payload.company_name, "error": str(exc)},
-        )
+    # --- Do NOT provision Fleetbase immediately here. ---
+    # Provisioning will be triggered after the tenant selects a subscription
+    # and completes payment (handled via the billing/payment flow). Keep the
+    # tenant in pending_verification so the frontend can present the
+    # subscription selection/checkout UI.
+    fleetbase_console_url = ""
+    tenant.launch_status = LaunchStatus.pending_verification
 
     # --- Billing / wallet / branding / AI --------------------------------
-    try:
-        create_trial_subscription(db, str(tenant.id))
-    except Exception:
-        pass  # Non-fatal; can be seeded later
-
-    try:
-        ensure_wallet(db, str(tenant.id))
-    except Exception:
-        pass
+    # NOTE: Do NOT auto-create a trial subscription here. Subscription
+    # selection must occur immediately after registration on the frontend
+    # (popup) and payment must complete before provisioning is queued.
 
     try:
         ensure_tenant_branding(db, tenant_id=str(tenant.id), company_name=tenant.company_name, contact_email=tenant.contact_email)
@@ -223,6 +196,12 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Duplicate entry — company or email already registered.") from exc
 
     portal_url = f"https://{requested_domain}"
+
+    # Provision DNS record (fire-and-forget, never blocks registration)
+    try:
+        provision_tenant_subdomain(slug)
+    except Exception as dns_exc:
+        logger.warning("dns_provisioning_failed: %s — %s", slug, dns_exc)
 
     logger.info(
         "Company registered",

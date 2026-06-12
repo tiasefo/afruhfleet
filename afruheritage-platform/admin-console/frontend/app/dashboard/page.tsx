@@ -16,14 +16,42 @@ import {
 } from 'lucide-react'
 
 interface DashboardStats {
-  tenants: { total: number; active: number; pending: number }
-  vendors: { total: number; pending: number; approved: number }
-  runners: { total: number; online: number }
-  runtimes: { total: number; running: number }
+  total_users: number
+  active_users: number
+  total_tenants: number
+  active_tenants: number
+  total_vendors: number
+  pending_vendors: number
+  total_revenue: number
+  monthly_revenue: number
+  total_shipments: number
+  active_shipments: number
+}
+
+interface SystemHealth {
+  cpu_usage: number
+  memory_usage: number
+  disk_usage: number
+  database_status: string
+  redis_status: string
+  api_status: string
+  uptime: string
+}
+
+interface AlertItem {
+  id: string
+  type: string
+  severity: string
+  title: string
+  message: string
+  created_at: string
+  is_read: boolean
 }
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [health, setHealth] = useState<SystemHealth | null>(null)
+  const [alerts, setAlerts] = useState<AlertItem[]>([])
   const [tenants, setTenants] = useState<any[]>([])
   const [vendors, setVendors] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -31,43 +59,40 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [tenantsRes, vendorsRes, runnersRes] = await Promise.allSettled([
+        // Load real-time dashboard data
+        const [dashboardRes, healthRes, alertsRes, tenantsRes, vendorsRes] = await Promise.allSettled([
+          api.get('/admin/dashboard/overview'),
+          api.get('/admin/dashboard/health'),
+          api.get('/admin/dashboard/alerts?limit=5'),
           api.get('/admin/tenants?page=1&page_size=5'),
           api.get('/admin/vendors?status=pending&page=1&page_size=5'),
-          api.get('/admin/runners'),
         ])
+
+        if (dashboardRes.status === 'fulfilled') {
+          setStats(dashboardRes.value.stats)
+          setAlerts(dashboardRes.value.alerts)
+        }
+        
+        if (healthRes.status === 'fulfilled') {
+          setHealth(healthRes.value)
+        }
 
         const t = tenantsRes.status === 'fulfilled' ? tenantsRes.value : { items: [], total: 0 }
         const v = vendorsRes.status === 'fulfilled' ? vendorsRes.value : { items: [], total: 0 }
-        const r = runnersRes.status === 'fulfilled' ? runnersRes.value : { items: [], total: 0 }
 
         setTenants(t.items || [])
         setVendors(v.items || [])
-
-        setStats({
-          tenants: {
-            total: t.total || t.items?.length || 0,
-            active: (t.items || []).filter((i: any) => i.status === 'active').length,
-            pending: (t.items || []).filter((i: any) => i.status === 'pending').length,
-          },
-          vendors: {
-            total: v.total || 0,
-            pending: v.total || 0,
-            approved: 0,
-          },
-          runners: {
-            total: Array.isArray(r) ? r.length : (r.items?.length || 0),
-            online: Array.isArray(r) ? r.filter((n: any) => n.status === 'online').length : 0,
-          },
-          runtimes: { total: 0, running: 0 },
-        })
-      } catch {
-        // Stats may partially fail — show what we have
+      } catch (error) {
+        console.error('Dashboard load failed:', error)
       } finally {
         setLoading(false)
       }
     }
     load()
+    
+    // Set up real-time updates
+    const interval = setInterval(load, 30000) // Update every 30 seconds
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {
@@ -79,10 +104,10 @@ export default function DashboardPage() {
   }
 
   const statCards = [
-    { label: 'Total Tenants', value: stats?.tenants.total ?? 0, icon: Building2, sub: `${stats?.tenants.pending ?? 0} pending` },
-    { label: 'Delivery Vendors', value: stats?.vendors.total ?? 0, icon: Truck, sub: `${stats?.vendors.pending ?? 0} pending review` },
-    { label: 'Runner Nodes', value: stats?.runners.total ?? 0, icon: Server, sub: `${stats?.runners.online ?? 0} online` },
-    { label: 'Active Runtimes', value: stats?.runtimes.running ?? 0, icon: Container, sub: `${stats?.runtimes.total ?? 0} total` },
+    { label: 'Total Users', value: stats?.total_users ?? 0, icon: Users, sub: `${stats?.active_users ?? 0} active` },
+    { label: 'Total Tenants', value: stats?.total_tenants ?? 0, icon: Building2, sub: `${stats?.active_tenants ?? 0} active` },
+    { label: 'Delivery Vendors', value: stats?.total_vendors ?? 0, icon: Truck, sub: `${stats?.pending_vendors ?? 0} pending` },
+    { label: 'Monthly Revenue', value: `₵${(stats?.monthly_revenue ?? 0).toFixed(0)}`, icon: CreditCard, sub: `Total: ₵${(stats?.total_revenue ?? 0).toFixed(0)}` },
   ]
 
   return (
@@ -108,6 +133,103 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* System Health & Alerts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Server className="h-5 w-5" /> System Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {health ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">CPU Usage</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          health.cpu_usage > 80 ? 'bg-red-500' : 
+                          health.cpu_usage > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${health.cpu_usage}%` }}
+                      />
+                    </div>
+                    <span className="text-sm">{health.cpu_usage.toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Memory Usage</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full ${
+                          health.memory_usage > 85 ? 'bg-red-500' : 
+                          health.memory_usage > 70 ? 'bg-yellow-500' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${health.memory_usage}%` }}
+                      />
+                    </div>
+                    <span className="text-sm">{health.memory_usage.toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Database</span>
+                  <Badge variant={health.database_status === 'healthy' ? 'default' : 'destructive'}>
+                    {health.database_status}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">API Status</span>
+                  <Badge variant={health.api_status === 'healthy' ? 'default' : 'destructive'}>
+                    {health.api_status}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Uptime</span>
+                  <span className="text-sm text-muted-foreground">{health.uptime}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Loading health data...</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <TrendingUp className="h-5 w-5" /> System Alerts
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {alerts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No active alerts</p>
+            ) : (
+              <div className="space-y-3">
+                {alerts.slice(0, 5).map((alert) => (
+                  <div key={alert.id} className="flex items-start gap-3 rounded-lg border p-3">
+                    <div className={`w-2 h-2 rounded-full mt-2 ${
+                      alert.severity === 'critical' ? 'bg-red-500' :
+                      alert.severity === 'high' ? 'bg-orange-500' :
+                      alert.severity === 'medium' ? 'bg-yellow-500' : 'bg-blue-500'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm">{alert.title}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{alert.message}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {new Date(alert.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent tenants & pending vendors */}

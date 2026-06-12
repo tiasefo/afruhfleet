@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -23,11 +25,64 @@ import {
   Plus,
   Minus,
   Zap,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
 } from 'lucide-react'
 
+interface Plan {
+  code: string
+  name: string
+  currency: string
+  price_amount: number
+  monthly_credit_allowance: number
+  includes_custom_domain: boolean
+  includes_priority_support: boolean
+  included_features: string[]
+}
+
+interface Subscription {
+  tenant_id: string
+  plan_code: string
+  status: string
+  currency: string
+  started_at: string
+  current_period_end: string
+  trial_ends_at?: string
+  read_only_reason?: string
+}
+
+interface Wallet {
+  tenant_id: string
+  balance_credits: number
+  currency: string
+  last_updated: string
+}
+
+interface WalletTransaction {
+  id: string
+  tenant_id: string
+  transaction_type: string
+  amount: number
+  currency: string
+  memo: string
+  created_at: string
+}
+
 export default function BillingPage() {
-  const [plans, setPlans] = useState<any[]>([])
+  const [plans, setPlans] = useState<Plan[]>([])
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [wallets, setWallets] = useState<Wallet[]>([])
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [creditDialogOpen, setCreditDialogOpen] = useState(false)
+  const [selectedTenant, setSelectedTenant] = useState('')
+  const [creditAmount, setCreditAmount] = useState('')
+  const [creditMemo, setCreditMemo] = useState('')
   const [walletTenantId, setWalletTenantId] = useState('')
   const [wallet, setWallet] = useState<any | null>(null)
   const [walletLoading, setWalletLoading] = useState(false)
@@ -44,10 +99,11 @@ export default function BillingPage() {
   useEffect(() => {
     async function loadPlans() {
       try {
-        const data = await api.get('/admin/billing/plans')
-        setPlans(Array.isArray(data) ? data : (data.items || []))
+        // Load plans from control plane API
+        const data = await api.get('/api/v1/billing/plans')
+        setPlans(Array.isArray(data) ? data : [])
       } catch (e: any) {
-        toast.error(e.message)
+        toast.error('Failed to load plans: ' + (e.message || 'Unknown error'))
       } finally {
         setLoading(false)
       }
@@ -62,14 +118,14 @@ export default function BillingPage() {
     setSubscription(null)
     try {
       const [w, s] = await Promise.allSettled([
-        api.get(`/admin/billing/wallets/${walletTenantId}`),
-        api.get(`/admin/billing/subscriptions/${walletTenantId}`),
+        api.get(`/api/v1/billing/wallets/${walletTenantId}`),
+        api.get(`/api/v1/billing/subscriptions/${walletTenantId}`),
       ])
       if (w.status === 'fulfilled') setWallet(w.value)
       else toast.error('Wallet not found')
       if (s.status === 'fulfilled') setSubscription(s.value)
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to lookup wallet: ' + (e.message || 'Unknown error'))
     } finally {
       setWalletLoading(false)
     }
@@ -78,18 +134,18 @@ export default function BillingPage() {
   const handleAdjust = async () => {
     setAdjusting(true)
     try {
-      await api.post('/admin/billing/adjust-credits', {
+      await api.post('/api/v1/billing/admin/adjust-credits', {
         tenant_id: walletTenantId,
         amount: parseFloat(adjustAmount),
         reason: adjustReason,
       })
-      toast.success('Credits adjusted')
+      toast.success('Credits adjusted successfully')
       setAdjustOpen(false)
       setAdjustAmount('')
       setAdjustReason('')
       lookupWallet()
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to adjust credits: ' + (e.message || 'Unknown error'))
     } finally {
       setAdjusting(false)
     }
@@ -98,16 +154,16 @@ export default function BillingPage() {
   const handleAssignPlan = async () => {
     setAssigning(true)
     try {
-      await api.post('/admin/billing/assign-plan', {
+      await api.post('/api/v1/billing/admin/assign-plan', {
         tenant_id: assignTenantId,
-        plan_id: assignPlanId,
+        plan_code: assignPlanId,
       })
-      toast.success('Plan assigned')
+      toast.success('Plan assigned successfully')
       setAssignOpen(false)
       setAssignTenantId('')
       setAssignPlanId('')
     } catch (e: any) {
-      toast.error(e.message)
+      toast.error('Failed to assign plan: ' + (e.message || 'Unknown error'))
     } finally {
       setAssigning(false)
     }

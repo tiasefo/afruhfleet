@@ -11,11 +11,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from admin_app.api.routes.auth import router as auth_router
 from admin_app.api.routes.tenants import router as tenants_router
 from admin_app.api.routes.billing import router as billing_router
-from admin_app.api.routes.runners import router as runners_router
+from admin_app.api.routes.runners_local import router as runners_router
 from admin_app.api.routes.runtime import router as runtime_router
 from admin_app.api.routes.domains import router as domains_router
 from admin_app.api.routes.vendors import router as vendors_router
 from admin_app.api.routes.analytics import router as analytics_router
+from admin_app.api.routes.dashboard_local import router as dashboard_router
 from admin_app.api.routes.tickets import router as tickets_router
 from admin_app.api.routes.tracking import router as tracking_router
 from admin_app.core.config import admin_settings
@@ -52,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router, prefix="/admin")
+app.include_router(dashboard_router, prefix="/admin")
 app.include_router(tenants_router, prefix="/admin")
 app.include_router(billing_router, prefix="/admin")
 app.include_router(runners_router, prefix="/admin")

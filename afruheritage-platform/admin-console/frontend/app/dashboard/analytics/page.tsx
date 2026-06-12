@@ -24,10 +24,11 @@ export default function AnalyticsDashboardPage() {
   const loadSummary = async () => {
     setLoading(true)
     try {
-      const data = await api.get<AnalyticsSummary>("/admin/analytics/summary")
+      // Load analytics from dashboard API
+      const data = await api.get<AnalyticsSummary>("/admin/dashboard/stats")
       setSummary(data)
     } catch (e: any) {
-      toast.error(e.message || "Failed to load analytics")
+      toast.error("Failed to load analytics: " + (e.message || "Unknown error"))
     } finally {
       setLoading(false)
     }
