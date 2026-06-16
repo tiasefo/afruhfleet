@@ -78,7 +78,28 @@ def login(request: Request, payload: LoginRequest, db: Session=Depends(get_db)) 
         ensure_user_tenant_context(db, user)
 
     security_logger.log_login_attempt(email=user.email, success=True, ip_address=ip_address, user_agent=user_agent)
-    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+
+    # Determine if subscription/plan selection is still required
+    requires_sub = False
+    subdomain = None
+    portal_url = None
+    if user.tenant_id and not user.is_superuser:
+        from app.models.tenant import Tenant, LaunchStatus
+        tenant = db.scalar(select(Tenant).where(Tenant.id == user.tenant_id))
+        if tenant:
+            if tenant.launch_status in (LaunchStatus.draft, LaunchStatus.pending_verification):
+                requires_sub = True
+            if tenant.slug:
+                subdomain = tenant.slug
+                portal_url = f"https://{tenant.slug}.afruheritage.com"
+
+    return TokenResponse(
+        access_token=create_access_token(str(user.id)),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+        subdomain=subdomain,
+        portal_url=portal_url,
+        requires_subscription=requires_sub,
+    )
 
 @router.get('/me')
 def me(current_user: User=Depends(get_current_user_no_tenant_check)) -> dict[str, str | bool | None]:

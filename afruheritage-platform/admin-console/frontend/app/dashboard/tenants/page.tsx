@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -23,6 +24,10 @@ import {
   CheckCircle2,
   Rocket,
   RefreshCw,
+  Eye,
+  ShoppingBag,
+  Truck,
+  ExternalLink,
 } from 'lucide-react'
 
 export default function TenantsPage() {
@@ -126,6 +131,47 @@ export default function TenantsPage() {
     }
   }
 
+  const handleSuspend = async (id: string) => {
+    try {
+      await api.post(`/admin/tenants/${id}/suspend`, {})
+      toast.success('Tenant suspended')
+      load()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
+
+  const handleActivate = async (id: string) => {
+    try {
+      await api.post(`/admin/tenants/${id}/activate`, {})
+      toast.success('Tenant activated')
+      load()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this tenant? This cannot be undone.')) return
+    try {
+      await api.delete(`/admin/tenants/${id}`)
+      toast.success('Tenant deleted')
+      load()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
+
+  const handleProvision = async (id: string) => {
+    try {
+      await api.post(`/admin/tenants/${id}/provision`, {})
+      toast.success('Fleetbase org provisioned')
+      load()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
+
   const filtered = tenants.filter((t) => {
     if (!search) return true
     const s = search.toLowerCase()
@@ -223,18 +269,48 @@ export default function TenantsPage() {
                     <div className="text-sm text-muted-foreground">{t.subdomain} &middot; {t.contact_email || t.email}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={statusColor(t.status)}>{t.status}</Badge>
-                  {t.status === 'pending' && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Badge className={statusColor(t.status || t.launch_status)}>{t.status || t.launch_status}</Badge>
+                  {t.fleetbase_org_id && (
+                    <span className="text-xs text-muted-foreground">FB: {t.fleetbase_org_id.slice(0, 8)}...</span>
+                  )}
+                  {t.plan_code && (
+                    <span className="text-xs text-muted-foreground">Plan: {t.plan_code}</span>
+                  )}
+                  {(t.status || t.launch_status) === 'draft' && (
                     <Button size="sm" variant="outline" onClick={() => handleApprove(t.id)}>
                       <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approve
                     </Button>
                   )}
-                  {t.status === 'approved' && (
+                  {(t.status || t.launch_status) === 'approved' && (
                     <Button size="sm" onClick={() => handleLaunch(t.id)}>
                       <Rocket className="mr-1 h-3.5 w-3.5" /> Launch
                     </Button>
                   )}
+                  {(t.status || t.launch_status) === 'active' && (
+                    <Button size="sm" variant="outline" onClick={() => handleSuspend(t.id)}>
+                      Suspend
+                    </Button>
+                  )}
+                  {(t.status || t.launch_status) === 'suspended' && (
+                    <Button size="sm" variant="outline" onClick={() => handleActivate(t.id)}>
+                      Activate
+                    </Button>
+                  )}
+                  {!(t.fleetbase_org_id) && (t.status || t.launch_status) === 'approved' && (
+                    <Button size="sm" variant="secondary" onClick={() => handleProvision(t.id)}>
+                      Provision Fleetbase
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => window.open(`/store/${t.subdomain || t.slug}`, '_blank')}>
+                    <ExternalLink className="mr-1 h-3.5 w-3.5" /> Storefront
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/tenants/${t.id}`)}>
+                    <Eye className="mr-1 h-3.5 w-3.5" /> Preview
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-red-600" onClick={() => handleDelete(t.id)}>
+                    Delete
+                  </Button>
                 </div>
               </CardContent>
             </Card>

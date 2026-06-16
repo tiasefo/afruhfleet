@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Afruheritage',
@@ -84,7 +83,6 @@ export default function TermsOfServicePage() {
         </article>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

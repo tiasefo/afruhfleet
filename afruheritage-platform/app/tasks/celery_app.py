@@ -18,6 +18,7 @@ celery_app.conf.imports = (
     'app.tasks.domain_verification',
     'app.tasks.tracking_monitor',
     'app.tasks.booking_reassignment',
+    'app.tasks.subscription_checks',
 )
 celery_app.conf.beat_schedule = {
     'tracking-stale-monitor': {
@@ -27,5 +28,9 @@ celery_app.conf.beat_schedule = {
     'booking-offer-reassignment-monitor': {
         'task': 'app.tasks.booking_reassignment.reassign_expired_offers',
         'schedule': crontab(minute=f'*/{max(1, settings.booking_reassignment_check_interval_minutes)}'),
+    },
+    'subscription-expiry-check': {
+        'task': 'app.tasks.subscription_checks.check_expiring_subscriptions',
+        'schedule': crontab(hour='3', minute='0'),  # Daily at 3 AM UTC
     },
 }

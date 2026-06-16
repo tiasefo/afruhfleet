@@ -21,7 +21,10 @@ import {
   ArrowRight, 
   Loader2,
   DollarSign,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  Pause,
+  XCircle,
 } from 'lucide-react'
 
 const planFeatures: Record<string, string[]> = {
@@ -73,6 +76,13 @@ export default function BillingPage() {
   const [selectedPlan, setSelectedPlan] = useState('')
   const [selectedProvider, setSelectedProvider] = useState('paystack')
   const [isProcessing, setIsProcessing] = useState(false)
+
+  // Danger zone state
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
+  const [showPauseDialog, setShowPauseDialog] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [dangerActionLoading, setDangerActionLoading] = useState(false)
+  const [dangerError, setDangerError] = useState('')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -175,6 +185,63 @@ export default function BillingPage() {
     } finally {
       setIsProcessing(false)
     }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (confirmText !== 'CONFIRM') {
+      setDangerError('Please type CONFIRM to proceed')
+      return
+    }
+    setDangerActionLoading(true)
+    setDangerError('')
+    try {
+      const tenantId = resolveTenantId() || ''
+      await billingApi.cancelSubscription(tenantId, 'Customer requested cancellation via dashboard')
+      await loadBillingData()
+      setShowCancelDialog(false)
+      setConfirmText('')
+    } catch (error: any) {
+      setDangerError(error?.response?.data?.detail || 'Failed to cancel subscription')
+    } finally {
+      setDangerActionLoading(false)
+    }
+  }
+
+  const handlePauseSubscription = async () => {
+    if (confirmText !== 'CONFIRM') {
+      setDangerError('Please type CONFIRM to proceed')
+      return
+    }
+    setDangerActionLoading(true)
+    setDangerError('')
+    try {
+      const tenantId = resolveTenantId() || ''
+      await billingApi.pauseSubscription(tenantId, 'Customer requested pause via dashboard')
+      await loadBillingData()
+      setShowPauseDialog(false)
+      setConfirmText('')
+    } catch (error: any) {
+      setDangerError(error?.response?.data?.detail || 'Failed to pause subscription')
+    } finally {
+      setDangerActionLoading(false)
+    }
+  }
+
+  const openCancelDialog = () => {
+    setConfirmText('')
+    setDangerError('')
+    setShowCancelDialog(true)
+  }
+
+  const openPauseDialog = () => {
+    setConfirmText('')
+    setDangerError('')
+    setShowPauseDialog(true)
+  }
+
+  const resetDangerDialog = () => {
+    setConfirmText('')
+    setDangerError('')
   }
 
   if (isLoading) {
@@ -498,6 +565,40 @@ export default function BillingPage() {
           </Card>
         </div>
       
+        {/* Danger Zone */}
+        <div className="mt-8">
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="flex items-center text-red-600">
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                Danger Zone
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">Pause Subscription</h4>
+                  <p className="text-sm text-gray-600">Temporarily suspend your service. You can resume anytime.</p>
+                </div>
+                <Button variant="outline" onClick={openPauseDialog}>
+                  <Pause className="w-4 h-4 mr-2" />
+                  Pause
+                </Button>
+              </div>
+              <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
+                <div>
+                  <h4 className="font-medium text-red-700">Cancel Subscription</h4>
+                  <p className="text-sm text-gray-600">Permanently cancel your subscription and deactivate your store.</p>
+                </div>
+                <Button variant="destructive" onClick={openCancelDialog}>
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      
       {/* Transaction History Modal */}
       <Dialog open={showTransactionsModal} onOpenChange={setShowTransactionsModal}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -542,6 +643,108 @@ export default function BillingPage() {
                 </p>
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={(open) => { if (!open) resetDangerDialog(); setShowCancelDialog(open) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Cancel Subscription
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-700 font-medium">This action cannot be undone.</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Cancelling will immediately downgrade your account to read-only mode. Your data will be retained for 30 days, then permanently deleted.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Type <code className="bg-gray-100 px-1 rounded">CONFIRM</code> to proceed
+              </label>
+              <Input
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="CONFIRM"
+                className="mt-1"
+              />
+            </div>
+            {dangerError && (
+              <p className="text-sm text-red-600">{dangerError}</p>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="destructive"
+                onClick={handleCancelSubscription}
+                disabled={dangerActionLoading}
+                className="flex-1"
+              >
+                {dangerActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Yes, Cancel Subscription'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { resetDangerDialog(); setShowCancelDialog(false) }}
+                className="flex-1"
+              >
+                Keep My Subscription
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Pause Confirmation Dialog */}
+      <Dialog open={showPauseDialog} onOpenChange={(open) => { if (!open) resetDangerDialog(); setShowPauseDialog(open) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pause className="w-5 h-5" />
+              Pause Subscription
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <p className="text-sm text-yellow-800 font-medium">Your store will be temporarily unavailable.</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Pausing stops billing and puts your store in maintenance mode. You can resume anytime from this billing page.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Type <code className="bg-gray-100 px-1 rounded">CONFIRM</code> to proceed
+              </label>
+              <Input
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="CONFIRM"
+                className="mt-1"
+              />
+            </div>
+            {dangerError && (
+              <p className="text-sm text-red-600">{dangerError}</p>
+            )}
+            <div className="flex gap-3">
+              <Button
+                variant="default"
+                onClick={handlePauseSubscription}
+                disabled={dangerActionLoading}
+                className="flex-1"
+              >
+                {dangerActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Yes, Pause Subscription'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => { resetDangerDialog(); setShowPauseDialog(false) }}
+                className="flex-1"
+              >
+                Keep Active
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

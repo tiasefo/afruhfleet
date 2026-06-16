@@ -1,132 +1,76 @@
+import Link from 'next/link'
+import { ArrowRight, Globe2, Plane, Ship, Truck } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { Play } from 'lucide-react'
 
-export default function GhanaPage() {
+export default function LocationPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <main className="min-h-screen bg-background">
       <Navigation />
-      
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative h-[60vh] bg-gradient-to-br from-primary/20 to-accent/20">
-          <div className="absolute inset-0 bg-[url('/frontafru.png')] bg-cover bg-center opacity-20" />
-          <div className="relative container mx-auto px-4 py-20 h-full flex items-center">
-            <div className="max-w-3xl">
-              <h1 className="text-5xl font-bold text-foreground mb-4">
-                Ghana
-              </h1>
-              <p className="text-xl text-muted-foreground mb-6">
-                Your Gateway to West African Logistics Excellence
-              </p>
-              <div className="flex gap-4">
-                <button className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition">
-                  Get Started
-                </button>
-                <button className="border border-primary text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/10 transition">
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Video Section */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Experience Our Ghana Operations
-            </h2>
-            <div className="max-w-4xl mx-auto">
-              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                <video 
-                  className="w-full h-full object-cover"
-                  controls
-                  poster="/Artifacts/delivery.png"
-                >
-                  <source src="/Artifacts/27427654-preview.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            </div>
-          </div>
-        </section>
+      <section className="relative overflow-hidden bg-[#063f4f] text-white">
+        <div className="absolute inset-0 z-0 bg-slate-900">
+          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+          </video>
+        </div>
+        <div className="absolute inset-0 bg-[#021f2a]/35" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#021f2a] via-[#063f4f]/35 to-transparent" />
 
-        {/* Features Section */}
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Why Choose Ghana?
-            </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-card p-6 rounded-lg border">
-                <h3 className="text-xl font-semibold text-foreground mb-3">Strategic Location</h3>
-                <p className="text-muted-foreground">
-                  Located at the heart of West Africa, serving as a key logistics hub for the region.
-                </p>
-              </div>
-              <div className="bg-card p-6 rounded-lg border">
-                <h3 className="text-xl font-semibold text-foreground mb-3">Modern Infrastructure</h3>
-                <p className="text-muted-foreground">
-                  State-of-the-art facilities at Tema Port and Kotoka International Airport.
-                </p>
-              </div>
-              <div className="bg-card p-6 rounded-lg border">
-                <h3 className="text-xl font-semibold text-foreground mb-3">Expert Team</h3>
-                <p className="text-muted-foreground">
-                  Local experts with deep knowledge of Ghana's customs and regulations.
-                </p>
-              </div>
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-28 lg:px-8">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold">
+              <Globe2 className="h-4 w-4" />
+              Airport cargo operations
             </div>
-          </div>
-        </section>
 
-        {/* Additional Videos */}
-        <section className="py-16 bg-background">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
-              Our Operations in Action
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                <video 
-                  className="w-full h-full object-cover"
-                  controls
-                >
-                  <source src="/Artifacts/istockphoto-1473471897-640_adpp_is.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-              <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
-                <video 
-                  className="w-full h-full object-cover"
-                  controls
-                >
-                  <source src="/Artifacts/istockphoto-918314666-640_adpp_is.mp4" type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            </div>
-          </div>
-        </section>
+            <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">
+              AfruHeritage Ghana
+            </h1>
 
-        {/* CTA Section */}
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to Ship to/from Ghana?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Contact our Ghana team today for personalized logistics solutions.
+            <p className="mt-6 max-w-3xl text-lg text-white/85">
+              Ghana gateway for customs, air cargo, ocean freight, and last-mile delivery.
             </p>
-            <button className="bg-primary-foreground text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary-foreground/90 transition">
-              Contact Us
-            </button>
+
+            <p className="mt-4 max-w-3xl text-white/75">
+              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+              freight, port movement, warehousing, and cross-border trade.
+            </p>
+
+            <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              <Link href="/customs" className="inline-flex items-center justify-center rounded-lg bg-white px-6 py-3 font-semibold text-[#063f4f]">
+                Customs & Duty Services
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+
+              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+                WhatsApp Us
+              </Link>
+            </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 py-20 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card icon="ship" title="Ocean Freight" text="Port-to-port and port-to-door freight support." />
+          <Card icon="plane" title="Air Cargo" text="Fast cargo movement and import/export coordination." />
+          <Card icon="truck" title="Fleet Delivery" text="Last-mile delivery, trucking, and distribution support." />
+        </div>
+      </section>
 
       <Footer />
+    </main>
+  )
+}
+
+function Card({ icon, title, text }: { icon: 'ship' | 'plane' | 'truck'; title: string; text: string }) {
+  const Icon = icon === 'ship' ? Ship : icon === 'plane' ? Plane : Truck
+  return (
+    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+      <Icon className="h-8 w-8 text-[#063f4f]" />
+      <h2 className="mt-5 text-xl font-bold">{title}</h2>
+      <p className="mt-3 text-muted-foreground">{text}</p>
     </div>
   )
 }

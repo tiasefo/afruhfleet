@@ -109,6 +109,8 @@ def _to_response(b) -> BrandingResponse:
         csv_import_enabled=b.csv_import_enabled,
         group_members_enabled=b.group_members_enabled,
         max_group_members=b.max_group_members,
+        template_code=b.template_code,
+        storefront_config=b.storefront_config,
         created_at=b.created_at,
         updated_at=b.updated_at,
     )
@@ -143,6 +145,8 @@ def _default_response(tenant_id: str) -> BrandingResponse:
         csv_import_enabled=True,
         group_members_enabled=True,
         max_group_members=50,
+        template_code=None,
+        storefront_config=None,
         created_at=now,
         updated_at=now,
     )

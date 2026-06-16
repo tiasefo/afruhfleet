@@ -1,0 +1,14 @@
+{
+  "app": "dokploy-redis.1.k4iycnpd90eos35it9nhiyzou",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["dokploy-redis.1.k4iycnpd90eos35it9nhiyzou"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "REDIS_VERSION=7.4.9"
+],
+  "volumes": ["\"/mnt/storage/docker-data/volumes/dokploy-redis/_data\""],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

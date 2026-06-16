@@ -13,6 +13,25 @@ class PlanResponse(BaseModel):
     includes_custom_domain: bool
     includes_priority_support: bool
     included_features: list[str] = []
+    # Feature limits
+    max_drivers: int
+    max_vehicles: int
+    max_shipments_per_month: int
+    max_products: int
+    max_group_members: int
+    # Feature flags
+    dispatch_enabled: bool
+    route_planning_enabled: bool
+    service_rates_enabled: bool
+    pod_enabled: bool
+    route_optimization_enabled: bool
+    vrp_enabled: bool
+    webhooks_enabled: bool
+    notifications_enabled: bool
+    extensions_enabled: bool
+    maintenance_enabled: bool
+    fuel_tracking_enabled: bool
+    csv_import_enabled: bool
 
 
 class UsageCreditCostResponse(BaseModel):
@@ -51,7 +70,7 @@ class PaymentInitRequest(BaseModel):
     tenant_id: str
     email: str
     currency: str = Field(..., min_length=3, max_length=10)
-    amount_major: float = Field(..., gt=0)
+    amount_major: float = Field(..., ge=0)
     purpose: str = Field(..., pattern="^(subscription|credit_topup)$")
     plan_code: str | None = None
     credits_to_buy: int | None = None

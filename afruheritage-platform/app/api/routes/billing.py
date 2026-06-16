@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.billing import Payment, PaymentStatus, Plan, Subscription, Wallet, WalletTransaction, WalletTransactionType
 from app.models.user import User
 from app.schemas.billing import BillingAdminAdjustCreditsRequest, BillingAdminAssignPlanRequest, BillingAdminSetReadOnlyRequest, CreditConsumeRequest, PaymentInitRequest, PaymentInitResponse, PaymentReinitRequest, PaymentVerifyResponse, PlanResponse, SubscriptionResponse, UsageCreditCostResponse, WalletResponse, WalletTransactionResponse
-from app.services.billing_service import activate_or_upgrade_subscription, add_wallet_credits_once, admin_adjust_credits, ensure_wallet, get_plans, grant_subscription_allowance, mark_payment_verified, set_payment_initialized, set_subscription_read_only, write_audit_log, consume_wallet_credits, create_payment, create_trial_subscription, evaluate_subscription_state, seed_default_plans, admin_assign_plan as admin_assign_plan_service, get_plan_features, normalize_plan_code, get_feature_credit_costs
+from app.services.billing_service import activate_or_upgrade_subscription, add_wallet_credits_once, admin_adjust_credits, cancel_subscription, ensure_wallet, get_plans, grant_subscription_allowance, mark_payment_verified, pause_subscription, resume_subscription, set_payment_initialized, set_subscription_read_only, write_audit_log, consume_wallet_credits, create_payment, create_trial_subscription, evaluate_subscription_state, seed_default_plans, admin_assign_plan as admin_assign_plan_service, get_plan_features, normalize_plan_code, get_feature_credit_costs
 from app.services.paystack_client import initialize_transaction, verify_transaction
 import app.services.flutterwave_client as _flw
 from app.middleware.rate_limit import rate_limit
@@ -35,6 +35,23 @@ def list_plans(tenant_id: str | None = None, db: Session=Depends(get_db)):
             includes_custom_domain=p.includes_custom_domain,
             includes_priority_support=p.includes_priority_support,
             included_features=get_plan_features(p.code.value),
+            max_drivers=p.max_drivers,
+            max_vehicles=p.max_vehicles,
+            max_shipments_per_month=p.max_shipments_per_month,
+            max_products=p.max_products,
+            max_group_members=p.max_group_members,
+            dispatch_enabled=p.dispatch_enabled,
+            route_planning_enabled=p.route_planning_enabled,
+            service_rates_enabled=p.service_rates_enabled,
+            pod_enabled=p.pod_enabled,
+            route_optimization_enabled=p.route_optimization_enabled,
+            vrp_enabled=p.vrp_enabled,
+            webhooks_enabled=p.webhooks_enabled,
+            notifications_enabled=p.notifications_enabled,
+            extensions_enabled=p.extensions_enabled,
+            maintenance_enabled=p.maintenance_enabled,
+            fuel_tracking_enabled=p.fuel_tracking_enabled,
+            csv_import_enabled=p.csv_import_enabled,
         )
         for p in plans
     ]
@@ -53,6 +70,30 @@ def get_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: 
     sub = evaluate_subscription_state(db, tenant_id)
     if not sub:
         return None
+    return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
+
+@router.post('/subscriptions/{tenant_id}/cancel', response_model=SubscriptionResponse | None)
+def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer requested cancellation"), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    _assert_tenant_access(current_user, tenant_id)
+    sub = cancel_subscription(db, tenant_id, reason)
+    if not sub:
+        raise HTTPException(status_code=404, detail='Subscription not found')
+    return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
+
+@router.post('/subscriptions/{tenant_id}/pause', response_model=SubscriptionResponse | None)
+def post_pause_subscription(tenant_id: str, reason: str = Body("Customer requested pause"), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    _assert_tenant_access(current_user, tenant_id)
+    sub = pause_subscription(db, tenant_id, reason)
+    if not sub:
+        raise HTTPException(status_code=404, detail='Subscription not found')
+    return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
+
+@router.post('/subscriptions/{tenant_id}/resume', response_model=SubscriptionResponse | None)
+def post_resume_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    _assert_tenant_access(current_user, tenant_id)
+    sub = resume_subscription(db, tenant_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail='Subscription not found')
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.get('/wallets/{tenant_id}', response_model=WalletResponse)
@@ -99,8 +140,24 @@ def get_usage_costs(db: Session = Depends(get_db), current_user: User = Depends(
 @router.post('/payments/init', response_model=PaymentInitResponse)
 def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(...), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
     amount_minor = int(round(request.amount_major * 100))
-    effective_tenant_id = current_user.tenant_id if not current_user.is_superuser else request.tenant_id
+    effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
+    if not effective_tenant_id:
+        raise HTTPException(status_code=400, detail='tenant_id is required')
     payment = create_payment(db=db, tenant_id=effective_tenant_id, purpose=request.purpose, currency=request.currency, amount_minor=amount_minor)
+
+    # Free trial with amount=0 — skip payment gateway entirely
+    if request.plan_code == 'free_trial' and amount_minor == 0:
+        payment = mark_payment_verified(db, payment, provider_payload={'status': 'success', 'data': {'status': 'success', 'reference': payment.reference, 'metadata': {'plan_code': 'free_trial', 'tenant_id': str(effective_tenant_id), 'purpose': request.purpose}}})
+        # Auto-trigger subscription + provisioning
+        # Use a fresh session to avoid transaction state issues from previous commits
+        from app.services.auto_provisioning import handle_subscription_payment_success
+        db.rollback()  # Ensure clean transaction before provisioning
+        result = handle_subscription_payment_success(db, tenant_id=str(effective_tenant_id), plan_code='free_trial', currency=request.currency)
+        if not result.get('launched'):
+            import logging
+            logging.getLogger('afruheritage.billing').warning('Auto-provisioning result: %s', result)
+        return PaymentInitResponse(reference=payment.reference, authorization_url='', access_code='', status=payment.status.value)
+
     try:
         provider = (request.payment_provider or "paystack").lower()
         if provider == "flutterwave":
@@ -150,6 +207,13 @@ def verify_payment(tenant_id: str | None = None, reference: str = '', db: Sessio
             plan_code = normalize_plan_code(metadata.get('plan_code') or 'professional').value
             activate_or_upgrade_subscription(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
             grant_subscription_allowance(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency, reference=reference)
+            # Auto-approve and auto-launch tenant after successful subscription payment
+            try:
+                from app.services.auto_provisioning import handle_subscription_payment_success
+                handle_subscription_payment_success(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
+            except Exception as exc:
+                import logging
+                logging.getLogger('afruheritage.billing').warning('Auto-provisioning after payment failed: %s', exc)
         elif purpose == 'credit_topup':
             credits = int(metadata.get('credits_to_buy') or 0)
             if credits > 0:

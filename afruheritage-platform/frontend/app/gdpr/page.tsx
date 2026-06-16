@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export const metadata: Metadata = {
   title: 'GDPR Notice | Afruheritage',
@@ -63,7 +62,6 @@ export default function GDPRNoticePage() {
         </article>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

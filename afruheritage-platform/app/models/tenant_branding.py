@@ -4,7 +4,7 @@ from app.core.config import settings
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, String, Text
+from sqlalchemy import Boolean, DateTime, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -48,6 +48,8 @@ class TenantBranding(Base):
     csv_import_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     group_members_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     max_group_members: Mapped[int] = mapped_column(nullable=False, default=5000)
+    template_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    storefront_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

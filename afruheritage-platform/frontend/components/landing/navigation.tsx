@@ -17,17 +17,17 @@ import { useAuth } from '@/lib/auth'
 const navLinks = [
   {
     label: 'Solutions',
-    href: '/solutions',
+    href: '/customs',
     submenu: [
       { label: 'Shipment Tracking', href: '/track' },
-      { label: 'Freight Management', href: '/solutions/freight-management' },
-      { label: 'Customs Clearance', href: '/solutions/customs-clearance' },
-      { label: 'Warehouse Services', href: '/solutions/warehouse-services' },
+      { label: 'Freight Management', href: '/fleetbase/console' },
+      { label: 'Customs Clearance', href: '/customs' },
+      { label: 'Duty Calculator', href: '/customs/duty-calculator' },
     ]
   },
   {
     label: 'Locations',
-    href: '/locations',
+    href: '/locations/ghana',
     submenu: [
       { label: 'Ghana', href: '/locations/ghana' },
       { label: 'Kenya', href: '/locations/kenya' },
@@ -39,16 +39,15 @@ const navLinks = [
   },
   {
     label: 'Platform',
-    href: '/platform',
+    href: '/dashboard',
     submenu: [
-      { label: 'AI Assistant', href: '/platform/ai-assistant' },
+      { label: 'Dashboard', href: '/dashboard' },
       { label: 'Real-time Tracking', href: '/track' },
-      { label: 'Document Management', href: '/platform/document-management' },
-      { label: 'API Integration', href: '/platform/api-integration' },
+      { label: 'Documentation', href: '/docs' },
+      { label: 'Fleet Console', href: '/fleetbase/console' },
     ]
   },
   { label: 'For Vendors', href: '/vendors' },
-  { label: 'About Us', href: '/about' },
   { label: 'Support', href: '/support' },
   { label: 'Pricing', href: '/pricing' },
 ]
@@ -133,7 +132,7 @@ export function Navigation() {
           )}
           {user && !user.is_superuser && (
             <Button asChild>
-              <Link href="/customer">Customer Dashboard</Link>
+              <Link href="/dashboard">Customer Dashboard</Link>
             </Button>
           )}
           {user && (

@@ -105,10 +105,16 @@ export const api = {
 
 export function setToken(token: string) {
   localStorage.setItem('auth_token', token)
+  if (typeof document !== 'undefined') {
+    document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`
+  }
 }
 
 export function clearToken() {
   localStorage.removeItem('auth_token')
+  if (typeof document !== 'undefined') {
+    document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax`
+  }
 }
 
 export function getToken(): string | null {
@@ -211,6 +217,15 @@ export const billingApi = {
 
   startTrial: (tenantId: string) =>
     api.post(`/billing/subscriptions/trial/${tenantId}`, {}),
+
+  cancelSubscription: (tenantId: string, reason?: string) =>
+    api.post(`/billing/subscriptions/${tenantId}/cancel`, { reason: reason || 'Customer requested cancellation' }),
+
+  pauseSubscription: (tenantId: string, reason?: string) =>
+    api.post(`/billing/subscriptions/${tenantId}/pause`, { reason: reason || 'Customer requested pause' }),
+
+  resumeSubscription: (tenantId: string) =>
+    api.post(`/billing/subscriptions/${tenantId}/resume`, {}),
 
   initPayment: (data: {
     tenant_id: string

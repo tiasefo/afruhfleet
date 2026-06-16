@@ -23,10 +23,13 @@ import {
   Globe,
   Shield,
   Truck,
+  Calculator,
+  ExternalLink,
+  UserCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { AIChatWidget } from '@/components/ai-chat-widget'
+import { FAQChatWidget } from "@/components/faq-chat-widget"
 
 // Routes where the AppShell should NOT render
 const PUBLIC_ROUTES = [
@@ -60,15 +63,19 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'Products', href: '/products', icon: ShoppingBag },
   { label: 'Shipments', href: '/shipments', icon: Package },
   { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
   { label: 'CRM', href: '/crm', icon: BarChart3 },
+  { label: 'Customs Duty', href: '/customs/duty-calculator', icon: Calculator },
   { label: 'Team Members', href: '/members', icon: Users },
   { label: 'KYC', href: '/kyc', icon: BadgeCheck },
-  { label: 'Support', href: '/support', icon: HelpCircle },
+  { label: 'Support', href: '/support/dashboard', icon: HelpCircle },
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Storefront', href: '/storefront', icon: ShoppingBag },
   { label: 'Vendors', href: '/vendors', icon: Truck },
+  { label: 'Profile', href: '/profile', icon: UserCircle },
 ]
 
 const ADMIN_ITEMS: NavItem[] = [
@@ -170,6 +177,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             onClick={onLinkClick}
           />
         ))}
+
+        {(() => {
+          const subdomain = typeof window !== 'undefined' ? localStorage.getItem('tenant_subdomain') : null
+          return subdomain ? (
+            <>
+              <div className="my-2 border-t" />
+              <a
+                href={`/store/${subdomain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onLinkClick}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4 shrink-0" />
+                <span>View My Store</span>
+              </a>
+            </>
+          ) : null
+        })()}
 
         {adminItems.length > 0 && (
           <>
@@ -273,7 +299,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       {/* AI Chat Widget */}
-      <AIChatWidget />
+      <FAQChatWidget />
     </div>
   )
 }

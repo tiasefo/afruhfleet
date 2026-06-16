@@ -1,0 +1,20 @@
+{
+  "app": "fleetbase-httpd-1",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["fleetbase-httpd-1"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "NGINX_VERSION=1.30.2",
+  "PKG_RELEASE=1",
+  "DYNPKG_RELEASE=1",
+  "NJS_VERSION=0.9.9",
+  "NJS_RELEASE=1",
+  "ACME_VERSION=0.4.1",
+  "NGINX_APPLICATION_HOSTNAME=application"
+],
+  "volumes": [],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

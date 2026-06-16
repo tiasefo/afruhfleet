@@ -23,7 +23,6 @@ import {
 
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -725,7 +724,6 @@ function DocumentationPageContent() {
       </main>
 
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

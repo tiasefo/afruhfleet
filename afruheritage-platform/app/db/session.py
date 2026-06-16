@@ -28,6 +28,10 @@ class Base(DeclarativeBase):
 def get_db():
     db = SessionLocal()
     try:
+        db.rollback()  # Ensure clean transaction state (connection pool may have aborted tx)
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

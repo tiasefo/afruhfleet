@@ -93,10 +93,16 @@ export const api = {
 
 export function setToken(token: string) {
   localStorage.setItem('auth_token', token)
+  if (typeof document !== 'undefined') {
+    document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`
+  }
 }
 
 export function clearToken() {
   localStorage.removeItem('auth_token')
+  if (typeof document !== 'undefined') {
+    document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax`
+  }
 }
 
 export function getToken(): string | null {
@@ -403,11 +409,33 @@ export const domainsAPI = {
 
 export const supportAPI = {
   createTicket: (data: any) => api.post('/support-crm/public/tickets', data),
-  
+
   getTicket: (token: string) => api.get(`/support-crm/public/tickets/${token}`),
-  
-  replyTicket: (token: string, message: string) => 
+
+  replyTicket: (token: string, message: string) =>
     api.post(`/support-crm/public/tickets/${token}/reply`, { message }),
+
+  // Tenant-scoped ticket management
+  listTickets: (params?: { status?: string; q?: string; page?: number; page_size?: number }) => {
+    const tenantId = requireTenantId()
+    const qs = params ? '?' + new URLSearchParams({ tenant_id: tenantId, ...params as any }).toString() : `?tenant_id=${tenantId}`
+    return api.get(`/support-crm/tickets${qs}`)
+  },
+
+  getTicketMessages: (ticketId: string) => {
+    const tenantId = requireTenantId()
+    return api.get(`/support-crm/tickets/${ticketId}/messages?tenant_id=${tenantId}`)
+  },
+
+  replyToTicket: (ticketId: string, body: string) => {
+    const tenantId = requireTenantId()
+    return api.post(`/support-crm/tickets/${ticketId}/reply?tenant_id=${tenantId}`, { body, author_type: 'staff', visible_to_public: true })
+  },
+
+  updateTicketStatus: (ticketId: string, status: string) => {
+    const tenantId = requireTenantId()
+    return api.patch(`/support-crm/tickets/${ticketId}/status?tenant_id=${tenantId}&status=${status}`)
+  },
 }
 
 export const aiAPI = {
@@ -565,6 +593,46 @@ export const usersApi = {
     api.patch(`/users/${userId}/status?tenant_id=${tenantId}`, { is_active }),
   resendInvite: (userId: string, tenantId: string) =>
     api.post(`/users/${userId}/resend-invite?tenant_id=${tenantId}`, {}),
+}
+
+export const productsApi = {
+  list: () => api.get('/products'),
+  create: (data: any) => api.post('/products', data),
+  update: (productId: string, data: any) => api.patch(`/products/${productId}`, data),
+  delete: (productId: string) => api.delete(`/products/${productId}`),
+  listCategories: () => api.get('/products/categories'),
+  createCategory: (data: any) => api.post('/products/categories', data),
+}
+
+export const publicStorefrontApi = {
+  products: (tenantSlug: string, params?: { featured_only?: boolean }) => {
+    const q = params ? `?featured_only=${params.featured_only ?? false}` : ''
+    return api.get(`/products/public/${tenantSlug}${q}`)
+  },
+}
+
+export const fleetbaseTenantApi = {
+  listDrivers: () => api.get('/fleetbase-tenant/drivers'),
+  createDriver: (data: any) => api.post('/fleetbase-tenant/drivers', data),
+  listVehicles: () => api.get('/fleetbase-tenant/vehicles'),
+  createVehicle: (data: any) => api.post('/fleetbase-tenant/vehicles', data),
+  listOrders: () => api.get('/fleetbase-tenant/orders'),
+  createOrder: (data: any) => api.post('/fleetbase-tenant/orders', data),
+  listTracking: () => api.get('/fleetbase-tenant/tracking'),
+  listFleets: () => api.get('/fleetbase-tenant/fleets'),
+  proxy: (path: string, method?: string, body?: any) => {
+    const m = method || 'GET'
+    if (m === 'GET') return api.get(`/fleetbase-tenant/proxy/${path}`)
+    if (m === 'POST') return api.post(`/fleetbase-tenant/proxy/${path}`, body)
+    if (m === 'PATCH') return api.patch(`/fleetbase-tenant/proxy/${path}`, body)
+    if (m === 'DELETE') return api.delete(`/fleetbase-tenant/proxy/${path}`)
+    return api.get(`/fleetbase-tenant/proxy/${path}`)
+  },
+}
+
+export const navigatorApi = {
+  getDrivers: (tenantId: string) => api.get(`/navigator/${tenantId}/drivers`),
+  getTracking: (tenantId: string) => api.get(`/navigator/${tenantId}/tracking`),
 }
 
 // Fleetbase-backed logistics API

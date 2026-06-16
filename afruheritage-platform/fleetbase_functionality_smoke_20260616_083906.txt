@@ -1,0 +1,294 @@
+
+============================================================
+FLEETBASE FUNCTIONALITY SMOKE TEST
+============================================================
+DATE: Tue Jun 16 08:39:06 AM UTC 2026
+API=http://127.0.0.1:8100
+WEB=http://127.0.0.1:3002
+
+============================================================
+1. FRONTEND PAGE SMOKE
+============================================================
+---- /fleetbase/console ----
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+---- /fleetbase/console-gate ----
+HTTP/1.1 307 Temporary Redirect
+location: /login?next=/fleetbase/console
+Content-Type: text/html; charset=utf-8
+---- /fleetbase/live-map ----
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+---- /fleetbase/drivers ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /fleetbase/vehicles ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /fleetbase/fleets ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /shipments ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /shipments/new ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /vendors ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /marketplace ----
+HTTP/1.1 307 Temporary Redirect
+location: /register
+---- /track ----
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+
+============================================================
+2. API ROUTE SMOKE - FLEETBASE PROXY
+============================================================
+---- GET /api/v1/fleetbase-proxy/console-url ----
+{"url":"https://fleet.afruheritage.com"}
+HTTP_STATUS:200
+---- GET /api/v1/fleetbase-proxy/drivers ----
+{"drivers":[{"id":1,"uuid":"0d179d10-e70c-4adb-8130-ebab57f62ac7","user_uuid":"8b664c71-2a2e-4703-8ebc-e8a82511bce0","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","vehicle_uuid":null,"vendor_uuid":null,"current_job_uuid":null,"public_id":"driver_daCKuVP4kW","user":{"id":null,"uuid":"8b664c71-2a2e-4703-8ebc-e8a82511bce0","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","public_id":"user_8gbNJfTRj2","name":"Kwame GPS Driver","username":null,"email":"kwame.gps.driver@example.com","phone":"+233244000101","country":null,"timezone":null,"avatar_url":"https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png","meta":{},"role":{"id":"ae574641-d963-4fda-b807-fdbcd9488a31","company_uuid":null,"name":"Driver","guard_name":"sanctum","description":"Role for drivers with the necessary access to manage their daily tasks, including order management, and vehicle assignment.","policies":[{"id":"3d651eac-fe7e-47ab-933f-56e0672677d6","company_uuid":null,"name":"DriverOperations","guard_name":"sanctum","description":"Policy for drivers to manage their assigned tasks and access necessary information.","permissions":[{"id":"09a27674-68eb-4472-8206-495d3ed6f7bb","name":"fleet-ops view entity","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:07:10.000000Z","created_at":"2026-06-03T07:07:10.000000Z"},{"id":"0b4dd90e-3b2f-4e1b-a01f-4f294a5232cc","name":"fleet-ops list service-rate","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:10.000000Z","created_at":"2026-06-03T07:06:10.000000Z"},{"id":"1e8652af-5b5f-4425-b117-030043548d24","name":"fleet-ops list order","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:54.000000Z","created_at":"2026-06-03T07:05:54.000000Z"},{"id":"323a6b1b-5b2f-494d-b62f-2db2ca46e68b","name":"fleet-ops see driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:22.000000Z","created_at":"2026-06-03T07:06:22.000000Z"},{"id":"3c145399-d84b-4583-b64d-7a5883a6365c","name":"fleet-ops see entity","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:07:11.000000Z","created_at":"2026-06-03T07:07:11.000000Z"},{"id":"5d30a848-a887-40f0-8940-254a3e0a2c31","name":"fleet-ops update-route-for order","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:59.000000Z","created_at":"2026-06-03T07:05:59.000000Z"},{"id":"620f6c9e-46b3-40d3-8d7c-48ec6ec77968","name":"fleet-ops see extension","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:50.000000Z","created_at":"2026-06-03T07:05:50.000000Z"},{"id":"6426c531-cfa7-43f4-aa4a-ac574f810286","name":"fleet-ops list entity","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:07:11.000000Z","created_at":"2026-06-03T07:07:11.000000Z"},{"id":"64d2a9db-7dc5-4840-aa5f-f6df454a2da0","name":"fleet-ops view fleet","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:33.000000Z","created_at":"2026-06-03T07:06:33.000000Z"},{"id":"738d2d7f-6fe5-485f-9c29-92e241232869","name":"fleet-ops update-user-for driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:26.000000Z","created_at":"2026-06-03T07:06:26.000000Z"},{"id":"78fae742-ad3d-499f-9cbb-b7c07a6bbede","name":"fleet-ops view vehicle","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:28.000000Z","created_at":"2026-06-03T07:06:28.000000Z"},{"id":"7cf9442e-9c58-41f3-b934-fc757fa61d96","name":"fleet-ops list vehicle","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:29.000000Z","created_at":"2026-06-03T07:06:29.000000Z"},{"id":"8d577299-e634-481d-bb8f-ded6e8701e61","name":"fleet-ops view order","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:53.000000Z","created_at":"2026-06-03T07:05:53.000000Z"},{"id":"8de9ad7e-3729-4383-8d42-ff26b254acba","name":"fleet-ops update driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:20.000000Z","created_at":"2026-06-03T07:06:20.000000Z"},{"id":"91def7d7-05be-458a-8291-dcb1390c78ab","name":"fleet-ops assign-vehicle-for order","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:58.000000Z","created_at":"2026-06-03T07:05:58.000000Z"},{"id":"92b14668-fdcb-4fc9-b0bd-1899b76a35c9","name":"fleet-ops list zone","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:14.000000Z","created_at":"2026-06-03T07:06:14.000000Z"},{"id":"966c3225-646f-4306-bd83-a5be6666d6cd","name":"fleet-ops list driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:22.000000Z","created_at":"2026-06-03T07:06:22.000000Z"},{"id":"b4850b15-28fc-46b1-a32b-f2319a47bdf5","name":"fleet-ops view driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:21.000000Z","created_at":"2026-06-03T07:06:21.000000Z"},{"id":"b520b91b-6ec8-45bf-8e93-21bf7156ee7f","name":"fleet-ops see fleet","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:35.000000Z","created_at":"2026-06-03T07:06:35.000000Z"},{"id":"b579f972-0e95-4cd5-99d4-26b366b573fc","name":"fleet-ops see vehicle","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:29.000000Z","created_at":"2026-06-03T07:06:29.000000Z"},{"id":"c18fb7cf-3f91-44b3-a4dc-13e56ebd5446","name":"fleet-ops list service-area","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:17.000000Z","created_at":"2026-06-03T07:06:17.000000Z"},{"id":"da6aeb23-bc32-423c-b597-59f348f0b2ad","name":"fleet-ops see order","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:05:54.000000Z","created_at":"2026-06-03T07:05:54.000000Z"},{"id":"ef6a4003-ceb2-4c1c-a49b-440798d51ce1","name":"fleet-ops list fleet","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:34.000000Z","created_at":"2026-06-03T07:06:34.000000Z"},{"id":"fdd3d3a1-d89c-452a-9ff6-fcc325b83269","name":"fleet-ops assign-vehicle-for driver","guard_name":"sanctum","description":null,"service":"fleet-ops","updated_at":"2026-06-03T07:06:23.000000Z","created_at":"2026-06-03T07:06:23.000000Z"}],"type":"FLB Managed","service":"fleet-ops","is_mutable":false,"is_deletable":false,"updated_at":"2026-06-03T07:08:48.000000Z","created_at":"2026-06-03T07:08:48.000000Z"}],"permissions":[],"type":"FLB Managed","service":"fleet-ops","is_mutable":false,"is_deletable":false,"updated_at":"2026-06-03T07:09:00.000000Z","created_at":"2026-06-03T07:09:00.000000Z"},"policies":[],"permissions":[],"role_name":"Driver","type":"driver","locale":"en-us","types":[],"company_name":"Demo Cargo Ghana 001","company_onboarding_completed":false,"session_status":"active","is_admin":false,"is_online":false,"ip_address":null,"date_of_birth":null,"email_verified_at":null,"phone_verified_at":null,"last_seen_at":null,"last_login":null,"status":"active","slug":null,"updated_at":null,"created_at":null},"internal_id":"DC052257","name":"Kwame GPS Driver","email":"kwame.gps.driver@example.com","phone":"+233244000101","drivers_license_number":"GH-DL-000101","license_expiry":null,"photo_url":"https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png","avatar_url":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/driver-icons/moto-driver.png","avatar_value":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/driver-icons/moto-driver.png","vehicle_name":null,"custom_field_values":[],"vehicle_avatar":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/vehicle-icons/mini_bus.svg","vendor_name":null,"vehicle":null,"current_job_id":null,"location":{"type":"Point","coordinates":[0,0]},"heading":0,"altitude":0,"speed":0,"country":"GH","currency":"GHS","city":"Accra","online":false,"status":null,"token":null,"meta":{},"updated_at":"2026-06-03T19:51:07.000000Z","created_at":"2026-06-03T19:51:07.000000Z"}],"meta":{"total":1,"per_page":30,"current_page":1,"last_page":1,"from":1,"to":1,"time":898}}
+HTTP_STATUS:200
+---- GET /api/v1/fleetbase-proxy/vehicles ----
+{"vehicles":[{"id":1,"uuid":"eb972e24-9300-4e49-978d-a5bdaef05619","public_id":"vehicle_2B97gooYWE","display_name":"","driver_name":null,"internal_id":null,"company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","vendor_uuid":null,"category_uuid":null,"warranty_uuid":null,"telematic_uuid":null,"photo_uuid":null,"photo_url":"https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png","avatar_url":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/vehicle-icons/mini_bus.svg","avatar_value":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/vehicle-icons/mini_bus.svg","name":null,"description":null,"vendor_name":null,"make":null,"model":null,"model_type":null,"year":null,"trim":null,"type":null,"class":null,"color":null,"serial_number":null,"plate_number":null,"call_sign":null,"vin":null,"vin_data":{},"specs":{},"details":{},"status":"operational","online":true,"slug":"-1","financing_status":null,"measurement_system":null,"odometer":null,"odometer_unit":null,"odometer_at_purchase":null,"fuel_type":null,"fuel_volume_unit":null,"body_type":null,"body_sub_type":null,"usage_type":null,"ownership_type":null,"transmission":null,"engine_number":null,"engine_make":null,"custom_field_values":[],"engine_model":null,"engine_family":null,"engine_configuration":null,"engine_size":null,"engine_displacement":null,"cylinder_arrangement":null,"number_of_cylinders":null,"horsepower":null,"horsepower_rpm":null,"torque":null,"torque_rpm":null,"fuel_capacity":null,"payload_capacity":null,"towing_capacity":null,"seating_capacity":null,"weight":null,"length":null,"width":null,"height":null,"cargo_volume":null,"passenger_volume":null,"interior_volume":null,"ground_clearance":null,"bed_length":null,"emission_standard":null,"dpf_equipped":null,"scr_equipped":null,"gvwr":null,"gcwr":null,"estimated_service_life_distance":null,"estimated_service_life_distance_unit":null,"estimated_service_life_months":null,"currency":null,"acquisition_cost":null,"current_value":null,"insurance_value":null,"depreciation_rate":null,"loan_amount":null,"loan_number_of_payments":null,"loan_first_payment":null,"purchased_at":null,"lease_expires_at":null,"deleted_at":null,"updated_at":"2026-06-03T21:59:48.000000Z","created_at":"2026-06-03T21:59:48.000000Z","location":{"type":"Point","coordinates":[0,0]},"heading":0,"altitude":0,"speed":0,"telematics":null,"notes":null,"meta":{}}],"meta":{"total":1,"per_page":30,"current_page":1,"last_page":1,"from":1,"to":1,"time":707}}
+HTTP_STATUS:200
+---- GET /api/v1/fleetbase-proxy/fleets ----
+{"fleets":[{"id":1,"uuid":"6a7ea754-4158-4892-912c-bf4ff5844cfb","public_id":"fleet_1Oyp2iH715","name":"Accra Demo Fleet","task":null,"status":"active","drivers_count":1,"drivers_online_count":0,"vehicles_count":1,"custom_field_values":[],"vehicles_online_count":1,"service_area":null,"zone":null,"updated_at":"2026-06-03T22:26:11.000000Z","created_at":"2026-06-03T22:26:11.000000Z"}],"meta":{"total":1,"per_page":30,"current_page":1,"last_page":1,"from":1,"to":1,"time":500}}
+HTTP_STATUS:200
+---- GET /api/v1/fleetbase-proxy/orders ----
+{"orders":[{"id":1,"uuid":"962a4c13-0df1-4797-83d5-618fe1a1c1a0","public_id":"order_8gbNIEgRj2","internal_id":"DC589829","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","payload_uuid":"ff24ab2f-0406-48af-ae83-1bae211e6da0","driver_assigned_uuid":null,"vehicle_assigned_uuid":null,"customer_uuid":null,"customer_type":null,"facilitator_uuid":null,"facilitator_type":null,"tracking_number_uuid":"696ba49c-bd3d-4942-a948-6651ce6003ca","order_config_uuid":"09f3ac74-a46e-463b-981e-f0ac24e65908","tracking":"DEM3621560265SG","customer":null,"payload":{"id":1,"uuid":"ff24ab2f-0406-48af-ae83-1bae211e6da0","public_id":"payload_zYj0VOEcAT","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","pickup_uuid":null,"dropoff_uuid":null,"return_uuid":null,"pickup":{"id":1,"uuid":"44ab415a-ab1b-4763-8b3c-9b308b59f268","public_id":"place_uhf1baj2Wy","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","owner_uuid":null,"owner_type":null,"name":null,"address":"","street1":null,"city":null,"country":null,"avatar_url":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/place-icons/basic-building.png","location":{"type":"Point","coordinates":[0,0]},"meta":{"_index_resource":true}},"dropoff":{"id":2,"uuid":"b691ff16-6b2e-4493-b7af-4b77b30b991c","public_id":"place_n0dfcpdqSq","company_uuid":"22816235-dfd4-46cf-abff-30980a09c11b","owner_uuid":null,"owner_type":null,"name":null,"address":"","street1":null,"city":null,"country":null,"avatar_url":"https://flb-assets.s3-ap-southeast-1.amazonaws.com/static/place-icons/basic-building.png","location":{"type":"Point","coordinates":[0,0]},"meta":{"_index_resource":true}},"entities_count":0,"waypoints_count":2,"type":"transport","created_at":"2026-06-04T02:59:56.000000Z","updated_at":null},"facilitator":null,"driver_assigned":null,"vehicle_assigned":null,"tracking_number":{"id":1,"uuid":"696ba49c-bd3d-4942-a948-6651ce6003ca","tracking_number":"DEM3621560265SG","qr_code":"iVBORw0KGgoAAAANSUhEUgAAAFcAAABXAQMAAABLBksvAAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAQ9JREFUOI2F073NxCAMBmB/okhHFkBiDTpWIgvk7hYgK9FljUgsQLoUCN+bS0qcD0XoKfgxtkPMh3q73Dw3kryRM3+pzo606NzcFhzM8clmTKT/9cHlybhXNV/DHUPXiD9Hl+P9lq4xtkC20DW65oU3PdQR2RCd22BeK5E3s2jMSKYqzjbRdUp2YdUI6yXTxKp4+3aGRFeiDH8OCrKR7U9SDakQTVPKhdSesF50cDYOGWfOolUcFK/YZWTnnS3ysB9VizbjSiPy4E0QvQV/fiNX2b/6nkXBmZLRJ8iDjY6LaPQb5rNwQTT6tuqBmat+MvrE7ulaL7nOqF269/aMe/PClg/0gGTEjzeie69/pOcvZJniRJMFURcAAAAASUVORK5CYII="},"latest_status":"Order Created","latest_status_code":"CREATED","type":"transport","status":"dispatched","adhoc":false,"dispatched":true,"has_driver_assigned":false,"is_scheduled":false,"scheduled_at":null,"dispatched_at":"2026-06-04T03:00:00.000000Z","started_at":null,"created_at":"2026-06-04T02:59:55.000000Z","updated_at":"2026-06-04T03:00:03.000000Z","meta":{"_index_resource":true}}],"meta":{"total":1,"per_page":30,"current_page":1,"last_page":1,"from":1,"to":1,"time":600}}
+HTTP_STATUS:200
+
+============================================================
+3. API ROUTE SMOKE - TENANT FLEETBASE
+============================================================
+---- GET /api/v1/fleetbase-tenant/drivers ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/fleetbase-tenant/vehicles ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/fleetbase-tenant/fleets ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/fleetbase-tenant/orders ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/fleetbase-tenant/tracking ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+
+============================================================
+4. RUNTIME RECORDS
+============================================================
+
+============================================================
+5. TEST REAL FLEETBASE RUNTIME URLS FROM DB
+============================================================
+
+============================================================
+6. SHIPMENT / TRACKING / CSV IMPORT ROUTES
+============================================================
+---- GET /api/v1/shipments/test ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/shipments/test/summary ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/customer-portal/test/shipments ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/customer-portal/test/tracking ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/navigator/test/drivers ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+---- GET /api/v1/navigator/test/tracking ----
+{"detail":"Not authenticated"}
+HTTP_STATUS:401
+
+============================================================
+7. PLACEHOLDER / DUMMY RESPONSE DETECTION
+============================================================
+app/api/routes/customs_guest.py.stub.1781333382:68:    # TODO: replace these in-memory stubs with SQLAlchemy session calls if your project already has DB deps.
+app/api/routes/whatsapp_bot.py:19:        # TODO: Implement message parsing and bot logic here
+app/services/fleetbase_api_client.py:202:        Falls back to a placeholder if the endpoint is unavailable or the org
+app/services/dns_provisioning.py:4:DNS provisioning stub for tenant subdomains.
+app/schemas/payment.py:33:    mock: bool | None = None
+app/locales/en.json:33:  "auth.email_placeholder": "you@example.com",
+app/locales/en.json:35:  "auth.password_placeholder": "Enter your password",
+app/locales/en.json:37:  "auth.confirm_password_placeholder": "Re-enter password",
+app/locales/en.json:39:  "auth.full_name_placeholder": "Your full name",
+app/locales/en.json:149:  "tracking.placeholder": "Enter tracking number or your name",
+app/locales/en.json:197:  "ai.placeholder": "Ask me anything about your shipments...",
+app/locales/zh.json:33:  "auth.email_placeholder": "you@example.com",
+app/locales/zh.json:35:  "auth.password_placeholder": "输入您的密码",
+app/locales/zh.json:37:  "auth.confirm_password_placeholder": "重新输入密码",
+app/locales/zh.json:39:  "auth.full_name_placeholder": "您的全名",
+app/locales/zh.json:149:  "tracking.placeholder": "输入跟踪号或您的姓名",
+app/locales/zh.json:197:  "ai.placeholder": "关于您的货运有什么问题？",
+app/static/widget/embed.js:110:          <textarea id="afruheritage-ai-input" placeholder="Ask a question..."></textarea>
+app/templates/auth/login.html:87:                        placeholder="your@email.com"
+app/templates/auth/login.html:107:                        placeholder="••••••••"
+app/templates/auth/register.html:124:                                    placeholder="Your company name"
+app/templates/auth/register.html:180:                                    placeholder="Your city"
+app/templates/auth/register.html:194:                                    placeholder="Complete business address"
+app/templates/auth/register.html:215:                                    placeholder="Full name"
+app/templates/auth/register.html:229:                                    placeholder="your@email.com"
+app/templates/auth/register.html:243:                                    placeholder="+233 20 000 0000"
+app/templates/auth/register.html:256:                                    placeholder="https://yourcompany.com"
+app/templates/auth/register.html:269:                                    placeholder="Tell us about your logistics needs..."
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:195:                    placeholder="Search drivers by name, email, or phone..."
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:207:                    <SelectValue placeholder="Status" />
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:221:                    <SelectValue placeholder="Availability" />
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:236:                    <SelectValue placeholder="Vehicle" />
+frontend/app/fleetbase/drivers/page.tsx:117:                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Kwame Mensah" />
+frontend/app/fleetbase/drivers/page.tsx:121:                <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+233 20 123 4567" />
+frontend/app/fleetbase/drivers/page.tsx:125:                <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="driver@company.com" />
+frontend/app/fleetbase/drivers/page.tsx:130:                  <Input id="city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Accra" />
+frontend/app/fleetbase/drivers/page.tsx:134:                  <Input id="country" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="GH" />
+frontend/app/fleetbase/extensions/page.tsx:93:      const mockRuntimes = [
+frontend/app/fleetbase/extensions/page.tsx:126:      const mockExtensions = [
+frontend/app/fleetbase/extensions/page.tsx:176:      setRuntimes(mockRuntimes)
+frontend/app/fleetbase/extensions/page.tsx:177:      setExtensions(mockExtensions)
+frontend/app/fleetbase/extensions/page.tsx:281:                        placeholder="tenant-uuid"
+frontend/app/fleetbase/extensions/page.tsx:289:                          <SelectValue placeholder="Select runner" />
+frontend/app/fleetbase/extensions/page.tsx:341:                          placeholder="My Custom Extension"
+frontend/app/fleetbase/extensions/page.tsx:368:                          placeholder="1.0.0"
+frontend/app/fleetbase/extensions/page.tsx:377:                          placeholder="https://github.com/user/extension"
+frontend/app/fleetbase/extensions/page.tsx:387:                        placeholder="Extension description"
+frontend/app/fleetbase/extensions/page.tsx:396:                        placeholder='{"api_key": "...", "enabled": true}'
+frontend/app/fleetbase/vehicles/page.tsx:242:                          <SelectValue placeholder="Select driver" />
+frontend/app/fleetbase/vehicles/page.tsx:261:                        placeholder="Toyota"
+frontend/app/fleetbase/vehicles/page.tsx:270:                        placeholder="Hilux"
+frontend/app/fleetbase/vehicles/page.tsx:281:                        placeholder="2022"
+frontend/app/fleetbase/vehicles/page.tsx:290:                        placeholder="ABC-1234"
+frontend/app/fleetbase/vehicles/page.tsx:301:                        placeholder="1HGBH41JXMN109186"
+frontend/app/fleetbase/vehicles/page.tsx:310:                        placeholder="White"
+frontend/app/fleetbase/vehicles/page.tsx:321:                        placeholder="2.5"
+frontend/app/fleetbase/vehicles/page.tsx:330:                        placeholder="INS-123456"
+frontend/app/fleetbase/vehicles/page.tsx:410:                    placeholder="Search vehicles by make, model, plate, or driver..."
+frontend/app/fleetbase/vehicles/page.tsx:422:                    <SelectValue placeholder="Type" />
+frontend/app/fleetbase/vehicles/page.tsx:437:                    <SelectValue placeholder="Status" />
+frontend/app/fleetbase/vehicles/page.tsx:452:                    <SelectValue placeholder="Driver" />
+frontend/app/shipments/new/page.tsx:189:                    placeholder="Leave blank to auto-generate"
+frontend/app/shipments/new/page.tsx:199:                    placeholder="Optional reference number"
+frontend/app/shipments/new/page.tsx:209:                    placeholder="e.g., Electronics, Clothing"
+frontend/app/shipments/new/page.tsx:234:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:248:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:261:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:274:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:287:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:313:                  placeholder="Describe the shipment contents"
+frontend/app/shipments/new/page.tsx:324:                  placeholder="Additional notes or special instructions"
+frontend/app/shipments/new/page.tsx:348:                    placeholder="Enter sender name"
+frontend/app/shipments/new/page.tsx:359:                    placeholder="Enter phone number"
+frontend/app/shipments/new/page.tsx:369:                    placeholder="Enter complete address"
+frontend/app/shipments/new/page.tsx:380:                    placeholder="Enter city"
+frontend/app/shipments/new/page.tsx:391:                    placeholder="Enter country"
+frontend/app/shipments/new/page.tsx:416:                    placeholder="Enter receiver name"
+frontend/app/shipments/new/page.tsx:427:                    placeholder="Enter phone number"
+frontend/app/shipments/new/page.tsx:437:                    placeholder="Enter complete address"
+frontend/app/shipments/new/page.tsx:448:                    placeholder="Enter city"
+frontend/app/shipments/new/page.tsx:459:                    placeholder="Enter country"
+frontend/app/shipments/new/page.tsx:482:                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:491:                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:500:                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:509:                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:557:                    placeholder="0.00"
+frontend/app/shipments/new/page.tsx:571:                    placeholder="0.00"
+frontend/app/shipments/new/page.tsx:606:                    <SelectValue placeholder="Select team member (optional)" />
+frontend/app/shipments/[id]/edit/page.tsx:189:                      <SelectValue placeholder="Select status" />
+frontend/app/shipments/[id]/edit/page.tsx:277:                      <SelectValue placeholder="Select member" />
+frontend/app/shipments/[id]/page.tsx:250:                          <SelectValue placeholder="Select event type" />
+frontend/app/shipments/[id]/page.tsx:268:                        placeholder="Event location"
+frontend/app/shipments/[id]/page.tsx:276:                        placeholder="Event description"
+frontend/app/shipments/[id]/page.tsx:652:                    placeholder="Optional location label"
+frontend/app/shipments/page.tsx:177:                  placeholder={t('common.search')}
+frontend/app/shipments/page.tsx:191:                <SelectValue placeholder="Filter by status" />
+frontend/app/shipments/page.tsx:214:                <SelectValue placeholder="Payment Status" />
+frontend/app/marketplace/page.tsx:133:            placeholder="Search by tracking number, origin, destination..."
+frontend/app/members/new/page.tsx:98:                    placeholder="Enter full name"
+frontend/app/members/new/page.tsx:112:                    placeholder="name@example.com"
+frontend/app/members/new/page.tsx:124:                    placeholder="+233 XX XXX XXXX"
+frontend/app/members/new/page.tsx:136:                    placeholder="Company or team name"
+frontend/app/members/new/page.tsx:148:                    placeholder="Optional ID reference"
+frontend/app/members/new/page.tsx:159:                      <SelectValue placeholder="Select language" />
+frontend/app/members/new/page.tsx:177:                  placeholder="Internal notes about this member"
+frontend/app/members/[id]/edit/page.tsx:142:                      <SelectValue placeholder="Select language" />
+frontend/app/members/[id]/edit/page.tsx:154:                      <SelectValue placeholder="Select status" />
+frontend/app/members/page.tsx:185:                          placeholder="Jane Doe"
+frontend/app/members/page.tsx:195:                          placeholder="jane@company.com"
+frontend/app/members/page.tsx:271:            placeholder="Search members by name or email..."
+admin-console/frontend/app/dashboard/runtimes/page.tsx:118:          placeholder="Enter Tenant ID to view runtime..."
+admin-console/frontend/app/dashboard/runtimes/page.tsx:209:              <Input value={deployTenantId} onChange={e => setDeployTenantId(e.target.value)} placeholder="Tenant UUID" />
+admin-console/frontend/app/dashboard/runtimes/page.tsx:213:              <Input value={deployRunnerId} onChange={e => setDeployRunnerId(e.target.value)} placeholder="Leave empty for auto-select" />
+admin-console/frontend/app/dashboard/billing/page.tsx:292:            placeholder="Enter Tenant ID..."
+admin-console/frontend/app/dashboard/billing/page.tsx:349:              <Input type="number" value={adjustAmount} onChange={e => setAdjustAmount(e.target.value)} placeholder="100" />
+admin-console/frontend/app/dashboard/billing/page.tsx:353:              <Input value={adjustReason} onChange={e => setAdjustReason(e.target.value)} placeholder="Manual adjustment" />
+admin-console/frontend/app/dashboard/billing/page.tsx:372:              <Input value={assignTenantId} onChange={e => setAssignTenantId(e.target.value)} placeholder="Tenant UUID" />
+admin-console/frontend/app/dashboard/billing/page.tsx:377:                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+admin-console/frontend/app/dashboard/domains/page.tsx:96:          placeholder="Enter Tenant ID to view domains..."
+admin-console/frontend/app/dashboard/domains/page.tsx:141:              <Input value={activateTenantId} onChange={e => setActivateTenantId(e.target.value)} placeholder="Tenant UUID" />
+admin-console/frontend/app/dashboard/domains/page.tsx:145:              <Input value={activateDomain} onChange={e => setActivateDomain(e.target.value)} placeholder="freight.example.com" />
+admin-console/frontend/app/dashboard/vendors/page.tsx:140:          <Input className="pl-9" placeholder="Search vendors..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load()} />
+admin-console/frontend/app/dashboard/vendors/page.tsx:304:            <Textarea placeholder="Reason for rejection..." value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} />
+admin-console/frontend/app/dashboard/users/page.tsx:141:                  placeholder="Jane Doe"
+admin-console/frontend/app/dashboard/users/page.tsx:150:                  placeholder="ops@example.com"
+admin-console/frontend/app/dashboard/users/page.tsx:159:                  placeholder="Minimum 12 characters"
+admin-console/frontend/app/dashboard/users/page.tsx:198:            placeholder="Search users..."
+admin-console/frontend/app/dashboard/tenants/page.tsx:222:                <Input value={form.requested_domain} onChange={e => setForm(f => ({ ...f, requested_domain: e.target.value }))} placeholder="my-company" />
+admin-console/frontend/app/dashboard/tenants/page.tsx:247:          <Input className="pl-9" placeholder="Search tenants..." value={search} onChange={e => setSearch(e.target.value)} />
+admin-console/frontend/app/dashboard/tracking/page.tsx:45:            <Input placeholder="Tenant UUID" value={tenantId} onChange={(e) => setTenantId(e.target.value)} />
+admin-console/frontend/app/dashboard/tracking/page.tsx:46:            <Input placeholder="Tracking number" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} />
+admin-console/frontend/app/dashboard/runners/page.tsx:95:                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="runner-01" />
+admin-console/frontend/app/dashboard/runners/page.tsx:100:                    <Input value={form.host} onChange={e => setForm(f => ({ ...f, host: e.target.value }))} placeholder="192.168.1.10" />
+admin-console/frontend/app/dashboard/runners/page.tsx:109:                  <Input value={form.ssh_user} onChange={e => setForm(f => ({ ...f, ssh_user: e.target.value }))} placeholder="root" />
+admin-console/frontend/app/dashboard/runners/page.tsx:113:                  <Input value={form.fleetbase_root} onChange={e => setForm(f => ({ ...f, fleetbase_root: e.target.value }))} placeholder="/srv/fleetbase" />
+admin-console/frontend/app/dashboard/tickets/page.tsx:60:          <Input className="pl-9" placeholder="Search tickets..." value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load()} />
+admin-console/frontend/app/dashboard/tickets/page.tsx:64:            <SelectValue placeholder="Filter status" />
+
+============================================================
+8. FRONTEND ROUTES THAT DO NOT CALL API
+============================================================
+---- frontend/app/fleetbase/console/page.tsx ----
+API_WIRED: NO
+---- frontend/app/fleetbase/console-gate/page.tsx ----
+API_WIRED: NO
+---- frontend/app/fleetbase/live-map/page.tsx ----
+API_WIRED: NO
+---- frontend/app/fleetbase/drivers/page.tsx ----
+API_WIRED: NO
+---- frontend/app/fleetbase/vehicles/page.tsx ----
+API_WIRED: NO
+---- frontend/app/fleetbase/fleets/page.tsx ----
+API_WIRED: NO
+---- frontend/app/shipments/page.tsx ----
+API_WIRED: NO
+---- frontend/app/vendors/page.tsx ----
+API_WIRED: NO
+---- frontend/app/marketplace/page.tsx ----
+API_WIRED: NO
+---- frontend/app/members/import/page.tsx ----
+API_WIRED: YES
+38:    const url = `/api/v1/users/bulk-import?send_invite_email=${sendInvite}${tenantId ? `&tenant_id=${tenantId}` : ''}`
+41:      const resp = await fetch(url, {
+
+============================================================
+9. DECISION FLAGS
+============================================================
+If frontend page = 200 but API_WIRED=NO, treat as marketing/static only.
+If API returns 401/403, route may be real but needs authenticated smoke test.
+If API returns 404/501/placeholder text, do NOT rely on Fleetbase for that feature yet.
+If runtime URL returns 200/302 to real Fleetbase console, redirect is acceptable.
+If proxy routes return meaningful JSON/list data, feature can be reused instead of rebuilt.
+
+============================================================
+SMOKE COMPLETE
+============================================================
+Output: fleetbase_functionality_smoke_20260616_083906.txt

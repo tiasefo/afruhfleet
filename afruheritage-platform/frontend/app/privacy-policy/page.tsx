@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Afruheritage',
@@ -87,7 +86,6 @@ export default function PrivacyPolicyPage() {
         </article>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

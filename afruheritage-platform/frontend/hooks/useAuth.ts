@@ -64,18 +64,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const response = await authApi.login({ username: email, password })
-      const { access_token } = response
+      const { access_token, subdomain, requires_subscription } = response as any
       
       setToken(access_token)
       setTokenState(access_token)
+
+      if (subdomain && typeof window !== 'undefined') {
+        localStorage.setItem('tenant_subdomain', subdomain)
+      }
 
       const userData = await authApi.me()
       setUser(userData)
       persistTenantId(userData.tenant_id)
       
-      // Redirect based on user role
+      // Redirect based on user role and subscription status
       if (userData.is_superuser) {
         router.push('/dashboard')
+      } else if (requires_subscription) {
+        router.push('/onboarding')
       } else if (!userData.onboarding_complete) {
         router.push('/onboarding')
       } else {
@@ -89,6 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     clearToken()
     persistTenantId(null)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tenant_subdomain')
+    }
     setTokenState(null)
     setUser(null)
     router.push('/login')

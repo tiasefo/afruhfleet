@@ -1,4 +1,5 @@
 from app.core.config import settings
+import secrets
 import uuid
 from slugify import slugify
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -154,6 +155,68 @@ def retry_job(job_id: str, db: Session=Depends(get_db), current_user: User=Depen
 # ── Support: lookup tenant + resend portal URL ────────────────────────────────
 
 from fastapi import Query as QueryParam  # noqa: E402 — local import to avoid collision
+
+@router.post('/{tenant_id}/suspend', response_model=TenantResponse)
+def suspend_tenant(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    tenant.launch_status = LaunchStatus.suspended
+    db.commit()
+    db.refresh(tenant)
+    record_audit_event(db, current_user, 'tenant.suspended', 'tenant', str(tenant.id), {})
+    return tenant
+
+
+@router.post('/{tenant_id}/activate', response_model=TenantResponse)
+def activate_tenant(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    tenant.launch_status = LaunchStatus.active
+    db.commit()
+    db.refresh(tenant)
+    record_audit_event(db, current_user, 'tenant.activated', 'tenant', str(tenant.id), {})
+    return tenant
+
+
+@router.delete('/{tenant_id}')
+def delete_tenant(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> dict:
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    record_audit_event(db, current_user, 'tenant.deleted', 'tenant', str(tenant.id), {'company_name': tenant.company_name})
+    db.delete(tenant)
+    db.commit()
+    return {'status': 'deleted', 'tenant_id': tenant_id}
+
+
+@router.post('/{tenant_id}/provision', response_model=TenantResponse)
+def provision_tenant_fleetbase(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    """Manually trigger Fleetbase org provisioning for a tenant."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    if tenant.fleetbase_org_id:
+        raise HTTPException(status_code=409, detail='Tenant already has a Fleetbase org')
+    from app.services.fleetbase_api_client import fleetbase_client
+    try:
+        org = fleetbase_client.provision_org(
+            company_name=tenant.company_name,
+            admin_email=tenant.contact_email,
+            admin_password=secrets.token_urlsafe(16),
+            phone='',
+        )
+        tenant.fleetbase_org_id = org.org_id
+        tenant.fleetbase_api_key = org.api_key
+        tenant.launch_status = LaunchStatus.active
+        db.commit()
+        db.refresh(tenant)
+        record_audit_event(db, current_user, 'tenant.provisioned.fleetbase', 'tenant', str(tenant.id), {'fleetbase_org_id': org.org_id})
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f'Fleetbase provisioning failed: {exc}') from exc
+    return tenant
+
 
 @router.get('/lookup', response_model=TenantResponse)
 def lookup_tenant(

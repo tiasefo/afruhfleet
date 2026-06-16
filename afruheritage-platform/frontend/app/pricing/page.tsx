@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -62,6 +61,22 @@ const planIcons: Record<string, any> = {
   professional: Shield,
   business: Globe,
   delivery_services: Headphones,
+}
+
+
+const AFRU_PLAN_ORDER: Record<string, number> = {
+  'Free Trial': 0,
+  'Starter': 1,
+  'Growth': 2,
+  'Enterprise': 3,
+}
+
+function orderPlans<T extends { name?: string; title?: string }>(plans: T[]): T[] {
+  return [...plans].sort((a, b) => {
+    const an = a.name || a.title || ''
+    const bn = b.name || b.title || ''
+    return (AFRU_PLAN_ORDER[an] ?? 99) - (AFRU_PLAN_ORDER[bn] ?? 99)
+  })
 }
 
 export default function PricingPage() {
@@ -168,7 +183,7 @@ export default function PricingPage() {
               </div>
             ) : (
               <div className="mt-16 grid gap-8 lg:grid-cols-3 xl:grid-cols-4">
-                {plans.map((plan) => {
+                {orderPlans(plans).map((plan) => {
                   const features = planFeatures[plan.code] || []
                   const Icon = planIcons[plan.code] || Zap
                   const isPopular = plan.code === 'professional'
@@ -240,7 +255,6 @@ export default function PricingPage() {
         </section>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

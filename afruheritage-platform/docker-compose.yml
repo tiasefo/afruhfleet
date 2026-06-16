@@ -147,7 +147,29 @@ services:
       - "4000:4000"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/docs"]
+      test: ["CMD", "curl", "-f", "http://localhost:4000/admin/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Afruheritage Sentinel (Admin Console + Control Center)
+  sentinel:
+    build:
+      context: ./sentinel
+      target: production
+    container_name: afruheritage-sentinel
+    env_file:
+      - ./sentinel/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    ports:
+      - "9200:9200"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/sentinel/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -167,6 +189,7 @@ services:
       - frontend
       - api
       - admin-console
+      - sentinel
     restart: unless-stopped
     profiles:
       - production

@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     fleetbase_default_install_host: str = Field(default='0.0.0.0', alias='FLEET_ENGINE_DEFAULT_INSTALL_HOST')
     provisioning_timeout_seconds: int = Field(default=3600, alias='PROVISIONING_TIMEOUT_SECONDS')
     fleetbase_runtime_api_token: str = Field(default='', alias='FLEETBASE_RUNTIME_API_TOKEN')
+    fleetbase_api_token: str = Field(default='', alias='FLEETBASE_API_TOKEN')
 
     # Fleetbase internal API URL (reachable from inside this container)
     # When both stacks are on the same host, use the host-gateway or exposed port.

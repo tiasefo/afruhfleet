@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 import time
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,6 +18,21 @@ router = APIRouter(prefix="/dashboard", tags=["Admin Dashboard"])
 
 def get_system_metrics():
     """Get real system performance metrics"""
+    if psutil is None:
+        return {
+            "cpu_usage": 0,
+            "cpu_cores": 0,
+            "memory_usage": 0,
+            "memory_used_gb": 0,
+            "memory_total_gb": 0,
+            "disk_usage": 0,
+            "disk_used_gb": 0,
+            "disk_total_gb": 0,
+            "network_bytes_sent": 0,
+            "network_bytes_recv": 0,
+            "uptime_hours": 0,
+            "error": "psutil not installed"
+        }
     try:
         # CPU metrics
         cpu_percent = psutil.cpu_percent(interval=1)

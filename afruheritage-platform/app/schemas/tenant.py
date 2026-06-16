@@ -26,6 +26,8 @@ class TenantResponse(BaseModel):
     live_console_url: str | None
     live_api_url: str | None
     fleetbase_install_path: str | None
+    fleetbase_org_id: str | None
+    fleetbase_api_key: str | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

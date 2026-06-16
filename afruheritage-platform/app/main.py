@@ -46,6 +46,7 @@ from app.api.routes.whatsapp_csv import router as whatsapp_csv_router
 from app.api.routes.vendors import router as vendors_router
 from app.api.routes.users import router as users_router
 from app.api.routes.company_registration import router as company_registration_router
+from app.api.routes.storefront_templates import router as storefront_templates_router
 from app.api.routes import customs_guest
 
 
@@ -73,8 +74,13 @@ import app.models.kyc  # noqa: F401
 import app.models.tenant_request  # noqa: F401
 import app.models.saas_subscription  # noqa: F401
 import app.models.payment_hub  # noqa: F401
+import app.models.storefront_template  # noqa: F401
+import app.models.product  # noqa: F401
 from app.api.routes import fleetbase_proxy
 from app.api.routes import customs
+from app.api.routes.fleetbase_tenant_proxy import router as fleetbase_tenant_proxy_router
+from app.api.routes.products import router as products_router
+from app.api.routes.admin_tenant_preview import router as admin_tenant_preview_router
 
 
 setup_logging(level="INFO")
@@ -137,6 +143,8 @@ app.include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)
 app.include_router(runners.router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_proxy.router, prefix=settings.api_v1_prefix)
+app.include_router(fleetbase_tenant_proxy_router, prefix=settings.api_v1_prefix)
+app.include_router(products_router, prefix=settings.api_v1_prefix)
 
 app.include_router(ai_router, prefix=settings.api_v1_prefix)
 app.include_router(ai_widget_router, prefix=settings.api_v1_prefix)
@@ -157,6 +165,7 @@ app.include_router(customs.router, prefix=settings.api_v1_prefix)
 app.include_router(vendors_router, prefix=settings.api_v1_prefix)
 app.include_router(users_router, prefix=settings.api_v1_prefix)
 app.include_router(company_registration_router, prefix=settings.api_v1_prefix)
+app.include_router(storefront_templates_router, prefix=settings.api_v1_prefix)
 app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(kyc_router, prefix=settings.api_v1_prefix)
 app.include_router(customs_guest.router, prefix=settings.api_v1_prefix)
@@ -173,5 +182,6 @@ app.include_router(admin_subscriptions_router, prefix=settings.api_v1_prefix)
 
 app.include_router(admin_credits_router, prefix=settings.api_v1_prefix)
 app.include_router(admin_dns_router, prefix=settings.api_v1_prefix)
+app.include_router(admin_tenant_preview_router, prefix=settings.api_v1_prefix)
 
 app.include_router(payment_hub_router, prefix=settings.api_v1_prefix)

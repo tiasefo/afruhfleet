@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { tenantApi } from '@/lib/api_updated'
@@ -435,7 +434,6 @@ export default function DashboardPage() {
         )}
       </main>
 
-      <AIChatWidget />
     </>
   )
 }

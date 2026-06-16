@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export const metadata: Metadata = {
   title: 'Cookie Policy | Afruheritage',
@@ -59,7 +58,6 @@ export default function CookiePolicyPage() {
         </article>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

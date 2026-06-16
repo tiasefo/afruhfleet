@@ -202,6 +202,98 @@ def list_admin_tickets(status: str | None=None, tenant_id: str | None=None, q: s
     }
 
 
+# ---------------------------------------------------------------------------
+# Tenant-scoped tickets (for logged-in tenant users to manage their own tickets)
+# ---------------------------------------------------------------------------
+@router.get('/tickets', response_model=dict)
+def list_tenant_tickets(
+    status: str | None=None,
+    q: str | None=None,
+    page: int=Query(1, ge=1),
+    page_size: int=Query(20, ge=1, le=100),
+    db: Session=Depends(get_db),
+    current_user: User=Depends(get_current_user),
+):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context.')
+    rows = db.query(SupportTicket).filter(SupportTicket.tenant_id == str(current_user.tenant_id))
+    if status:
+        rows = rows.filter(SupportTicket.status == status)
+    if q:
+        needle = f"%{q}%"
+        rows = rows.filter((SupportTicket.subject.ilike(needle)) | (SupportTicket.description.ilike(needle)) | (SupportTicket.public_submitter_email.ilike(needle)) | (SupportTicket.public_submitter_name.ilike(needle)))
+    total = rows.count()
+    items = rows.order_by(SupportTicket.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    pages = max(1, (total + page_size - 1) // page_size)
+    return {
+        'items': [
+            {
+                'id': str(x.id),
+                'tenant_id': str(x.tenant_id),
+                'public_token': x.public_token,
+                'subject': x.subject,
+                'description': x.description,
+                'category': x.category,
+                'priority': x.priority.value,
+                'status': x.status.value,
+                'shipment_reference': x.shipment_reference,
+                'tracking_reference': x.tracking_reference,
+                'public_submitter_name': x.public_submitter_name,
+                'public_submitter_email': x.public_submitter_email,
+                'created_at': x.created_at.isoformat() if x.created_at else None,
+                'updated_at': x.updated_at.isoformat() if x.updated_at else None,
+            }
+            for x in items
+        ],
+        'total': total,
+        'page': page,
+        'page_size': page_size,
+        'pages': pages,
+    }
+
+
+@router.get('/tickets/{ticket_id}/messages', response_model=list[SupportTicketMessageResponse])
+def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail='Ticket not found')
+    rows = db.query(SupportTicketMessage).filter(SupportTicketMessage.ticket_id == ticket.id).order_by(SupportTicketMessage.created_at.asc()).all()
+    return [SupportTicketMessageResponse(id=str(x.id), ticket_id=str(x.ticket_id), author_type=x.author_type, author_name=x.author_name, body=x.body, visible_to_public=x.visible_to_public) for x in rows]
+
+
+@router.post('/tickets/{ticket_id}/reply', response_model=SupportTicketMessageResponse)
+def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail='Ticket not found')
+    msg = add_ticket_message(db=db, ticket_id=str(ticket.id), body=request.body, author_type=request.author_type or 'staff', author_name=request.author_name or current_user.full_name or 'Staff', visible_to_public=request.visible_to_public)
+    # Update ticket status to waiting_customer if staff replied
+    if ticket.status == SupportTicketStatus.OPEN:
+        ticket.status = SupportTicketStatus.WAITING_CUSTOMER
+        db.commit()
+    return SupportTicketMessageResponse(id=str(msg.id), ticket_id=str(msg.ticket_id), author_type=msg.author_type, author_name=msg.author_name, body=msg.body, visible_to_public=msg.visible_to_public)
+
+
+@router.patch('/tickets/{ticket_id}/status', response_model=dict)
+def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail='Ticket not found')
+    try:
+        ticket.status = SupportTicketStatus(status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail='Unsupported ticket status') from exc
+    db.commit()
+    db.refresh(ticket)
+    return {'id': str(ticket.id), 'status': ticket.status.value}
+
+
 @router.patch('/admin/tickets/{ticket_id}/status', response_model=dict)
 def update_admin_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()

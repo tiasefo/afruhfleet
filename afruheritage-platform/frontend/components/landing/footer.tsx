@@ -7,17 +7,17 @@ const footerLinks = {
   product: {
     title: 'Product',
     links: [
-      { label: 'Features', href: '#solutions' },
-      { label: 'Pricing', href: '#pricing' },
+      { label: 'Customs Duty', href: '/customs/duty-calculator' },
+      { label: 'Pricing', href: '/pricing' },
       { label: 'Tracking', href: '/track' },
-      { label: 'API', href: '#api' },
+      { label: 'Documentation', href: '/docs' },
     ],
   },
   partners: {
     title: 'Partners',
     links: [
       { label: 'Become a Vendor', href: '/vendors' },
-      { label: 'Delivery Services', href: '/vendors#vendor-registration' },
+      { label: 'Delivery Services', href: '/vendors' },
       { label: 'Fleet Owners', href: '/vendors' },
       { label: 'Partner Login', href: '/login' },
     ],
@@ -27,8 +27,8 @@ const footerLinks = {
     links: [
       { label: 'Documentation', href: '/docs' },
       { label: 'Help Center', href: '/support' },
-      { label: 'Contact', href: '/support' },
-      { label: 'Status', href: '#status' },
+      { label: "Contact", href: "/support" },
+      { label: 'Status', href: '/support' },
     ],
   },
   legal: {

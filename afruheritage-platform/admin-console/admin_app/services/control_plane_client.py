@@ -294,3 +294,27 @@ def resend_portal_url(cp_token: str, tenant_id: str) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.post(_url(f"/tenants/{tenant_id}/resend-portal-url"), headers=_headers(cp_token))
         return _handle(resp)
+
+
+def suspend_tenant(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/tenants/{tenant_id}/suspend"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def activate_tenant(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/tenants/{tenant_id}/activate"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def delete_tenant(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.delete(_url(f"/tenants/{tenant_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def provision_tenant_fleetbase(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/tenants/{tenant_id}/provision"), headers=_headers(cp_token))
+        return _handle(resp)

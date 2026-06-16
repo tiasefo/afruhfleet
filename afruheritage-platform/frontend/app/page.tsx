@@ -5,7 +5,6 @@ import { HowItWorks } from '@/components/landing/how-it-works'
 import { TestimonialsSection } from '@/components/landing/testimonials-section'
 import { CTASection } from '@/components/landing/cta-section'
 import { Footer } from '@/components/landing/footer'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export default function HomePage() {
   return (
@@ -19,7 +18,6 @@ export default function HomePage() {
         <CTASection />
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

@@ -20,6 +20,15 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-background">
+      {/* AFRU_HOME_VIDEO_LAYER */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-35">
+          <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+          <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-white/70" />
+      </div>
+
       {/* Background Video/Image - Desktop Hero */}
       {!isMobile && (
         <div className="absolute inset-0 -z-10">
@@ -45,7 +54,7 @@ export function HeroSection() {
         </div>
       )}
 
-      <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left Content */}
           <div className="flex flex-col items-start">
@@ -54,7 +63,7 @@ export function HeroSection() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75"></span>
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-accent"></span>
               </span>
-              Now serving Ghana, Nigeria, and China trade routes
+              Now serving Ghana, Kenya, and China trade routes
             </Badge>
 
             <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">

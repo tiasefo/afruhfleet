@@ -131,15 +131,15 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
             detail="An account with this email already exists.",
         )
 
-    # --- Create Tenant record (pending_verification until Fleetbase is done) --
+    # --- Create Tenant record (draft until subscription selected) --
     tenant = Tenant(
         company_name=payload.company_name,
         slug=slug,
         contact_email=payload.admin_email.lower(),
-        plan_code="free_trial",
+        plan_code="",  # No plan assigned yet — user must select via blocking modal
         requested_domain=requested_domain,
         domain_type=DomainType.provider_subdomain,
-        launch_status=LaunchStatus.pending_verification,
+        launch_status=LaunchStatus.draft,  # Will advance after subscription selection
         subdomain=slug,
         custom_domain=(
             payload.website.lower()
@@ -167,10 +167,9 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
     # --- Do NOT provision Fleetbase immediately here. ---
     # Provisioning will be triggered after the tenant selects a subscription
     # and completes payment (handled via the billing/payment flow). Keep the
-    # tenant in pending_verification so the frontend can present the
-    # subscription selection/checkout UI.
+    # tenant in draft so the frontend MUST present the blocking subscription
+    # selection modal before any other action.
     fleetbase_console_url = ""
-    tenant.launch_status = LaunchStatus.pending_verification
 
     # --- Billing / wallet / branding / AI --------------------------------
     # NOTE: Do NOT auto-create a trial subscription here. Subscription

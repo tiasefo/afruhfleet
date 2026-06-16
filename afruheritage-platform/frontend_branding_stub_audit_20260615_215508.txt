@@ -1,0 +1,828 @@
+
+============================================================
+FRONTEND BRANDING / STUB AUDIT
+============================================================
+PWD: /mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform
+BASE_URL: http://127.0.0.1:3002
+DATE: Mon Jun 15 09:55:08 PM UTC 2026
+
+
+============================================================
+GIT / BUILD CONTEXT
+============================================================
+/mnt/storage/afruheritage-home/fleetbase/afruhfleet
+ M .env
+ M admin-console/admin_app/api/routes/dashboard_local.py
+ M admin-console/admin_app/api/routes/tenants.py
+ M admin-console/admin_app/services/control_plane_client.py
+ M admin-console/frontend/app/dashboard/billing/page.tsx
+ M admin-console/frontend/app/dashboard/tenants/page.tsx
+ M app/api/routes/auth.py
+ M app/api/routes/billing.py
+ M app/api/routes/branding.py
+ M app/api/routes/company_registration.py
+ M app/api/routes/customs_guest.py
+ M app/api/routes/support_crm.py
+ M app/api/routes/tenants.py
+ M app/core/__pycache__/config.cpython-310.pyc
+ M app/core/config.py
+ M app/db/session.py
+ M app/main.py
+ M app/models/billing.py
+ M app/models/tenant_branding.py
+ M app/schemas/billing.py
+ M app/schemas/branding.py
+ M app/schemas/tenant.py
+ M app/services/auto_provisioning.py
+ M app/services/billing_service.py
+ M app/tasks/celery_app.py
+ M docker-compose.yml
+ M frontend/app/billing/page.tsx
+ M frontend/app/cookie-policy/page.tsx
+ M frontend/app/customs/page.tsx
+ M frontend/app/dashboard/page.tsx
+ M frontend/app/docs/page.tsx
+ M frontend/app/fleetbase/console/page.tsx
+ M frontend/app/fleetbase/drivers/page.tsx
+ M frontend/app/fleetbase/live-map/page.tsx
+ M frontend/app/gdpr/page.tsx
+ M frontend/app/layout.tsx
+ M frontend/app/locations/china/page.tsx
+ M frontend/app/locations/djibouti/page.tsx
+ M frontend/app/locations/ghana/page.tsx
+ M frontend/app/locations/kenya/page.tsx
+ M frontend/app/locations/nigeria/page.tsx
+ M frontend/app/locations/somalia/page.tsx
+ M frontend/app/page.tsx
+ M frontend/app/pricing/page.tsx
+ M frontend/app/privacy-policy/page.tsx
+ M frontend/app/support/page.tsx
+ M frontend/app/support/ticket/[token]/page.tsx
+ M frontend/app/terms-of-service/page.tsx
+ M frontend/app/track/page.tsx
+ M frontend/app/vendors/page.tsx
+ D frontend/components/ai-chat-widget.tsx
+ M frontend/components/app-shell.tsx
+ M frontend/components/auth/register-form.tsx
+ M frontend/components/landing/cta-section.tsx
+ M frontend/components/landing/footer.tsx
+ M frontend/components/landing/hero-section.tsx
+ M frontend/components/landing/navigation.tsx
+ M frontend/hooks/useAuth.ts
+ M frontend/lib/api.ts
+ M frontend/lib/api_updated.ts
+ M frontend/middleware.ts
+ M nginx/afruheritage-host.nginx.conf
+?? CODEBASE_INVENTORY.md
+?? PUBLIC_PLATFORM_API_AUDIT.md
+?? admin-console/frontend/app/dashboard/tenants/[id]/
+?? app/api/routes/admin_tenant_preview.py
+?? app/api/routes/customs_guest.py.stub.1781333382
+?? app/api/routes/fleetbase_tenant_proxy.py
+?? app/api/routes/products.py
+?? app/api/routes/storefront_templates.py
+?? app/models/product.py
+?? app/models/storefront_template.py
+?? app/schemas/product.py
+?? app/schemas/storefront_template.py
+?? app/tasks/subscription_checks.py
+?? audit_frontend_branding_stubs.sh
+?? create_customs_country_pages.py
+?? docs/fleetbase_feature_gap_analysis.md
+?? frontend/app/admin/customs/
+?? frontend/app/customs/ghana/
+?? frontend/app/customs/kenya/
+?? frontend/app/customs/nigeria/
+?? frontend/app/customs/payment-callback/
+?? frontend/app/customs/rwanda/
+?? frontend/app/customs/south-africa/
+?? frontend/app/customs/tanzania/
+?? frontend/app/customs/uganda/
+?? frontend/app/docs/features/
+?? frontend/app/locations/page.tsx
+?? frontend/app/products/
+?? frontend/app/profile/
+?? frontend/app/store/
+?? frontend/app/storefront/
+?? frontend/app/support/dashboard/
+?? frontend/components/faq-chat-widget.tsx
+?? frontend/components/faq-knowledge.ts
+?? frontend_branding_stub_audit_20260615_215508.txt
+?? patch_location_pages.py
+?? patch_visible_video_layers.py
+?? sentinel/
+?? sentinel_discover.sh
+?? sentinel_discovery/
+
+Docker compose services:
+NAME                         IMAGE                                 COMMAND                  SERVICE         CREATED             STATUS                       PORTS
+afruheritage-admin-console   afruheritage-platform-admin-console   "gunicorn admin_app.…"   admin-console   7 days ago          Up 2 days (unhealthy)        0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
+afruheritage-api             afruheritage-platform-api             "gunicorn app.main:a…"   api             23 hours ago        Up 23 hours (healthy)        0.0.0.0:8100->8000/tcp, [::]:8100->8000/tcp
+afruheritage-beat            afruheritage-platform-beat            "celery -A app.tasks…"   beat            7 days ago          Up 3 days (unhealthy)        8000/tcp
+afruheritage-frontend        afruheritage-platform-frontend        "docker-entrypoint.s…"   frontend        About an hour ago   Up About an hour (healthy)   0.0.0.0:3002->3000/tcp, [::]:3002->3000/tcp
+afruheritage-postgres        postgres:16-alpine                    "docker-entrypoint.s…"   postgres        29 hours ago        Up 29 hours (healthy)        0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp
+afruheritage-redis           redis:7-alpine                        "docker-entrypoint.s…"   redis           2 weeks ago         Up 3 days (healthy)          0.0.0.0:6380->6379/tcp, [::]:6380->6379/tcp
+afruheritage-worker          afruheritage-platform-worker          "celery -A app.tasks…"   worker          7 days ago          Up 3 days (unhealthy)        8000/tcp
+
+============================================================
+NEXT ROUTES IN SOURCE
+============================================================
+frontend/app/admin/customs/guest-usage/page.tsx
+frontend/app/admin/page.tsx
+frontend/app/admin/runtime/page.tsx
+frontend/app/billing/callback/page.tsx
+frontend/app/billing/page.tsx
+frontend/app/cookie-policy/page.tsx
+frontend/app/crm/contacts/page.tsx
+frontend/app/crm/page.tsx
+frontend/app/crm/quotes/page.tsx
+frontend/app/customs/duty-calculator/page.tsx
+frontend/app/customs/ghana/page.tsx
+frontend/app/customs/kenya/page.tsx
+frontend/app/customs/layout.tsx
+frontend/app/customs/nigeria/page.tsx
+frontend/app/customs/page.tsx
+frontend/app/customs/payment-callback/page.tsx
+frontend/app/customs/rwanda/page.tsx
+frontend/app/customs/south-africa/page.tsx
+frontend/app/customs/tanzania/page.tsx
+frontend/app/customs/uganda/page.tsx
+frontend/app/dashboard/page.tsx
+frontend/app/docs/features/page.tsx
+frontend/app/docs/page.tsx
+frontend/app/fleetbase/console-gate/page.tsx
+frontend/app/fleetbase/console/page.tsx
+frontend/app/fleetbase/drivers/page.tsx
+frontend/app/fleetbase/extensions/page.tsx
+frontend/app/fleetbase/fleets/page.tsx
+frontend/app/fleetbase/live-map/page.tsx
+frontend/app/fleetbase/vehicles/page.tsx
+frontend/app/gdpr/page.tsx
+frontend/app/kyc/page.tsx
+frontend/app/layout.tsx
+frontend/app/locations/china/page.tsx
+frontend/app/locations/djibouti/page.tsx
+frontend/app/locations/ghana/page.tsx
+frontend/app/locations/kenya/page.tsx
+frontend/app/locations/nigeria/page.tsx
+frontend/app/locations/page.tsx
+frontend/app/locations/somalia/page.tsx
+frontend/app/login/page.tsx
+frontend/app/marketplace/page.tsx
+frontend/app/members/[id]/edit/page.tsx
+frontend/app/members/[id]/page.tsx
+frontend/app/members/import/page.tsx
+frontend/app/members/new/page.tsx
+frontend/app/members/page.tsx
+frontend/app/onboarding/page.tsx
+frontend/app/page.tsx
+frontend/app/pricing/page.tsx
+frontend/app/privacy-policy/page.tsx
+frontend/app/products/page.tsx
+frontend/app/profile/page.tsx
+frontend/app/register/company/page.tsx
+frontend/app/register/page.tsx
+frontend/app/settings/page.tsx
+frontend/app/shipments/[id]/edit/page.tsx
+frontend/app/shipments/[id]/page.tsx
+frontend/app/shipments/new/page.tsx
+frontend/app/shipments/page.tsx
+frontend/app/storefront/page.tsx
+frontend/app/store/page.tsx
+frontend/app/store/[slug]/page.tsx
+frontend/app/support/dashboard/page.tsx
+frontend/app/support/page.tsx
+frontend/app/support/ticket/[token]/page.tsx
+frontend/app/tenant-request/page.tsx
+frontend/app/terms-of-service/page.tsx
+frontend/app/track/page.tsx
+frontend/app/vendors/page.tsx
+
+============================================================
+POSSIBLE DUPLICATE / BACKUP / STALE FILES
+============================================================
+frontend/app/billing/callback/page.tsx.bak.1779859840
+frontend/app/customs/page.tsx.broken.1781285580
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612
+frontend/app/tenant-request/page.tsx.bak.1781304361
+
+============================================================
+HOME PAGE SOURCE: ROUTE AND VIDEO / BADGE REFERENCES
+============================================================
+Files containing hero badge text:
+frontend/components/landing/hero-section.tsx:57:              Now serving Ghana, Kenya, and China trade routes
+
+Files containing homepage headline:
+
+Files containing homepage video sources:
+frontend/app/fleetbase/console/page.tsx:14:            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+frontend/app/locations/ghana/page.tsx:14:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/locations/kenya/page.tsx:14:            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+frontend/app/locations/page.tsx:24:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/locations/page.tsx:25:            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+frontend/app/shipments/page.tsx:129:            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+frontend/app/customs/uganda/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/nigeria/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/ghana/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/page.tsx.broken.1781285580:60:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/page.tsx.broken.1781285580:171:            <source src="/assets/videos/istockphoto-945121252-640_adpp_is.mp4" type="video/mp4" />
+frontend/app/customs/tanzania/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/south-africa/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/rwanda/page.tsx:10:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+frontend/app/customs/page.tsx:54:                src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm"
+frontend/app/customs/page.tsx:167:              <source src="/assets/videos/istockphoto-945121252-640_adpp_is.mp4" type="video/mp4" />
+frontend/components/landing/hero-section.tsx:33:            <source src="/assets/videos/istockphoto-945121252-640_adpp_is.mp4" type="video/mp4" />
+
+============================================================
+HOME PAGE RENDERED HTML CHECK
+============================================================
+Rendered badge text:
+Now serving Ghana, Kenya, and China trade routes
+
+Rendered homepage video sources:
+/assets/videos/istockphoto-945121252-640_adpp_is.mp4
+
+Rendered homepage contains video tag count:
+1
+
+Rendered homepage contains homepage-video-bg:
+
+============================================================
+VIDEO ASSET AVAILABILITY
+============================================================
+---- /assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/Truck20004964.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/27427654-preview.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/Vans-2220419522-640_adpp_is.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/istockphoto-1473471897-640_adpp_is.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/istockphoto-918314666-640_adpp_is.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+---- /assets/videos/istockphoto-945121252-640_adpp_is.mp4 ----
+HTTP/1.1 307 Temporary Redirect
+
+============================================================
+LOCATION PAGES: SOURCE VIDEO REFERENCES
+============================================================
+---- frontend/app/locations/china/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/istockphoto-1473471897-640_adpp_is.mp4" type="video/mp4" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage China
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+---- frontend/app/locations/djibouti/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/istockphoto-918314666-640_adpp_is.mp4" type="video/mp4" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage Djibouti
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+---- frontend/app/locations/ghana/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage Ghana
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+---- frontend/app/locations/kenya/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage Kenya
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+---- frontend/app/locations/nigeria/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/27427654-preview.mp4" type="video/mp4" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage Nigeria
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+---- frontend/app/locations/somalia/page.tsx ----
+13:          <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-75">
+14:            <source src="/assets/videos/Vans-2220419522-640_adpp_is.mp4" type="video/mp4" />
+15:          </video>
+17:        <div className="absolute inset-0 bg-[#021f2a]/35" />
+28:              AfruHeritage Somalia
+36:              AfruHeritage means African Union Heritage — a connected logistics network for customs,
+
+============================================================
+LOCATION PAGES: RENDERED VIDEO CHECK
+============================================================
+---- /locations ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm
+/assets/videos/Truck20004964.mp4
+/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm\
+/assets/videos/Truck20004964.mp4\
+---- /locations/ghana ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm
+/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm\
+---- /locations/kenya ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/Truck20004964.mp4
+/assets/videos/Truck20004964.mp4\
+---- /locations/nigeria ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/27427654-preview.mp4
+/assets/videos/27427654-preview.mp4\
+---- /locations/china ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/istockphoto-1473471897-640_adpp_is.mp4
+/assets/videos/istockphoto-1473471897-640_adpp_is.mp4\
+---- /locations/djibouti ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/istockphoto-918314666-640_adpp_is.mp4
+/assets/videos/istockphoto-918314666-640_adpp_is.mp4\
+---- /locations/somalia ----
+HTTP/1.1 200 OK
+video tags: 1
+video sources:
+/assets/videos/Vans-2220419522-640_adpp_is.mp4
+/assets/videos/Vans-2220419522-640_adpp_is.mp4\
+
+============================================================
+FOOTER / PHONE / WHATSAPP SOURCE
+============================================================
+frontend/app/register/company/page.tsx:239:                placeholder="+233 20 000 0000"
+frontend/app/locations/nigeria/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/nigeria/page.tsx:47:                WhatsApp Us
+frontend/app/locations/ghana/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/ghana/page.tsx:47:                WhatsApp Us
+frontend/app/locations/kenya/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/kenya/page.tsx:47:                WhatsApp Us
+frontend/app/locations/djibouti/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/djibouti/page.tsx:47:                WhatsApp Us
+frontend/app/locations/somalia/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/somalia/page.tsx:47:                WhatsApp Us
+frontend/app/locations/china/page.tsx:46:              <Link href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-lg border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10">
+frontend/app/locations/china/page.tsx:47:                WhatsApp Us
+frontend/components/tracking/tracking-search.tsx:39:    phone: '+86 138 0000 0000',
+frontend/components/tracking/tracking-search.tsx:45:    phone: '+233 24 000 0000',
+frontend/components/support/track-ticket-section.tsx:97:            <a href="mailto:support@afruheritage.com" className="flex items-center gap-2 text-sm text-primary hover:underline">
+frontend/components/support/track-ticket-section.tsx:99:              support@afruheritage.com
+frontend/components/landing/cta-section.tsx:55:              href="mailto:support@afruheritage.com"
+frontend/components/landing/cta-section.tsx:59:              support@afruheritage.com
+frontend/components/landing/cta-section.tsx:62:              href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer"
+frontend/components/landing/cta-section.tsx:66:              <a href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="hover:text-primary">WhatsApp +233 50 660 8337</a>
+
+============================================================
+FOOTER / PHONE / WHATSAPP RENDERED
+============================================================
+---- / ----
+support@afruheritage.com
+support@afruheritage.com
+wa.me/233506608337
+wa.me/233506608337
+WhatsApp +233 50 660 8337
+---- /support ----
+support@afruheritage.com
+support@afruheritage.com
+---- /pricing ----
+---- /locations ----
+---- /fleetbase/console ----
+---- /customs ----
+
+============================================================
+PRICING SOURCE ORDER
+============================================================
+frontend/app/pricing/page.tsx:182:                          <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+frontend/app/pricing/page.tsx:230:                          {plan.price_amount === 0 ? 'Start Free Trial' : 'Get Started'}
+frontend/components/landing/cta-section.tsx:35:                Start Free Trial
+frontend/components/landing/hero-section.tsx:76:                  Start Free Trial
+frontend/components/auth/register-form.tsx:18:  { code: 'free_trial', name: 'Free Trial (14 days)', price: '0 GHS', monthly: 'Includes basic features' },
+frontend/components/auth/register-form.tsx:19:  { code: 'professional', name: 'Starter', price: '1,000 GHS/month', monthly: 'Advanced tracking & vendors' },
+frontend/components/auth/register-form.tsx:20:  { code: 'business', name: 'Growth', price: '2,500 GHS/month', monthly: 'Custom domain & priority support' },
+frontend/components/auth/register-form.tsx:21:  { code: 'delivery_services', name: 'Enterprise', price: '6,000 GHS/month', monthly: 'Full platform + API access' },
+
+============================================================
+PRICING RENDERED ORDER
+============================================================
+
+============================================================
+PUBLIC ROUTE AUTH CHECK
+============================================================
+---- / ----
+HTTP/1.1 200 OK
+---- /docs ----
+HTTP/1.1 200 OK
+---- /support ----
+HTTP/1.1 200 OK
+---- /pricing ----
+HTTP/1.1 200 OK
+---- /locations ----
+HTTP/1.1 200 OK
+---- /locations/ghana ----
+HTTP/1.1 200 OK
+---- /locations/kenya ----
+HTTP/1.1 200 OK
+---- /fleetbase/console ----
+HTTP/1.1 200 OK
+---- /fleetbase/live-map ----
+HTTP/1.1 200 OK
+---- /customs ----
+HTTP/1.1 200 OK
+---- /customs/ghana ----
+HTTP/1.1 200 OK
+---- /customs/kenya ----
+HTTP/1.1 200 OK
+---- /customs/duty-calculator ----
+HTTP/1.1 200 OK
+---- /customs/payment-callback ----
+HTTP/1.1 200 OK
+
+============================================================
+MIDDLEWARE PUBLIC ROUTES
+============================================================
+import { NextRequest, NextResponse } from 'next/server'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api:8000/api/v1'
+
+// Hosts that are the platform itself — never resolve as tenant subdomains
+const PLATFORM_HOSTS = new Set([
+  'localhost',
+  '127.0.0.1',
+  'afruheritage.com',
+  'www.afruheritage.com',
+  'app.afruheritage.com',
+  'api.afruheritage.com',
+])
+
+// Routes that are publicly accessible without auth
+const PUBLIC_ROUTES = new Set([
+  '/',
+  '/register',
+  '/login',
+  '/terms-of-service',
+  '/privacy-policy',
+  '/track',
+])
+
+// Route prefixes that are publicly accessible
+const PUBLIC_PREFIXES = [
+  '/customs',
+  '/fleetbase/console',
+  '/fleetbase/live-map',
+  '/docs',
+  '/documentation',
+  '/support',
+  '/pricing',
+  '/locations',
+  '/track',
+  '/tracking',
+  '/store/',
+  '/api/',
+  '/_next/',
+  '/favicon',
+  '/static/',
+]
+
+function isIp(host: string) {
+  return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')
+}
+
+function isPlatformSubdomain(host: string): string | null {
+  // e.g. demo-freight-ghana.afruheritage.com → return "demo-freight-ghana"
+  const parts = host.split('.')
+  if (parts.length >= 3 && parts.slice(1).join('.') === 'afruheritage.com') {
+    return parts[0]
+  }
+  return null
+}
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_ROUTES.has(pathname)) return true
+  if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true
+  return false
+}
+
+function hasAuthToken(req: NextRequest): boolean {
+  const token = req.cookies.get('access_token')?.value
+  return !!token && token.length > 10
+}
+
+export async function middleware(req: NextRequest) {
+  const host = req.headers.get('host')?.toLowerCase().split(':')[0] ?? ''
+  const pathname = req.nextUrl.pathname
+
+  // 1. Auth gate — redirect unauthenticated users to /register for protected routes
+  if (!isPublicPath(pathname) && !hasAuthToken(req)) {
+    const loginUrl = new URL(pathname.startsWith('/admin') ? '/admin/login' : '/register', req.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // 2. Skip subdomain resolution for platform hosts and IPs
+  if (!host || PLATFORM_HOSTS.has(host) || isIp(host)) {
+    return NextResponse.next()
+  }
+
+  // 3. Skip for *.afruheritage.com subdomains — those use the subdomain as slug directly
+  const subdomain = isPlatformSubdomain(host)
+  if (subdomain) {
+    // Inject x-tenant-slug header so pages can use it as fallback
+    const res = NextResponse.next()
+    res.headers.set('x-tenant-slug', subdomain)
+    return res
+  }
+
+  // 4. For fully custom domains (e.g. freight.acmeco.com) — resolve via API
+  try {
+    const resolveUrl = `${API_BASE}/domains/resolve?hostname=${encodeURIComponent(host)}`
+    const apiRes = await fetch(resolveUrl, {
+      headers: { 'Content-Type': 'application/json' },
+      // Short timeout — don't stall page loads
+      signal: AbortSignal.timeout(3000),
+    })
+
+    if (apiRes.ok) {
+      const data: { tenant_id: string } = await apiRes.json()
+      if (data.tenant_id) {
+        const res = NextResponse.next()
+        // Inject resolved tenant_id as a header — the client reads it on load
+        res.headers.set('x-tenant-id', data.tenant_id)
+        res.headers.set('x-tenant-host', host)
+        return res
+      }
+    }
+  } catch {
+    // Resolution failed (unknown domain or API down) — let the page handle it
+  }
+
+  return NextResponse.next()
+}
+
+export const config = {
+  matcher: [
+    // Run on all routes except Next.js internals and static files
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)',
+  ],
+}
+
+============================================================
+POSSIBLE HARD-CODED STATIC MOCK VISUALS
+============================================================
+frontend/app/products/page.tsx:155:                <Input placeholder="Product name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+frontend/app/products/page.tsx:156:                <Input placeholder="Short description (max 500 chars)" value={form.short_description} onChange={e => setForm({ ...form, short_description: e.target.value })} />
+frontend/app/products/page.tsx:158:                  placeholder="Full description"
+frontend/app/products/page.tsx:164:                  <Input type="number" placeholder="Price (GHS)" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+frontend/app/products/page.tsx:165:                  <Input placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+frontend/app/products/page.tsx:168:                  <Input type="number" placeholder="Stock quantity" value={form.stock_quantity} onChange={e => setForm({ ...form, stock_quantity: parseInt(e.target.value) || 0 })} />
+frontend/app/products/page.tsx:169:                  <Input placeholder="Tags (comma separated)" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} />
+frontend/app/products/page.tsx:172:                  placeholder="Image URLs (comma separated)"
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:53:  { value: 'motorbike', label: 'Motorbike', icon: Bike },
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:195:                    placeholder="Search drivers by name, email, or phone..."
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:207:                    <SelectValue placeholder="Status" />
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:221:                    <SelectValue placeholder="Availability" />
+frontend/app/fleetbase/drivers/page.tsx.bak.1780679612:236:                    <SelectValue placeholder="Vehicle" />
+frontend/app/fleetbase/drivers/page.tsx:117:                <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Kwame Mensah" />
+frontend/app/fleetbase/drivers/page.tsx:121:                <Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+233 20 123 4567" />
+frontend/app/fleetbase/drivers/page.tsx:125:                <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="driver@company.com" />
+frontend/app/fleetbase/drivers/page.tsx:130:                  <Input id="city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Accra" />
+frontend/app/fleetbase/drivers/page.tsx:134:                  <Input id="country" value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="GH" />
+frontend/app/fleetbase/extensions/page.tsx:281:                        placeholder="tenant-uuid"
+frontend/app/fleetbase/extensions/page.tsx:289:                          <SelectValue placeholder="Select runner" />
+frontend/app/fleetbase/extensions/page.tsx:341:                          placeholder="My Custom Extension"
+frontend/app/fleetbase/extensions/page.tsx:368:                          placeholder="1.0.0"
+frontend/app/fleetbase/extensions/page.tsx:377:                          placeholder="https://github.com/user/extension"
+frontend/app/fleetbase/extensions/page.tsx:387:                        placeholder="Extension description"
+frontend/app/fleetbase/extensions/page.tsx:396:                        placeholder='{"api_key": "...", "enabled": true}'
+frontend/app/fleetbase/vehicles/page.tsx:37:  { value: 'motorbike', label: 'Motorbike', icon: Bike, capacity: '0.1-0.3 tons' },
+frontend/app/fleetbase/vehicles/page.tsx:242:                          <SelectValue placeholder="Select driver" />
+frontend/app/fleetbase/vehicles/page.tsx:261:                        placeholder="Toyota"
+frontend/app/fleetbase/vehicles/page.tsx:270:                        placeholder="Hilux"
+frontend/app/fleetbase/vehicles/page.tsx:281:                        placeholder="2022"
+frontend/app/fleetbase/vehicles/page.tsx:290:                        placeholder="ABC-1234"
+frontend/app/fleetbase/vehicles/page.tsx:301:                        placeholder="1HGBH41JXMN109186"
+frontend/app/fleetbase/vehicles/page.tsx:310:                        placeholder="White"
+frontend/app/fleetbase/vehicles/page.tsx:321:                        placeholder="2.5"
+frontend/app/fleetbase/vehicles/page.tsx:330:                        placeholder="INS-123456"
+frontend/app/fleetbase/vehicles/page.tsx:410:                    placeholder="Search vehicles by make, model, plate, or driver..."
+frontend/app/fleetbase/vehicles/page.tsx:422:                    <SelectValue placeholder="Type" />
+frontend/app/fleetbase/vehicles/page.tsx:437:                    <SelectValue placeholder="Status" />
+frontend/app/fleetbase/vehicles/page.tsx:452:                    <SelectValue placeholder="Driver" />
+frontend/app/tenant-request/page.tsx:202:                      <input className="mt-2 w-full rounded-lg border p-3" value={form.fleet_size} onChange={(e) => update('fleet_size', e.target.value)} placeholder="e.g. 12" />
+frontend/app/tenant-request/page.tsx:206:                      <input className="mt-2 w-full rounded-lg border p-3" value={form.vehicle_types} onChange={(e) => update('vehicle_types', e.target.value)} placeholder="Trucks, vans, bikes" />
+frontend/app/tenant-request/page.tsx:210:                      <input className="mt-2 w-full rounded-lg border p-3" value={form.service_regions} onChange={(e) => update('service_regions', e.target.value)} placeholder="Accra, Tema, Kumasi" />
+frontend/app/track/page.tsx:36:              src="/assets/images/delivery.png"
+frontend/app/marketplace/page.tsx:133:            placeholder="Search by tracking number, origin, destination..."
+frontend/app/billing/page.tsx:325:                                  <SelectValue placeholder="Choose a plan" />
+frontend/app/billing/page.tsx:400:                                  <SelectValue placeholder="Choose a plan" />
+frontend/app/billing/page.tsx:482:                                placeholder="Enter amount"
+frontend/app/billing/page.tsx:673:                placeholder="CONFIRM"
+frontend/app/billing/page.tsx:724:                placeholder="CONFIRM"
+frontend/app/register/company/page.tsx:190:                placeholder="Acme Freight Ltd"
+frontend/app/register/company/page.tsx:216:                  placeholder="Accra"
+frontend/app/register/company/page.tsx:228:                placeholder="123 Harbour Road"
+frontend/app/register/company/page.tsx:239:                placeholder="+233 20 000 0000"
+frontend/app/register/company/page.tsx:251:                  placeholder="acme-freight"
+frontend/app/register/company/page.tsx:272:                placeholder="Jane Doe"
+frontend/app/register/company/page.tsx:284:                placeholder="admin@yourcompany.com"
+frontend/app/register/company/page.tsx:296:                placeholder="Min. 8 characters"
+frontend/app/register/company/page.tsx:309:                placeholder="Repeat password"
+frontend/app/onboarding/page.tsx:242:                      placeholder="e.g. Kwame Mensah"
+frontend/app/crm/quotes/page.tsx:155:                        placeholder="Q-202412-001"
+frontend/app/crm/quotes/page.tsx:189:                        placeholder="0.00"
+frontend/app/crm/quotes/page.tsx:198:                        <SelectValue placeholder="Select opportunity" />
+frontend/app/crm/contacts/page.tsx:148:                        <SelectValue placeholder="Select account" />
+frontend/app/crm/contacts/page.tsx:166:                        placeholder="First name"
+frontend/app/crm/contacts/page.tsx:175:                        placeholder="Last name"
+frontend/app/crm/contacts/page.tsx:186:                      placeholder="email@example.com"
+frontend/app/crm/contacts/page.tsx:196:                      placeholder="+233 20 123 4567"
+frontend/app/crm/contacts/page.tsx:263:                    placeholder="Search contacts by name or email..."
+frontend/app/crm/page.tsx:151:                      placeholder="Opportunity title"
+frontend/app/crm/page.tsx:194:                      placeholder="0.00"
+frontend/app/crm/page.tsx:202:                        <SelectValue placeholder="Select account" />
+frontend/app/kyc/page.tsx:245:                  placeholder="As it appears on your ID"
+frontend/app/kyc/page.tsx:257:                  placeholder="e.g. Ghanaian"
+frontend/app/kyc/page.tsx:283:                  placeholder="ID document number"
+frontend/app/storefront/page.tsx:253:                            placeholder="Enter section title"
+frontend/app/storefront/page.tsx:268:                              placeholder={section.type === 'hero' ? 'Enter tagline' : 'Enter description'}
+frontend/app/storefront/page.tsx:293:                    placeholder="Paste image URL or upload via Settings > Logo"
+frontend/app/admin/runtime/page.tsx:314:                          placeholder="Primary Runner - Accra"
+frontend/app/admin/runtime/page.tsx:323:                          placeholder="runner1.afruheritage.com"
+frontend/app/admin/runtime/page.tsx:334:                          placeholder="22"
+frontend/app/admin/runtime/page.tsx:343:                          placeholder="root"
+frontend/app/admin/runtime/page.tsx:353:                        placeholder="/opt/afruheritage/tenants"
+frontend/app/admin/runtime/page.tsx:363:                          placeholder="50"
+frontend/app/admin/runtime/page.tsx:410:                        placeholder="tenant-uuid"
+frontend/app/admin/runtime/page.tsx:418:                          <SelectValue placeholder="Select runner" />
+frontend/app/admin/runtime/page.tsx:627:                    <SelectValue placeholder="Status" />
+frontend/app/admin/runtime/page.tsx:642:                    <SelectValue placeholder="Runner" />
+frontend/app/admin/page.tsx:189:                placeholder="Search tenants..."
+frontend/app/admin/customs/guest-usage/page.tsx:32:            placeholder="test-guest-001"
+frontend/app/support/dashboard/page.tsx:138:            placeholder="Search tickets..."
+frontend/app/support/dashboard/page.tsx:147:            <SelectValue placeholder="Status" />
+frontend/app/support/dashboard/page.tsx:275:                placeholder="Type your reply..."
+frontend/app/support/page.tsx:13:  description: 'Get help with your shipments, create support tickets, and track existing requests. Our team is available 24/7 to assist you.',
+frontend/app/settings/page.tsx:261:                    placeholder="Enter company name"
+frontend/app/settings/page.tsx:270:                    placeholder="Enter legal company name"
+frontend/app/settings/page.tsx:280:                    placeholder="support@company.com"
+frontend/app/settings/page.tsx:289:                    placeholder="+233 30 123 4567"
+frontend/app/settings/page.tsx:298:                    placeholder="© 2024 Company Name. All rights reserved."
+frontend/app/settings/page.tsx:327:                        placeholder="#0ea5e9"
+frontend/app/settings/page.tsx:344:                        placeholder="#64748b"
+frontend/app/settings/page.tsx:361:                        placeholder="#f59e0b"
+frontend/app/settings/page.tsx:378:                        placeholder="#ffffff"
+frontend/app/settings/page.tsx:565:                        placeholder="portal.yourcompany.com"
+frontend/app/settings/page.tsx:620:                    placeholder="https://example.com/logo.png"
+frontend/app/settings/page.tsx:639:                    placeholder="https://example.com/favicon.ico"
+frontend/app/docs/page.tsx:487:                  <Input placeholder="Search docs..." className="pl-9" />
+frontend/app/members/new/page.tsx:98:                    placeholder="Enter full name"
+frontend/app/members/new/page.tsx:112:                    placeholder="name@example.com"
+frontend/app/members/new/page.tsx:124:                    placeholder="+233 XX XXX XXXX"
+frontend/app/members/new/page.tsx:136:                    placeholder="Company or team name"
+frontend/app/members/new/page.tsx:148:                    placeholder="Optional ID reference"
+frontend/app/members/new/page.tsx:159:                      <SelectValue placeholder="Select language" />
+frontend/app/members/new/page.tsx:177:                  placeholder="Internal notes about this member"
+frontend/app/members/[id]/edit/page.tsx:142:                      <SelectValue placeholder="Select language" />
+frontend/app/members/[id]/edit/page.tsx:154:                      <SelectValue placeholder="Select status" />
+frontend/app/members/page.tsx:185:                          placeholder="Jane Doe"
+frontend/app/members/page.tsx:195:                          placeholder="jane@company.com"
+frontend/app/members/page.tsx:271:            placeholder="Search members by name or email..."
+frontend/app/store/[slug]/page.tsx:205:                placeholder="Tracking number (e.g. AFR-2024-12847)"
+frontend/app/store/[slug]/page.tsx:266:                    placeholder="John Doe"
+frontend/app/store/[slug]/page.tsx:276:                    placeholder="john@example.com"
+frontend/app/store/[slug]/page.tsx:286:                  placeholder="What is your inquiry about?"
+frontend/app/store/[slug]/page.tsx:326:                  placeholder="Please describe your issue or inquiry in detail..."
+frontend/app/store/[slug]/page.tsx:390:              placeholder="Search products..."
+frontend/app/shipments/new/page.tsx:189:                    placeholder="Leave blank to auto-generate"
+frontend/app/shipments/new/page.tsx:199:                    placeholder="Optional reference number"
+frontend/app/shipments/new/page.tsx:209:                    placeholder="e.g., Electronics, Clothing"
+frontend/app/shipments/new/page.tsx:234:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:248:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:261:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:274:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:287:                    placeholder="0.0"
+frontend/app/shipments/new/page.tsx:313:                  placeholder="Describe the shipment contents"
+frontend/app/shipments/new/page.tsx:324:                  placeholder="Additional notes or special instructions"
+frontend/app/shipments/new/page.tsx:348:                    placeholder="Enter sender name"
+frontend/app/shipments/new/page.tsx:359:                    placeholder="Enter phone number"
+frontend/app/shipments/new/page.tsx:369:                    placeholder="Enter complete address"
+frontend/app/shipments/new/page.tsx:380:                    placeholder="Enter city"
+frontend/app/shipments/new/page.tsx:391:                    placeholder="Enter country"
+frontend/app/shipments/new/page.tsx:416:                    placeholder="Enter receiver name"
+frontend/app/shipments/new/page.tsx:427:                    placeholder="Enter phone number"
+frontend/app/shipments/new/page.tsx:437:                    placeholder="Enter complete address"
+frontend/app/shipments/new/page.tsx:448:                    placeholder="Enter city"
+frontend/app/shipments/new/page.tsx:459:                    placeholder="Enter country"
+frontend/app/shipments/new/page.tsx:482:                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:491:                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:500:                    <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:509:                    <SelectTrigger><SelectValue placeholder="Select city" /></SelectTrigger>
+frontend/app/shipments/new/page.tsx:557:                    placeholder="0.00"
+frontend/app/shipments/new/page.tsx:571:                    placeholder="0.00"
+frontend/app/shipments/new/page.tsx:606:                    <SelectValue placeholder="Select team member (optional)" />
+frontend/app/shipments/[id]/edit/page.tsx:189:                      <SelectValue placeholder="Select status" />
+frontend/app/shipments/[id]/edit/page.tsx:277:                      <SelectValue placeholder="Select member" />
+frontend/app/shipments/[id]/page.tsx:250:                          <SelectValue placeholder="Select event type" />
+frontend/app/shipments/[id]/page.tsx:268:                        placeholder="Event location"
+frontend/app/shipments/[id]/page.tsx:276:                        placeholder="Event description"
+frontend/app/shipments/[id]/page.tsx:652:                    placeholder="Optional location label"
+frontend/app/shipments/page.tsx:177:                  placeholder={t('common.search')}
+frontend/app/shipments/page.tsx:191:                <SelectValue placeholder="Filter by status" />
+frontend/app/shipments/page.tsx:214:                <SelectValue placeholder="Payment Status" />
+frontend/app/customs/duty-calculator/page.tsx:180:                    placeholder="Enter VIN"
+frontend/app/customs/duty-calculator/page.tsx:219:                    <input className="rounded border p-2" placeholder="Make e.g. Toyota" value={form.make} onChange={(e) => update('make', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:220:                    <input className="rounded border p-2" placeholder="Model e.g. Auris" value={form.model} onChange={(e) => update('model', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:221:                    <input className="rounded border p-2" placeholder="VIN optional" value={form.vin} onChange={(e) => update('vin', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:222:                    <input className="rounded border p-2" placeholder="Vehicle Year" value={form.vehicle_year} onChange={(e) => update('vehicle_year', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:223:                    <input className="rounded border p-2" placeholder="Engine CC" value={form.engine_cc} onChange={(e) => update('engine_cc', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:224:                    <input className="rounded border p-2" placeholder="Fuel Type" value={form.fuel_type} onChange={(e) => update('fuel_type', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:225:                    <input className="rounded border p-2 md:col-span-2" placeholder="Vehicle Type" value={form.vehicle_type} onChange={(e) => update('vehicle_type', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:229:                    <input className="rounded border p-2" placeholder="HS Code" value={form.hs_code} onChange={(e) => update('hs_code', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:230:                    <input className="rounded border p-2" placeholder="Description" value={form.description} onChange={(e) => update('description', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:231:                    <input className="rounded border p-2" placeholder="Quantity" value={form.quantity} onChange={(e) => update('quantity', e.target.value)} />
+frontend/app/customs/duty-calculator/page.tsx:232:                    <input className="rounded border p-2" placeholder="Weight KG" value={form.weight_kg} onChange={(e) => update('weight_kg', e.target.value)} />
+frontend/components/vendors/vendor-faq.tsx:17:    answer: 'We accept all types of delivery vehicles including trucks (all sizes), vans, cars, motorbikes, and bicycles. You can register multiple vehicle types if you have access to different vehicles.',
+frontend/components/vendors/vendor-faq.tsx:25:    answer: 'You need a valid Ghana Card or equivalent ID, vehicle registration documents, and a smartphone. For motorized vehicles, you also need valid insurance and a roadworthy certificate.',
+frontend/components/vendors/vendor-registration.tsx:32:  { id: 'motorbike', label: 'Motorbike', icon: Bike, description: 'Quick deliveries, small packages' },
+frontend/components/vendors/vendor-registration.tsx:282:                      placeholder="Enter your full name"
+frontend/components/vendors/vendor-registration.tsx:292:                      placeholder="+233 XX XXX XXXX"
+frontend/components/vendors/vendor-registration.tsx:304:                    placeholder="you@example.com"
+frontend/components/vendors/vendor-registration.tsx:315:                        <SelectValue placeholder="Select ID type" />
+frontend/components/vendors/vendor-registration.tsx:329:                      placeholder="Enter ID number"
+frontend/components/vendors/vendor-registration.tsx:379:                      placeholder="e.g., GR-1234-21"
+frontend/components/vendors/vendor-registration.tsx:388:                      placeholder="e.g., Toyota Hiace"
+frontend/components/vendors/vendor-registration.tsx:400:                    placeholder="e.g., 2020"
+frontend/components/vendors/vendor-registration.tsx:452:                      placeholder="Your company name"
+frontend/components/vendors/vendor-registration.tsx:476:                      <SelectValue placeholder="Select experience" />
+frontend/components/tracking/tracking-search.tsx:244:                  placeholder="Enter tracking number (try: AFR-2024-12847)"
+frontend/components/ui/textarea.tsx:10:        'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+frontend/components/ui/input.tsx:11:        'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
+frontend/components/ui/command.tsx:76:          'placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50',
+frontend/components/ui/select.tsx:40:        "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex w-fit items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+frontend/components/faq-chat-widget.tsx:481:                    placeholder="Type a question..."
+frontend/components/support/create-ticket-form.tsx:200:                <Input id="name" placeholder="Your name" required />
+frontend/components/support/create-ticket-form.tsx:204:                <Input id="email" type="email" placeholder="you@example.com" required />
+frontend/components/support/create-ticket-form.tsx:215:                    <SelectValue placeholder="Select category" />
+frontend/components/support/create-ticket-form.tsx:230:                    <SelectValue placeholder="Select priority" />
+frontend/components/support/create-ticket-form.tsx:249:            <Input id="tracking" placeholder="Tracking number or reference" />
+frontend/components/support/create-ticket-form.tsx:254:            <Input id="subject" placeholder="Brief description of your issue" required />
+frontend/components/support/create-ticket-form.tsx:261:              placeholder="Please provide as much detail as possible about your issue..."
+frontend/components/support/ticket-detail.tsx:269:                <Textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Write your reply..." rows={4} className="resize-none" />
+frontend/components/support/faq-section.tsx:30:    answer: 'Our AI assistant is available 24/7 to help you with common questions about shipments, quotes, and customs. It can provide instant tracking updates, generate preliminary quotes, and answer FAQs in both English and Chinese. For complex issues, it will create a support ticket for our team.',
+frontend/components/support/track-ticket-section.tsx:68:                  placeholder="Paste your tracking token here"
+frontend/components/support/support-hero.tsx:9:    title: '24/7 Support',
+frontend/components/landing/how-it-works.tsx:28:    description: 'Let our AI handle customer inquiries, generate quotes, and provide 24/7 support in English and Chinese.',
+frontend/components/landing/features-section.tsx:30:    description: 'Get instant answers about shipments, quotes, and customs with our intelligent chatbot available 24/7.',
+frontend/components/landing/features-section.tsx:61:  { value: '45+', label: 'Countries Served', icon: Globe },
+frontend/components/landing/features-section.tsx:62:  { value: '98.5%', label: 'On-time Delivery', icon: Clock },
+frontend/components/landing/hero-section.tsx:153:                <div className="text-xs text-muted-foreground">Active Shipments</div>
+frontend/components/landing/hero-section.tsx:154:                <div className="text-2xl font-bold text-primary">12,847</div>
+frontend/components/landing/hero-section.tsx:159:                <div className="text-2xl font-bold text-foreground">45+</div>
+frontend/components/landing/hero-section.tsx:164:                <div className="text-2xl font-bold text-chart-4">98.5%</div>
+frontend/components/landing/hero-section.tsx:169:                <div className="text-2xl font-bold text-accent">24/7</div>
+frontend/components/auth/login-form.tsx:167:                      placeholder="Enter your email"
+frontend/components/auth/login-form.tsx:189:                        placeholder="Enter your password"
+frontend/components/auth/register-form.tsx:274:                      placeholder="Enter your company name"
+frontend/components/auth/register-form.tsx:287:                      placeholder="Enter your full name"
+frontend/components/auth/register-form.tsx:300:                      placeholder="Enter your email"
+frontend/components/auth/register-form.tsx:314:                        placeholder="Create a password (min 8 characters)"
+frontend/components/auth/register-form.tsx:342:                        placeholder="Confirm your password"
+frontend/components/faq-knowledge.ts:46:  { keywords: ['vehicle duty','car duty','auto duty','motor vehicle'], answer: 'Vehicle duty depends on make, model, year, engine CC, and country. Use the calculator with your VIN for the most accurate estimate. Manual entry is also supported.' },
+frontend/components/faq-knowledge.ts:74:  { keywords: ['vendor vehicle','vehicle types','bike','truck','car'], answer: 'Vendors can register trucks, cars, motorbikes, or bicycles. Vehicle details are reviewed during the admin approval process.' },
+
+============================================================
+NEXT BUILD CACHE / RUNNING IMAGE CHECK
+============================================================
+Local frontend .next exists?
+drwxrwxr-x 10 afruheritage afruheritage 4096 Jun 15 20:53 frontend/.next
+
+Frontend container image:
+sha256:4b347b8e0de43221e04b84f29ac84ff53061fbb6c16c84a7b2bea8f192602e1a afruheritage-platform-frontend
+
+Frontend container mounted/env ports:
+{"3000/tcp":[{"HostIp":"0.0.0.0","HostPort":"3002"},{"HostIp":"::","HostPort":"3002"}]}
+
+============================================================
+SUMMARY FLAGS
+============================================================
+Rendered homepage badge: Now serving Ghana, Kenya, and China trade routes
+Rendered pricing first 4 plan labels: NOT_FOUND
+Rendered homepage video source count: 1
+PRICING_ORDER: FAIL
+HOME_BADGE: PASS
+HOME_VIDEO_SOURCE_PRESENT: PASS
+
+============================================================
+AUDIT COMPLETE
+============================================================
+Audit written to: frontend_branding_stub_audit_20260615_215508.txt

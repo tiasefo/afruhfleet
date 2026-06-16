@@ -2,7 +2,6 @@ import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { TicketDetail } from '@/components/support/ticket-detail'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 
 export const metadata: Metadata = {
   title: 'Ticket Details | Afruheritage Support',
@@ -27,7 +26,6 @@ export default async function TicketPage({ params }: PageProps) {
         </div>
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

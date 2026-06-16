@@ -1,0 +1,17 @@
+{
+  "app": "fleetbase-socket-1",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["fleetbase-socket-1"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "SOCKETCLUSTER_WORKERS=10",
+  "SOCKETCLUSTER_BROKERS=10",
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "NODE_VERSION=18.15.0",
+  "YARN_VERSION=1.22.19"
+],
+  "volumes": [],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

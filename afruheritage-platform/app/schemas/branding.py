@@ -27,6 +27,7 @@ class BrandingUpdate(BaseModel):
     email_signature_html: str | None = None
     default_language: str | None = None
     supported_languages: str | None = None
+    storefront_config: dict | None = None
 
 
 class BrandingResponse(BaseModel):
@@ -56,6 +57,8 @@ class BrandingResponse(BaseModel):
     csv_import_enabled: bool
     group_members_enabled: bool
     max_group_members: int
+    template_code: str | None = None
+    storefront_config: dict | None = None
     created_at: datetime
     updated_at: datetime
 

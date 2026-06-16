@@ -1,0 +1,24 @@
+{
+  "app": "afruheritage-postgres",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["afruheritage-postgres"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "POSTGRES_PASSWORD=afruheritage",
+  "POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C",
+  "POSTGRES_DB=afruheritage",
+  "POSTGRES_USER=afruheritage",
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "GOSU_VERSION=1.19",
+  "LANG=en_US.utf8",
+  "PG_MAJOR=16",
+  "PG_VERSION=16.14",
+  "PG_SHA256=f6d077142737920858ce958ccdb75c6ee137a63b5b0853c70693d401ac7e3471",
+  "DOCKER_PG_LLVM_DEPS=llvm19-dev \t\tclang19",
+  "PGDATA=/var/lib/postgresql/data"
+],
+  "volumes": ["\"/mnt/storage/docker-data/volumes/afruheritage-platform_postgres_data/_data\"","\"/mnt/storage/afruheritage-home/fleetbase/afruhfleet/afruheritage-platform/database/init\""],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

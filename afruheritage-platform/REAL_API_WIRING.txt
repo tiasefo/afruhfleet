@@ -1,0 +1,25 @@
+admin-console/frontend/app/dashboard/billing/page.tsx:143:        const data = await api.get('/api/v1/billing/plans')
+admin-console/frontend/app/dashboard/billing/page.tsx:161:        api.get(`/api/v1/billing/wallets/${walletTenantId}`),
+admin-console/frontend/app/dashboard/billing/page.tsx:162:        api.get(`/api/v1/billing/subscriptions/${walletTenantId}`),
+admin-console/frontend/app/dashboard/billing/page.tsx:177:      await api.post('/api/v1/billing/admin/adjust-credits', {
+admin-console/frontend/app/dashboard/billing/page.tsx:197:      await api.post('/api/v1/billing/admin/assign-plan', {
+admin-console/frontend/app/dashboard/vendors/page.tsx:59:      const data = await api.get(`/api/v1/vendors/admin?${params.toString()}`)
+admin-console/frontend/app/dashboard/vendors/page.tsx:72:      await api.post(`/api/v1/vendors/admin/${id}/review`, { action: 'approve' })
+admin-console/frontend/app/dashboard/vendors/page.tsx:84:      await api.post(`/api/v1/vendors/admin/${rejectTarget}/review`, { action: 'reject', rejection_reason: rejectReason })
+admin-console/frontend/app/dashboard/vendors/page.tsx:98:      await api.post(`/api/v1/vendors/admin/${id}/suspend`)
+admin-console/frontend/app/dashboard/vendors/page.tsx:109:      const data = await api.get(`/api/v1/vendors/admin/${id}`)
+admin-console/frontend/app/dashboard/kyc/page.tsx:11:    fetch("/admin/kyc/list")
+admin-console/frontend/app/dashboard/kyc/page.tsx:25:    const res = await fetch(url, { method: "POST" });
+frontend/app/tenant-request/page.tsx:43:      const res = await fetch('/api/v1/tenant-requests', {
+frontend/app/admin/customs/guest-usage/page.tsx:11:    const res = await fetch(`/api/v1/customs/guest/admin/reset-guest/${guestId}`, {
+frontend/app/members/import/page.tsx:38:    const url = `/api/v1/users/bulk-import?send_invite_email=${sendInvite}${tenantId ? `&tenant_id=${tenantId}` : ''}`
+frontend/app/members/import/page.tsx:41:      const resp = await fetch(url, {
+frontend/app/store/[slug]/page.tsx:87:      const res = await fetch('/api/v1/support-crm/public/tickets?tenant_id=' + encodeURIComponent(slug), {
+frontend/app/store/[slug]/page.tsx:127:      const res = await fetch(`/api/v1/shipments/public/track/${slug}/${encodeURIComponent(trackNum.trim())}`)
+frontend/app/customs/payment-callback/page.tsx:22:    fetch(`/api/v1/customs/guest/payment/verify/${ref}`)
+frontend/app/customs/duty-calculator/page.tsx:46:      const res = await fetch('/api/v1/customs/vin-decode', {
+frontend/app/customs/duty-calculator/page.tsx:89:      let url = '/api/v1/customs/calculate'
+frontend/app/customs/duty-calculator/page.tsx:105:          url = '/api/v1/customs/ghana/vehicle-duty'
+frontend/app/customs/duty-calculator/page.tsx:107:          url = '/api/v1/customs/kenya/vehicle-duty'
+frontend/app/customs/duty-calculator/page.tsx:122:          url = '/api/v1/customs/ghana/goods-duty'
+frontend/app/customs/duty-calculator/page.tsx:126:      const res = await fetch(url, {

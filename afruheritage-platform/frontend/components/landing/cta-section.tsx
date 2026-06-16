@@ -59,11 +59,11 @@ export function CTASection() {
               support@afruheritage.com
             </a>
             <a
-              href="tel:+233000000000"
+              href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
             >
               <Phone className="h-4 w-4" />
-              +233 (0) 00 000 0000
+              <a href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="hover:text-primary">WhatsApp +233 50 660 8337</a>
             </a>
           </div>
         </div>

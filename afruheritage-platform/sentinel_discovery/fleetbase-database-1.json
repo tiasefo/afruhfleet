@@ -1,0 +1,19 @@
+{
+  "app": "fleetbase-database-1",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["fleetbase-database-1"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "MYSQL_ALLOW_EMPTY_PASSWORD=yes",
+  "MYSQL_DATABASE=fleetbase",
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "GOSU_VERSION=1.19",
+  "MYSQL_MAJOR=8.0",
+  "MYSQL_VERSION=8.0.46-1.el9",
+  "MYSQL_SHELL_VERSION=8.0.46-1.el9"
+],
+  "volumes": ["\"/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database\"","\"/mnt/storage/afruheritage-runtimes/c34425fb-8b25-4910-b1dc-d5fb630e3fa0/fleetbase/docker/database/mysql\""],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

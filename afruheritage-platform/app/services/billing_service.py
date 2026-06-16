@@ -106,6 +106,23 @@ DEFAULT_PLANS = [
         "monthly_credit_allowance": 120,
         "includes_custom_domain": False,
         "includes_priority_support": False,
+        "max_drivers": 3,
+        "max_vehicles": 3,
+        "max_shipments_per_month": 50,
+        "max_products": 10,
+        "max_group_members": 100,
+        "dispatch_enabled": False,
+        "route_planning_enabled": False,
+        "service_rates_enabled": False,
+        "pod_enabled": False,
+        "route_optimization_enabled": False,
+        "vrp_enabled": False,
+        "webhooks_enabled": False,
+        "notifications_enabled": False,
+        "extensions_enabled": False,
+        "maintenance_enabled": False,
+        "fuel_tracking_enabled": False,
+        "csv_import_enabled": False,
     },
     {
         "code": PlanCode.PROFESSIONAL,
@@ -115,6 +132,23 @@ DEFAULT_PLANS = [
         "monthly_credit_allowance": 1200,
         "includes_custom_domain": False,
         "includes_priority_support": False,
+        "max_drivers": 20,
+        "max_vehicles": 20,
+        "max_shipments_per_month": 500,
+        "max_products": 100,
+        "max_group_members": 1000,
+        "dispatch_enabled": True,
+        "route_planning_enabled": False,
+        "service_rates_enabled": True,
+        "pod_enabled": True,
+        "route_optimization_enabled": False,
+        "vrp_enabled": False,
+        "webhooks_enabled": True,
+        "notifications_enabled": True,
+        "extensions_enabled": False,
+        "maintenance_enabled": False,
+        "fuel_tracking_enabled": False,
+        "csv_import_enabled": True,
     },
     {
         "code": PlanCode.BUSINESS,
@@ -124,6 +158,23 @@ DEFAULT_PLANS = [
         "monthly_credit_allowance": 3500,
         "includes_custom_domain": True,
         "includes_priority_support": True,
+        "max_drivers": 9999,
+        "max_vehicles": 9999,
+        "max_shipments_per_month": 9999,
+        "max_products": 9999,
+        "max_group_members": 5000,
+        "dispatch_enabled": True,
+        "route_planning_enabled": True,
+        "service_rates_enabled": True,
+        "pod_enabled": True,
+        "route_optimization_enabled": True,
+        "vrp_enabled": True,
+        "webhooks_enabled": True,
+        "notifications_enabled": True,
+        "extensions_enabled": True,
+        "maintenance_enabled": True,
+        "fuel_tracking_enabled": True,
+        "csv_import_enabled": True,
     },
     {
         "code": PlanCode.DELIVERY_SERVICES,
@@ -133,6 +184,23 @@ DEFAULT_PLANS = [
         "monthly_credit_allowance": 10000,
         "includes_custom_domain": True,
         "includes_priority_support": True,
+        "max_drivers": 9999,
+        "max_vehicles": 9999,
+        "max_shipments_per_month": 9999,
+        "max_products": 9999,
+        "max_group_members": 5000,
+        "dispatch_enabled": True,
+        "route_planning_enabled": True,
+        "service_rates_enabled": True,
+        "pod_enabled": True,
+        "route_optimization_enabled": True,
+        "vrp_enabled": True,
+        "webhooks_enabled": True,
+        "notifications_enabled": True,
+        "extensions_enabled": True,
+        "maintenance_enabled": True,
+        "fuel_tracking_enabled": True,
+        "csv_import_enabled": True,
     },
 ]
 
@@ -180,6 +248,23 @@ def seed_default_plans(db: Session) -> None:
             existing.monthly_credit_allowance = item["monthly_credit_allowance"]
             existing.includes_custom_domain = item["includes_custom_domain"]
             existing.includes_priority_support = item["includes_priority_support"]
+            existing.max_drivers = item.get("max_drivers", 3)
+            existing.max_vehicles = item.get("max_vehicles", 3)
+            existing.max_shipments_per_month = item.get("max_shipments_per_month", 50)
+            existing.max_products = item.get("max_products", 10)
+            existing.max_group_members = item.get("max_group_members", 100)
+            existing.dispatch_enabled = item.get("dispatch_enabled", False)
+            existing.route_planning_enabled = item.get("route_planning_enabled", False)
+            existing.service_rates_enabled = item.get("service_rates_enabled", False)
+            existing.pod_enabled = item.get("pod_enabled", False)
+            existing.route_optimization_enabled = item.get("route_optimization_enabled", False)
+            existing.vrp_enabled = item.get("vrp_enabled", False)
+            existing.webhooks_enabled = item.get("webhooks_enabled", False)
+            existing.notifications_enabled = item.get("notifications_enabled", False)
+            existing.extensions_enabled = item.get("extensions_enabled", False)
+            existing.maintenance_enabled = item.get("maintenance_enabled", False)
+            existing.fuel_tracking_enabled = item.get("fuel_tracking_enabled", False)
+            existing.csv_import_enabled = item.get("csv_import_enabled", False)
             existing.active = True
             db.add(existing)
             continue
@@ -281,7 +366,22 @@ def mark_payment_verified(db: Session, payment: Payment, provider_payload: dict 
     # Send payment success notification
     try:
         tenant = db.query(Tenant).filter(Tenant.id == payment.tenant_id).first()
-        plan = db.query(Plan).filter(Plan.code == payment.purpose).first()
+        # Resolve plan code from provider_payload metadata, fallback to tenant plan
+        plan_code = None
+        if payment.provider_payload:
+            try:
+                payload = json.loads(payment.provider_payload)
+                metadata = payload.get('data', {}).get('metadata') or payload.get('metadata', {})
+                plan_code = metadata.get('plan_code')
+            except Exception:
+                pass
+        if not plan_code and tenant:
+            plan_code = tenant.plan_code
+        # Defensive: only query Plan if plan_code is a known enum value
+        from app.models.billing import PlanCode
+        plan = None
+        if plan_code and plan_code in [e.value for e in PlanCode]:
+            plan = db.query(Plan).filter(Plan.code == plan_code).first()
         if tenant and plan:
             notification_service.send_payment_success_email(
                 to=tenant.contact_email,
@@ -559,6 +659,58 @@ def assert_tenant_launch_ready(db: Session, tenant_id: str) -> None:
     )
     if not verified_payment:
         raise ValueError("Tenant must complete subscription payment before launch")
+
+
+def cancel_subscription(db: Session, tenant_id: str, reason: str = "Customer requested cancellation") -> Subscription | None:
+    """Cancel a tenant's subscription immediately."""
+    tenant_pk = _as_uuid(tenant_id)
+    sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
+    if not sub:
+        return None
+    if sub.status in {SubscriptionStatus.CANCELED, SubscriptionStatus.EXPIRED}:
+        return sub
+    sub.status = SubscriptionStatus.CANCELED
+    sub.canceled_at = datetime.utcnow()
+    sub.read_only_reason = reason
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    write_audit_log(db, "tenant", tenant_id, "subscription_cancelled", "subscription", str(sub.id), {"reason": reason})
+    return sub
+
+
+def pause_subscription(db: Session, tenant_id: str, reason: str = "Customer requested pause") -> Subscription | None:
+    """Suspend a tenant's subscription (pause service)."""
+    tenant_pk = _as_uuid(tenant_id)
+    sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
+    if not sub:
+        return None
+    if sub.status in {SubscriptionStatus.CANCELED, SubscriptionStatus.EXPIRED, SubscriptionStatus.SUSPENDED}:
+        return sub
+    sub.status = SubscriptionStatus.SUSPENDED
+    sub.read_only_reason = reason
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    write_audit_log(db, "tenant", tenant_id, "subscription_paused", "subscription", str(sub.id), {"reason": reason})
+    return sub
+
+
+def resume_subscription(db: Session, tenant_id: str) -> Subscription | None:
+    """Resume a suspended subscription."""
+    tenant_pk = _as_uuid(tenant_id)
+    sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
+    if not sub:
+        return None
+    if sub.status != SubscriptionStatus.SUSPENDED:
+        return sub
+    sub.status = SubscriptionStatus.ACTIVE
+    sub.read_only_reason = None
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    write_audit_log(db, "tenant", tenant_id, "subscription_resumed", "subscription", str(sub.id), {})
+    return sub
 
 
 def write_audit_log(db: Session, actor_type: str, actor_id: str | uuid.UUID | None, action: str, target_type: str, target_id: str, metadata: dict | None = None) -> None:

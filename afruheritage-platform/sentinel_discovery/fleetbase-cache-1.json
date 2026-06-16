@@ -1,0 +1,16 @@
+{
+  "app": "fleetbase-cache-1",
+  "host": "mcorp-dvops-ai",
+  "ip": "10.0.0.115",
+  "docker_components": ["fleetbase-cache-1"],
+  "systemd_components": [],
+  "ports": [],
+  "env_vars": [
+  "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+  "REDIS_VERSION=4.0.14",
+  "REDIS_DOWNLOAD_URL=http://download.redis.io/releases/redis-4.0.14.tar.gz",
+  "REDIS_DOWNLOAD_SHA=1e1e18420a86cfb285933123b04a82e1ebda20bfb0a289472745a087587e93a7"
+],
+  "volumes": ["\"/mnt/storage/docker-data/volumes/6dc99223a0e77d2fcc0b6344ddbac058e856fd4d7974aee1c7269f2cdfc3f053/_data\""],
+  "databases": ["afruheritage-postgres","dokploy-postgres.1.f4q5ujxe9u32snp38bsrwkebi","dokploy-redis.1.k4iycnpd90eos35it9nhiyzou","afruheritage-redis"]
+}

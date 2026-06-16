@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { TrackingSearch } from '@/components/tracking/tracking-search'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 import { ArrowLeft } from 'lucide-react'
 import Image from 'next/image'
 
@@ -56,7 +55,6 @@ export default function TrackPage() {
         <TrackingSearch />
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

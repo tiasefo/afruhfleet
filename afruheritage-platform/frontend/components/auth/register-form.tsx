@@ -34,6 +34,10 @@ export function RegisterForm() {
   const [selectedPlan, setSelectedPlan] = useState<string>('professional')
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [registeredEmail, setRegisteredEmail] = useState('')
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false)
+  const [templates, setTemplates] = useState<any[]>([])
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('azure_cloud')
+  const [templateLoading, setTemplateLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -72,6 +76,9 @@ export function RegisterForm() {
         localStorage.setItem('portal_url', regData.portal_url)
         localStorage.setItem('tenant_subdomain', regData.subdomain ?? '')
       }
+      if (regData?.tenant_id) {
+        localStorage.setItem('tenant_id', regData.tenant_id)
+      }
       // If tenant was created, require subscription selection before provisioning
       if (regData?.requires_subscription) {
         setRegisteredEmail(email)
@@ -106,12 +113,15 @@ export function RegisterForm() {
   const handleSelectSubscription = async () => {
     setSubscriptionLoading(true)
     try {
+      // Get tenant_id from localStorage (set during registration)
+      const tenantId = localStorage.getItem('tenant_id') || ''
       // Initialize payment for selected plan
       const selectedPlanObj = PLANS.find(p => p.code === selectedPlan)
       const res = await fetch('/api/v1/billing/payments/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          tenant_id: tenantId,
           amount_major: selectedPlan === 'free_trial' ? 0 : 1000,
           email: registeredEmail,
           purpose: 'subscription',
@@ -125,14 +135,42 @@ export function RegisterForm() {
         // Redirect to Paystack checkout
         window.location.href = paymentData.authorization_url
       } else if (selectedPlan === 'free_trial') {
-        // Free trial: close modal and proceed (webhook will handle provisioning)
+        // Free trial: show template picker before dashboard
         setShowSubscriptionModal(false)
-        router.push('/dashboard')
+        // Fetch templates
+        try {
+          const res = await fetch('/api/v1/storefront-templates', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}`, 'Content-Type': 'application/json' }
+          })
+          if (res.ok) {
+            const data = await res.json()
+            setTemplates(data)
+            if (data.length > 0) setSelectedTemplate(data[0].template_code)
+          }
+        } catch (e) { /* ignore */ }
+        setShowTemplatePicker(true)
       }
     } catch (err: any) {
       setError('Failed to initialize payment: ' + (err.message || 'Unknown error'))
     } finally {
       setSubscriptionLoading(false)
+    }
+  }
+
+  const handleSelectTemplate = async () => {
+    setTemplateLoading(true)
+    try {
+      await fetch('/api/v1/storefront-templates/select', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ template_code: selectedTemplate }),
+      })
+      setShowTemplatePicker(false)
+      router.push('/dashboard')
+    } catch (err: any) {
+      setError('Failed to select template: ' + (err.message || 'Unknown error'))
+    } finally {
+      setTemplateLoading(false)
     }
   }
 
@@ -389,13 +427,19 @@ export function RegisterForm() {
         </div>
       </div>
 
-      {/* Subscription Modal */}
+      {/* Subscription Modal — BLOCKING: user MUST select a plan */}
       {showSubscriptionModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) e.stopPropagation() }}
+        >
           <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-2xl">Choose Your Plan</CardTitle>
-              <CardDescription>Select a plan that fits your needs. You can upgrade or downgrade anytime.</CardDescription>
+              <CardDescription>
+                Select a plan to complete your setup. You can upgrade or downgrade anytime.
+                <span className="block text-orange-600 font-medium mt-1">Required before accessing your dashboard.</span>
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -426,11 +470,11 @@ export function RegisterForm() {
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => setShowSubscriptionModal(false)}
+                  onClick={() => router.push('/')}
                   disabled={subscriptionLoading}
                   className="flex-1"
                 >
-                  Back
+                  Cancel Registration
                 </Button>
                 <Button
                   onClick={handleSelectSubscription}
@@ -444,7 +488,76 @@ export function RegisterForm() {
                     </>
                   ) : (
                     <>
-                      Continue to Payment
+                      Continue
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Template Picker Modal */}
+      {showTemplatePicker && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">Choose Your Storefront Template</CardTitle>
+              <CardDescription>Pick a design that fits your brand. You can customize colors later.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {templates.map((tmpl) => (
+                  <div
+                    key={tmpl.template_code}
+                    onClick={() => setSelectedTemplate(tmpl.template_code)}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedTemplate === tmpl.template_code
+                        ? 'border-orange-500 bg-orange-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        type="radio"
+                        checked={selectedTemplate === tmpl.template_code}
+                        onChange={() => setSelectedTemplate(tmpl.template_code)}
+                        className="h-4 w-4"
+                      />
+                      <h3 className="font-semibold">{tmpl.name}</h3>
+                    </div>
+                    <p className="text-sm text-gray-600">{tmpl.description}</p>
+                    <div className="mt-2 flex gap-2">
+                      <span className="inline-block w-4 h-4 rounded-full" style={{ backgroundColor: tmpl.preset?.primary_color }} />
+                      <span className="inline-block w-4 h-4 rounded-full" style={{ backgroundColor: tmpl.preset?.accent_color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => { setShowTemplatePicker(false); router.push('/dashboard') }}
+                  disabled={templateLoading}
+                  className="flex-1"
+                >
+                  Skip
+                </Button>
+                <Button
+                  onClick={handleSelectTemplate}
+                  disabled={templateLoading}
+                  className="flex-1 gap-2"
+                >
+                  {templateLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Applying...
+                    </>
+                  ) : (
+                    <>
+                      Launch Storefront
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}

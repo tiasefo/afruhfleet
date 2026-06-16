@@ -7,7 +7,6 @@ import { VendorHero } from '@/components/vendors/vendor-hero'
 import { VendorBenefits } from '@/components/vendors/vendor-benefits'
 import { VendorRegistration } from '@/components/vendors/vendor-registration'
 import { VendorFAQ } from '@/components/vendors/vendor-faq'
-import { AIChatWidget } from '@/components/ai-chat-widget'
 import { ArrowLeft } from 'lucide-react'
 
 export default function VendorsPage() {
@@ -33,7 +32,6 @@ export default function VendorsPage() {
         <VendorFAQ />
       </main>
       <Footer />
-      <AIChatWidget />
     </div>
   )
 }

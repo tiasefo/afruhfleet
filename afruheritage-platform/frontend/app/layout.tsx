@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Analytics } from '@vercel/analytics/next'
 import { Providers } from './providers'
 import { AppShell } from '@/components/app-shell'
+import { FAQChatWidget } from '@/components/faq-chat-widget'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -40,6 +41,7 @@ export default function RootLayout({
             {children}
           </AppShell>
         </Providers>
+        <FAQChatWidget />
         {showAnalytics ? <Analytics /> : null}
       </body>
     </html>

@@ -29,6 +29,19 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
+  XCircle,
+  Truck,
+  Route,
+  MapPin,
+  Globe,
+  Bell,
+  Plug,
+  Wrench,
+  Fuel,
+  FileSpreadsheet,
+  Package,
+  Boxes,
+  Group,
 } from 'lucide-react'
 
 interface Plan {
@@ -40,6 +53,23 @@ interface Plan {
   includes_custom_domain: boolean
   includes_priority_support: boolean
   included_features: string[]
+  max_drivers: number
+  max_vehicles: number
+  max_shipments_per_month: number
+  max_products: number
+  max_group_members: number
+  dispatch_enabled: boolean
+  route_planning_enabled: boolean
+  service_rates_enabled: boolean
+  pod_enabled: boolean
+  route_optimization_enabled: boolean
+  vrp_enabled: boolean
+  webhooks_enabled: boolean
+  notifications_enabled: boolean
+  extensions_enabled: boolean
+  maintenance_enabled: boolean
+  fuel_tracking_enabled: boolean
+  csv_import_enabled: boolean
 }
 
 interface Subscription {
@@ -68,6 +98,16 @@ interface WalletTransaction {
   currency: string
   memo: string
   created_at: string
+}
+
+function FeatureRow({ enabled, label, icon }: { enabled: boolean; label: string; icon: React.ReactNode }) {
+  return (
+    <div className={`flex items-center gap-2 ${enabled ? 'text-foreground' : 'text-muted-foreground/50'}`}>
+      {enabled ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : <XCircle className="h-3.5 w-3.5 text-red-400" />}
+      <span className="text-muted-foreground">{icon}</span>
+      <span className={enabled ? '' : 'line-through'}>{label}</span>
+    </div>
+  )
 }
 
 export default function BillingPage() {
@@ -200,19 +240,43 @@ export default function BillingPage() {
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {plans.map((p: any) => (
-              <Card key={p.id}>
-                <CardContent className="p-6">
-                  <Badge className={`mb-3 ${planColor(p.code || p.plan_code)}`}>{p.code || p.plan_code}</Badge>
+            {plans.map((p: Plan) => (
+              <Card key={p.code} className="flex flex-col">
+                <CardContent className="p-6 flex-1">
+                  <Badge className={`mb-3 ${planColor(p.code)}`}>{p.code}</Badge>
                   <div className="text-lg font-bold">{p.name}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{p.description || 'No description'}</div>
                   <div className="mt-3 text-2xl font-bold">
-                    {p.price_ghs != null ? `GHS ${p.price_ghs}` : (p.price != null ? `GHS ${p.price}` : 'Free')}
+                    GHS {p.price_amount}
                     <span className="text-sm font-normal text-muted-foreground"> /mo</span>
                   </div>
-                  {p.included_credits != null && (
-                    <div className="mt-1 text-sm text-muted-foreground">{p.included_credits} credits included</div>
-                  )}
+                  <div className="mt-1 text-sm text-muted-foreground">{p.monthly_credit_allowance} credits included</div>
+
+                  {/* Limits */}
+                  <div className="mt-4 space-y-1 text-sm">
+                    <div className="flex items-center gap-2"><Truck className="h-3.5 w-3.5 text-muted-foreground" /> Max Drivers: <span className="font-medium">{p.max_drivers === 9999 ? 'Unlimited' : p.max_drivers}</span></div>
+                    <div className="flex items-center gap-2"><Truck className="h-3.5 w-3.5 text-muted-foreground" /> Max Vehicles: <span className="font-medium">{p.max_vehicles === 9999 ? 'Unlimited' : p.max_vehicles}</span></div>
+                    <div className="flex items-center gap-2"><Package className="h-3.5 w-3.5 text-muted-foreground" /> Shipments/mo: <span className="font-medium">{p.max_shipments_per_month === 9999 ? 'Unlimited' : p.max_shipments_per_month}</span></div>
+                    <div className="flex items-center gap-2"><Boxes className="h-3.5 w-3.5 text-muted-foreground" /> Max Products: <span className="font-medium">{p.max_products === 9999 ? 'Unlimited' : p.max_products}</span></div>
+                    <div className="flex items-center gap-2"><Group className="h-3.5 w-3.5 text-muted-foreground" /> Group Members: <span className="font-medium">{p.max_group_members === 9999 ? 'Unlimited' : p.max_group_members}</span></div>
+                  </div>
+
+                  {/* Feature flags */}
+                  <div className="mt-4 space-y-1 text-sm">
+                    <FeatureRow enabled={p.dispatch_enabled} label="Dispatch / Jobs" icon={<Zap className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.route_planning_enabled} label="Route Planning" icon={<Route className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.service_rates_enabled} label="Service Rates" icon={<CreditCard className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.pod_enabled} label="POD (Photo/Signature)" icon={<MapPin className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.route_optimization_enabled} label="Route Optimization" icon={<Route className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.vrp_enabled} label="VRP Solver" icon={<Truck className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.webhooks_enabled} label="Webhooks" icon={<Globe className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.notifications_enabled} label="Notifications" icon={<Bell className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.extensions_enabled} label="Extensions" icon={<Plug className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.maintenance_enabled} label="Maintenance" icon={<Wrench className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.fuel_tracking_enabled} label="Fuel Tracking" icon={<Fuel className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.csv_import_enabled} label="CSV Import" icon={<FileSpreadsheet className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.includes_custom_domain} label="Custom Domain" icon={<Globe className="h-3.5 w-3.5" />} />
+                    <FeatureRow enabled={p.includes_priority_support} label="Priority Support" icon={<Users className="h-3.5 w-3.5" />} />
+                  </div>
                 </CardContent>
               </Card>
             ))}

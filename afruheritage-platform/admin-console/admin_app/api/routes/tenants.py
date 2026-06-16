@@ -154,6 +154,54 @@ def get_job(
     return cp.get_job(_get_cp_token(request), job_id)
 
 
+@router.post("/{tenant_id}/suspend")
+def suspend_tenant(
+    tenant_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.suspend_tenant(_get_cp_token(request), tenant_id)
+    record_admin_audit(db, admin_email=current_admin.email, action="tenant.suspended_via_admin", entity_type="tenant", entity_id=tenant_id)
+    return result
+
+
+@router.post("/{tenant_id}/activate")
+def activate_tenant(
+    tenant_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.activate_tenant(_get_cp_token(request), tenant_id)
+    record_admin_audit(db, admin_email=current_admin.email, action="tenant.activated_via_admin", entity_type="tenant", entity_id=tenant_id)
+    return result
+
+
+@router.delete("/{tenant_id}")
+def delete_tenant(
+    tenant_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.delete_tenant(_get_cp_token(request), tenant_id)
+    record_admin_audit(db, admin_email=current_admin.email, action="tenant.deleted_via_admin", entity_type="tenant", entity_id=tenant_id)
+    return result
+
+
+@router.post("/{tenant_id}/provision")
+def provision_tenant(
+    tenant_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    result = cp.provision_tenant_fleetbase(_get_cp_token(request), tenant_id)
+    record_admin_audit(db, admin_email=current_admin.email, action="tenant.provisioned_via_admin", entity_type="tenant", entity_id=tenant_id)
+    return result
+
+
 # ── Support: lookup + resend portal URL ─────────────────────────────────────────
 
 @router.get("/lookup")

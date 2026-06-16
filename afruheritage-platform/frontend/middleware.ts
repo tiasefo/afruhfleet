@@ -12,6 +12,39 @@ const PLATFORM_HOSTS = new Set([
   'api.afruheritage.com',
 ])
 
+// Routes that are publicly accessible without auth
+const PUBLIC_ROUTES = new Set([
+  '/',
+  '/register',
+  '/login',
+  '/terms-of-service',
+  '/privacy-policy',
+  '/track',
+])
+
+// Route prefixes that are publicly accessible
+const PUBLIC_PREFIXES = [
+  '/customs',
+  '/fleetbase/console',
+  '/fleetbase/live-map',
+  '/fleetbase/fleets',
+  '/fleetbase/vehicles',
+  '/fleetbase/drivers',
+  '/docs',
+  '/documentation',
+  '/support',
+  '/pricing',
+  '/locations',
+  '/track',
+  '/tracking',
+  '/store/',
+  '/api/',
+  '/_next/',
+  '/favicon',
+  '/static/',
+  '/assets/',
+]
+
 function isIp(host: string) {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')
 }
@@ -25,15 +58,33 @@ function isPlatformSubdomain(host: string): string | null {
   return null
 }
 
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_ROUTES.has(pathname)) return true
+  if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true
+  return false
+}
+
+function hasAuthToken(req: NextRequest): boolean {
+  const token = req.cookies.get('access_token')?.value
+  return !!token && token.length > 10
+}
+
 export async function middleware(req: NextRequest) {
   const host = req.headers.get('host')?.toLowerCase().split(':')[0] ?? ''
+  const pathname = req.nextUrl.pathname
 
-  // Skip for platform hosts and IPs
+  // 1. Auth gate — redirect unauthenticated users to /register for protected routes
+  if (!isPublicPath(pathname) && !hasAuthToken(req)) {
+    const loginUrl = new URL(pathname.startsWith('/admin') ? '/admin/login' : '/register', req.url)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  // 2. Skip subdomain resolution for platform hosts and IPs
   if (!host || PLATFORM_HOSTS.has(host) || isIp(host)) {
     return NextResponse.next()
   }
 
-  // Skip for *.afruheritage.com subdomains — those use the subdomain as slug directly
+  // 3. Skip for *.afruheritage.com subdomains — those use the subdomain as slug directly
   const subdomain = isPlatformSubdomain(host)
   if (subdomain) {
     // Inject x-tenant-slug header so pages can use it as fallback
@@ -42,7 +93,7 @@ export async function middleware(req: NextRequest) {
     return res
   }
 
-  // For fully custom domains (e.g. freight.acmeco.com) — resolve via API
+  // 4. For fully custom domains (e.g. freight.acmeco.com) — resolve via API
   try {
     const resolveUrl = `${API_BASE}/domains/resolve?hostname=${encodeURIComponent(host)}`
     const apiRes = await fetch(resolveUrl, {
@@ -71,6 +122,6 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     // Run on all routes except Next.js internals and static files
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)',
   ],
 }
