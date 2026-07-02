@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -23,6 +23,7 @@ from sentinel_app.api.routes.dashboard_local import router as dashboard_router
 from sentinel_app.api.routes.tickets import router as tickets_router
 from sentinel_app.api.routes.tracking import router as tracking_router
 from sentinel_app.api.routes.control_center import router as control_center_router
+from sentinel_app.api.routes.templates import router as templates_router
 from sentinel_app.core.config import admin_settings
 from sentinel_app.db.session import Base, engine
 
@@ -78,6 +79,7 @@ app.include_router(analytics_router, prefix="/sentinel")
 app.include_router(tickets_router, prefix="/sentinel")
 app.include_router(tracking_router, prefix="/sentinel")
 app.include_router(control_center_router, prefix="/sentinel")
+app.include_router(templates_router, prefix="/sentinel")
 
 @app.get("/sentinel/health")
 def health():
@@ -85,10 +87,43 @@ def health():
 
 
 # Serve static frontend files if built
+# NOTE: API routes are registered above with prefix="/sentinel" (auth, tenants, billing, etc.)
+# The static mount must NOT shadow those API routes. We mount _next assets separately,
+# and use a catch-all only for non-API paths (dashboard, login, etc.).
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static", "sentinel-ui")
 if os.path.isdir(static_dir):
-    # Mount Next.js _next assets at root so absolute paths in HTML work
     next_dir = os.path.join(static_dir, "_next")
     if os.path.isdir(next_dir):
-        app.mount("/_next", StaticFiles(directory=next_dir), name="next-assets")
-    app.mount("/sentinel", StaticFiles(directory=static_dir, html=True), name="sentinel-static")
+        app.mount("/sentinel/_next", StaticFiles(directory=next_dir), name="next-assets")
+
+    from fastapi import Request
+    from fastapi.responses import FileResponse
+
+    # API route prefixes under /sentinel — these must NOT be served as static files
+    _API_PREFIXES = (
+        "/sentinel/auth", "/sentinel/tenants", "/sentinel/billing",
+        "/sentinel/runners", "/sentinel/runtime", "/sentinel/domains",
+        "/sentinel/vendors", "/sentinel/kyc", "/sentinel/oauth",
+        "/sentinel/analytics", "/sentinel/tickets", "/sentinel/tracking",
+        "/sentinel/control-center", "/sentinel/templates", "/sentinel/dashboard-data",
+        "/sentinel/health", "/sentinel/docs", "/sentinel/redoc",
+        "/sentinel/openapi.json",
+    )
+
+    @app.get("/sentinel/{full_path:path}")
+    async def serve_frontend(full_path: str, request: Request):
+        """Serve static frontend files, but only for non-API paths."""
+        req_path = f"/sentinel/{full_path}"
+        # If the path starts with any API prefix, return 404 so FastAPI's API routes handle it
+        for prefix in _API_PREFIXES:
+            if req_path == prefix or req_path.startswith(prefix + "/"):
+                raise HTTPException(status_code=404, detail="Not Found")
+        # Serve the static file
+        file_path = os.path.join(static_dir, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        # Fallback to index.html for client-side routing
+        index_path = os.path.join(static_dir, "index.html")
+        if os.path.isfile(index_path):
+            return FileResponse(index_path)
+        raise HTTPException(status_code=404, detail="Not Found")

@@ -18,6 +18,12 @@ import {
   ExternalLink,
   Loader2,
   ImagePlus,
+  Store,
+  Palette,
+  Check,
+  X,
+  Mail,
+  Save,
 } from 'lucide-react'
 
 export default function TenantDetailPage() {
@@ -28,6 +34,13 @@ export default function TenantDetailPage() {
   const [fleetbaseData, setFleetbaseData] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
+  const [templates, setTemplates] = useState<any[]>([])
+  const [showTemplateDrawer, setShowTemplateDrawer] = useState(false)
+  const [selectingTemplate, setSelectingTemplate] = useState<string | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [pseudoEmailDomain, setPseudoEmailDomain] = useState('phone.afruheritage.com')
+  const [brandingLoading, setBrandingLoading] = useState(false)
+  const [brandingSaving, setBrandingSaving] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -48,6 +61,25 @@ export default function TenantDetailPage() {
       try {
         const drivers = await api.get(`/admin/tenants/${id}/fleetbase/drivers`)
         setFleetbaseData((prev) => ({ ...prev, drivers: drivers.drivers || [] }))
+      } catch {
+        // ignore
+      }
+
+      try {
+        const tmpls = await api.get('/admin/templates')
+        setTemplates(Array.isArray(tmpls) ? tmpls : [])
+      } catch {
+        // ignore
+      }
+
+      try {
+        const branding = await api.get(`/admin/templates/branding/${id}`)
+        if (branding.pseudo_email_domain) {
+          setPseudoEmailDomain(branding.pseudo_email_domain)
+        }
+        if (branding.template_code) {
+          setSelectedTemplate(branding.template_code)
+        }
       } catch {
         // ignore
       }
@@ -176,6 +208,7 @@ export default function TenantDetailPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
+          <TabsTrigger value="storefront">Storefront</TabsTrigger>
           <TabsTrigger value="fleetbase">Fleetbase</TabsTrigger>
         </TabsList>
 
@@ -242,6 +275,164 @@ export default function TenantDetailPage() {
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="storefront" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="h-5 w-5 text-primary" />
+                  Storefront Template
+                </CardTitle>
+                <Button size="sm" onClick={() => setShowTemplateDrawer(true)}>
+                  <Palette className="h-4 w-4 mr-1" />
+                  {selectedTemplate ? 'Change Template' : 'Select Template'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {selectedTemplate ? (
+                <div className="flex items-center gap-4">
+                  {(() => {
+                    const t = templates.find(t => t.template_code === selectedTemplate)
+                    if (!t) return <span className="text-sm text-muted-foreground">{selectedTemplate}</span>
+                    return (
+                      <>
+                        <div className="flex gap-1">
+                          {['primary_color', 'secondary_color', 'accent_color'].map(key => (
+                            <div key={key} className="h-8 w-8 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
+                          ))}
+                        </div>
+                        <div>
+                          <p className="font-medium">{t.name}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{t.template_code}</p>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-muted-foreground">
+                  <Store className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No storefront template selected for this tenant.</p>
+                  <Button className="mt-3" size="sm" onClick={() => setShowTemplateDrawer(true)}>
+                    <Palette className="h-4 w-4 mr-1" /> Choose a Template
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Import Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-primary" />
+                Import Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo-Email Domain</label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Domain suffix used when generating login emails for CSV-imported members without an email address.
+                  Format: <code className="bg-gray-100 px-1 rounded">phone@domain</code>
+                </p>
+                <input
+                  type="text"
+                  value={pseudoEmailDomain}
+                  onChange={(e) => setPseudoEmailDomain(e.target.value)}
+                  placeholder="phone.afruheritage.com"
+                  className="w-full max-w-md rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setBrandingSaving(true)
+                    try {
+                      await api.patch(`/admin/templates/branding/${id}`, {
+                        pseudo_email_domain: pseudoEmailDomain,
+                      })
+                      toast.success('Import settings saved')
+                    } catch (e: any) {
+                      toast.error('Failed to save: ' + e.message)
+                    } finally {
+                      setBrandingSaving(false)
+                    }
+                  }}
+                  disabled={brandingSaving}
+                >
+                  {brandingSaving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Save Import Settings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {showTemplateDrawer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Select Storefront Template</CardTitle>
+                  <Button variant="ghost" size="icon" onClick={() => setShowTemplateDrawer(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {templates.map(t => (
+                    <div
+                      key={t.id}
+                      className={`rounded-lg border p-4 cursor-pointer transition-all hover:border-primary ${selectedTemplate === t.template_code ? 'border-primary bg-primary/5' : ''}`}
+                      onClick={async () => {
+                        setSelectingTemplate(t.template_code)
+                        try {
+                          await api.post('/admin/templates/select', { template_code: t.template_code })
+                          setSelectedTemplate(t.template_code)
+                          setShowTemplateDrawer(false)
+                          toast.success(`Template "${t.name}" applied to tenant`)
+                        } catch (e: any) {
+                          toast.error('Failed to select template: ' + e.message)
+                        } finally {
+                          setSelectingTemplate(null)
+                        }
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">{t.name}</span>
+                        {selectedTemplate === t.template_code && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                      {t.description && (
+                        <p className="text-xs text-muted-foreground mb-2">{t.description}</p>
+                      )}
+                      <div className="flex gap-1">
+                        {['primary_color', 'secondary_color', 'accent_color', 'background_color'].map(key => (
+                          <div key={key} className="h-6 w-6 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
+                        ))}
+                      </div>
+                      {selectingTemplate === t.template_code && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-primary">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Applying...
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <TabsContent value="fleetbase">
           <Card>

@@ -168,6 +168,8 @@ export const shipmentsAPI = {
     const tenantId = requireTenantId()
     return api.post(`/shipments/${tenantId}/${id}/transition?status=${status}`)
   },
+
+  myShipments: () => api.get('/shipments/my-shipments'),
 }
 
 export const membersAPI = {
@@ -571,6 +573,127 @@ export const adminMarketplaceApi = {
 
   reassignJob: (jobId: string, driverId: string) =>
     api.post(`/admin/marketplace/jobs/${jobId}/reassign/${driverId}`),
+
+  getEligibleDrivers: (jobId: string) =>
+    api.get(`/admin/marketplace/jobs/${jobId}/eligible-drivers`),
+}
+
+export const adminVendorApi = {
+  approveVendor: (vendorId: string) =>
+    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'approved' }),
+
+  rejectVendor: (vendorId: string) =>
+    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'rejected' }),
+
+  suspendVendor: (vendorId: string, reason: string) =>
+    api.post(`/vendors/admin/${vendorId}/suspend`, { reason }),
+
+  reinstateVendor: (vendorId: string) =>
+    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'approved' }),
+
+  deleteVendor: (vendorId: string) =>
+    api.delete(`/vendors/admin/${vendorId}`),
+}
+
+export const adminReviewApi = {
+  deleteReview: (reviewId: string) =>
+    api.delete(`/marketplace/reviews/${reviewId}`),
+}
+
+export const templatesApi = {
+  list: () => api.get('/storefront-templates'),
+
+  listAll: () => api.get('/storefront-templates/admin/all'),
+
+  create: (data: {
+    template_code: string
+    name: string
+    description?: string
+    preset: any
+  }) => api.post('/storefront-templates/admin', data),
+
+  update: (templateId: string, data: {
+    name?: string
+    description?: string
+    preset?: any
+    is_active?: boolean
+  }) => api.patch(`/storefront-templates/admin/${templateId}`, data),
+
+  delete: (templateId: string) => api.delete(`/storefront-templates/admin/${templateId}`),
+
+  select: (templateCode: string) => api.post('/storefront-templates/select', { template_code: templateCode }),
+}
+
+export const crmApi = {
+  listCustomers: () => api.get('/crm/customers'),
+
+  createCustomer: (data: {
+    name: string
+    email?: string
+    phone?: string
+    company?: string
+    stage?: string
+    owner?: string
+    value?: number
+    currency?: string
+    source?: string
+    notes?: string
+  }) => api.post('/crm/customers', data),
+
+  updateStage: (customerId: string, stage: string) =>
+    api.patch(`/crm/customers/${customerId}/stage?stage=${stage}`),
+
+  updateOwner: (customerId: string, owner: string) =>
+    api.patch(`/crm/customers/${customerId}/owner?owner=${owner}`),
+
+  convertLead: (customerId: string, stage?: string) =>
+    api.post(`/crm/customers/${customerId}/convert`, { stage: stage || 'prospect' }),
+
+  deleteCustomer: (customerId: string) =>
+    api.delete(`/crm/customers/${customerId}`),
+
+  listActivities: (customerId: string) =>
+    api.get(`/crm/customers/${customerId}/activities`),
+
+  createActivity: (customerId: string, data: {
+    activity_type: string
+    summary: string
+    details?: string
+  }) => api.post(`/crm/customers/${customerId}/activities`, data),
+}
+
+export const featureFlagsApi = {
+  list: () => api.get('/admin/features'),
+
+  toggle: (flagKey: string, enabled: boolean) =>
+    api.patch(`/admin/features/${flagKey}`, { enabled }),
+}
+
+export const billingAdminApi = {
+  listSubscriptions: () => api.get('/billing/subscriptions'),
+
+  changePlan: (subscriptionId: string, planId: string) =>
+    api.patch(`/billing/subscriptions/${subscriptionId}/plan`, { plan_id: planId }),
+
+  pauseSubscription: (subscriptionId: string) =>
+    api.post(`/billing/subscriptions/${subscriptionId}/pause`),
+
+  resumeSubscription: (subscriptionId: string) =>
+    api.post(`/billing/subscriptions/${subscriptionId}/resume`),
+
+  cancelSubscription: (subscriptionId: string, reason?: string) =>
+    api.post(`/billing/subscriptions/${subscriptionId}/cancel`, { reason }),
+
+  listInvoices: () => api.get('/billing/invoices'),
+
+  voidInvoice: (invoiceId: string) =>
+    api.post(`/billing/invoices/${invoiceId}/void`),
+
+  markInvoicePaid: (invoiceId: string, data?: {
+    method?: string
+    amount?: number
+    reference?: string
+  }) => api.post(`/billing/invoices/${invoiceId}/payments`, data || { method: 'manual' }),
 }
 
 export const tenantApi = {
@@ -593,6 +716,11 @@ export const usersApi = {
     api.patch(`/users/${userId}/status?tenant_id=${tenantId}`, { is_active }),
   resendInvite: (userId: string, tenantId: string) =>
     api.post(`/users/${userId}/resend-invite?tenant_id=${tenantId}`, {}),
+  bulkImport: (tenantId: string, file: File, sendInviteEmail: boolean = false) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post(`/users/bulk-import?tenant_id=${tenantId}&send_invite_email=${sendInviteEmail}`, formData)
+  },
 }
 
 export const productsApi = {

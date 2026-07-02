@@ -8,16 +8,18 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Checkbox } from '@/components/ui/checkbox'
-import { 
-  Loader2, 
-  Eye, 
-  EyeOff, 
+import {
+  Loader2,
+  Eye,
+  EyeOff,
   Globe,
   ArrowRight,
   Ship,
   AlertCircle,
   CheckCircle2
 } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
+import { TenantLogo } from '@/components/tenant-logo'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,6 +104,7 @@ function ProviderIcon({ provider }: { provider: string }) {
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const tenant = useTenant()
   const selectedPlan = searchParams.get('plan')
   const resetToken = searchParams.get('reset_token') || ''
   const isResetMode = resetToken.length > 0
@@ -124,7 +127,7 @@ export function LoginForm() {
     })
 
     const profile = meResponse.ok ? await meResponse.json() : null
-    const role = profile?.is_superuser || profile?.is_tenant_admin ? 'admin' : 'customer'
+    const role = profile?.is_superuser ? 'platform_admin' : (profile?.is_tenant_admin ? 'admin' : 'customer')
 
     document.cookie = `afruheritage_access_token=${encodeURIComponent(accessToken)}; path=/; SameSite=Lax`
     document.cookie = `afruheritage_user=${encodeURIComponent(JSON.stringify({
@@ -135,7 +138,8 @@ export function LoginForm() {
       tenantId: profile?.tenant_id || null,
     }))}; path=/; SameSite=Lax`
 
-    router.push(role === 'admin' ? '/admin' : '/customer')
+    const redirectPath = role === 'platform_admin' ? '/admin' : (role === 'admin' ? '/portal' : '/customer')
+    router.push(redirectPath)
     router.refresh()
   }
 
@@ -200,7 +204,7 @@ export function LoginForm() {
         await finalizeLogin(socialToken, `${provider}@afruheritage.social`)
       } catch {
         if (isMounted) {
-          setError('Social sign in completed at the provider, but Afruheritage could not finish the session locally.')
+          setError('Social sign in completed at the provider, but the session could not be finished locally.')
           setIsSocialCallbackLoading(false)
         }
       }
@@ -317,6 +321,7 @@ export function LoginForm() {
       noAccount: "Don't have an account?",
       getStarted: 'Get Started',
       poweredBy: 'Powered by Afruheritage',
+      poweredByFallback: 'Powered by Afruheritage',
     },
     zh: {
       title: '欢迎回来',
@@ -338,6 +343,7 @@ export function LoginForm() {
       noAccount: '还没有账户？',
       getStarted: '立即注册',
       poweredBy: '由 Afruheritage 提供支持',
+      poweredByFallback: '由 Afruheritage 提供支持',
     },
   }
 
@@ -349,14 +355,7 @@ export function LoginForm() {
       <div className="flex flex-1 flex-col justify-between p-6 sm:p-8 lg:p-12">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xl font-bold text-primary-foreground">A</span>
-            </div>
-            <span className="text-xl font-semibold tracking-tight text-foreground">
-              Afruheritage
-            </span>
-          </Link>
+          <TenantLogo href="/" />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -568,7 +567,9 @@ export function LoginForm() {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">{t.poweredBy}</p>
+          <p className="text-sm text-muted-foreground">
+            {tenant ? `${language === 'zh' ? '由' : 'Powered by'} ${tenant.company_name}` : t.poweredBy}
+          </p>
         </div>
       </div>
 

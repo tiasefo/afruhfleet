@@ -14,6 +14,12 @@ class UserRole(str, enum.Enum):
     delivery_driver  = "delivery_driver"    # Rider / truck driver on the marketplace
     company_admin    = "company_admin"      # Freight forwarding company owner
     platform_admin   = "platform_admin"     # Afruheritage superuser
+    dispatcher       = "dispatcher"         # Dispatch coordinator
+    warehouse        = "warehouse"          # Warehouse staff
+    customer         = "customer"           # Customer account
+    vendor           = "vendor"             # Delivery vendor
+    support          = "support"            # Support staff
+    accounting       = "accounting"         # Accounting/finance staff
 
 
 class User(Base):

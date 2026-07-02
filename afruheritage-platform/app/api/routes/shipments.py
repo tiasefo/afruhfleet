@@ -81,6 +81,87 @@ def transition_shipment_status_route(
     return _to_response(shipment)
 
 
+# ── Customer Portal: my shipments (must be BEFORE /{tenant_id} wildcard) ──
+
+@router.get("/my-shipments")
+def my_shipments(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns shipments linked to the currently logged-in user via GroupMember.user_id.
+    Also matches by receiver_name/email as a fallback. Includes tracking events."""
+    from app.models.shipment import GroupMember
+
+    member = db.query(GroupMember).filter(GroupMember.user_id == current_user.id).first()
+
+    query = db.query(Shipment).filter(Shipment.tenant_id == current_user.tenant_id)
+
+    if member:
+        query = query.filter(Shipment.group_member_id == member.id)
+    else:
+        query = query.filter(
+            (Shipment.receiver_name == current_user.full_name) |
+            (Shipment.receiver_name == current_user.email)
+        )
+
+    shipments = query.order_by(Shipment.created_at.desc()).limit(100).all()
+
+    result = []
+    for s in shipments:
+        live_snapshot = get_live_tracking_snapshot(db, s)
+        events = merge_tracking_events(get_shipment_events(db, str(s.id)), live_snapshot)
+        result.append({
+            "id": str(s.id),
+            "tracking_number": _live_value(live_snapshot, "tracking_number", s.tracking_number),
+            "reference_number": s.reference_number,
+            "status": _live_value(live_snapshot, "status", s.status.value),
+            "sender_name": s.sender_name,
+            "receiver_name": s.receiver_name,
+            "origin_city": s.origin_city,
+            "origin_country": s.origin_country,
+            "destination_city": s.destination_city,
+            "destination_country": s.destination_country,
+            "current_location": _live_value(live_snapshot, "current_location", s.current_location),
+            "current_latitude": float(s.current_latitude) if s.current_latitude is not None else None,
+            "current_longitude": float(s.current_longitude) if s.current_longitude is not None else None,
+            "last_location_at": _live_value(live_snapshot, "last_location_at", s.last_location_at.isoformat() if s.last_location_at else None),
+            "shipped_date": s.shipped_date.isoformat() if s.shipped_date else None,
+            "estimated_arrival": s.estimated_arrival.isoformat() if s.estimated_arrival else None,
+            "actual_arrival": s.actual_arrival.isoformat() if s.actual_arrival else None,
+            "cargo_type": s.cargo_type,
+            "description": s.description,
+            "weight_kg": float(s.weight_kg) if s.weight_kg else None,
+            "package_count": s.package_count,
+            "total_cost": float(s.total_cost),
+            "amount_paid": float(s.amount_paid),
+            "balance_due": float(s.balance_due),
+            "currency": s.currency,
+            "payment_status": s.payment_status.value,
+            "notes": s.notes,
+            "cargo_image_url": s.cargo_image_url,
+            "events": [
+                {
+                    "id": str(e["id"]),
+                    "event_type": e["event_type"],
+                    "location": e.get("location"),
+                    "description": e.get("description"),
+                    "occurred_at": e["occurred_at"],
+                }
+                for e in events
+            ],
+        })
+
+    return {
+        "user": {
+            "id": str(current_user.id),
+            "full_name": current_user.full_name,
+            "email": current_user.email,
+        },
+        "shipments": result,
+        "total": len(result),
+    }
+
+
 # ── Shipment CRUD (tenant-scoped, auth required) ───────────────
 
 @router.post("/{tenant_id}", response_model=ShipmentResponse)
@@ -275,6 +356,48 @@ def update_member_route(
     if not member:
         raise HTTPException(status_code=404, detail="Group member not found")
     return _member_to_response(db, member)
+
+
+@router.get("/{tenant_id}/members/{member_id}/shipments")
+def list_member_shipments(
+    tenant_id: str,
+    member_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """List all shipments assigned to a specific group member."""
+    member = get_group_member(db, member_id, tenant_id)
+    if not member:
+        raise HTTPException(status_code=404, detail="Group member not found")
+
+    shipments = db.query(Shipment).filter(
+        Shipment.group_member_id == member.id
+    ).order_by(Shipment.created_at.desc()).all()
+
+    result = []
+    for s in shipments:
+        live_snapshot = get_live_tracking_snapshot(db, s)
+        result.append({
+            "id": str(s.id),
+            "tracking_number": _live_value(live_snapshot, "tracking_number", s.tracking_number),
+            "status": _live_value(live_snapshot, "status", s.status.value),
+            "sender_name": s.sender_name,
+            "receiver_name": s.receiver_name,
+            "origin_city": s.origin_city,
+            "origin_country": s.origin_country,
+            "destination_city": s.destination_city,
+            "destination_country": s.destination_country,
+            "shipped_date": s.shipped_date.isoformat() if s.shipped_date else None,
+            "estimated_arrival": s.estimated_arrival.isoformat() if s.estimated_arrival else None,
+            "total_cost": float(s.total_cost),
+            "currency": s.currency,
+            "payment_status": s.payment_status.value,
+            "package_count": s.package_count,
+            "weight_kg": float(s.weight_kg) if s.weight_kg else None,
+            "cargo_type": s.cargo_type,
+            "description": s.description,
+        })
+    return {"items": result, "total": len(result)}
 
 
 # ── Individual Shipment routes (wildcard — must stay AFTER static sub-paths above) ──

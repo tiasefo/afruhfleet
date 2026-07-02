@@ -1,10 +1,18 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { Button } from '@/components/ui/button'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export default function TermsPage() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+  const supportEmail = tenant?.contact?.support_email || 'support@afruheritage.com'
+  const legalName = tenant?.legal?.legal_company_name || companyName
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -22,7 +30,7 @@ export default function TermsPage() {
 
           <section className="mt-6 space-y-4 text-sm leading-6 text-slate-700">
             <p>
-              By using Afruheritage, you agree to use the platform lawfully and provide accurate account, shipment,
+              By using {legalName}, you agree to use the platform lawfully and provide accurate account, shipment,
               and compliance information.
             </p>
             <p>
@@ -31,11 +39,11 @@ export default function TermsPage() {
             </p>
             <p>
               Service availability may vary due to maintenance, third-party provider disruptions, and connectivity limits.
-              Afruheritage will make reasonable efforts to maintain uptime and data integrity.
+              {legalName} will make reasonable efforts to maintain uptime and data integrity.
             </p>
             <p>
               For enterprise terms, incident escalations, or billing disputes, contact
-              <a className="ml-1 text-blue-600 hover:underline" href="mailto:support@afruheritage.com">support@afruheritage.com</a>.
+              <a className="ml-1 text-blue-600 hover:underline" href={`mailto:${supportEmail}`}>{supportEmail}</a>.
             </p>
           </section>
         </article>

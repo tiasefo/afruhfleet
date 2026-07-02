@@ -1,10 +1,18 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { Button } from '@/components/ui/button'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export default function PrivacyPage() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+  const supportEmail = tenant?.contact?.support_email || 'support@afruheritage.com'
+  const legalName = tenant?.legal?.legal_company_name || companyName
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -22,7 +30,7 @@ export default function PrivacyPage() {
 
           <section className="mt-6 space-y-4 text-sm leading-6 text-slate-700">
             <p>
-              Afruheritage collects account, shipment, and operational data required to deliver freight forwarding services,
+              {legalName} collects account, shipment, and operational data required to deliver freight forwarding services,
               customer tracking, vendor operations, and compliance workflows.
             </p>
             <p>
@@ -35,7 +43,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               You may request access, correction, or deletion of your personal data by contacting
-              <a className="ml-1 text-blue-600 hover:underline" href="mailto:support@afruheritage.com">support@afruheritage.com</a>.
+              <a className="ml-1 text-blue-600 hover:underline" href={`mailto:${supportEmail}`}>{supportEmail}</a>.
             </p>
           </section>
         </article>

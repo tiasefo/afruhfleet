@@ -23,6 +23,7 @@ import {
   GitBranch,
   SlidersHorizontal,
   FileText,
+  Store,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -36,6 +37,7 @@ const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/users', label: 'User Management', icon: Users },
   { href: '/dashboard/tenants', label: 'Tenants', icon: Building2 },
+  { href: '/dashboard/templates', label: 'Templates', icon: Store },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
   { href: '/dashboard/analytics', label: 'Analytics', icon: Server },

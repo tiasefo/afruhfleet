@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 
 export default function TenantsPage() {
+  const router = useRouter()
   const [tenants, setTenants] = useState<any[]>([])
   const [tenantRequests, setTenantRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)

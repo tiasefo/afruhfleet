@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,6 +16,20 @@ from app.models.user import User
 from app.schemas.storefront_template import StorefrontTemplateResponse, TenantTemplateSelectionRequest
 
 router = APIRouter(prefix='/storefront-templates', tags=['Storefront Templates'])
+
+
+class TemplateCreateRequest(BaseModel):
+    template_code: str
+    name: str
+    description: Optional[str] = None
+    preset: dict
+
+
+class TemplateUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    preset: Optional[dict] = None
+    is_active: Optional[bool] = None
 
 
 DEFAULT_TEMPLATES = [
@@ -184,3 +200,114 @@ def select_template(
         "template_code": template.template_code,
         "template_name": template.name,
     }
+
+
+# ----- Admin-only template management endpoints -----
+
+@router.post('/admin', response_model=StorefrontTemplateResponse)
+def create_template(
+    request: TemplateCreateRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+) -> StorefrontTemplateResponse:
+    """Create a new template (admin only)."""
+    existing = db.scalar(
+        select(StorefrontTemplate).where(StorefrontTemplate.template_code == request.template_code)
+    )
+    if existing:
+        raise HTTPException(status_code=400, detail='Template code already exists')
+    
+    template = StorefrontTemplate(
+        template_code=request.template_code,
+        name=request.name,
+        description=request.description,
+        preset=json.dumps(request.preset),
+        is_active=True,
+    )
+    db.add(template)
+    db.commit()
+    db.refresh(template)
+    
+    return StorefrontTemplateResponse(
+        id=template.id,
+        template_code=template.template_code,
+        name=template.name,
+        description=template.description,
+        preset=json.loads(template.preset),
+        is_active=template.is_active,
+        created_at=template.created_at,
+    )
+
+
+@router.patch('/admin/{template_id}', response_model=StorefrontTemplateResponse)
+def update_template(
+    template_id: str,
+    request: TemplateUpdateRequest,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+) -> StorefrontTemplateResponse:
+    """Update an existing template (admin only)."""
+    template = db.scalar(select(StorefrontTemplate).where(StorefrontTemplate.id == template_id))
+    if not template:
+        raise HTTPException(status_code=404, detail='Template not found')
+    
+    if request.name is not None:
+        template.name = request.name
+    if request.description is not None:
+        template.description = request.description
+    if request.preset is not None:
+        template.preset = json.dumps(request.preset)
+    if request.is_active is not None:
+        template.is_active = request.is_active
+    
+    db.add(template)
+    db.commit()
+    db.refresh(template)
+    
+    return StorefrontTemplateResponse(
+        id=template.id,
+        template_code=template.template_code,
+        name=template.name,
+        description=template.description,
+        preset=json.loads(template.preset),
+        is_active=template.is_active,
+        created_at=template.created_at,
+    )
+
+
+@router.delete('/admin/{template_id}')
+def delete_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+) -> dict:
+    """Delete a template (admin only)."""
+    template = db.scalar(select(StorefrontTemplate).where(StorefrontTemplate.id == template_id))
+    if not template:
+        raise HTTPException(status_code=404, detail='Template not found')
+    
+    db.delete(template)
+    db.commit()
+    
+    return {"status": "success", "message": "Template deleted"}
+
+
+@router.get('/admin/all', response_model=list[StorefrontTemplateResponse])
+def list_all_templates(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+) -> list[StorefrontTemplateResponse]:
+    """List all templates including inactive ones (admin only)."""
+    templates = db.scalars(select(StorefrontTemplate).order_by(StorefrontTemplate.created_at.desc())).all()
+    return [
+        StorefrontTemplateResponse(
+            id=t.id,
+            template_code=t.template_code,
+            name=t.name,
+            description=t.description,
+            preset=json.loads(t.preset),
+            is_active=t.is_active,
+            created_at=t.created_at,
+        )
+        for t in templates
+    ]

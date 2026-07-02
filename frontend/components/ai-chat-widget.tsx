@@ -47,7 +47,7 @@ const DEFAULT_WIDGET_CONFIG: WidgetConfig = {
   tenant_slug: null,
   model: 'afruheritage-copilot:latest',
   scope: 'shared',
-  welcome_message: 'Welcome to Afruheritage Assistant. How can I help you today?',
+  welcome_message: 'Welcome to the assistant. How can I help you today?',
   theme: 'light',
   primary_color: '#0ea5e9',
   api_endpoint: '/api/v1/ai/chat',
@@ -266,7 +266,7 @@ export function AIChatWidget() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-primary-foreground">
-              Afruheritage AI
+              AI Assistant
             </h3>
             <p className="text-xs text-primary-foreground/70">
               {isTyping ? 'Typing...' : 'Online'}

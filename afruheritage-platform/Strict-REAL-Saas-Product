@@ -1,0 +1,620 @@
+Strict-REAL-Saas-Product
+
+I would give your agent a single, very explicit mission. The mistake made in the previous attempts was treating this as a UI redesign project. It isn't.
+
+This is a **multi-tenant SaaS architecture correction** project.
+
+Below is the prompt I would give an autonomous coding agent.
+
+---
+
+# AGENT MISSION — AFRUHERITAGE MULTI-TENANT ARCHITECTURE CONFORMANCE PROJECT
+
+## PROJECT STATUS
+
+The platform is **NOT** undergoing a redesign.
+
+The backend, frontend, tenant engine, admin console, billing, authentication, and provisioning already exist.
+
+The objective is to make the runtime implementation conform to the documented architecture.
+
+This is a production SaaS.
+
+This is NOT a demo.
+
+This is NOT a prototype.
+
+---
+
+# PRIMARY GOAL
+
+Bring the runtime implementation into complete architectural compliance.
+
+DO NOT redesign.
+
+DO NOT simplify.
+
+DO NOT replace working systems.
+
+DO NOT create parallel implementations.
+
+Repair and complete the existing architecture.
+
+---
+
+# ABSOLUTE RULES
+
+## NEVER
+
+Never remove features.
+
+Never replace existing business logic.
+
+Never remove APIs.
+
+Never remove routes.
+
+Never remove database tables.
+
+Never remove middleware.
+
+Never delete components because they appear unused.
+
+Never "simplify" the architecture.
+
+Never hardcode tenant information.
+
+Never hardcode colors.
+
+Never hardcode logos.
+
+Never hardcode company names.
+
+Never hardcode URLs.
+
+Never create mock data.
+
+Never create placeholder implementations.
+
+Never bypass authentication.
+
+Never bypass tenant resolution.
+
+Never merge Platform Admin and Tenant Portal.
+
+Never merge Platform UI with Tenant UI.
+
+---
+
+# BEFORE MODIFYING ANYTHING
+
+Perform a complete dependency analysis.
+
+For every file changed determine
+
+* imports
+* exports
+* callers
+* API consumers
+* database usage
+* route usage
+* middleware usage
+* tenant usage
+
+No modification may be made until the dependency tree is understood.
+
+---
+
+# THE PLATFORM HAS THREE COMPLETELY DIFFERENT APPLICATIONS
+
+These are independent products.
+
+## 1 Platform
+
+Purpose
+
+AfruHeritage SaaS provider
+
+Users
+
+Platform administrators
+
+Responsibilities
+
+Tenant lifecycle
+
+Billing
+
+Subscriptions
+
+Marketplace
+
+Templates
+
+Domains
+
+Provisioning
+
+Global analytics
+
+Platform branding
+
+Platform authentication
+
+Platform configuration
+
+Platform documentation
+
+Platform support
+
+Platform APIs
+
+Platform policies
+
+Platform settings
+
+Platform users
+
+Platform monitoring
+
+Everything here belongs ONLY to AfruHeritage.
+
+---
+
+## 2 Tenant
+
+Example
+
+AMOOKSCO Logistics
+
+Empire Drips
+
+Future customers
+
+Each tenant is its own company.
+
+Each tenant owns
+
+logo
+
+brand
+
+colors
+
+favicon
+
+fonts
+
+pages
+
+metadata
+
+SEO
+
+navigation
+
+footer
+
+contact
+
+legal pages
+
+warehouse
+
+tracking
+
+products
+
+customers
+
+fleet
+
+billing
+
+notifications
+
+documents
+
+support
+
+The tenant must NEVER visually resemble AfruHeritage.
+
+---
+
+## 3 Customer
+
+End customers
+
+They should never know AfruHeritage exists.
+
+They interact only with the tenant.
+
+---
+
+# CRITICAL OBJECTIVE
+
+AMOOKSCO must appear to be an entirely independent company.
+
+The visitor must never feel they are inside AfruHeritage.
+
+---
+
+# THE AGENT MUST FIND ALL BRANDING LEAKS
+
+Examples
+
+Platform colors
+
+Platform logos
+
+Platform navigation
+
+Platform footer
+
+Platform login
+
+Platform metadata
+
+Platform favicon
+
+Platform CSS
+
+Platform fonts
+
+Platform icons
+
+Platform support email
+
+Platform legal text
+
+Platform copyright
+
+Platform URLs
+
+Platform cookies
+
+Platform titles
+
+Platform descriptions
+
+Platform OpenGraph
+
+Platform Twitter cards
+
+Platform JSON-LD
+
+Platform AI Assistant
+
+Platform Dashboard links
+
+Everything must become tenant aware.
+
+---
+
+# DO NOT COPY THE AMOOKSCO UI
+
+The AMOOKSCO V2 design already exists.
+
+The objective is NOT copying files.
+
+The objective is integrating it correctly.
+
+Convert it into a reusable tenant theme.
+
+The theme must consume
+
+TenantContext
+
+BrandContext
+
+ThemeContext
+
+FeatureContext
+
+SubscriptionContext
+
+without importing anything from AfruHeritage.
+
+---
+
+# REMOVE COUPLING
+
+The AMOOKSCO V2 components currently depend on
+
+Platform auth
+
+Platform AccountMenu
+
+Platform routing
+
+Platform navigation
+
+Platform UI
+
+Platform colors
+
+Platform layout
+
+These dependencies must be removed.
+
+The theme must depend ONLY on shared interfaces.
+
+---
+
+# BUILD A TRUE THEME SYSTEM
+
+Each tenant should only define
+
+Brand
+
+Colors
+
+Typography
+
+Assets
+
+Components
+
+Configuration
+
+Navigation
+
+Footer
+
+SEO
+
+The rendering engine should do the rest.
+
+---
+
+# TENANT CREATION MUST BECOME ZERO-CODE
+
+Success criteria
+
+Create tenant
+
+↓
+
+Upload logo
+
+↓
+
+Choose colors
+
+↓
+
+Choose template
+
+↓
+
+Publish
+
+↓
+
+Working website
+
+No React editing.
+
+No TypeScript editing.
+
+No route editing.
+
+No copying files.
+
+No manual deployment.
+
+---
+
+# AUTHENTICATION
+
+Separate
+
+Platform Admin
+
+Tenant Staff
+
+Customers
+
+Each has
+
+different layouts
+
+different navigation
+
+different redirects
+
+different permissions
+
+different branding
+
+---
+
+# ROUTING
+
+Verify
+
+/store/{slug}
+
+/portal
+
+/admin
+
+/customer
+
+Subdomain
+
+Custom domain
+
+All routing must be middleware driven.
+
+No duplicated pages.
+
+---
+
+# THEME ENGINE
+
+Tenant theme must control
+
+Primary
+
+Secondary
+
+Accent
+
+Background
+
+Foreground
+
+Typography
+
+Border radius
+
+Buttons
+
+Cards
+
+Navigation
+
+Footer
+
+Hero
+
+Metadata
+
+Favicon
+
+Everything.
+
+---
+
+# PLATFORM MUST NEVER BLEED INTO TENANT
+
+Platform components
+
+must never render inside tenant pages.
+
+Tenant components
+
+must never render inside platform pages.
+
+---
+
+# VERIFY EVERY PAGE
+
+Public pages
+
+Portal pages
+
+Customer pages
+
+Platform pages
+
+Admin pages
+
+Store pages
+
+Support pages
+
+Tracking pages
+
+Warehouse pages
+
+Fleet pages
+
+Billing pages
+
+Authentication pages
+
+Everything.
+
+---
+
+# BUILD QUALITY REQUIREMENTS
+
+Every modification must satisfy
+
+TypeScript
+
+ESLint
+
+Next Build
+
+Docker Build
+
+API Health
+
+OpenAPI
+
+Authentication
+
+Database migrations
+
+Tenant routing
+
+Dynamic metadata
+
+Dynamic branding
+
+No regressions
+
+---
+
+# DELIVERABLES
+
+Produce
+
+1.
+
+Dependency graph
+
+2.
+
+Architecture graph
+
+3.
+
+Brand leakage report
+
+4.
+
+Route verification report
+
+5.
+
+Authentication verification
+
+6.
+
+Tenant creation verification
+
+7.
+
+Runtime conformance report
+
+8.
+
+Regression report
+
+9.
+
+Files modified
+
+10.
+
+Production readiness assessment
+
+---
+
+# FINAL ACCEPTANCE TEST
+
+The work is NOT complete until the following scenario succeeds without manual code changes:
+
+1. Create a new tenant from the Platform Admin.
+2. Configure branding (logo, colors, fonts, metadata).
+3. Select a storefront template (e.g., the AMOOKSCO V2 theme).
+4. Publish the tenant.
+5. Access the tenant via `/store/{slug}`, subdomain, and custom domain.
+6. Confirm the tenant website, tenant portal, customer experience, and platform admin are all visually and functionally isolated, with no AfruHeritage branding leaking into tenant-facing pages.
+7. Run a full build, automated regression tests, and end-to-end validation. All checks must pass before the work is considered complete.
+
+**Do not stop at "build passes."** The objective is a production-ready, reusable multi-tenant SaaS where adding a new customer requires configuration—not source code changes.

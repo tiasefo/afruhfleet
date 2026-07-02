@@ -37,6 +37,28 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Tenant theme overrides — injected by TenantThemeInjector / TenantContextProvider */
+  --tenant-primary: initial;
+  --tenant-secondary: initial;
+  --tenant-accent: initial;
+  --tenant-background: initial;
+  --tenant-foreground: initial;
+  --tenant-success: initial;
+  --tenant-warning: initial;
+  --tenant-danger: initial;
+  --tenant-radius: initial;
+  --tenant-font: initial;
+}
+
+/* When tenant variables are set, override the base palette */
+:root:has(.tenant-themed) {
+  --primary: var(--tenant-primary, var(--primary));
+  --secondary: var(--tenant-secondary, var(--secondary));
+  --accent: var(--tenant-accent, var(--accent));
+  --background: var(--tenant-background, var(--background));
+  --foreground: var(--tenant-foreground, var(--foreground));
+  --radius: var(--tenant-radius, var(--radius));
 }
 
 .dark {

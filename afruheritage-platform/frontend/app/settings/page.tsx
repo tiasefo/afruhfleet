@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
-import { brandingAPI, domainsAPI } from '@/lib/api'
+import { brandingAPI, domainsAPI, templatesApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,10 @@ import {
   RefreshCw,
   Copy,
   ExternalLink,
+  Store,
+  Check,
+  X,
+  Mail,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -61,6 +65,17 @@ export default function SettingsPage() {
   const [domainSuccess, setDomainSuccess] = useState('')
   const [refreshingId, setRefreshingId] = useState<string | null>(null)
   const [copiedText, setCopiedText] = useState('')
+
+  // Storefront templates state
+  const [templates, setTemplates] = useState<any[]>([])
+  const [showTemplateDrawer, setShowTemplateDrawer] = useState(false)
+  const [selectingTemplate, setSelectingTemplate] = useState<string | null>(null)
+  const [currentTemplateCode, setCurrentTemplateCode] = useState<string | null>(null)
+
+  // Import settings state
+  const [pseudoEmailDomain, setPseudoEmailDomain] = useState('phone.afruheritage.com')
+  const [importSaving, setImportSaving] = useState(false)
+  const [importSaved, setImportSaved] = useState(false)
 
   const isAdmin = user?.role === 'company_admin' || user?.is_tenant_admin
 
@@ -161,8 +176,27 @@ export default function SettingsPage() {
         legal_company_name: branding.legal_company_name || '',
       })
       setLogoPreview(branding.logo_url || '')
+      if (branding.pseudo_email_domain) {
+        setPseudoEmailDomain(branding.pseudo_email_domain)
+      }
+      if (branding.template_code) {
+        setCurrentTemplateCode(branding.template_code)
+      }
     }
   }, [branding])
+
+  // Load templates
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        const tmpls = await templatesApi.list()
+        setTemplates(Array.isArray(tmpls) ? tmpls : [])
+      } catch {
+        // ignore
+      }
+    }
+    loadTemplates()
+  }, [])
 
   // Load domains when user is available
   useEffect(() => {
@@ -203,6 +237,35 @@ export default function SettingsPage() {
         }))
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleSelectTemplate = async (templateCode: string) => {
+    setSelectingTemplate(templateCode)
+    try {
+      await templatesApi.select(templateCode)
+      setCurrentTemplateCode(templateCode)
+      setShowTemplateDrawer(false)
+      await refreshBranding()
+    } catch (error) {
+      console.error('Failed to select template:', error)
+    } finally {
+      setSelectingTemplate(null)
+    }
+  }
+
+  const handleSaveImportSettings = async () => {
+    setImportSaving(true)
+    setImportSaved(false)
+    try {
+      await brandingAPI.update({ pseudo_email_domain: pseudoEmailDomain })
+      await refreshBranding()
+      setImportSaved(true)
+      setTimeout(() => setImportSaved(false), 3000)
+    } catch (error) {
+      console.error('Failed to save import settings:', error)
+    } finally {
+      setImportSaving(false)
     }
   }
 
@@ -697,6 +760,142 @@ export default function SettingsPage() {
             </Card>
           </div>
         </div>
+
+        {/* Storefront Template & Import Settings */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Storefront Template */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="w-5 h-5" />
+                  Storefront Template
+                </CardTitle>
+                <Button size="sm" variant="outline" onClick={() => setShowTemplateDrawer(true)}>
+                  <Palette className="h-4 w-4 mr-1" />
+                  {currentTemplateCode ? 'Change' : 'Select'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {currentTemplateCode ? (
+                <div className="flex items-center gap-4">
+                  {(() => {
+                    const t = templates.find(t => t.template_code === currentTemplateCode)
+                    if (!t) return <span className="text-sm text-gray-500">{currentTemplateCode}</span>
+                    return (
+                      <>
+                        <div className="flex gap-1">
+                          {['primary_color', 'secondary_color', 'accent_color'].map(key => (
+                            <div key={key} className="h-8 w-8 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
+                          ))}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{t.name}</p>
+                          <p className="text-xs text-gray-500 font-mono">{t.template_code}</p>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-gray-500">
+                  <Store className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm">No storefront template selected.</p>
+                  <Button className="mt-3" size="sm" onClick={() => setShowTemplateDrawer(true)}>
+                    <Palette className="h-4 w-4 mr-1" /> Choose Template
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Import Settings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Import Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pseudo-Email Domain</label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Domain suffix used when generating login emails for CSV-imported members without an email address.
+                  Format: <code>phone@domain</code>
+                </p>
+                <Input
+                  value={pseudoEmailDomain}
+                  onChange={(e) => setPseudoEmailDomain(e.target.value)}
+                  placeholder="phone.afruheritage.com"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <Button size="sm" onClick={handleSaveImportSettings} disabled={importSaving}>
+                  {importSaving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  Save Import Settings
+                </Button>
+                {importSaved && (
+                  <span className="text-sm text-green-600 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" /> Saved!
+                  </span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Template Drawer */}
+        {showTemplateDrawer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Select Storefront Template</CardTitle>
+                  <Button variant="ghost" size="icon" onClick={() => setShowTemplateDrawer(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {templates.map(t => (
+                    <div
+                      key={t.id}
+                      className={`rounded-lg border p-4 cursor-pointer transition-all hover:border-primary ${currentTemplateCode === t.template_code ? 'border-primary bg-primary/5' : ''}`}
+                      onClick={() => handleSelectTemplate(t.template_code)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-sm">{t.name}</span>
+                        {currentTemplateCode === t.template_code && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                      {t.description && (
+                        <p className="text-xs text-gray-500 mb-2">{t.description}</p>
+                      )}
+                      <div className="flex gap-1">
+                        {['primary_color', 'secondary_color', 'accent_color', 'background_color'].map(key => (
+                          <div key={key} className="h-6 w-6 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
+                        ))}
+                      </div>
+                      {selectingTemplate === t.template_code && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-primary">
+                          <Loader2 className="h-3 w-3 animate-spin" /> Applying...
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )

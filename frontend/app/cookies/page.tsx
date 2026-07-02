@@ -1,10 +1,17 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { Button } from '@/components/ui/button'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export default function CookiesPage() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+  const supportEmail = tenant?.contact?.support_email || 'support@afruheritage.com'
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
@@ -22,7 +29,7 @@ export default function CookiesPage() {
 
           <section className="mt-6 space-y-4 text-sm leading-6 text-slate-700">
             <p>
-              Afruheritage uses essential cookies to maintain authentication sessions, secure requests, and preserve user
+              {companyName} uses essential cookies to maintain authentication sessions, secure requests, and preserve user
               navigation state.
             </p>
             <p>
@@ -35,7 +42,7 @@ export default function CookiesPage() {
             </p>
             <p>
               Questions about cookie handling can be sent to
-              <a className="ml-1 text-blue-600 hover:underline" href="mailto:support@afruheritage.com">support@afruheritage.com</a>.
+              <a className="ml-1 text-blue-600 hover:underline" href={`mailto:${supportEmail}`}>{supportEmail}</a>.
             </p>
           </section>
         </article>

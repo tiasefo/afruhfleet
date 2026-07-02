@@ -233,3 +233,36 @@ def resend_portal_url(
         details={"portal_url": result.get("portal_url"), "email_sent": result.get("email_sent")},
     )
     return result
+
+
+# ── Tenant Preview: products, categories, fleetbase ──────────────────────────
+
+@router.get("/{tenant_id}/products")
+def list_tenant_products(
+    tenant_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    """List all products for a tenant (admin preview)."""
+    return cp.list_tenant_products(_get_cp_token(request), tenant_id)
+
+
+@router.get("/{tenant_id}/products/categories")
+def list_tenant_product_categories(
+    tenant_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    """List all product categories for a tenant (admin preview)."""
+    return cp.list_tenant_product_categories(_get_cp_token(request), tenant_id)
+
+
+@router.get("/{tenant_id}/fleetbase/{resource}")
+def preview_tenant_fleetbase(
+    tenant_id: str,
+    resource: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    """Preview Fleetbase data (drivers, vehicles, orders, etc.) for a tenant."""
+    return cp.preview_tenant_fleetbase(_get_cp_token(request), tenant_id, resource)

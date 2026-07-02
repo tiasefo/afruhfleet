@@ -11,6 +11,7 @@ import {
   CreditCard,
   MapPin
 } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const benefits = [
   {
@@ -56,6 +57,9 @@ const benefits = [
 ]
 
 export function VendorBenefits() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+
   return (
     <section id="benefits" className="py-20 lg:py-28 bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -64,7 +68,7 @@ export function VendorBenefits() {
             Why Partner With Us?
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Join hundreds of delivery partners who are growing their businesses with Afruheritage.
+            Join hundreds of delivery partners who are growing their businesses with {companyName}.
           </p>
         </div>
 

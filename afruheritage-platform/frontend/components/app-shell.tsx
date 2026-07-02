@@ -24,7 +24,6 @@ import {
   Shield,
   Truck,
   Calculator,
-  ExternalLink,
   UserCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -43,12 +42,14 @@ const PUBLIC_ROUTES = [
   '/support/ticket',
   '/onboarding',
   '/tenant-request',
+  '/store',
 ]
 
 function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_ROUTES.includes(pathname)) return true
   if (pathname.startsWith('/register/')) return true
   if (pathname.startsWith('/support/ticket/')) return true
+  if (pathname.startsWith('/store/')) return true
   return false
 }
 
@@ -59,6 +60,7 @@ interface NavItem {
   badge?: string
   roles?: string[]   // undefined = visible to all authenticated users
   superonly?: boolean
+  tenantAware?: boolean  // if true, href is computed from tenant slug at render time
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -73,7 +75,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Support', href: '/support/dashboard', icon: HelpCircle },
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'Settings', href: '/settings', icon: Settings },
-  { label: 'Storefront', href: '/storefront', icon: ShoppingBag },
+  { label: 'Storefront', href: '/store', icon: ShoppingBag, tenantAware: true },
   { label: 'Vendors', href: '/vendors', icon: Truck },
   { label: 'Profile', href: '/profile', icon: UserCircle },
 ]
@@ -82,10 +84,19 @@ const ADMIN_ITEMS: NavItem[] = [
   { label: 'Admin Console', href: '/admin', icon: Shield, superonly: true },
 ]
 
+function resolveHref(item: NavItem): string {
+  if (item.tenantAware) {
+    const subdomain = typeof window !== 'undefined' ? localStorage.getItem('tenant_subdomain') : null
+    return subdomain ? `/store/${subdomain}` : item.href
+  }
+  return item.href
+}
+
 function NavLink({ item, active, onClick }: { item: NavItem; active: boolean; onClick?: () => void }) {
+  const href = resolveHref(item)
   return (
     <Link
-      href={item.href}
+      href={href}
       onClick={onClick}
       className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
         active
@@ -178,24 +189,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           />
         ))}
 
-        {(() => {
-          const subdomain = typeof window !== 'undefined' ? localStorage.getItem('tenant_subdomain') : null
-          return subdomain ? (
-            <>
-              <div className="my-2 border-t" />
-              <a
-                href={`/store/${subdomain}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={onLinkClick}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                <ExternalLink className="h-4 w-4 shrink-0" />
-                <span>View My Store</span>
-              </a>
-            </>
-          ) : null
-        })()}
 
         {adminItems.length > 0 && (
           <>

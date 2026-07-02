@@ -84,6 +84,15 @@ class CustomDomain(Base):
     fallback_hostname: Mapped[str | None] = mapped_column(String(255), nullable=True)
     fallback_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
+    # Redirect configuration
+    redirect_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    redirect_status: Mapped[int] = mapped_column(default=301)  # 301 permanent, 302 temporary
+
+    # Renewal tracking
+    auto_renew: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    renewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
 

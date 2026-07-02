@@ -262,6 +262,7 @@ def retry_fleetbase_provisioning(
         tenant.fleetbase_admin_token = fb_org.admin_token
         tenant.live_api_token = fb_org.api_key
         tenant.live_console_url = fb_org.console_url
+        tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
         tenant.launch_status = 'active'
         tenant.verification_notes = 'Provisioned via retry'
         db.commit()

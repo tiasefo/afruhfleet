@@ -1,3 +1,6 @@
+from app.api.routes.warehouse_notices import router as warehouse_notices_router
+from app.api.routes.cargo_lifecycle import router as cargo_lifecycle_router
+from app.api.routes.admin_billing_config import router as admin_billing_config_router
 from app.api.routes.payment_hub import router as payment_hub_router
 from app.api.routes.admin_credits import router as admin_credits_router
 from app.api.routes.admin_subscriptions import router as admin_subscriptions_router
@@ -8,6 +11,12 @@ from app.api.routes.commercial_orchestration import router as commercial_orchest
 from app.api.routes.analytics import router as analytics_router
 from app.api.routes.kyc import router as kyc_router
 from app.api.routes.whatsapp_bot import router as whatsapp_bot_router
+from app.api.routes.crm import router as crm_router
+from app.api.routes.feature_flags import router as feature_flags_router, seed_default_flags
+from app.api.routes.billing_admin import router as billing_admin_router
+from app.api.routes.estimate import router as estimate_router
+from app.api.routes.checkout import router as checkout_router
+from app.api.routes.tenant_assets import router as tenant_assets_router
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -33,7 +42,9 @@ from app.api.routes.ai import router as ai_router
 from app.api.routes.ai_widget import router as ai_widget_router
 from app.api.routes.billing import router as billing_router
 from app.api.routes.branding import router as branding_router
+from app.api.routes.tenant_context import router as tenant_context_router
 from app.api.routes.custom_domains import router as custom_domains_router
+from app.api.routes.customer_cargo_portal import router as customer_cargo_portal_router
 from app.api.routes.geo import router as geo_router
 from app.api.routes.fleetbase_runtime import router as fleetbase_runtime_router
 from app.api.routes.i18n import router as i18n_router
@@ -76,6 +87,9 @@ import app.models.saas_subscription  # noqa: F401
 import app.models.payment_hub  # noqa: F401
 import app.models.storefront_template  # noqa: F401
 import app.models.product  # noqa: F401
+import app.models.crm  # noqa: F401
+import app.models.feature_flags  # noqa: F401
+import app.models.invoice  # noqa: F401
 from app.api.routes import fleetbase_proxy
 from app.api.routes import customs
 from app.api.routes.fleetbase_tenant_proxy import router as fleetbase_tenant_proxy_router
@@ -94,6 +108,16 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     run_runtime_migrations(engine)
     logger.info("Database tables ensured")
+    
+    # Seed default feature flags
+    from app.db.session import SessionLocal
+    db = SessionLocal()
+    try:
+        seed_default_flags(db)
+        logger.info("Default feature flags seeded")
+    finally:
+        db.close()
+    
     init_i18n()
     logger.info("i18n locales loaded")
     yield
@@ -151,6 +175,7 @@ app.include_router(ai_widget_router, prefix=settings.api_v1_prefix)
 
 app.include_router(support_crm_router, prefix=settings.api_v1_prefix)
 app.include_router(custom_domains_router, prefix=settings.api_v1_prefix)
+app.include_router(customer_cargo_portal_router, prefix=settings.api_v1_prefix)
 app.include_router(shipments_router, prefix=settings.api_v1_prefix)
 app.include_router(i18n_router, prefix=settings.api_v1_prefix)
 
@@ -159,6 +184,7 @@ app.include_router(storefront_router, prefix=settings.api_v1_prefix)
 app.include_router(pallet_router, prefix=settings.api_v1_prefix)
 app.include_router(customer_portal_router, prefix=settings.api_v1_prefix)
 app.include_router(branding_router, prefix=settings.api_v1_prefix)
+app.include_router(tenant_context_router, prefix=settings.api_v1_prefix)
 app.include_router(geo_router, prefix=settings.api_v1_prefix)
 app.include_router(customs.router, prefix=settings.api_v1_prefix)
 
@@ -185,3 +211,16 @@ app.include_router(admin_dns_router, prefix=settings.api_v1_prefix)
 app.include_router(admin_tenant_preview_router, prefix=settings.api_v1_prefix)
 
 app.include_router(payment_hub_router, prefix=settings.api_v1_prefix)
+
+app.include_router(admin_billing_config_router, prefix=settings.api_v1_prefix)
+
+app.include_router(cargo_lifecycle_router, prefix=settings.api_v1_prefix)
+
+app.include_router(warehouse_notices_router, prefix=settings.api_v1_prefix)
+
+app.include_router(crm_router, prefix=settings.api_v1_prefix)
+app.include_router(feature_flags_router, prefix=settings.api_v1_prefix)
+app.include_router(billing_admin_router, prefix=settings.api_v1_prefix)
+app.include_router(estimate_router, prefix=settings.api_v1_prefix)
+app.include_router(checkout_router, prefix=settings.api_v1_prefix)
+app.include_router(tenant_assets_router, prefix=settings.api_v1_prefix)

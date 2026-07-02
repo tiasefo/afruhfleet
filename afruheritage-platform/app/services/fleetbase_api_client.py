@@ -199,47 +199,67 @@ class FleetbaseAPIClient:
     def _issue_api_key(self, token: str, org_id: str) -> str:
         """
         Attempt to create an API key via Fleetbase's key management API.
-        Falls back to a placeholder if the endpoint is unavailable or the org
-        schema isn't set up yet (e.g. brand-new instance with empty DB).
+        Return ONLY a usable key/token string. If Fleetbase returns a credential
+        object without a visible key, fall back to the admin session token.
         """
+        def find_key(obj):
+            if isinstance(obj, str) and len(obj) > 20:
+                return obj
+            if isinstance(obj, dict):
+                preferred = [
+                    "key",
+                    "api_key",
+                    "apiKey",
+                    "token",
+                    "access_token",
+                    "secret",
+                    "_key",
+                ]
+                for k in preferred:
+                    v = obj.get(k)
+                    if isinstance(v, str) and len(v) > 20 and v.lower() != "none":
+                        return v
+
+                for v in obj.values():
+                    found = find_key(v)
+                    if found:
+                        return found
+
+            if isinstance(obj, list):
+                for item in obj:
+                    found = find_key(item)
+                    if found:
+                        return found
+
+            return None
+
         try:
             data = self._post(
                 "/int/v1/api-credentials",
                 {"name": "afruheritage-platform", "company_uuid": org_id},
                 token=token,
             )
-            # Accept a wider variety of response shapes used across Fleetbase versions
-            possible_paths = [
-                "key",
-                "api_key",
-                "apiKey",
-                "api_credential",
-                "api_credential.key",
-                "api_credential.api_key",
-                "data.key",
-                "data.api_key",
-                "apiCredential.key",
-                "apiCredential.apiKey",
-            ]
-            try:
-                key = self._extract(data, *possible_paths)
-                if key:
-                    return key
-            except Exception:
-                # fall through to token fallback
-                pass
+            key = find_key(data)
+            if key:
+                return key
+
+            logger.warning(
+                "Fleetbase API credential response had no visible key; using admin token fallback",
+                extra={"org_id": org_id, "response_type": type(data).__name__},
+            )
+            return token
         except Exception as exc:
-            logger.warning("Could not issue Fleetbase API key — using token as key: %s", exc)
-        # Fall back: the admin token itself can act as a bearer for management calls
-        return token
+            logger.warning("Could not issue Fleetbase API key — using admin token as fallback: %s", exc)
+            return token
 
     def _build_console_url(self) -> str:
-        """Return the URL where the freight company's Fleetbase console lives."""
-        # The shared Fleetbase console is at port 4203; orgs are selected after login.
-        host = settings.base_url.replace("http://", "").replace("https://", "").split(":")[0]
-        return f"http://{host}:4203"
+        """
+        Public Fleetbase console URL for users. Do not derive this from the
+        internal API URL because the internal URL may be api.afruheritage.com:4203
+        or 10.x.x.x.
+        """
+        return (getattr(settings, "fleetbase_console_url", "") or "https://fleet.afruheritage.com").rstrip("/")
 
-    @staticmethod
     def _extract(data: dict, *paths: str) -> str:
         """
         Try each dotted path in order, return the first non-falsy value.

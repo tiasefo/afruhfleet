@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Globe } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const footerLinks = {
   product: {
@@ -56,6 +57,11 @@ const languages = [
 ]
 
 export function Footer() {
+  const { tenant } = useTenant()
+  const companyName = tenant.company_name
+  const logoLetter = companyName.charAt(0).toUpperCase()
+  const legalText = tenant.legal_footer_text || `© ${new Date().getFullYear()} ${tenant.legal_company_name || companyName}. All rights reserved.`
+
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -64,15 +70,14 @@ export function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">A</span>
+                <span className="text-lg font-bold text-primary-foreground">{logoLetter}</span>
               </div>
               <span className="text-xl font-semibold tracking-tight text-foreground">
-                Afruheritage
+                {companyName}
               </span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              The only African TransUnion Multi-Tenant Freight Forwarding platform.
-              Connecting Ghana, Kenya, Somalia, Djibouti, Nigeria, and the world.
+              Professional logistics and freight forwarding services.
             </p>
             
             {/* Country Flags */}
@@ -120,7 +125,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Afruheritage - African Union Heritage. Powered by Infotech Freight Forwarding. All rights reserved.
+            {legalText}
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-muted-foreground hover:text-foreground">

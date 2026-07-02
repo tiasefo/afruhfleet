@@ -14,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getCurrentUser, isAdmin, isCustomer } from '@/lib/auth'
+import { TenantLogo } from '@/components/tenant-logo'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const navLinks = [
   { 
@@ -46,6 +48,9 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [language, setLanguage] = useState<'en' | 'zh'>('en')
   const router = useRouter()
+  const tenant = useTenant()
+
+  const supportedLanguages = tenant?.supported_languages || ['en', 'zh']
 
   // Determine user role for navigation
   const [userRole, setUserRole] = useState<string | null>(null)
@@ -72,14 +77,7 @@ export function Navigation() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">A</span>
-          </div>
-          <span className="text-xl font-semibold tracking-tight text-foreground">
-            Afruheritage
-          </span>
-        </Link>
+        <TenantLogo href="/" />
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 lg:flex">
@@ -166,12 +164,7 @@ export function Navigation() {
           </SheetTrigger>
           <SheetContent side="right" className="w-80">
             <div className="flex flex-col gap-6 pt-6">
-              <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                  <span className="text-lg font-bold text-primary-foreground">A</span>
-                </div>
-                <span className="text-xl font-semibold">Afruheritage</span>
-              </Link>
+              <TenantLogo href="/" />
               
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (

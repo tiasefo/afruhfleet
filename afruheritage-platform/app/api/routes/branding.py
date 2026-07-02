@@ -38,6 +38,34 @@ def get_public_branding_route(
     return _to_response(branding)
 
 
+@router.post("/{tenant_id}", response_model=BrandingResponse)
+def create_branding_route(
+    tenant_id: str,
+    payload: BrandingUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Create branding for a tenant (admin only)."""
+    from app.models.tenant import Tenant
+    from app.services.tenant_branding_service import ensure_tenant_branding
+    
+    tenant = db.get(Tenant, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    # Ensure branding exists
+    branding = ensure_tenant_branding(db, tenant_id, tenant.company_name, tenant.contact_email)
+    
+    # Update with provided values
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        if value is not None and hasattr(branding, key):
+            setattr(branding, key, value)
+    
+    db.commit()
+    db.refresh(branding)
+    return _to_response(branding)
+
+
 @router.patch("/{tenant_id}", response_model=BrandingResponse)
 def update_branding_route(
     tenant_id: str,
@@ -111,6 +139,7 @@ def _to_response(b) -> BrandingResponse:
         max_group_members=b.max_group_members,
         template_code=b.template_code,
         storefront_config=b.storefront_config,
+        pseudo_email_domain=b.pseudo_email_domain,
         created_at=b.created_at,
         updated_at=b.updated_at,
     )
@@ -147,6 +176,7 @@ def _default_response(tenant_id: str) -> BrandingResponse:
         max_group_members=50,
         template_code=None,
         storefront_config=None,
+        pseudo_email_domain="phone.afruheritage.com",
         created_at=now,
         updated_at=now,
     )

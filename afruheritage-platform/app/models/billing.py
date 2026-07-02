@@ -101,6 +101,7 @@ class Subscription(Base):
     current_period_end: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=30))
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    grace_period_ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     read_only_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

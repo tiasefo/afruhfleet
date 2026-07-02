@@ -14,6 +14,9 @@ services:
     volumes:
       - ./logs:/app/logs
       - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+      - ./app:/app/app
+      - ./sentinel:/app/sentinel
+      - ./scripts:/app/scripts
     depends_on:
       postgres:
         condition: service_healthy
@@ -46,12 +49,20 @@ services:
     volumes:
       - ./logs:/app/logs
       - ${RUNNER_DEFAULT_SSH_KEY_PATH:-./secrets/runner_key}:/run/secrets/afruheritage_runner_key:ro
+      - ./app:/app/app
+      - ./sentinel:/app/sentinel
+      - ./scripts:/app/scripts
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import celery; raise SystemExit(0)' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Celery Beat for Scheduled Tasks
   beat:
@@ -70,6 +81,11 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import celery; raise SystemExit(0)' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # PostgreSQL Database
   postgres:
@@ -116,7 +132,7 @@ services:
     container_name: afruheritage-frontend
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_BASE_URL=https://api.afruheritage.com/api/v1
+      - NEXT_PUBLIC_API_BASE_URL=/api/v1
       - NEXT_PUBLIC_TENANT_ID=${NEXT_PUBLIC_TENANT_ID:-demo}
     ports:
       - "3002:3000"
@@ -138,6 +154,8 @@ services:
     container_name: afruheritage-admin-console
     env_file:
       - ./admin-console/.env
+    volumes:
+      - ./admin-console/admin_app:/app/admin_app:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -147,7 +165,7 @@ services:
       - "4000:4000"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/admin/health"]
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:4000/admin/health'); raise SystemExit(0)\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -160,6 +178,9 @@ services:
     container_name: afruheritage-sentinel
     env_file:
       - ./sentinel/.env
+    volumes:
+      - ./sentinel/sentinel_app:/app/sentinel_app:ro
+      - ./sentinel/static:/app/static:ro
     depends_on:
       postgres:
         condition: service_healthy

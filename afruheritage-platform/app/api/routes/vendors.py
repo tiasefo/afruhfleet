@@ -26,6 +26,25 @@ _ID_TYPE_ALIASES = {
     "drivers license": "drivers_license",
 }
 
+_VALID_VEHICLE_TYPES = {"truck", "car", "motorbike", "bicycle"}
+_VEHICLE_TYPE_ALIASES = {
+    "van": "truck",
+    "lorry": "truck",
+    "motorcycle": "motorbike",
+    "motor_cycle": "motorbike",
+    "bike": "motorbike",
+    "cycle": "bicycle",
+}
+
+_VALID_BUSINESS_TYPES = {"individual", "registered", "fleet"}
+_BUSINESS_TYPE_ALIASES = {
+    "company": "registered",
+    "corporate": "registered",
+    "business": "registered",
+    "sole_proprietor": "individual",
+    "sole_trader": "individual",
+}
+
 logger = logging.getLogger("afruheritage.vendors")
 router = APIRouter(prefix='/vendors', tags=['Delivery Vendors'])
 
@@ -52,6 +71,36 @@ async def register_vendor_route(request: Request, db: Session=Depends(get_db)):
                 },
             )
 
+        # Normalise vehicle types
+        normalised_vehicle_types = []
+        for vt in payload.vehicle_types:
+            nv = _VEHICLE_TYPE_ALIASES.get(vt.lower().strip(), vt.lower().strip())
+            if nv not in _VALID_VEHICLE_TYPES:
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "field": "vehicle_types",
+                        "error": f"'{vt}' is not a valid vehicle type.",
+                        "valid_values": sorted(_VALID_VEHICLE_TYPES),
+                    },
+                )
+            normalised_vehicle_types.append(nv)
+
+        # Normalise business_type
+        normalised_business_type = _BUSINESS_TYPE_ALIASES.get(
+            (payload.business_type or "individual").lower().strip(),
+            (payload.business_type or "individual").lower().strip(),
+        )
+        if normalised_business_type not in _VALID_BUSINESS_TYPES:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "field": "business_type",
+                    "error": f"'{payload.business_type}' is not a valid business type.",
+                    "valid_values": sorted(_VALID_BUSINESS_TYPES),
+                },
+            )
+
         vendor = register_vendor(
             db,
             full_name=payload.full_name,
@@ -59,12 +108,12 @@ async def register_vendor_route(request: Request, db: Session=Depends(get_db)):
             phone=payload.phone,
             id_type=normalised_id_type,
             id_number=payload.id_number,
-            vehicle_types=payload.vehicle_types,
+            vehicle_types=normalised_vehicle_types,
             vehicle_reg_number=payload.vehicle_reg_number,
             vehicle_model=payload.vehicle_model,
             vehicle_year=payload.vehicle_year,
             business_name=payload.business_name,
-            business_type=payload.business_type,
+            business_type=normalised_business_type,
             operating_regions=payload.operating_regions,
             years_experience=payload.years_experience,
             terms_accepted=payload.terms_accepted,

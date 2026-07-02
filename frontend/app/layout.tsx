@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { TenantContextProvider } from '@/components/tenant-context-provider'
+import { TenantStructuredData } from '@/components/tenant-structured-data'
+import { TenantThemeInjector } from '@/components/tenant-theme-injector'
+import { resolveTenantContext, generateTenantMetadata, generateTenantViewport, generateTenantIcons } from '@/lib/tenant-metadata'
 import './globals.css'
 
 const inter = Inter({ 
@@ -13,36 +17,38 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
 })
 
-export const metadata: Metadata = {
-  title: 'Afruheritage | AI-Powered Freight Forwarding Platform',
-  description: 'The complete logistics platform for Africa. Track shipments, manage cargo, and streamline your supply chain with AI-powered intelligence. Serving Ghana, China, and global trade corridors.',
-  keywords: ['freight forwarding', 'logistics', 'shipping', 'cargo', 'Africa', 'Ghana', 'China trade', 'supply chain', 'AI logistics'],
-  authors: [{ name: 'Afruheritage' }],
-  openGraph: {
-    title: 'Afruheritage | AI-Powered Freight Forwarding Platform',
-    description: 'The complete logistics platform for Africa. Track shipments, manage cargo, and streamline your supply chain.',
-    type: 'website',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await resolveTenantContext()
+  const metadata = generateTenantMetadata(tenant)
+  const icons = generateTenantIcons(tenant)
+  if (icons) {
+    metadata.icons = icons
+  }
+  return metadata
 }
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#1a3a4a' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f1f28' },
-  ],
+export async function generateViewport(): Promise<Viewport> {
+  const tenant = await resolveTenantContext()
+  return generateTenantViewport(tenant)
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const tenant = await resolveTenantContext()
+
   return (
-    <html lang="en" className={`${inter.variable} ${geistMono.variable}`}>
+    <html lang={tenant?.default_language || 'en'} className={`${inter.variable} ${geistMono.variable}`}>
       <body className="font-sans antialiased">
-        {children}
+        <TenantThemeInjector tenant={tenant} />
+        <TenantStructuredData tenant={tenant} />
+        <TenantContextProvider slug={tenant?.slug}>
+          <div className="tenant-themed">
+            {children}
+          </div>
+        </TenantContextProvider>
         <Analytics />
       </body>
     </html>

@@ -23,6 +23,8 @@ interface TenantBranding {
   support_phone: string
   legal_footer_text: string
   legal_company_name: string
+  pseudo_email_domain: string
+  template_code: string | null
 }
 
 interface BrandingContextType {
@@ -55,6 +57,8 @@ const defaultBranding: TenantBranding = {
   support_phone: '+233 30 123 4567',
   legal_footer_text: '© 2024 Afruheritage. All rights reserved.',
   legal_company_name: 'Afruheritage Logistics Ltd',
+  pseudo_email_domain: 'phone.afruheritage.com',
+  template_code: null,
 }
 
 export function BrandingProvider({ children }: { children: React.ReactNode }) {

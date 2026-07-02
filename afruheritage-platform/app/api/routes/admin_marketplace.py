@@ -50,3 +50,42 @@ def reassign_job(job_id: str, driver_id: str):
         return serialize(job)
     finally:
         db.close()
+
+@router.get("/jobs/{job_id}/eligible-drivers")
+def get_eligible_drivers(job_id: str):
+    """Return list of eligible drivers for a job (for reassignment picker)."""
+    from app.models.vendor import DeliveryVendor
+    from app.models.user import User, UserRole
+    
+    db = SessionLocal()
+    try:
+        job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="job_not_found")
+        
+        # Get approved vendors with delivery_driver role users
+        vendors = db.query(DeliveryVendor).filter(
+            DeliveryVendor.status == "approved"
+        ).all()
+        
+        eligible_drivers = []
+        for vendor in vendors:
+            # Get users associated with this vendor who are delivery drivers
+            users = db.query(User).filter(
+                User.role == UserRole.delivery_driver
+            ).all()
+            
+            for user in users:
+                eligible_drivers.append({
+                    "driver_id": str(user.id),
+                    "driver_name": user.full_name or user.email,
+                    "vendor_id": str(vendor.id),
+                    "vendor_name": vendor.business_name,
+                    "vehicle_type": vendor.vehicle_type,
+                    "region": vendor.operating_region,
+                    "rating": vendor.rating or 0.0,
+                })
+        
+        return {"eligible_drivers": eligible_drivers}
+    finally:
+        db.close()

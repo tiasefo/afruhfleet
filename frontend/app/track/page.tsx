@@ -1,12 +1,18 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { TrackingSearch } from '@/components/tracking/tracking-search'
 import { AIChatWidget } from '@/components/ai-chat-widget'
+import { resolveTenantContext, generateTenantMetadata } from '@/lib/tenant-metadata'
 
-export const metadata: Metadata = {
-  title: 'Track Shipment | Afruheritage',
-  description: 'Track your shipment in real-time. Enter your tracking number to see the current status, location, and estimated delivery time.',
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await resolveTenantContext()
+  const base = generateTenantMetadata(tenant, '/track')
+  if (tenant) {
+    base.title = `Track Shipment | ${tenant.company_name}`
+    base.description = `Track your shipment in real-time with ${tenant.company_name}. Enter your tracking number to see the current status, location, and estimated delivery time.`
+  }
+  return base
 }
 
 export default function TrackPage() {

@@ -3,8 +3,13 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, MessageSquare, Phone } from 'lucide-react'
 import Link from 'next/link'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export function CTASection() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+  const supportEmail = tenant?.contact?.support_email || 'support@afruheritage.com'
+  const supportPhone = tenant?.contact?.support_phone || '+233 (0) 00 000 0000'
   return (
     <section className="relative overflow-hidden bg-primary py-20 sm:py-28">
       {/* Background Pattern */}
@@ -20,7 +25,7 @@ export function CTASection() {
             Ready to transform your freight operations?
           </h2>
           <p className="mt-6 text-pretty text-lg text-primary-foreground/80">
-            Join 500+ freight forwarders who have modernized their business with Afruheritage. 
+            Join 500+ freight forwarders who have modernized their business with {companyName}.
             Start your free trial today - no credit card required.
           </p>
 
@@ -52,18 +57,18 @@ export function CTASection() {
           {/* Contact Options */}
           <div className="mt-12 flex flex-col items-center justify-center gap-6 sm:flex-row sm:gap-12">
             <a
-              href="mailto:support@afruheritage.com"
+              href={`mailto:${supportEmail}`}
               className="flex items-center gap-2 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
             >
               <MessageSquare className="h-4 w-4" />
-              support@afruheritage.com
+              {supportEmail}
             </a>
             <a
-              href="tel:+233000000000"
+              href={`tel:${supportPhone}`}
               className="flex items-center gap-2 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
             >
               <Phone className="h-4 w-4" />
-              +233 (0) 00 000 0000
+              {supportPhone}
             </a>
           </div>
         </div>

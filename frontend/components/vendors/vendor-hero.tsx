@@ -3,8 +3,12 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Truck, Bike, Car, Package } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export function VendorHero() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+
   const scrollToRegister = () => {
     document.getElementById('vendor-registration')?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -25,7 +29,7 @@ export function VendorHero() {
             <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Delivery Business
             </span>{' '}
-            With Afruheritage
+            With {companyName}
           </h1>
           
           <p className="mx-auto mt-6 max-w-2xl text-pretty text-lg text-muted-foreground sm:text-xl">

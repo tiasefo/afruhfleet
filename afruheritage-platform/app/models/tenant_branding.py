@@ -50,6 +50,7 @@ class TenantBranding(Base):
     max_group_members: Mapped[int] = mapped_column(nullable=False, default=5000)
     template_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     storefront_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    pseudo_email_domain: Mapped[str] = mapped_column(String(255), nullable=False, default="phone.afruheritage.com")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

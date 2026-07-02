@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     question: 'How do I get paid for completed deliveries?',
-    answer: 'Payments are processed weekly or on-demand (subject to minimum thresholds). You can receive funds via Mobile Money (MTN, Vodafone, AirtelTigo), bank transfer, or keep them in your Afruheritage wallet for credit purchases.',
+    answer: 'Payments are processed weekly or on-demand (subject to minimum thresholds). You can receive funds via Mobile Money (MTN, Vodafone, AirtelTigo), bank transfer, or keep them in your platform wallet for credit purchases.',
   },
   {
     question: 'What are the requirements to become a vendor?',

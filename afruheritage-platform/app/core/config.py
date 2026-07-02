@@ -79,6 +79,7 @@ class Settings(BaseSettings):
     # Fleetbase internal API URL (reachable from inside this container)
     # When both stacks are on the same host, use the host-gateway or exposed port.
     fleetbase_internal_url: str = Field(default='http://fleetbase-httpd-1', alias='FLEETBASE_INTERNAL_URL')
+    fleetbase_console_url: str = Field(default='https://fleet.afruheritage.com', alias='FLEETBASE_CONSOLE_URL')
 
     # Fleetbase provisioning retry/backoff
     fleetbase_provisioning_retries: int = Field(default=3, alias='FLEETBASE_PROVISIONING_RETRIES')

@@ -11,9 +11,10 @@ from app.models.tenant import DomainType, LaunchStatus, ProvisioningJob, Tenant
 from app.models.user import User
 from app.schemas.tenant import ApprovalRequest, JobResponse, LaunchRequest, TenantCreate, TenantResponse, TenantRuntimeAuthUpdate
 from app.services.audit_service import record_audit_event
-from app.services.billing_service import create_trial_subscription, ensure_wallet
+from app.services.billing_service import assert_tenant_launch_ready, create_trial_subscription, ensure_wallet
 from app.services.notification_service import get_notification_service
 from app.services.tenant_creation_service import TenantCreationService
+from app.tasks.provisioning import provision_tenant
 from app.middleware.rate_limit import rate_limit
 router = APIRouter(prefix='/tenants', tags=['tenants'])
 
@@ -47,13 +48,15 @@ def create_tenant(payload: TenantCreate, db: Session=Depends(get_db), current_us
         # Fall back to provider_subdomain rather than hard-rejecting; the admin
         # can correct it after tenant creation.
         domain_type = DomainType.provider_subdomain
-    tenant = Tenant(company_name=payload.company_name, slug=slug, contact_email=payload.contact_email.lower(), plan_code=payload.plan_code, requested_domain=payload.requested_domain.lower(), domain_type=domain_type, verification_notes=payload.verification_notes, launch_status=LaunchStatus.pending_verification)
+    tenant = Tenant(company_name=payload.company_name, slug=slug, contact_email=payload.contact_email.lower(), plan_code=payload.plan_code, requested_domain=payload.requested_domain.lower(), domain_type=domain_type, verification_notes=payload.verification_notes, launch_status=LaunchStatus.pending_verification, subdomain=slug)
     db.add(tenant)
     db.commit()
     db.refresh(tenant)
     if payload.plan_code == 'free_trial':
         create_trial_subscription(db, tenant_id=str(tenant.id))
         ensure_wallet(db, tenant_id=str(tenant.id))
+    from app.services.tenant_branding_service import ensure_tenant_branding
+    ensure_tenant_branding(db, tenant_id=str(tenant.id), company_name=tenant.company_name, contact_email=tenant.contact_email)
     record_audit_event(db, current_user, 'tenant.created', 'tenant', str(tenant.id), {'company_name': tenant.company_name})
     return tenant
 
@@ -185,10 +188,35 @@ def delete_tenant(tenant_id: str, db: Session=Depends(get_db), current_user: Use
     tenant = db.get(Tenant, _resolve_uuid(tenant_id))
     if not tenant:
         raise HTTPException(status_code=404, detail='Tenant not found')
-    record_audit_event(db, current_user, 'tenant.deleted', 'tenant', str(tenant.id), {'company_name': tenant.company_name})
-    db.delete(tenant)
+    if tenant.deleted_at:
+        raise HTTPException(status_code=409, detail='Tenant already deleted')
+    
+    from datetime import datetime
+    tenant.deleted_at = datetime.utcnow()
+    tenant.launch_status = LaunchStatus.suspended
     db.commit()
+    db.refresh(tenant)
+    
+    record_audit_event(db, current_user, 'tenant.deleted', 'tenant', str(tenant.id), {'company_name': tenant.company_name})
     return {'status': 'deleted', 'tenant_id': tenant_id}
+
+
+@router.post('/{tenant_id}/restore', response_model=TenantResponse)
+def restore_tenant(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    """Restore a soft-deleted tenant."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    if not tenant.deleted_at:
+        raise HTTPException(status_code=409, detail='Tenant is not deleted')
+    
+    tenant.deleted_at = None
+    tenant.launch_status = LaunchStatus.active
+    db.commit()
+    db.refresh(tenant)
+    
+    record_audit_event(db, current_user, 'tenant.restored', 'tenant', str(tenant.id), {'company_name': tenant.company_name})
+    return tenant
 
 
 @router.post('/{tenant_id}/provision', response_model=TenantResponse)
@@ -209,6 +237,10 @@ def provision_tenant_fleetbase(tenant_id: str, db: Session=Depends(get_db), curr
         )
         tenant.fleetbase_org_id = org.org_id
         tenant.fleetbase_api_key = org.api_key
+        tenant.fleetbase_admin_token = org.admin_token
+        tenant.live_api_token = org.api_key
+        tenant.live_console_url = org.console_url
+        tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
         tenant.launch_status = LaunchStatus.active
         db.commit()
         db.refresh(tenant)
@@ -299,5 +331,3 @@ def resend_portal_url(
         "portal_url": portal_url,
         "email_sent": sent,
     }
-
-    return job

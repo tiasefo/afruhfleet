@@ -1,0 +1,87 @@
+.tenant-amooksco-v2 {
+  --tenant-primary: #0f4c81;
+  --tenant-primary-dark: #073763;
+  --tenant-accent: #1e90ff;
+  --tenant-bg: #f7fbff;
+  --tenant-text: #0f172a;
+}
+
+.tenant-amooksco-v2 .bg-primary {
+  background-color: var(--tenant-primary);
+}
+
+.tenant-amooksco-v2 .text-primary {
+  color: var(--tenant-primary);
+}
+
+.tenant-amooksco-v2 .text-primary-foreground {
+  color: #ffffff;
+}
+
+.tenant-amooksco-v2 .bg-accent {
+  background-color: var(--tenant-accent);
+}
+
+.tenant-amooksco-v2 .text-accent {
+  color: var(--tenant-accent);
+}
+
+.tenant-amooksco-v2 .text-accent-foreground {
+  color: #ffffff;
+}
+
+.tenant-amooksco-v2 .border-accent\/40 {
+  border-color: rgba(30, 144, 255, 0.4);
+}
+
+.tenant-amooksco-v2 .bg-accent\/10 {
+  background-color: rgba(30, 144, 255, 0.1);
+}
+
+.tenant-amooksco-v2 .bg-accent\/40 {
+  background-color: rgba(30, 144, 255, 0.4);
+}
+
+.tenant-amooksco-v2 .bg-primary\/10 {
+  background-color: rgba(15, 76, 129, 0.1);
+}
+
+.tenant-amooksco-v2 .bg-primary\/95 {
+  background-color: rgba(15, 76, 129, 0.95);
+}
+
+.tenant-amooksco-v2 .bg-primary\/60 {
+  background-color: rgba(15, 76, 129, 0.6);
+}
+
+.tenant-amooksco-v2 .bg-primary\/55 {
+  background-color: rgba(15, 76, 129, 0.55);
+}
+
+.tenant-amooksco-v2 .bg-primary\/85 {
+  background-color: rgba(15, 76, 129, 0.85);
+}
+
+.tenant-amooksco-v2 .hover\:bg-accent\/90:hover {
+  background-color: rgba(30, 144, 255, 0.9);
+}
+
+.tenant-amooksco-v2 .hover\:text-accent:hover {
+  color: var(--tenant-accent);
+}
+
+.tenant-amooksco-v2 .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tenant-amooksco-v2 .hover\:bg-white\/15:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.tenant-amooksco-v2 .group-hover\:bg-primary:hover {
+  background-color: var(--tenant-primary);
+}
+
+.tenant-amooksco-v2 .group-hover\:text-primary-foreground:hover {
+  color: #ffffff;
+}

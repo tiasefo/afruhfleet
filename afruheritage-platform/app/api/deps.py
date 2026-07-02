@@ -40,13 +40,14 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: 
     )
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
-        user_id_str: str | None = uuid.UUID(payload.get('sub'))
-        if user_id_str is None:
+        sub = payload.get('sub')
+        if not sub:
             raise credentials_exception
-    except JWTError as exc:
+        user_id_val = uuid.UUID(str(sub))
+    except (JWTError, ValueError, TypeError) as exc:
         raise credentials_exception from exc
 
-    user = db.get(User, user_id_str)
+    user = db.get(User, user_id_val)
     if user is None or not user.is_active:
         raise credentials_exception
 
@@ -63,9 +64,9 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: 
     
     # Set user context for structured logging
     if request:
-        request.state.user_id = user_id_str
+        request.state.user_id = str(user_id_val)
         request.state.tenant_id = str(user.tenant_id) if user.tenant_id else None
-        user_id.set(user_id_str)
+        user_id.set(str(user_id_val))
     
     return user
 
@@ -81,13 +82,14 @@ def get_current_user_no_tenant_check(request: Request, token: str = Depends(oaut
     )
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
-        user_id_str: str | None = uuid.UUID(payload.get('sub'))
-        if user_id_str is None:
+        sub = payload.get('sub')
+        if not sub:
             raise credentials_exception
-    except JWTError as exc:
+        user_id_val = uuid.UUID(str(sub))
+    except (JWTError, ValueError, TypeError) as exc:
         raise credentials_exception from exc
 
-    user = db.get(User, user_id_str)
+    user = db.get(User, user_id_val)
     if user is None or not user.is_active:
         raise credentials_exception
 
@@ -96,9 +98,9 @@ def get_current_user_no_tenant_check(request: Request, token: str = Depends(oaut
         db.refresh(user)
 
     if request:
-        request.state.user_id = user_id_str
+        request.state.user_id = str(user_id_val)
         request.state.tenant_id = str(user.tenant_id) if user.tenant_id else None
-        user_id.set(user_id_str)
+        user_id.set(str(user_id_val))
 
     return user
 

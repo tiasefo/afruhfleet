@@ -28,6 +28,7 @@ class BrandingUpdate(BaseModel):
     default_language: str | None = None
     supported_languages: str | None = None
     storefront_config: dict | None = None
+    pseudo_email_domain: str | None = None
 
 
 class BrandingResponse(BaseModel):
@@ -59,6 +60,7 @@ class BrandingResponse(BaseModel):
     max_group_members: int
     template_code: str | None = None
     storefront_config: dict | None = None
+    pseudo_email_domain: str
     created_at: datetime
     updated_at: datetime
 

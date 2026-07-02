@@ -1,3 +1,4 @@
+from app.core.config import settings
 """
 Auto-Provisioning Service
 Bridges payment confirmation → subscription activation → tenant launch.
@@ -89,6 +90,14 @@ def handle_subscription_payment_success(
             )
             tenant.fleetbase_org_id = org.org_id
             tenant.fleetbase_api_key = org.api_key
+            tenant.fleetbase_admin_token = org.admin_token
+            tenant.live_api_token = org.api_key
+            tenant.live_console_url = org.console_url
+            tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
+            tenant.fleetbase_admin_token = org.admin_token
+            tenant.live_api_token = org.api_key
+            tenant.live_console_url = org.console_url
+            tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
             tenant.launch_status = LaunchStatus.active
             db.commit()
             actions.append(f"fleetbase_org_created:{org.org_id}")

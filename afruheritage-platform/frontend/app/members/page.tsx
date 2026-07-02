@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
-import { usersApi } from '@/lib/api'
+import { membersAPI, usersApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -27,19 +28,22 @@ import {
   AlertCircle,
   Send,
   Upload,
+  Phone,
+  Building2,
+  Package,
+  FileText,
 } from 'lucide-react'
-
-function getRoleLabel(user: any): string {
-  if (user.is_tenant_admin) return 'Admin'
-  return user.role?.replace(/_/g, ' ') || 'Member'
-}
 
 export default function MembersPage() {
   const { user, token } = useAuth()
+  const router = useRouter()
   const [members, setMembers] = useState<any[]>([])
+  const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize] = useState(50)
 
   // Invite modal state
   const [inviteOpen, setInviteOpen] = useState(false)
@@ -53,17 +57,22 @@ export default function MembersPage() {
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
 
-  const tenantId = user?.tenant_id
+  const tenantId = user?.tenant_id || (typeof window !== 'undefined' ? localStorage.getItem('tenant_id') : null)
 
   const loadMembers = async () => {
-    if (!tenantId) return
+    if (!tenantId) {
+      setError('No tenant context. Please log in as a tenant user.')
+      setIsLoading(false)
+      return
+    }
     setIsLoading(true)
     setError(null)
     try {
-      const data = await usersApi.list(tenantId)
-      setMembers(Array.isArray(data) ? data : [])
+      const data = await membersAPI.list({ q: search || undefined, page, page_size: pageSize })
+      setMembers(data.items || [])
+      setTotal(data.total || 0)
     } catch (err: any) {
-      setError(err?.message || 'Failed to load team members')
+      setError(err?.message || 'Failed to load members')
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +80,18 @@ export default function MembersPage() {
 
   useEffect(() => {
     loadMembers()
-  }, [tenantId])
+  }, [tenantId, page])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (page !== 1) {
+        setPage(1)
+      } else {
+        loadMembers()
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,21 +127,11 @@ export default function MembersPage() {
     }
   }
 
-  const filtered = members.filter((m) => {
-    if (!search.trim()) return true
-    const q = search.toLowerCase()
-    return (
-      m.full_name?.toLowerCase().includes(q) ||
-      m.email?.toLowerCase().includes(q) ||
-      m.role?.toLowerCase().includes(q)
-    )
-  })
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -135,6 +145,12 @@ export default function MembersPage() {
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
+              <Link href="/members/import">
+                <Button variant="outline">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Import CSV
+                </Button>
+              </Link>
               <Dialog open={inviteOpen} onOpenChange={(open) => { setInviteOpen(open); if (!open) { setInviteError(null); setInviteSuccess(null) } }}>
                 <DialogTrigger asChild>
                   <Button>
@@ -142,12 +158,6 @@ export default function MembersPage() {
                     Invite Member
                   </Button>
                 </DialogTrigger>
-                <Link href="/members/import" className="ml-2">
-                  <Button variant="outline">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Bulk Import CSV
-                  </Button>
-                </Link>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -263,12 +273,12 @@ export default function MembersPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search */}
-        <div className="mb-4 relative">
+        <div className="mb-4 relative max-w-md">
           <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search members by name or email..."
+            placeholder="Search members by name, email, phone, or company..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -278,10 +288,10 @@ export default function MembersPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              {members.length} team member{members.length !== 1 ? 's' : ''}
+              {total} member{total !== 1 ? 's' : ''}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {isLoading ? (
               <div className="py-10 flex justify-center">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -292,61 +302,142 @@ export default function MembersPage() {
                 <p className="text-red-500">{error}</p>
                 <Button variant="outline" size="sm" className="mt-3" onClick={loadMembers}>Retry</Button>
               </div>
-            ) : filtered.length === 0 ? (
+            ) : members.length === 0 ? (
               <div className="py-16 text-center">
                 <Users className="h-12 w-12 mx-auto mb-4 text-gray-200" />
                 <h3 className="text-base font-medium text-gray-600 mb-2">
-                  {search ? 'No members match your search' : 'No team members yet'}
+                  {search ? 'No members match your search' : 'No members yet'}
                 </h3>
                 <p className="text-sm text-gray-500 mb-5">
-                  {search ? 'Try a different search term' : 'Invite your first team member to get started'}
+                  {search ? 'Try a different search term' : 'Import members via CSV or invite them individually'}
                 </p>
                 {!search && (
-                  <Button onClick={() => setInviteOpen(true)}>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Invite Your First Member
-                  </Button>
+                  <div className="flex gap-2 justify-center">
+                    <Button onClick={() => setInviteOpen(true)}>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Invite Member
+                    </Button>
+                    <Link href="/members/import">
+                      <Button variant="outline">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Bulk Import
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             ) : (
-              <div className="divide-y">
-                {filtered.map((member) => (
-                  <div key={member.id} className="py-4 flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                      {member.full_name?.charAt(0)?.toUpperCase() || '?'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{member.full_name}</p>
-                        {member.is_tenant_admin && (
-                          <Badge variant="outline" className="text-xs flex items-center gap-1">
-                            <Shield className="h-3 w-3" /> Admin
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 truncate flex items-center gap-1">
-                        <Mail className="h-3 w-3 shrink-0" />
-                        {member.email}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {member.is_active ? (
-                        <span className="flex items-center gap-1 text-xs text-green-600">
-                          <CheckCircle className="h-3.5 w-3.5" /> Active
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-xs text-gray-400">
-                          <XCircle className="h-3.5 w-3.5" /> Inactive
-                        </span>
-                      )}
-                      {member.must_reset_password && (
-                        <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
-                          Invite Pending
-                        </Badge>
-                      )}
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Goods Description</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipments</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {members.map((member) => (
+                      <tr
+                        key={member.id}
+                        className="hover:bg-blue-50 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/members/${member.id}`)}
+                      >
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-xs">
+                              {member.full_name?.charAt(0)?.toUpperCase() || '?'}
+                            </div>
+                            <span className="font-medium text-gray-900 text-sm">{member.full_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {member.email ? (
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3 text-gray-400" />
+                              {member.email}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {member.phone ? (
+                            <span className="flex items-center gap-1">
+                              <Phone className="h-3 w-3 text-gray-400" />
+                              {member.phone}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
+                          {member.notes || <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          {member.company ? (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="h-3 w-3 text-gray-400" />
+                              {member.company}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {member.is_active ? (
+                            <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                              <CheckCircle className="h-3.5 w-3.5" /> Active
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                              <XCircle className="h-3.5 w-3.5" /> Inactive
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <span className="inline-flex items-center gap-1">
+                            <Package className="h-3 w-3 text-gray-400" />
+                            {member.shipment_count ?? 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                          {member.created_at ? new Date(member.created_at).toLocaleDateString() : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {total > pageSize && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t">
+                    <span className="text-sm text-gray-500">
+                      Page {page} of {Math.ceil(total / pageSize)}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page <= 1}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={page >= Math.ceil(total / pageSize)}
+                        onClick={() => setPage(p => p + 1)}
+                      >
+                        Next
+                      </Button>
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </CardContent>

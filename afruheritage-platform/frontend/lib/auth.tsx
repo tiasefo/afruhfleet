@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         headers: { Authorization: `Bearer ${t}` },
       })
       if (res.status === 401) {
-        localStorage.removeItem('token')
+        localStorage.removeItem('auth_token')
         setTokenState(null)
         setUser(null)
         setLoading(false)
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
     if (saved) {
       setTokenState(saved)
       fetchUser(saved)
@@ -62,13 +62,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser])
 
   const login = useCallback((t: string) => {
-    localStorage.setItem('token', t)
+    localStorage.setItem('auth_token', t)
     setTokenState(t)
     fetchUser(t)
   }, [fetchUser])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token')
+    localStorage.removeItem('auth_token')
     setTokenState(null)
     setUser(null)
   }, [])

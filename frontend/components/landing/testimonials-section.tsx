@@ -4,10 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Quote } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const testimonials = [
   {
-    quote: "Afruheritage transformed how we manage shipments between Guangzhou and Accra. The AI assistant handles customer queries in both English and Chinese, saving us hours daily.",
+    quote: "This platform transformed how we manage shipments between Guangzhou and Accra. The AI assistant handles customer queries in both English and Chinese, saving us hours daily.",
     author: "James Mensah",
     role: "Operations Director",
     company: "Golden Star Logistics",
@@ -39,6 +40,8 @@ const trustedBy = [
 ]
 
 export function TestimonialsSection() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
   return (
     <section className="bg-muted/30 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -51,7 +54,7 @@ export function TestimonialsSection() {
             Trusted by freight forwarders across Africa and Asia
           </h2>
           <p className="mt-4 text-pretty text-lg text-muted-foreground">
-            See what our customers say about transforming their logistics operations with Afruheritage.
+            See what our customers say about transforming their logistics operations with {companyName}.
           </p>
         </div>
 

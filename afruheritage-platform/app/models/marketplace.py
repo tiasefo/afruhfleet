@@ -87,3 +87,26 @@ class ShipmentBid(Base):
         # One active bid per driver per shipment
         UniqueConstraint("shipment_id", "driver_user_id", name="uq_bid_shipment_driver"),
     )
+
+
+class MarketplaceReview(Base):
+    """Reviews/ratings for vendors in the marketplace."""
+    __tablename__ = "marketplace_reviews"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vendor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
+    author_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
+    author_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    
+    rating: Mapped[int] = mapped_column(Integer, nullable=False)  # 1-5 stars
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    
+    flagged: Mapped[bool] = mapped_column(Boolean, default=False)  # Flagged for moderation
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        # One review per user per vendor
+        UniqueConstraint("vendor_id", "author_id", name="uq_review_vendor_author"),
+    )

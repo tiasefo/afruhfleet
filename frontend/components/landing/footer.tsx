@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 import { Globe } from 'lucide-react'
+import { TenantLogo } from '@/components/tenant-logo'
+import { TenantFooterText } from '@/components/tenant-brand'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const footerLinks = {
   product: {
@@ -32,40 +35,38 @@ const footerLinks = {
       { label: 'Status', href: '/support' },
     ],
   },
-  legal: {
-    title: 'Legal',
-    links: [
-      { label: 'Privacy Policy', href: '/privacy' },
-      { label: 'Terms of Service', href: '/terms' },
-      { label: 'Cookie Policy', href: '/cookies' },
-      { label: 'GDPR', href: '/privacy' },
-    ],
-  },
 }
 
-const languages = [
-  { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文' },
-]
-
 export function Footer() {
+  const tenant = useTenant()
+  const languages = (tenant?.supported_languages || ['en', 'zh']).map(code => {
+    const labels: Record<string, string> = { en: 'English', zh: '中文' }
+    return { code, label: labels[code] || code }
+  })
+  const privacyUrl = tenant?.legal?.privacy_url || '/privacy'
+  const termsUrl = tenant?.legal?.terms_url || '/terms'
+
+  const legalLinks = [
+    { label: 'Privacy Policy', href: privacyUrl },
+    { label: 'Terms of Service', href: termsUrl },
+    { label: 'Cookie Policy', href: '/cookies' },
+    { label: 'GDPR', href: privacyUrl },
+  ]
+
+  const allSections = [
+    ...Object.values(footerLinks),
+    { title: 'Legal', links: legalLinks },
+  ]
+
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <span className="text-lg font-bold text-primary-foreground">A</span>
-              </div>
-              <span className="text-xl font-semibold tracking-tight text-foreground">
-                Afruheritage
-              </span>
-            </Link>
+            <TenantLogo href="/" />
             <p className="mt-4 text-sm text-muted-foreground">
-              AI-powered freight forwarding platform built for Africa. 
-              Connecting Ghana, China, and the world.
+              {tenant?.tagline || 'AI-powered freight forwarding platform built for Africa. Connecting Ghana, China, and the world.'}
             </p>
             
             {/* Language Selector */}
@@ -82,7 +83,7 @@ export function Footer() {
           </div>
 
           {/* Link Columns */}
-          {Object.values(footerLinks).map((section) => (
+          {allSections.map((section) => (
             <div key={section.title}>
               <h3 className="text-sm font-semibold text-foreground">{section.title}</h3>
               <ul className="mt-4 space-y-2">
@@ -104,7 +105,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Afruheritage. Powered by Infotech Freight Forwarding. All rights reserved.
+            <TenantFooterText />
           </p>
           <div className="flex items-center gap-4">
             <Link href="#" className="text-muted-foreground hover:text-foreground">

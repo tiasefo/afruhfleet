@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 from app.db.session import get_db
 from app.api.deps import get_current_user
-from app.models.marketplace import MarketplaceShipment, ShipmentBid
+from app.models.marketplace import MarketplaceShipment, ShipmentBid, MarketplaceReview
 from app.models.user import User, UserRole
 from app.services.entitlements import require_feature_or_raise
 from app.services.credits import consume_credits
@@ -689,3 +689,37 @@ def _get_shipment_and_bid(
         raise HTTPException(status_code=404, detail="Bid not found.")
 
     return shipment, bid
+
+
+# ----- Review Management Endpoints -----
+@router.delete("/reviews/{review_id}")
+def delete_review(
+    review_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a marketplace review (admin or review author only)."""
+    from app.api.deps import require_superuser
+
+    # Allow superusers to delete any review
+    if current_user.role == UserRole.platform_admin:
+        review = db.query(MarketplaceReview).filter(MarketplaceReview.id == review_id).first()
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+        
+        db.delete(review)
+        db.commit()
+        return {"status": "success", "message": "Review deleted"}
+    
+    # Otherwise, only allow author to delete their own review
+    review = db.query(MarketplaceReview).filter(
+        MarketplaceReview.id == review_id,
+        MarketplaceReview.author_id == current_user.id
+    ).first()
+    
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found or you don't have permission")
+    
+    db.delete(review)
+    db.commit()
+    return {"status": "success", "message": "Review deleted"}

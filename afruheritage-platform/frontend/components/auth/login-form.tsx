@@ -13,6 +13,8 @@ import { Loader2, Eye, EyeOff, ArrowRight, Github, Mail, Music2, Ship } from 'lu
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
+import { useTenant } from '@/components/tenant-context-provider'
+import { resolveTenantTheme } from '@/lib/tenant-theme-registry'
 
 export function LoginForm() {
   const router = useRouter()
@@ -20,6 +22,9 @@ export function LoginForm() {
   const { login, loginWithToken } = useAuth()
   const searchParams = useSearchParams()
   const { branding } = useBranding()
+  const { tenant } = useTenant()
+  const tenantSlug = searchParams.get('tenant')
+  const tenantTheme = tenantSlug ? resolveTenantTheme(tenantSlug) : null
   const [isLoading, setIsLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -73,14 +78,22 @@ export function LoginForm() {
       <div className="flex flex-1 flex-col justify-between p-6 sm:p-8 lg:p-12">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xl font-bold text-primary-foreground">
-                {branding?.company_name?.[0] || 'A'}
-              </span>
-            </div>
+          <Link href={tenantTheme ? tenantTheme.basePath : '/'} className="flex items-center gap-2">
+            {tenantTheme ? (
+              <img
+                src={tenantTheme.logo}
+                alt={tenantTheme.name}
+                className="h-10 w-10 rounded-lg bg-white p-0.5 object-contain"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
+                <span className="text-xl font-bold text-primary-foreground">
+                  {branding?.company_name?.[0] || 'A'}
+                </span>
+              </div>
+            )}
             <span className="text-xl font-semibold tracking-tight text-foreground">
-              {branding?.company_name || 'Afruheritage'}
+              {tenantTheme ? tenantTheme.name : (branding?.company_name || tenant.company_name)}
             </span>
           </Link>
         </div>
@@ -89,8 +102,12 @@ export function LoginForm() {
         <div className="mx-auto w-full max-w-md">
           <Card className="border-0 shadow-none sm:border sm:shadow-sm">
             <CardHeader className="space-y-1 px-0 sm:px-6">
-              <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-              <CardDescription>Sign in to your account to continue</CardDescription>
+              <CardTitle className="text-2xl font-bold">
+                {tenantTheme ? `Sign in to ${tenantTheme.name}` : 'Welcome Back'}
+              </CardTitle>
+              <CardDescription>
+                {tenantTheme ? 'Access your tenant dashboard' : 'Sign in to your account to continue'}
+              </CardDescription>
             </CardHeader>
             <CardContent className="px-0 sm:px-6">
               {/* Social Login Buttons */}
@@ -249,7 +266,9 @@ export function LoginForm() {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Powered by Afruheritage</p>
+          <p className="text-sm text-muted-foreground">
+            {tenantTheme ? `Powered by ${tenant.company_name}` : `Powered by ${tenant.company_name}`}
+          </p>
         </div>
       </div>
 

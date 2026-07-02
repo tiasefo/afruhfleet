@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/lib/auth'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const navLinks = [
   {
@@ -23,6 +24,7 @@ const navLinks = [
       { label: 'Freight Management', href: '/fleetbase/console' },
       { label: 'Customs Clearance', href: '/customs' },
       { label: 'Duty Calculator', href: '/customs/duty-calculator' },
+      { label: 'Storefront Templates', href: '/templates' },
     ]
   },
   {
@@ -57,6 +59,7 @@ export function Navigation() {
   const [language, setLanguage] = useState<'en' | 'zh'>('en')
   const router = useRouter()
   const { user, logout } = useAuth()
+  const { tenant } = useTenant()
 
   const handleLogout = () => {
     logout()
@@ -65,16 +68,19 @@ export function Navigation() {
     router.refresh()
   }
 
+  const companyName = tenant.company_name
+  const logoLetter = companyName.charAt(0).toUpperCase()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">A</span>
+            <span className="text-lg font-bold text-primary-foreground">{logoLetter}</span>
           </div>
           <span className="text-xl font-semibold tracking-tight text-foreground">
-            Afruheritage
+            {companyName}
           </span>
         </Link>
 
@@ -165,9 +171,9 @@ export function Navigation() {
             <div className="flex flex-col gap-6 pt-6">
               <Link href="/" className="flex items-center gap-2" onClick={() => setIsOpen(false)}>
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                  <span className="text-lg font-bold text-primary-foreground">A</span>
+                  <span className="text-lg font-bold text-primary-foreground">{logoLetter}</span>
                 </div>
-                <span className="text-xl font-semibold">Afruheritage</span>
+                <span className="text-xl font-semibold">{companyName}</span>
               </Link>
 
               <div className="flex flex-col gap-2">

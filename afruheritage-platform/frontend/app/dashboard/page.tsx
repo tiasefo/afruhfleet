@@ -22,6 +22,7 @@ import {
   BarChart3,
   Settings,
   MapPin,
+  Store,
   X,
 } from 'lucide-react'
 
@@ -363,6 +364,19 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </Link>
+            <Link href="/templates">
+              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                <CardContent className="flex items-center gap-4 p-6">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-pink-100 text-pink-600">
+                    <Store className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">Storefront Templates</p>
+                    <p className="text-sm text-muted-foreground">Browse &amp; select</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
             <Link href="/vendors">
               <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                 <CardContent className="flex items-center gap-4 p-6">
@@ -402,7 +416,7 @@ export default function DashboardPage() {
                   <Building2 className="mx-auto h-10 w-10 text-muted-foreground" />
                   <h3 className="mt-3 text-lg font-semibold">No tenants yet</h3>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Tenants can be created from the Admin Console at{' '}
+                    Platform tenant creation is restricted to platform administrators.{' '}
                     <span className="font-mono text-xs">:3001</span>
                   </p>
                   <div className="mt-4 flex justify-center gap-3">
@@ -410,7 +424,7 @@ export default function DashboardPage() {
                       <a href="/admin/runtime">Create Tenant Instance</a>
                     </Button>
                     <Button variant="outline" asChild>
-                      <a href="/admin/runtime">Open Admin Console</a>
+                      
                     </Button>
                   </div>
                 </div>

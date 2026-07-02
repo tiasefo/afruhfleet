@@ -19,6 +19,7 @@ from admin_app.api.routes.analytics import router as analytics_router
 from admin_app.api.routes.dashboard_local import router as dashboard_router
 from admin_app.api.routes.tickets import router as tickets_router
 from admin_app.api.routes.tracking import router as tracking_router
+from admin_app.api.routes.templates import router as templates_router
 from admin_app.core.config import admin_settings
 from admin_app.db.session import Base, engine
 
@@ -65,6 +66,7 @@ app.include_router(oauth_router, prefix="/admin")
 app.include_router(analytics_router, prefix="/admin")
 app.include_router(tickets_router, prefix="/admin")
 app.include_router(tracking_router, prefix="/admin")
+app.include_router(templates_router, prefix="/admin")
 
 
 @app.get("/admin/health")

@@ -1,4 +1,4 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { SupportHero } from '@/components/support/support-hero'
@@ -6,10 +6,16 @@ import { CreateTicketForm } from '@/components/support/create-ticket-form'
 import { TrackTicketSection } from '@/components/support/track-ticket-section'
 import { FAQSection } from '@/components/support/faq-section'
 import { AIChatWidget } from '@/components/ai-chat-widget'
+import { resolveTenantContext, generateTenantMetadata } from '@/lib/tenant-metadata'
 
-export const metadata: Metadata = {
-  title: 'Support | Afruheritage',
-  description: 'Get help with your shipments, create support tickets, and track existing requests. Our team is available 24/7 to assist you.',
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await resolveTenantContext()
+  const base = generateTenantMetadata(tenant, '/support')
+  if (tenant) {
+    base.title = `Support | ${tenant.company_name}`
+    base.description = `Get help with your shipments, create support tickets, and track existing requests with ${tenant.company_name}.`
+  }
+  return base
 }
 
 export default function SupportPage() {

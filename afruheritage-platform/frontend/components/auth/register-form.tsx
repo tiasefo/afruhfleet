@@ -12,6 +12,7 @@ import { Loader2, ArrowRight, Eye, EyeOff, Github, Mail, Music2, Ship } from 'lu
 import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
+import { useTenant } from '@/components/tenant-context-provider'
 import { authApi } from '@/lib/api_updated'
 
 const PLANS = [
@@ -26,6 +27,7 @@ export function RegisterForm() {
   const { t } = useTranslation()
   const { login } = useAuth()
   const { branding } = useBranding()
+  const { tenant } = useTenant()
   const [isLoading, setIsLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -140,7 +142,7 @@ export function RegisterForm() {
         // Fetch templates
         try {
           const res = await fetch('/api/v1/storefront-templates', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}`, 'Content-Type': 'application/json' }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`, 'Content-Type': 'application/json' }
           })
           if (res.ok) {
             const data = await res.json()
@@ -162,7 +164,7 @@ export function RegisterForm() {
     try {
       await fetch('/api/v1/storefront-templates/select', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token') || ''}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ template_code: selectedTemplate }),
       })
       setShowTemplatePicker(false)
@@ -187,7 +189,7 @@ export function RegisterForm() {
               </span>
             </div>
             <span className="text-xl font-semibold tracking-tight text-foreground">
-              {branding?.company_name || 'Afruheritage'}
+              {branding?.company_name || tenant.company_name}
             </span>
           </Link>
         </div>
@@ -398,7 +400,7 @@ export function RegisterForm() {
 
         {/* Footer */}
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Powered by Afruheritage</p>
+          <p className="text-sm text-muted-foreground">Powered by {tenant.company_name}</p>
         </div>
       </div>
 

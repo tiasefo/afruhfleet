@@ -7,19 +7,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { 
-  Loader2, 
-  Eye, 
-  EyeOff, 
+import {
+  Loader2,
+  Eye,
+  EyeOff,
   ArrowRight,
   Ship,
   CheckCircle,
   AlertCircle
 } from 'lucide-react'
+import { useTenant } from '@/components/tenant-context-provider'
 
 export function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
   const selectedPlan = searchParams.get('plan')
   const planCodeMap: Record<string, string> = {
     starter: 'professional',
@@ -104,7 +107,7 @@ export function RegisterForm() {
           </div>
           <CardTitle className="text-2xl">Create Account</CardTitle>
           <CardDescription>
-            Join thousands of freight forwarders managing logistics with Afruheritage
+            Join thousands of freight forwarders managing logistics with {companyName}
           </CardDescription>
           {selectedPlan && (
             <p className="mt-2 text-xs font-medium uppercase tracking-wide text-primary">

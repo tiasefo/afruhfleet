@@ -1,12 +1,19 @@
-import { Metadata } from 'next'
+import type { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
 import { TicketDetail } from '@/components/support/ticket-detail'
 import { AIChatWidget } from '@/components/ai-chat-widget'
+import { resolveTenantContext, generateTenantMetadata } from '@/lib/tenant-metadata'
 
-export const metadata: Metadata = {
-  title: 'Ticket Details | Afruheritage Support',
-  description: 'View and respond to your support ticket',
+export async function generateMetadata(): Promise<Metadata> {
+  const tenant = await resolveTenantContext()
+  const base = generateTenantMetadata(tenant, '/support')
+  if (tenant) {
+    base.title = `Ticket Details | ${tenant.company_name} Support`
+  } else {
+    base.title = 'Ticket Details | Afruheritage Support'
+  }
+  return base
 }
 
 interface PageProps {

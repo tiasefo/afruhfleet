@@ -318,3 +318,55 @@ def provision_tenant_fleetbase(cp_token: str, tenant_id: str) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.post(_url(f"/tenants/{tenant_id}/provision"), headers=_headers(cp_token))
         return _handle(resp)
+
+
+# ── Storefront Templates ─────────────────────────────────────────────────────
+
+def list_storefront_templates(cp_token: str) -> list[dict]:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/storefront-templates"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def list_all_storefront_templates(cp_token: str) -> list[dict]:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/storefront-templates/admin/all"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def create_storefront_template(cp_token: str, data: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url("/storefront-templates/admin"), headers=_headers(cp_token), json=data)
+        return _handle(resp)
+
+
+def update_storefront_template(cp_token: str, template_id: str, data: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/storefront-templates/admin/{template_id}"), headers=_headers(cp_token), json=data)
+        return _handle(resp)
+
+
+def delete_storefront_template(cp_token: str, template_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.delete(_url(f"/storefront-templates/admin/{template_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def select_storefront_template(cp_token: str, template_code: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url("/storefront-templates/select"), headers=_headers(cp_token), json={"template_code": template_code})
+        return _handle(resp)
+
+
+# ── Tenant Branding ───────────────────────────────────────────────────────────
+
+def get_tenant_branding(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/branding/{tenant_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def update_tenant_branding(cp_token: str, tenant_id: str, data: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/branding/{tenant_id}"), headers=_headers(cp_token), json=data)
+        return _handle(resp)

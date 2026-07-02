@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'customer'
+export type UserRole = 'platform_admin' | 'admin' | 'customer'
 
 export interface AuthUser {
   id: string
@@ -33,7 +33,11 @@ export function getCurrentUser(): AuthUser | null {
 }
 
 export function isAdmin(user: AuthUser | null): boolean {
-  return user?.role === 'admin'
+  return user?.role === 'admin' || user?.role === 'platform_admin'
+}
+
+export function isPlatformAdmin(user: AuthUser | null): boolean {
+  return user?.role === 'platform_admin'
 }
 
 export function isCustomer(user: AuthUser | null): boolean {

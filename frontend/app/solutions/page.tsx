@@ -1,6 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
+import { useTenant } from '@/components/tenant-context-provider'
 
 const links = [
   { title: 'Shipment Tracking', href: '/track', description: 'Live visibility for every leg of the journey.' },
@@ -10,13 +13,16 @@ const links = [
 ]
 
 export default function SolutionsPage() {
+  const tenant = useTenant()
+  const companyName = tenant?.company_name || 'Afruheritage'
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navigation />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <h1 className="text-4xl font-bold tracking-tight text-slate-900">Solutions</h1>
         <p className="mt-3 max-w-3xl text-slate-600">
-          Afruheritage modules built for real freight operations, from booking to final-mile tracking.
+          {companyName} modules built for real freight operations, from booking to final-mile tracking.
         </p>
         <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
           {links.map((item) => (

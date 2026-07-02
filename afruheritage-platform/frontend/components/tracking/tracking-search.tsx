@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -126,13 +127,42 @@ const paymentStatusConfig = {
   pending: { label: 'Pending', color: 'text-muted-foreground', labelZh: '待处理' },
 }
 
-export function TrackingSearch() {
+function TrackingSearchInner() {
+  const searchParams = useSearchParams()
   const [searchValue, setSearchValue] = useState('')
   const [tenantId, setTenantId] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const [shipment, setShipment] = useState<any>(defaultShipment)
+
+  useEffect(() => {
+    const qTracking = searchParams?.get('tracking_number')
+    if (qTracking) {
+      setSearchValue(qTracking)
+      const tid = resolvePublicTenantId()
+      if (tid) {
+        setIsSearching(true)
+        fetch(`/api/v1/shipments/public/track/${tid}/${encodeURIComponent(qTracking)}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data) {
+              setShipment({
+                trackingNumber: data.tracking_number,
+                status: data.status,
+                paymentStatus: data.payment_status || 'pending',
+                cargoType: 'Freight',
+              })
+              setShowResult(true)
+            } else {
+              setNotFound(true)
+            }
+          })
+          .catch(() => setNotFound(true))
+          .finally(() => setIsSearching(false))
+      }
+    }
+  }, [searchParams])
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -550,5 +580,13 @@ export function TrackingSearch() {
         )}
       </section>
     </div>
+  )
+}
+
+export function TrackingSearch() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center text-sm text-muted-foreground">Loading...</div>}>
+      <TrackingSearchInner />
+    </Suspense>
   )
 }

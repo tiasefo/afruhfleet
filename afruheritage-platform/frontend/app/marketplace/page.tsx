@@ -1,228 +1,234 @@
-'use client'
-
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/hooks/useAuth'
-import { marketplaceApi } from '@/lib/api'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import Link from "next/link"
 import {
-  Loader2,
-  ShoppingBag,
-  MapPin,
-  Weight,
-  Truck,
-  Package,
+  ArrowLeft,
   Search,
-  RefreshCw,
-  ExternalLink,
-} from 'lucide-react'
+  SlidersHorizontal,
+  Package,
+  Clock,
+  CheckCircle2,
+  Circle,
+  Layers,
+} from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { MarketplaceSection } from "@/components/marketplace-section"
+import { VendorMarketplace } from "@/components/vendor-marketplace"
 
-function statusColor(status: string) {
-  const map: Record<string, string> = {
-    open: 'bg-green-100 text-green-700 border-green-200',
-    pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    assigned: 'bg-blue-100 text-blue-700 border-blue-200',
-    in_transit: 'bg-purple-100 text-purple-700 border-purple-200',
-    delivered: 'bg-gray-100 text-gray-700 border-gray-200',
-    cancelled: 'bg-red-100 text-red-700 border-red-200',
-  }
-  return map[status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+const navLinks = [
+  { label: "Solutions", href: "/#templates" },
+  { label: "Marketplace", href: "/marketplace" },
+  { label: "Platform", href: "/#how" },
+  { label: "For Vendors", href: "/#how" },
+  { label: "Support", href: "/#cta" },
+  { label: "Pricing", href: "/#cta" },
+]
+
+const stats = [
+  { label: "Active vendors", value: "3,420" },
+  { label: "Open loads", value: "1,186" },
+  { label: "Avg. bid time", value: "4m" },
+  { label: "On-time rate", value: "98.5%" },
+]
+
+const bookings = [
+  {
+    id: "AFR-2026-004182",
+    route: "Accra → Kumasi",
+    vendor: "Kwame Logistics",
+    price: "GHS 150",
+    status: "In transit",
+    state: "active" as const,
+  },
+  {
+    id: "AFR-2026-004176",
+    route: "Tema → Takoradi",
+    vendor: "Volta Freight Co.",
+    price: "GHS 420",
+    status: "Awaiting pickup",
+    state: "pending" as const,
+  },
+  {
+    id: "AFR-2026-004151",
+    route: "Accra → Ho",
+    vendor: "Esi Express",
+    price: "GHS 90",
+    status: "Delivered",
+    state: "done" as const,
+  },
+]
+
+const statusStyles = {
+  active: "bg-primary/10 text-primary",
+  pending: "bg-accent/15 text-accent-foreground",
+  done: "bg-secondary text-muted-foreground",
 }
 
 export default function MarketplacePage() {
-  const { user } = useAuth()
-  const [shipments, setShipments] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
-
-  const loadShipments = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const data = await marketplaceApi.listShipments()
-      setShipments(Array.isArray(data) ? data : data?.items ?? [])
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load marketplace shipments')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    loadShipments()
-  }, [])
-
-  const filtered = shipments.filter((s) => {
-    if (!search.trim()) return true
-    const q = search.toLowerCase()
-    return (
-      s.tracking_number?.toLowerCase().includes(q) ||
-      s.origin?.toLowerCase().includes(q) ||
-      s.destination?.toLowerCase().includes(q) ||
-      s.sender_name?.toLowerCase().includes(q) ||
-      s.receiver_name?.toLowerCase().includes(q)
-    )
-  })
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Marketing Video Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900 via-slate-900 to-slate-900 text-white py-16">
-        <div className="absolute inset-0 opacity-25">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="h-full w-full object-cover"
+    <main className="min-h-screen bg-background font-sans text-foreground">
+      {/* Top nav */}
+      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <span className="font-heading text-lg font-bold">A</span>
+            </span>
+            <span className="font-heading text-lg font-bold tracking-tight">Afruheritage</span>
+          </Link>
+          <nav className="hidden items-center gap-8 text-sm font-medium text-foreground/70 lg:flex">
+            {navLinks.map((l) => (
+              <Link
+                key={l.label}
+                href={l.href}
+                className={`transition-colors hover:text-foreground ${
+                  l.href === "/marketplace" ? "text-foreground" : ""
+                }`}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button className="hidden rounded-md px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:text-foreground sm:block">
+              Sign In
+            </button>
+            <button className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              Get Started
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Page hero */}
+      <section className="border-b border-border bg-secondary/30">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
-            <source src="/assets/videos/Vans-2220419522-640_adpp_is.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900 via-slate-900/80 to-slate-900/40" />
+            <ArrowLeft className="size-4" />
+            Back to platform
+          </Link>
+          <h1 className="mt-4 max-w-3xl text-balance font-heading text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
+            The Afruheritage <span className="text-primary">logistics marketplace</span>
+          </h1>
+          <p className="mt-4 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
+            One load board connecting shippers with every kind of verified carrier — trucks, buses,
+            ride-hail cars, and motorbikes — through live bidding, counter-offers, and real-time GPS.
+          </p>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl sm:text-4xl font-bold">Connect with Vetted Logistics Partners</h2>
-            <p className="mt-4 text-lg text-white/85">
-              Access a marketplace of trusted vendors and delivery partners. Post shipments and get instant quotes, 
-              or browse available jobs for your fleet.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Page header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <ShoppingBag className="h-6 w-6 text-primary" />
-                Marketplace
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">Browse available freight jobs and shipments</p>
+          {/* Search bar */}
+          <div className="mt-8 flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-2 rounded-lg bg-background px-3 py-2">
+              <Search className="size-4 shrink-0 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search vendors, routes, or vehicle types"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              />
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={loadShipments} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              {(user?.role === 'personal_shipper' || user?.role === 'company_admin') && (
-                <Link href="/shipments/new">
-                  <Button size="sm">
-                    <Package className="h-4 w-4 mr-2" />
-                    Post a Shipment
-                  </Button>
-                </Link>
-              )}
-            </div>
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
+              <SlidersHorizontal className="size-4" />
+              Filters
+            </button>
+            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
+              Search
+            </button>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
-        <div className="mb-6 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search by tracking number, origin, destination..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-red-500 mb-4">{error}</p>
-              <Button variant="outline" onClick={loadShipments}>Try Again</Button>
-            </CardContent>
-          </Card>
-        ) : filtered.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <ShoppingBag className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                {search ? 'No results found' : 'No shipments in marketplace yet'}
-              </h3>
-              <p className="text-sm text-gray-500 mb-6">
-                {search
-                  ? 'Try a different search term'
-                  : 'Post a shipment to find available freight carriers'}
-              </p>
-              {!search && (user?.role === 'personal_shipper' || user?.role === 'company_admin') && (
-                <Link href="/shipments/new">
-                  <Button>Post a Shipment</Button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((shipment) => (
-              <Card key={shipment.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs text-gray-500 font-mono">{shipment.tracking_number}</p>
-                      <CardTitle className="text-base mt-1">
-                        {shipment.sender_name || 'Unknown'} → {shipment.receiver_name || 'Unknown'}
-                      </CardTitle>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full border font-medium ${statusColor(shipment.status)}`}>
-                      {shipment.status?.replace(/_/g, ' ') || 'Open'}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                    <span className="truncate">{shipment.origin || '—'}</span>
-                    <span className="text-gray-300">→</span>
-                    <span className="truncate">{shipment.destination || '—'}</span>
-                  </div>
-                  {shipment.weight && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Weight className="h-3.5 w-3.5 text-gray-400" />
-                      <span>{shipment.weight} kg</span>
-                    </div>
-                  )}
-                  {shipment.cargo_type && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Package className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="capitalize">{shipment.cargo_type.replace(/_/g, ' ')}</span>
-                    </div>
-                  )}
-                  <div className="pt-2 flex gap-2">
-                    <Link href={`/shipments/${shipment.id}`} className="flex-1">
-                      <Button variant="outline" size="sm" className="w-full">
-                        <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                        View Details
-                      </Button>
-                    </Link>
-                    {user?.role === 'delivery_driver' && shipment.status === 'open' && (
-                      <Button size="sm" className="flex-1">
-                        <Truck className="h-3.5 w-3.5 mr-1.5" />
-                        Bid
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Stats */}
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-xl border border-border bg-card p-4">
+                <p className="font-heading text-2xl font-bold tracking-tight">{s.value}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{s.label}</p>
+              </div>
             ))}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+
+      {/* Vendor marketplace (interactive — opens booking form) */}
+      <VendorMarketplace />
+
+      {/* How bidding works + live shipment (shared section) */}
+      <MarketplaceSection />
+
+      {/* Booking management */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+        <div className="flex flex-col gap-3">
+          <span className="text-xs font-semibold uppercase tracking-wider text-accent">
+            Booking management
+          </span>
+          <h2 className="max-w-xl text-balance font-heading text-3xl font-bold tracking-tight">
+            Track every request from dispatch to delivery
+          </h2>
+        </div>
+
+        <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+          <div className="hidden grid-cols-[1.4fr_1.4fr_1.4fr_0.8fr_1fr] gap-4 border-b border-border bg-secondary/40 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
+            <span>Tracking #</span>
+            <span>Route</span>
+            <span>Vendor</span>
+            <span>Price</span>
+            <span>Status</span>
+          </div>
+          {bookings.map((b) => (
+            <div
+              key={b.id}
+              className="grid grid-cols-1 gap-2 border-b border-border px-5 py-4 text-sm last:border-0 sm:grid-cols-[1.4fr_1.4fr_1.4fr_0.8fr_1fr] sm:items-center sm:gap-4"
+            >
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-xs font-medium text-primary">
+                <Package className="size-3.5" />
+                {b.id}
+              </span>
+              <span className="font-medium">{b.route}</span>
+              <span className="text-muted-foreground">{b.vendor}</span>
+              <span className="font-heading font-bold">{b.price}</span>
+              <span
+                className={`inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${statusStyles[b.state]}`}
+              >
+                {b.state === "active" && <Clock className="size-3.5" />}
+                {b.state === "pending" && <Circle className="size-3.5" />}
+                {b.state === "done" && <CheckCircle2 className="size-3.5" />}
+                {b.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="border-t border-border bg-primary text-primary-foreground">
+        <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
+          <h2 className="mx-auto max-w-2xl text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl">
+            Ready to move freight on the marketplace?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
+            Post a load, compare bids from verified carriers, and track delivery in real time.
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <button className="rounded-md bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90">
+              Post a shipment
+            </button>
+            <button className="rounded-md border border-primary-foreground/30 px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-foreground/10">
+              Become a vendor
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-border py-10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground sm:flex-row sm:px-6">
+          <Link href="/" className="flex items-center gap-2">
+            <span className="flex size-6 items-center justify-center rounded bg-primary text-primary-foreground">
+              <Layers className="size-3.5" />
+            </span>
+            <span>Afruheritage</span>
+          </Link>
+          <p>Marketplace preview. Demo content.</p>
+        </div>
+      </footer>
+    </main>
   )
 }

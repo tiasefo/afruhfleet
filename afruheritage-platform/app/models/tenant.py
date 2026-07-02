@@ -53,6 +53,7 @@ class Tenant(Base):
     fleetbase_admin_token: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     runner = relationship('RunnerNode')
     jobs = relationship('ProvisioningJob', back_populates='tenant', cascade='all, delete-orphan')
