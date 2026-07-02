@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { BackButton } from '@/components/back-button'
 import { AlertTriangle, CheckCircle2, GitBranch, Layers3, ListOrdered, Wrench, Cpu, Database, Globe, Shield, Truck, Users, CreditCard, Zap, Settings, Network, Cloud, Lock, Smartphone } from 'lucide-react'
 
 const ROOT_REPO = 'https://github.com/tiasefo/afruhfleet'
@@ -188,6 +189,8 @@ function statusBadge(status: string) {
 
 export default function BlueprintPage() {
   return (
+  <>
+    <BackButton />
     <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Platform Blueprint</h1>
@@ -390,5 +393,6 @@ export default function BlueprintPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }

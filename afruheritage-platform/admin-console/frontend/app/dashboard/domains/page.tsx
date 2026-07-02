@@ -15,6 +15,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import { Globe, Search, RefreshCw, CheckCircle2, Shield, AlertTriangle } from 'lucide-react'
 
 export default function DomainsPage() {
@@ -80,6 +81,8 @@ export default function DomainsPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -151,5 +154,6 @@ export default function DomainsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   )
 }

@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { BackButton } from '@/components/back-button'
 import {
   Loader2,
   Eye,
@@ -154,9 +155,12 @@ export default function StorefrontBuilderPage() {
 
   if (isLoading) {
     return (
+    <>
+      <BackButton />
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+      </>
     )
   }
 

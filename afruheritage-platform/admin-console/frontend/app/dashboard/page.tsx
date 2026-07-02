@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
+import { BackButton } from '@/components/back-button'
 import {
   Building2,
   Truck,
@@ -97,9 +98,12 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
+    <>
+      <BackButton />
       <div className="flex items-center justify-center py-20">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
+      </>
     )
   }
 

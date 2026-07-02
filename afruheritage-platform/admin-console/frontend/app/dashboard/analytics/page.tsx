@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { BackButton } from '@/components/back-button'
 import { Building2, DollarSign, Loader2, Package, RefreshCw, ShieldCheck, Users } from "lucide-react"
 
 type AnalyticsSummary = {
@@ -39,6 +40,8 @@ export default function AnalyticsDashboardPage() {
   }, [])
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -66,6 +69,7 @@ export default function AnalyticsDashboardPage() {
         </div>
       )}
     </div>
+    </>
   )
 }
 

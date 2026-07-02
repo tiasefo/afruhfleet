@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
+import { BackButton } from '@/components/back-button'
 import { Car, ClipboardList, Route, Truck } from 'lucide-react'
 
 const items = [
@@ -12,6 +13,8 @@ const items = [
 
 export default function FleetOpsDashboardPage() {
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background">
       <Navigation />
 
@@ -60,5 +63,6 @@ export default function FleetOpsDashboardPage() {
 
       <Footer />
     </main>
+    </>
   )
 }

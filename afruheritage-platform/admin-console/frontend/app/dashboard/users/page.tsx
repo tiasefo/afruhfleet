@@ -16,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import { Plus, RefreshCw, Search, Shield, UserCog } from 'lucide-react'
 
 interface User {
@@ -114,6 +115,8 @@ export default function UsersPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -240,5 +243,6 @@ export default function UsersPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

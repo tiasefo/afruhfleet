@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { BackButton } from '@/components/back-button'
 import { MapPin, Search } from "lucide-react"
 
 export default function TrackingDashboardPage() {
@@ -30,6 +31,8 @@ export default function TrackingDashboardPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Tracking Overview</h1>
@@ -87,5 +90,6 @@ export default function TrackingDashboardPage() {
         </Card>
       )}
     </div>
+    </>
   )
 }

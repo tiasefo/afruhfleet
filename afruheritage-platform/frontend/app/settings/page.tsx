@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { BackButton } from '@/components/back-button'
 import { 
   Settings, 
   Palette, 
@@ -271,9 +272,12 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
+    <>
+      <BackButton />
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
+      </>
     )
   }
 

@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { BackButton } from '@/components/back-button'
 import { Loader2, Package, Plus, Trash2, Pencil, ImagePlus } from 'lucide-react'
 
 export default function ProductsPage() {
@@ -130,6 +131,8 @@ export default function ProductsPage() {
   }
 
   return (
+  <>
+    <BackButton fallback="/" />
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
@@ -248,5 +251,6 @@ export default function ProductsPage() {
         )}
       </div>
     </div>
+    </>
   )
 }

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
+import { BackButton } from '@/components/back-button'
 import { TicketDetail } from '@/components/support/ticket-detail'
 
 export const metadata: Metadata = {
@@ -18,6 +19,8 @@ export default async function TicketPage({ params }: PageProps) {
   const { token } = await params
   
   return (
+  <>
+    <BackButton fallback="/support" />
     <div className="flex min-h-screen flex-col">
       <Navigation />
       <main className="flex-1 bg-muted/30">
@@ -27,5 +30,6 @@ export default async function TicketPage({ params }: PageProps) {
       </main>
       <Footer />
     </div>
+    </>
   )
 }

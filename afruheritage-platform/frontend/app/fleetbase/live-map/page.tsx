@@ -1,10 +1,13 @@
 import Link from 'next/link'
 import { ArrowRight, MapPinned, RadioTower, Route, Truck } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
+import { BackButton } from '@/components/back-button'
 import { Footer } from '@/components/landing/footer'
 
 export default function LiveMapPage() {
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background">
       <Navigation />
 
@@ -63,6 +66,7 @@ export default function LiveMapPage() {
 
       <Footer />
     </main>
+    </>
   )
 }
 

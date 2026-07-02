@@ -1,10 +1,13 @@
 import Link from 'next/link'
 import { ArrowRight, BarChart3, Building2, ExternalLink, Lock, Route, Truck } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
+import { BackButton } from '@/components/back-button'
 import { Footer } from '@/components/landing/footer'
 
 export default function FleetbaseConsolePage() {
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background">
       <Navigation />
 
@@ -74,6 +77,7 @@ export default function FleetbaseConsolePage() {
 
       <Footer />
     </main>
+    </>
   )
 }
 

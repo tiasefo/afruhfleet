@@ -16,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import {
   Truck,
   Search,
@@ -128,6 +129,8 @@ export default function VendorsPage() {
   const statuses = ['', 'pending', 'under_review', 'approved', 'rejected', 'suspended']
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Delivery Vendors</h1>
@@ -309,5 +312,6 @@ export default function VendorsPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   )
 }

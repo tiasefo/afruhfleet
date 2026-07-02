@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { shipmentsAPI } from '@/lib/api'
 import { ApiError } from '@/lib/api'
+import { BackButton } from '@/components/back-button'
 import {
   Package,
   MapPin,
@@ -94,12 +95,15 @@ export default function CustomerPortalPage() {
 
   if (authLoading || isLoading) {
     return (
+    <>
+      <BackButton />
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
           <p className="mt-2 text-sm text-gray-600">Loading your portal...</p>
         </div>
       </div>
+      </>
     )
   }
 

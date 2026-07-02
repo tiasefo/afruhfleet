@@ -5,6 +5,7 @@ import { api, ApiError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { BackButton } from '@/components/back-button'
 import {
   Store,
   Plus,
@@ -77,9 +78,12 @@ export default function TemplatesPage() {
 
   if (isLoading) {
     return (
+    <>
+      <BackButton />
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+      </>
     )
   }
 

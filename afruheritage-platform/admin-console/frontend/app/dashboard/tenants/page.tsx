@@ -17,6 +17,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import {
   Building2,
   Search,
@@ -193,6 +194,8 @@ export default function TenantsPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -372,5 +375,6 @@ export default function TenantsPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }

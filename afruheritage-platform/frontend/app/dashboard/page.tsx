@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
+import { BackButton } from '@/components/back-button'
 import { tenantApi } from '@/lib/api_updated'
 import {
   Building2,
@@ -93,6 +94,7 @@ export default function DashboardPage() {
     <>
       {/* Reads ?welcome=1 query param safely (requires Suspense for SSR) */}
       <Suspense fallback={null}>
+      <BackButton fallback="/" />
         <WelcomeReader onPortal={setWelcomeBanner} />
       </Suspense>
       {/* Top nav removed - AppShell sidebar handles navigation */}

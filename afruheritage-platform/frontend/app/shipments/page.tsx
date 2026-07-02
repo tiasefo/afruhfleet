@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { BackButton } from '@/components/back-button'
 import { 
   Plus, 
   Search, 
@@ -108,9 +109,12 @@ export default function ShipmentsPage() {
 
   if (isLoading) {
     return (
+    <>
+      <BackButton />
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
+      </>
     )
   }
 

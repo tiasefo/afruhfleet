@@ -17,6 +17,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import {
   CreditCard,
   RefreshCw,
@@ -102,11 +103,14 @@ interface WalletTransaction {
 
 function FeatureRow({ enabled, label, icon }: { enabled: boolean; label: string; icon: React.ReactNode }) {
   return (
+  <>
+    <BackButton />
     <div className={`flex items-center gap-2 ${enabled ? 'text-foreground' : 'text-muted-foreground/50'}`}>
       {enabled ? <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> : <XCircle className="h-3.5 w-3.5 text-red-400" />}
       <span className="text-muted-foreground">{icon}</span>
       <span className={enabled ? '' : 'line-through'}>{label}</span>
     </div>
+    </>
   )
 }
 

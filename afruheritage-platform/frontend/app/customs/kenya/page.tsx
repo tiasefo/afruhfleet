@@ -1,8 +1,11 @@
 import Link from 'next/link'
+import { BackButton } from '@/components/back-button'
 import { ArrowRight, Calculator, FileSpreadsheet, ShieldCheck, Truck } from 'lucide-react'
 
 export default function KenyaCustomsPage() {
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background">
       <section className="relative overflow-hidden bg-[#063f4f] text-white">
         <div className="absolute inset-0 bg-gradient-to-br from-[#063f4f] via-[#07586b] to-[#021f2a]" />
@@ -90,5 +93,6 @@ export default function KenyaCustomsPage() {
         </div>
       </section>
     </main>
+    </>
   )
 }

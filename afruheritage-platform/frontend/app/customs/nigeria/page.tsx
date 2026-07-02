@@ -1,8 +1,11 @@
 import Link from 'next/link'
+import { BackButton } from '@/components/back-button'
 import { ArrowRight, Globe2, Ship, Truck, ShieldCheck } from 'lucide-react'
 
 export default function NigeriaCustomsPage() {
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background">
       <section className="relative overflow-hidden bg-[#063f4f] text-white">
         <div className="absolute inset-0 opacity-25">
@@ -68,5 +71,6 @@ export default function NigeriaCustomsPage() {
         </div>
       </section>
     </main>
+    </>
   )
 }

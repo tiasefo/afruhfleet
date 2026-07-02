@@ -17,6 +17,7 @@ import {
   ShieldHalf,
 } from "lucide-react"
 import { templatesApi } from "@/lib/api"
+import { BackButton } from '@/components/back-button'
 import { MarketplaceSection } from "@/components/marketplace-section"
 
 const navLinks = [
@@ -92,6 +93,8 @@ export default function PlatformPage() {
   }, [])
 
   return (
+  <>
+    <BackButton />
     <main className="min-h-screen bg-background font-sans text-foreground">
       {/* Top nav */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
@@ -334,5 +337,6 @@ export default function PlatformPage() {
         </div>
       </footer>
     </main>
+    </>
   )
 }

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import Link from 'next/link'
+import { BackButton } from '@/components/back-button'
 import {
   Loader2,
   User,
@@ -91,9 +92,12 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
+    <>
+      <BackButton />
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+      </>
     )
   }
 

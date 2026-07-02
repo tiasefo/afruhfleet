@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { BackButton } from '@/components/back-button'
 import { AlertTriangle, CheckCircle2, GitBranch, Layers3, ListOrdered, Wrench } from 'lucide-react'
 
 const ROOT_REPO = 'https://github.com/tiasefo/afruhfleet'
@@ -335,6 +336,8 @@ function whiteLabelBadge(status: string) {
 
 export default function KnowledgeBasePage() {
   return (
+  <>
+    <BackButton />
     <div className="space-y-8">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Platform Knowledge Base</h1>
@@ -543,5 +546,6 @@ export default function KnowledgeBasePage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }

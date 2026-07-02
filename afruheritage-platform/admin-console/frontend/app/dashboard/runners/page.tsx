@@ -16,6 +16,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { BackButton } from '@/components/back-button'
 import { Server, Plus, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 
 export default function RunnersPage() {
@@ -72,6 +73,8 @@ export default function RunnersPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -169,5 +172,6 @@ export default function RunnersPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

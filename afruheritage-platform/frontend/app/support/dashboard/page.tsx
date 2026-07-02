@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { BackButton } from '@/components/back-button'
 import { Loader2, Search, MessageSquare, Mail, User, Clock, Send, AlertCircle } from 'lucide-react'
 
 interface Ticket {
@@ -108,9 +109,12 @@ export default function SupportDashboardPage() {
 
   if (!user) {
     return (
+    <>
+      <BackButton />
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
+      </>
     )
   }
 

@@ -3,6 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { BackButton } from '@/components/back-button'
 import { paymentHubApi, billingAPI } from '@/lib/api'
 
 export default function BillingCallbackPage() {
@@ -97,6 +98,8 @@ export default function BillingCallbackPage() {
   }, [router])
 
   return (
+  <>
+    <BackButton fallback="/billing" />
     <main className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
       <section className="w-full max-w-xl rounded-xl border bg-white p-6 shadow">
         <h1 className="text-2xl font-bold">Billing Payment Status</h1>
@@ -138,5 +141,6 @@ export default function BillingCallbackPage() {
         </div>
       </section>
     </main>
+    </>
   )
 }

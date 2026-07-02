@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Globe2, Plane, Ship, Truck } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
+import { BackButton } from '@/components/back-button'
 import { Footer } from '@/components/landing/footer'
 
 const locations = [
@@ -15,6 +16,8 @@ const locations = [
 
 export default function LocationsPage() {
   return (
+  <>
+    <BackButton fallback="/" />
     <main className="min-h-screen bg-background">
       <Navigation />
 
@@ -84,6 +87,7 @@ export default function LocationsPage() {
 
       <Footer />
     </main>
+    </>
   )
 }
 

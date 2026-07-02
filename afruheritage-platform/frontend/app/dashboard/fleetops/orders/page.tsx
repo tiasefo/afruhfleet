@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Navigation } from '@/components/landing/navigation'
+import { BackButton } from '@/components/back-button'
 import { Footer } from '@/components/landing/footer'
 
 function formatValue(value: any) {
@@ -41,6 +42,8 @@ export default function FleetbaseSummaryPage() {
   }, [])
 
   return (
+  <>
+    <BackButton fallback="/dashboard/fleetops" />
     <main className="min-h-screen bg-background">
       <Navigation />
 
@@ -120,5 +123,6 @@ export default function FleetbaseSummaryPage() {
 
       <Footer />
     </main>
+    </>
   )
 }

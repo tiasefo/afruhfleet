@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { BackButton } from '@/components/back-button'
 import { RefreshCw, Search, Ticket } from "lucide-react"
 
 const statuses = ["open", "pending", "waiting_customer", "resolved", "closed"]
@@ -48,6 +49,8 @@ export default function TicketsDashboardPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Support Tickets</h1>
@@ -105,5 +108,6 @@ export default function TicketsDashboardPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

@@ -11,9 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { BackButton } from '@/components/back-button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
-  Terminal, 
+  Terminal,
   Package, 
   Download, 
   Upload, 
@@ -252,6 +253,7 @@ export default function ExtensionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <BackButton fallback="/dashboard" />
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

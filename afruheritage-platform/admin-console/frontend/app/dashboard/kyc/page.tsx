@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { BackButton } from '@/components/back-button'
 import { Button } from "@/components/ui/button";
 
 export default function KycDashboardPage() {
@@ -36,6 +37,8 @@ export default function KycDashboardPage() {
   if (error) return <div className="text-red-600">{error}</div>;
 
   return (
+  <>
+    <BackButton />
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">KYC Submissions</h1>
       <table className="min-w-full border">

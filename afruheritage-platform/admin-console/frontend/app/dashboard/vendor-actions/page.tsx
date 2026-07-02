@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
+import { BackButton } from '@/components/back-button'
 import { CheckCircle2, RefreshCw, XCircle } from "lucide-react"
 
 export default function VendorActionsDashboardPage() {
@@ -51,6 +52,8 @@ export default function VendorActionsDashboardPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -90,5 +93,6 @@ export default function VendorActionsDashboardPage() {
         </div>
       )}
     </div>
+    </>
   )
 }

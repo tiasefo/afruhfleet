@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { BackButton } from '@/components/back-button'
 import {
   Users,
   UserPlus,
@@ -128,6 +129,8 @@ export default function MembersPage() {
   }
 
   return (
+  <>
+    <BackButton />
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
@@ -444,5 +447,6 @@ export default function MembersPage() {
         </Card>
       </div>
     </div>
+    </>
   )
 }

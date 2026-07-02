@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Building2, CheckCircle2, Globe2, Ship, Truck } from 'lucide-react'
 import { Navigation } from '@/components/landing/navigation'
 import { Footer } from '@/components/landing/footer'
+import { BackButton } from '@/components/back-button'
 import { BUSINESS_TYPES, DEFAULT_BUSINESS_TYPE } from '@/lib/business-types'
 
 export default function TenantRequestPage() {
@@ -61,6 +62,7 @@ export default function TenantRequestPage() {
 
   return (
     <>
+      <BackButton />
       <Navigation />
 
       <main className="min-h-screen bg-background">
