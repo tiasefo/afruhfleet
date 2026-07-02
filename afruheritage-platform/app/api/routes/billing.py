@@ -255,7 +255,7 @@ def consume_credits(tenant_id: str | None = None, request: CreditConsumeRequest 
 
 @router.post('/admin/read-only', response_model=SubscriptionResponse | None)
 def admin_set_read_only(tenant_id: str, request: BillingAdminSetReadOnlyRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
-    sub = set_subscription_read_only(db, tenant_id=request.tenant_id, reason=request.reason)
+    sub = set_subscription_read_only(db, tenant_id=request.tenant_id, reason=request.reason, read_only=request.read_only)
     if not sub:
         return None
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)

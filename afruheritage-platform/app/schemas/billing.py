@@ -107,6 +107,7 @@ class CreditConsumeRequest(BaseModel):
 class BillingAdminSetReadOnlyRequest(BaseModel):
     tenant_id: str
     reason: str
+    read_only: bool = True
 
 
 class BillingAdminAdjustCreditsRequest(BaseModel):

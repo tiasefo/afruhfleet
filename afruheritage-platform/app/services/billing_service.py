@@ -507,17 +507,22 @@ def activate_or_upgrade_subscription(db: Session, tenant_id: str, plan_code: str
     return sub
 
 
-def set_subscription_read_only(db: Session, tenant_id: str, reason: str) -> Subscription | None:
+def set_subscription_read_only(db: Session, tenant_id: str, reason: str, read_only: bool = True) -> Subscription | None:
     tenant_pk = _as_uuid(tenant_id)
     sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
     if not sub:
         return None
-    sub.status = SubscriptionStatus.READ_ONLY
-    sub.read_only_reason = reason
+    if read_only:
+        sub.status = SubscriptionStatus.READ_ONLY
+        sub.read_only_reason = reason
+    else:
+        sub.status = SubscriptionStatus.ACTIVE
+        sub.read_only_reason = None
     db.add(sub)
     db.commit()
     db.refresh(sub)
-    write_audit_log(db, "admin", None, "subscription_set_read_only", "subscription", str(sub.id), {"reason": reason})
+    action = "subscription_set_read_only" if read_only else "subscription_set_active"
+    write_audit_log(db, "admin", None, action, "subscription", str(sub.id), {"reason": reason})
     return sub
 
 
