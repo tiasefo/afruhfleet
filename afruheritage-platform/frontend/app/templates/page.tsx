@@ -1,342 +1,576 @@
-"use client"
+'use client'
+
+export const dynamic = 'force-dynamic'
+export const fetchCache = 'force-no-store'
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import Image from "next/image"
-import {
-  ArrowUpRight,
-  Globe,
-  Layers,
-  Palette,
-  Plane,
-  Rocket,
-  ShieldCheck,
-  Store,
-  Truck,
-  Network,
-  ShieldHalf,
+import { useAuth } from "@/hooks/useAuth"
+import { api } from "@/lib/api"
+import { toast } from "sonner"
+import { 
+  X, ArrowUpRight, Store, Maximize2, Check, 
+  AlertTriangle, Loader2, Info, Palette, Layout,
+  Zap, Shield, RefreshCw 
 } from "lucide-react"
-import { templatesApi } from "@/lib/api"
-import { BackButton } from '@/components/back-button'
-import { MarketplaceSection } from "@/components/marketplace-section"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Switch } from "@/components/ui/switch"
 
-const navLinks = [
-  { label: "Solutions", href: "#templates" },
-  { label: "Marketplace", href: "/marketplace" },
-  { label: "Admin", href: "/admin" },
-  { label: "Platform", href: "#how" },
-  { label: "For Vendors", href: "#how" },
-  { label: "Support", href: "#cta" },
-  { label: "Pricing", href: "#cta" },
-]
+interface Template {
+  id: string
+  template_code: string
+  name: string
+  description: string
+  preset: any
+  is_active: boolean
+}
 
-const metrics = [
-  { label: "Active Shipments", value: "12,847", icon: Truck },
-  { label: "Countries", value: "45+", icon: Globe },
-  { label: "On-time Rate", value: "98.5%", icon: ShieldCheck },
-]
-
-const platformPages = [
-  {
-    title: "Logistics Marketplace",
-    href: "/marketplace",
-    icon: Network,
-    body: "Browse verified vendors, post shipments, collect bids, and track deliveries live by GPS.",
-    tags: ["Vendors", "Bidding", "Booking form", "Tracking"],
-  },
-  {
-    title: "Admin Console",
-    href: "/admin",
-    icon: ShieldHalf,
-    body: "Approve, suspend, or delete vendors, moderate reviews, and audit delivery GPS logs.",
-    tags: ["Vendors", "Moderation", "GPS logs", "Settings"],
-  },
-  {
-    title: "Storefront Templates",
-    href: "#templates",
-    icon: Store,
-    body: "Industry-specific, themeable storefronts tenants pick the moment they sign up.",
-    tags: ["Fleet", "Freight", "Ecommerce", "Bookings"],
-  },
-]
-
-export default function PlatformPage() {
-  const [templates, setTemplates] = useState<any[]>([])
+export default function TemplatesPage() {
+  // Prevent rendering during build time
+  if (typeof window === 'undefined') {
+    return <div className="p-8">Templates page loading...</div>
+  }
+  
+  const { user, token } = useAuth()
+  const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null)
+  const [installing, setInstalling] = useState(false)
+  const [installDialogOpen, setInstallDialogOpen] = useState(false)
+  const [consent, setConsent] = useState({
+    ui_change: false,
+    business_type_change: false,
+    data_impact: false,
+  })
 
   useEffect(() => {
-    async function loadTemplates() {
-      try {
-        const data = await templatesApi.list()
-        if (data) {
-          setTemplates(data.map((t: any) => ({
-            slug: t.template_code,
-            name: t.name,
-            description: t.description || "",
-            category: "Storefront",
-            image: "/placeholder.svg",
-            swatches: [
-              t.preset?.primary_color || "#0078D4",
-              t.preset?.secondary_color || "#323130",
-              t.preset?.accent_color || "#00BCF2",
-            ],
-            tags: ["Theme", "Branding"],
-          })))
-        }
-      } catch (err) {
-        console.error("Failed to load templates:", err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
     loadTemplates()
-  }, [])
+  }, [token])
+
+  const loadTemplates = async () => {
+    // Skip API calls during build time
+    if (typeof window === 'undefined') {
+      setTemplates([])
+      setIsLoading(false)
+      return
+    }
+    
+    if (!token) return
+    setIsLoading(true)
+    try {
+      const data = await api.get('/storefront-templates')
+      setTemplates(Array.isArray(data) ? data.filter(t => t.preset) : [])
+    } catch (err: any) {
+      toast.error('Failed to load templates: ' + err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handlePreview = (template: Template) => {
+    setPreviewTemplate(template)
+  }
+
+  const handleSelect = (template: Template) => {
+    setSelectedTemplate(template)
+    setConsent({ ui_change: false, business_type_change: false, data_impact: false })
+    setInstallDialogOpen(true)
+  }
+
+  const handleInstall = async () => {
+    if (!selectedTemplate) return
+    
+    setInstalling(true)
+    try {
+      const result = await api.post('/storefront-templates/select', {
+        template_code: selectedTemplate.template_code,
+      })
+      
+      if (result.status === 'success') {
+        toast.success(`Template "${selectedTemplate.name}" activated successfully`)
+        setInstallDialogOpen(false)
+        await loadTemplates()
+      } else {
+        toast.warning('Template activation attempted: ' + (result.message || 'Unknown error'))
+      }
+    } catch (err: any) {
+      toast.error('Template activation failed: ' + err.message)
+    } finally {
+      setInstalling(false)
+    }
+  }
+
+  const canInstall = consent.ui_change && consent.business_type_change && consent.data_impact
+
+  const getTemplateImage = (template: Template) => {
+    return template.preset?.image || `/images/${template.template_code}-hero.png`
+  }
+
+  const getSwatches = (template: Template) => {
+    if (!template.preset) {
+      return ["#0078D4", "#323130", "#00BCF2"]
+    }
+    return template.preset.swatches || [
+      template.preset.primary_color || "#0078D4",
+      template.preset.secondary_color || "#323130",
+      template.preset.accent_color || "#00BCF2",
+    ]
+  }
+
+  const getTags = (template: Template) => {
+    return template.preset?.tags || ["Theme", "Branding"]
+  }
+
+  const getFeatures = (template: Template) => {
+    return template.preset?.features || []
+  }
 
   return (
-  <>
-    <BackButton />
-    <main className="min-h-screen bg-background font-sans text-foreground">
-      {/* Top nav */}
-      <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <span className="font-heading text-lg font-bold">A</span>
-            </span>
-            <span className="font-heading text-lg font-bold tracking-tight">Afruheritage</span>
-          </div>
-          <nav className="hidden items-center gap-8 text-sm font-medium text-foreground/70 lg:flex">
-            {navLinks.map((l) => (
-              <a key={l.label} href={l.href} className="transition-colors hover:text-foreground">
-                {l.label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3">
-            <button className="hidden rounded-md px-4 py-2 text-sm font-medium text-foreground/80 transition-colors hover:text-foreground sm:block">
-              Sign In
-            </button>
-            <button className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90">
-              Get Started
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0">
-          <Image
-            src="/images/freight-hero.png"
-            alt=""
-            fill
-            priority
-            className="object-cover opacity-[0.08]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-background via-background/80 to-background" />
-        </div>
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-foreground/70">
-              <span className="size-1.5 rounded-full bg-accent" />
-              Now serving Ghana, Kenya, and China trade routes
-            </span>
-            <h1 className="mt-6 text-balance font-heading text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-              Every tenant gets a <span className="text-primary">branded storefront</span>, instantly.
-            </h1>
-            <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Afruheritage gives each tenant their own website the moment they sign up. Pick a
-              template, tune the color theme, and go live — from freight and fleet to ecommerce,
-              malls, and bookings.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a
-                href="#templates"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-              >
-                Browse Templates
-                <Store className="size-4" />
-              </a>
-              <button className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary">
-                <Plane className="size-4" />
-                Watch Demo
-              </button>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Store className="h-6 w-6 text-primary" />
             </div>
-            <div className="mt-8 flex items-center gap-3 text-sm text-muted-foreground">
-              <span className="font-heading text-lg font-bold text-foreground">500+</span>
-              tenants trust us
-              <span className="ml-2 font-heading text-lg font-bold text-accent">4.9/5</span>
-              customer rating
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50">
+                Storefront Templates
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400">
+                Browse, preview, and select templates for your storefront
+              </p>
             </div>
           </div>
-
-          {/* Floating metric cards */}
-          <div className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-4">
-            {metrics.map((m, i) => (
-              <div
-                key={m.label}
-                className={`rounded-xl border border-border bg-card p-5 shadow-sm ${
-                  i === 2 ? "col-span-2" : ""
-                }`}
-              >
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <m.icon className="size-4 text-primary" />
-                  <span className="text-xs font-medium">{m.label}</span>
-                </div>
-                <p className="mt-2 font-heading text-3xl font-bold tracking-tight">{m.value}</p>
-              </div>
-            ))}
-          </div>
         </div>
-      </section>
 
-      {/* Feature strip */}
-      <section id="how" className="border-b border-border bg-secondary/40">
-        <div className="mx-auto grid max-w-7xl gap-px sm:grid-cols-3">
-          {[
-            { icon: Store, title: "Pick a concept", body: "Industry-specific storefronts tailored to each tenant's business." },
-            { icon: Palette, title: "Brand the theme", body: "Distinct color systems per template, with light and dark modes." },
-            { icon: Rocket, title: "Launch in minutes", body: "Each tenant goes live on their own subdomain automatically." },
-          ].map((f) => (
-            <div key={f.title} className="flex flex-col gap-3 bg-background p-8">
-              <span className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <f.icon className="size-5" />
-              </span>
-              <h3 className="font-heading text-base font-semibold">{f.title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">{f.body}</p>
+        {/* Info Banner */}
+        <Card className="mb-6 border-primary/20 bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-primary mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  <strong>WordPress-Style Template System:</strong> Browse available templates, 
+                  preview them in detail, and activate with one click. Template changes may affect 
+                  your storefront appearance, business type classification, and data. You'll be asked 
+                  to provide explicit consent before activation.
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      {/* Platform tools — new pages */}
-      <section id="platform-tools" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-        <div className="flex flex-col gap-3">
-          <span className="text-xs font-semibold uppercase tracking-wider text-accent">Platform tools</span>
-          <h2 className="font-heading text-3xl font-bold tracking-tight">Your control center</h2>
-          <p className="max-w-xl text-muted-foreground">
-            Operational pages that power Afruheritage — open any to explore the live experience.
-          </p>
-        </div>
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {platformPages.map((p) => (
-            <Link
-              key={p.href}
-              href={p.href}
-              className="group flex flex-col gap-4 rounded-xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
-            >
-              <div className="flex items-center justify-between">
-                <span className="flex size-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <p.icon className="size-6" />
-                </span>
-                <ArrowUpRight className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
-              </div>
-              <div>
-                <h3 className="font-heading text-lg font-semibold">{p.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
-              </div>
-              <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                {p.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Logistics marketplace */}
-      <MarketplaceSection />
-
-      {/* Templates grid */}
-      <section id="templates" className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-accent">Template gallery</span>
-            <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight">Storefront templates</h2>
-            <p className="mt-2 max-w-xl text-muted-foreground">
-              {templates.length} production-ready concepts, each with its own theme. Click any card to open the live storefront.
-            </p>
-          </div>
-        </div>
-
+        {/* Loading State */}
         {isLoading ? (
-          <div className="mt-10 py-20 text-center text-sm text-muted-foreground">Loading templates...</div>
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : templates.length === 0 ? (
+          <div className="flex justify-center py-12">
+            <p className="text-slate-600 dark:text-slate-400">No templates available</p>
+          </div>
         ) : (
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {templates.map((t: any) => (
-              <Link
-                key={t.slug}
-                href={`/templates/${t.slug}`}
-                className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
-              >
-                <div className="relative aspect-[16/10] overflow-hidden">
+          /* Template Grid */
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {templates.map((template) => (
+              <Card key={template.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100 dark:bg-slate-800">
                   <Image
-                    src={t.image || "/placeholder.svg"}
-                    alt={`${t.name} storefront preview`}
+                    src={getTemplateImage(template)}
+                    alt={`${template.name} storefront preview`}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
                   />
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-3 left-3 flex gap-1.5">
-                    {t.swatches.map((c: string) => (
-                      <span key={c} className="size-4 rounded-full border border-white/50" style={{ backgroundColor: c }} />
+                    {getSwatches(template).map((color: string) => (
+                      <span 
+                        key={color} 
+                        className="size-4 rounded-full border border-white/50" 
+                        style={{ backgroundColor: color }} 
+                      />
                     ))}
                   </div>
-                </div>
-                <div className="flex flex-1 flex-col gap-3 p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-accent">{t.category}</p>
-                      <h3 className="mt-1 font-heading text-lg font-semibold">{t.name}</h3>
+                  {template.is_active && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                      <Check className="h-3 w-3" />
+                      Active
                     </div>
-                    <ArrowUpRight className="size-5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
-                  </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{t.description}</p>
-                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                    {t.tags.map((tag: string) => (
-                      <span key={tag} className="rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs text-muted-foreground">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                  )}
+                  <button
+                    onClick={() => handlePreview(template)}
+                    className="absolute top-3 right-3 flex size-8 items-center justify-center rounded-lg bg-black/50 text-white opacity-0 transition-opacity hover:bg-black/70 hover:opacity-100"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
                 </div>
-              </Link>
+                
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                      <CardDescription className="text-sm mt-1">
+                        {template.description}
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {/* Features */}
+                  {template.preset && getFeatures(template).length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Features
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {getFeatures(template).slice(0, 4).map((feature: string) => (
+                          <Badge key={feature} variant="secondary" className="text-xs">
+                            <Zap className="h-3 w-3 mr-1" />
+                            {feature}
+                          </Badge>
+                        ))}
+                        {getFeatures(template).length > 4 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{getFeatures(template).length - 4} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {template.preset && (
+                    <div className="flex flex-wrap gap-1">
+                      {getTags(template).map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+                
+                <CardFooter className="gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handlePreview(template)}
+                  >
+                    <Layout className="h-4 w-4 mr-2" />
+                    Preview
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => handleSelect(template)}
+                    disabled={template.is_active}
+                  >
+                    {template.is_active ? (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Active
+                      </>
+                    ) : (
+                      <>
+                        <Palette className="h-4 w-4 mr-2" />
+                        Activate
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
             ))}
           </div>
         )}
-      </section>
 
-      {/* CTA */}
-      <section id="cta" className="border-t border-border bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
-          <h2 className="mx-auto max-w-2xl text-balance font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Ready to give your tenants a storefront they love?
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80">
-            Spin up unlimited branded stores from a single platform. No design work required.
-          </p>
-          <button className="mt-8 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90">
-            Get started free
-          </button>
-        </div>
-      </section>
+        {/* Preview Modal */}
+        {previewTemplate && (
+          <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Layout className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-xl">{previewTemplate.name}</DialogTitle>
+                    <DialogDescription className="text-sm">
+                      Template preview and details
+                    </DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
 
-      <footer className="border-t border-border py-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm text-muted-foreground sm:flex-row sm:px-6">
-          <div className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded bg-primary text-primary-foreground">
-              <Layers className="size-3.5" />
-            </span>
-            <span>Afruheritage</span>
-          </div>
-          <p>Storefront template previews. Demo content.</p>
-        </div>
-      </footer>
-    </main>
-    </>
+              <div className="space-y-6 py-4">
+                {/* Template Image */}
+                <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <Image
+                    src={getTemplateImage(previewTemplate)}
+                    alt={`${previewTemplate.name} preview`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+
+                {/* Template Details */}
+                {previewTemplate.preset ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Palette className="h-4 w-4" />
+                        Color Scheme
+                      </h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600 dark:text-slate-400">Primary</span>
+                          <div className="flex items-center gap-2">
+                            <span 
+                              className="size-6 rounded border border-slate-300" 
+                              style={{ backgroundColor: previewTemplate.preset?.primary_color }} 
+                            />
+                            <span className="text-xs font-mono">{previewTemplate.preset?.primary_color}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600 dark:text-slate-400">Secondary</span>
+                          <div className="flex items-center gap-2">
+                            <span 
+                              className="size-6 rounded border border-slate-300" 
+                              style={{ backgroundColor: previewTemplate.preset?.secondary_color }} 
+                            />
+                            <span className="text-xs font-mono">{previewTemplate.preset?.secondary_color}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-600 dark:text-slate-400">Accent</span>
+                          <div className="flex items-center gap-2">
+                            <span 
+                              className="size-6 rounded border border-slate-300" 
+                              style={{ backgroundColor: previewTemplate.preset?.accent_color }} 
+                            />
+                            <span className="text-xs font-mono">{previewTemplate.preset?.accent_color}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                      <h4 className="font-medium mb-3 flex items-center gap-2">
+                        <Zap className="h-4 w-4" />
+                        Features
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {getFeatures(previewTemplate).map((feature: string) => (
+                          <Badge key={feature} variant="secondary" className="text-sm">
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                    <p className="text-sm text-slate-600 dark:text-slate-400">No template details available</p>
+                  </div>
+                )}
+
+                {/* Required Endpoints */}
+                {previewTemplate.preset?.required_endpoints && (
+                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Required Endpoints
+                    </h4>
+                    <div className="flex flex-wrap gap-1">
+                      {previewTemplate.preset.required_endpoints.slice(0, 5).map((ep: string) => (
+                        <Badge key={ep} variant="outline" className="text-xs font-mono">
+                          {ep}
+                        </Badge>
+                      ))}
+                      {previewTemplate.preset.required_endpoints.length > 5 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{previewTemplate.preset.required_endpoints.length - 5} more
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewTemplate(null)}
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setPreviewTemplate(null)
+                    handleSelect(previewTemplate)
+                  }}
+                  disabled={previewTemplate.is_active}
+                >
+                  {previewTemplate.is_active ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Currently Active
+                    </>
+                  ) : (
+                    <>
+                      <Palette className="h-4 w-4 mr-2" />
+                      Activate Template
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Installation Consent Dialog */}
+        <Dialog open={installDialogOpen} onOpenChange={setInstallDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl">Activate Template: {selectedTemplate?.name}</DialogTitle>
+                  <DialogDescription className="text-sm">
+                    Please review and accept the following before activation
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="space-y-6 py-4">
+              {/* Template Details */}
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Template Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 dark:text-slate-400">Template:</span>
+                    <span className="font-mono">{selectedTemplate?.template_code}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 dark:text-slate-400">Features:</span>
+                    <span>{getFeatures(selectedTemplate!).length} enabled</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600 dark:text-slate-400">Endpoints:</span>
+                    <span>{selectedTemplate?.preset?.required_endpoints?.length || 0} required</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Consent Checkboxes */}
+              <div className="space-y-4">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Required Consents
+                </h4>
+                
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <Switch
+                      checked={consent.ui_change}
+                      onCheckedChange={(checked) => setConsent(prev => ({ ...prev, ui_change: checked }))}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">UI Changes</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        I understand this template may change my storefront appearance and layout
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <Switch
+                      checked={consent.business_type_change}
+                      onCheckedChange={(checked) => setConsent(prev => ({ ...prev, business_type_change: checked }))}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Business Type Changes</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        I understand this template may change my industry or business type classification
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <Switch
+                      checked={consent.data_impact}
+                      onCheckedChange={(checked) => setConsent(prev => ({ ...prev, data_impact: checked }))}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">Data Impact</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
+                        I understand this template may modify or replace existing data in my system
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Legal Notice */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-xs text-blue-800 dark:text-blue-200">
+                  <strong>Legal Notice:</strong> Your consent will be logged for compliance purposes. 
+                  By clicking "Activate Template", you agree to these terms and authorize the template activation.
+                </p>
+              </div>
+            </div>
+
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setInstallDialogOpen(false)}
+                disabled={installing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleInstall}
+                disabled={!canInstall || installing}
+                className="bg-primary text-primary-foreground"
+              >
+                {installing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Activating...
+                  </>
+                ) : (
+                  <>
+                    <Palette className="h-4 w-4 mr-2" />
+                    Activate Template
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
   )
 }

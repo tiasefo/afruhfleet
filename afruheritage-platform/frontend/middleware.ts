@@ -12,6 +12,12 @@ const PLATFORM_HOSTS = new Set([
   'api.afruheritage.com',
 ])
 
+// Emergency: Force Amooksco template for specific subdomains
+const AMOOKSCO_SUBDOMAINS = new Set([
+  'amooskco',
+  'amooskco.afruheritage.com',
+])
+
 // Routes that are publicly accessible without auth
 const PUBLIC_ROUTES = new Set([
   '/',
@@ -70,6 +76,24 @@ function hasAuthToken(req: NextRequest): boolean {
 export async function middleware(req: NextRequest) {
   const host = req.headers.get('host')?.toLowerCase().split(':')[0] ?? ''
   const pathname = req.nextUrl.pathname
+
+  // DEBUG: Log all requests
+  console.log('Middleware - Host:', host, 'Path:', pathname)
+
+  // Emergency: Force Amooksco template for Amooksco subdomains
+  if (AMOOKSCO_SUBDOMAINS.has(host) || host.includes('amooskco')) {
+    console.log('Detected Amooksco subdomain, redirecting to /amooskco-storefront')
+    // Redirect to a dedicated Amooksco route
+    if (pathname !== '/amooskco-storefront') {
+      const amooskcoUrl = new URL('/amooskco-storefront', req.url)
+      return NextResponse.redirect(amooskcoUrl)
+    }
+    // Inject headers to force Amooksco template
+    const res = NextResponse.next()
+    res.headers.set('x-tenant-slug', 'amooskco')
+    res.headers.set('x-force-template', 'amooksco')
+    return res
+  }
 
   // 1. Auth gate — redirect unauthenticated users to /register for protected routes
   if (!isPublicPath(pathname) && !hasAuthToken(req)) {

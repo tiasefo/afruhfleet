@@ -24,6 +24,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Build the application
+ENV NEXT_PUBLIC_BUILD_TIME=true
 RUN pnpm build
 
 # Production image, copy all the files and run next

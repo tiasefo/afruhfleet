@@ -53,6 +53,22 @@ const DEFAULT_TENANT_CONTEXT: TenantContext = {
 }
 
 export async function fetchTenantContextServer(slug: string): Promise<TenantContext | null> {
+  // Emergency fix: Return Amooksco context without API call
+  if (slug === 'amooskco' || slug.includes('amooskco')) {
+    return {
+      ...DEFAULT_TENANT_CONTEXT,
+      id: 'amooskco',
+      slug: 'amooskco',
+      company_name: 'Amooksco Logistics',
+      theme_code: 'amooksco',
+    }
+  }
+  
+  // Skip API calls during build time
+  if (process.env.NEXT_PUBLIC_BUILD_TIME === 'true') {
+    return DEFAULT_TENANT_CONTEXT
+  }
+  
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
     const response = await fetch(`${baseUrl}/api/v1/tenant-context/${slug}`, {

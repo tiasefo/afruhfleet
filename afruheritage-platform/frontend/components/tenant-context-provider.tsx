@@ -29,6 +29,21 @@ export function TenantContextProvider({ children }: { children: React.ReactNode 
     try {
       const tenantId = resolvePublicTenantId()
       
+      // Emergency: Hardcode Amooksco context without API call
+      if (tenantId === 'amooskco' || tenantId?.includes('amooskco')) {
+        const amookscoContext = {
+          ...getDefaultTenantContext(),
+          id: 'amooskco',
+          slug: 'amooskco',
+          company_name: 'Amooksco Logistics',
+          theme_code: 'amooksco',
+        }
+        setTenant(amookscoContext)
+        applyTenantTheme(amookscoContext)
+        setIsLoading(false)
+        return
+      }
+      
       if (tenantId) {
         // Try to fetch tenant context from API
         const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
