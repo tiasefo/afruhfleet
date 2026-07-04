@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Check, Copy, Phone, Smartphone, ShieldCheck, MessageCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { billingStaff, momo, waLink } from "@/lib/amooksco"
+import { api } from "@/lib/api"
 
 function CopyRow({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false)
@@ -40,6 +41,56 @@ function CopyRow({ label, value }: { label: string; value: string }) {
 }
 
 export function Payments() {
+  const [paymentInfo, setPaymentInfo] = useState(momo)
+  const [staffList, setStaffList] = useState(billingStaff)
+  const [loading, setLoading] = useState(false)
+
+  // Fetch payment and billing info from API
+  useEffect(() => {
+    async function fetchPaymentInfo() {
+      setLoading(true)
+      try {
+        const info = await api.get('/billing/payment-info')
+        if (info) {
+          setPaymentInfo({
+            network: info.network || momo.network,
+            merchantName: info.merchant_name || momo.merchantName,
+            merchantId: info.merchant_id || momo.merchantId,
+            phone: info.phone || momo.phone,
+            phoneDigits: info.phone_digits || momo.phoneDigits,
+            isPlaceholder: info.is_placeholder ?? momo.isPlaceholder,
+          })
+        }
+      } catch (err) {
+        console.error('Failed to fetch payment info:', err)
+        // Keep default values on error
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    async function fetchBillingStaff() {
+      try {
+        const staff = await api.get('/billing/staff')
+        if (staff && Array.isArray(staff)) {
+          setStaffList(staff.map(s => ({
+            range: s.range || 'N/A',
+            name: s.name || 'Unknown',
+            phone: s.phone || 'N/A',
+            phoneDigits: s.phone_digits || s.phone || 'N/A',
+            note: s.note || '',
+          })))
+        }
+      } catch (err) {
+        console.error('Failed to fetch billing staff:', err)
+        // Keep default values on error
+      }
+    }
+
+    fetchPaymentInfo()
+    fetchBillingStaff()
+  }, [])
+
   return (
     <section id="payments" className="scroll-mt-20 bg-muted">
       <div className="mx-auto max-w-7xl px-4 py-16">
@@ -65,17 +116,17 @@ export function Payments() {
               </span>
               <div>
                 <p className="text-sm text-primary-foreground/70">Pay with</p>
-                <p className="text-lg font-bold">{momo.network}</p>
+                <p className="text-lg font-bold">{paymentInfo.network}</p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-3">
-              <CopyRow label="Merchant Name" value={momo.merchantName} />
-              <CopyRow label="Merchant ID" value={momo.merchantId} />
-              <CopyRow label="Payment / Confirm Number" value={momo.phone} />
+              <CopyRow label="Merchant Name" value={paymentInfo.merchantName} />
+              <CopyRow label="Merchant ID" value={paymentInfo.merchantId} />
+              <CopyRow label="Payment / Confirm Number" value={paymentInfo.phone} />
             </div>
 
-            {momo.isPlaceholder && (
+            {paymentInfo.isPlaceholder && (
               <p className="mt-3 text-xs text-accent">
                 Note: confirm the Merchant ID with our team before paying.
               </p>
@@ -87,7 +138,7 @@ export function Payments() {
             >
               <a
                 href={waLink(
-                  momo.phoneDigits,
+                  paymentInfo.phoneDigits,
                   "Hello AMOOKSCO, I have made a Mobile Money payment. Here is my screenshot.",
                 )}
                 target="_blank"
@@ -105,7 +156,7 @@ export function Payments() {
             <ol className="mt-4 space-y-3 text-sm text-muted-foreground">
               {[
                 "Dial your Mobile Money menu and choose Pay Merchant.",
-                `Enter the Merchant ID (${momo.merchantId}) and the amount.`,
+                `Enter the Merchant ID (${paymentInfo.merchantId}) and the amount.`,
                 "Use your shipping mark / name as the reference.",
                 "Confirm with your PIN, then send us the screenshot.",
               ].map((s, i) => (
@@ -136,7 +187,7 @@ export function Payments() {
             Contact the staff member assigned to your shipping mark / name.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {billingStaff.map((staff) => (
+            {staffList.map((staff) => (
               <div
                 key={staff.range}
                 className="rounded-xl border border-border bg-card p-5 text-center"

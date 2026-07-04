@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Calculator, Ship, Plane, MessageCircle, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { waLink, whatsapp } from "@/lib/amooksco"
+import { api } from "@/lib/api"
 
 type Mode = "sea" | "air"
 
@@ -47,6 +48,27 @@ export function Estimator() {
   const [height, setHeight] = useState("")
   const [weight, setWeight] = useState("")
   const [rate, setRate] = useState(String(DEFAULT_RATE.sea))
+  const [loadingRates, setLoadingRates] = useState(false)
+
+  // Fetch current rates from API on mount
+  useEffect(() => {
+    async function fetchRates() {
+      setLoadingRates(true)
+      try {
+        const rates = await api.get('/customs/rates')
+        if (rates) {
+          if (rates.sea_rate) setRate(String(rates.sea_rate))
+          if (rates.air_rate) setRate(String(rates.air_rate))
+        }
+      } catch (err) {
+        console.error('Failed to fetch rates:', err)
+        // Keep default rates on error
+      } finally {
+        setLoadingRates(false)
+      }
+    }
+    fetchRates()
+  }, [])
 
   function switchMode(next: Mode) {
     setMode(next)

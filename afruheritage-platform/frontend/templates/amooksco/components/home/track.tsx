@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { waLink, whatsapp } from "@/lib/amooksco"
+import { api } from "@/lib/api"
+import { useTenant } from "@/components/tenant-context-provider"
 
 type Stage = { label: string; done: boolean }
 
@@ -58,17 +60,53 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
   const [query, setQuery] = useState("")
   const [result, setResult] = useState<Result | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const { tenant } = useTenant()
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const key = query.trim().toUpperCase()
-    const match = demo[key]
-    if (match) {
-      setResult(match)
-      setNotFound(false)
-    } else {
-      setResult(null)
+    setLoading(true)
+    setNotFound(false)
+    
+    try {
+      if (kind === "number") {
+        // Track by tracking number using public API
+        const data = await api.get(`/shipments/public/track/${tenant?.id || 'amooskco'}/${key}`)
+        if (data) {
+          setResult({
+            ref: data.tracking_number || key,
+            mark: data.shipping_mark || 'N/A',
+            status: data.status || 'Unknown',
+            mode: data.mode || 'Unknown',
+            eta: data.eta || 'TBD',
+            stages: data.stages || [],
+          })
+        } else {
+          setNotFound(true)
+        }
+      } else {
+        // Track by shipping mark - search shipments
+        const data = await api.get(`/shipments?shipping_mark=${key}`)
+        if (data && data.length > 0) {
+          const shipment = data[0]
+          setResult({
+            ref: shipment.tracking_number || 'N/A',
+            mark: shipment.shipping_mark || key,
+            status: shipment.status || 'Unknown',
+            mode: shipment.mode || 'Unknown',
+            eta: shipment.eta || 'TBD',
+            stages: shipment.stages || [],
+          })
+        } else {
+          setNotFound(true)
+        }
+      }
+    } catch (err) {
+      console.error('Tracking error:', err)
       setNotFound(true)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -91,9 +129,13 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
             className="h-11"
           />
         </div>
-        <Button type="submit" size="lg" className="h-11">
-          <PackageSearch className="size-4" />
-          Track
+        <Button type="submit" size="lg" className="h-11" disabled={loading}>
+          {loading ? (
+            <PackageSearch className="size-4 animate-spin" />
+          ) : (
+            <PackageSearch className="size-4" />
+          )}
+          {loading ? 'Tracking...' : 'Track'}
         </Button>
       </form>
 
