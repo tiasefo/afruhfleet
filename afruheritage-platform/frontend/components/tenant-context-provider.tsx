@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { TenantContext } from '@/lib/tenant-context'
-import { getDefaultTenantContext, applyTenantTheme } from '@/lib/tenant-context'
+import { getDefaultTenantContext, applyTenantTheme, fetchTenantContextClient } from '@/lib/tenant-context'
 import { resolvePublicTenantId } from '@/lib/tenant'
 
 interface TenantContextType {
@@ -29,37 +29,18 @@ export function TenantContextProvider({ children }: { children: React.ReactNode 
     try {
       const tenantId = resolvePublicTenantId()
       
-      // Emergency: Hardcode Amooksco context without API call
-      if (tenantId === 'amooskco' || tenantId?.includes('amooskco')) {
-        const amookscoContext = {
-          ...getDefaultTenantContext(),
-          id: 'amooskco',
-          slug: 'amooskco',
-          company_name: 'Amooksco Logistics',
-          theme_code: 'amooksco',
-        }
-        setTenant(amookscoContext)
-        applyTenantTheme(amookscoContext)
-        setIsLoading(false)
-        return
-      }
-      
+      // Fetch the real tenant context from the control plane. No hardcodes.
       if (tenantId) {
-        // Try to fetch tenant context from API
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
-        const response = await fetch(`${baseUrl}/api/v1/tenant-context/${tenantId}`, {
-          cache: 'no-store',
-        })
-        
-        if (response.ok) {
-          const tenantData = await response.json()
-          setTenant(tenantData)
-          applyTenantTheme(tenantData)
+        const fetched = await fetchTenantContextClient(tenantId)
+        if (fetched) {
+          setTenant(fetched)
+          applyTenantTheme(fetched)
           return
         }
+        setError(`Tenant context not found for "${tenantId}"`)
       }
       
-      // Use default platform context
+      // Fallback: platform context (no tenant on host, or tenant not found).
       const defaultContext = getDefaultTenantContext()
       setTenant(defaultContext)
       applyTenantTheme(defaultContext)

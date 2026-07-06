@@ -53,32 +53,16 @@ const DEFAULT_TENANT_CONTEXT: TenantContext = {
 }
 
 export async function fetchTenantContextServer(slug: string): Promise<TenantContext | null> {
-  // Emergency fix: Return Amooksco context without API call
-  if (slug === 'amooskco' || slug.includes('amooskco')) {
-    return {
-      ...DEFAULT_TENANT_CONTEXT,
-      id: 'amooskco',
-      slug: 'amooskco',
-      company_name: 'Amooksco Logistics',
-      theme_code: 'amooksco',
-    }
-  }
-  
-  // Skip API calls during build time
-  if (process.env.NEXT_PUBLIC_BUILD_TIME === 'true') {
-    return DEFAULT_TENANT_CONTEXT
-  }
-  
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
-    const response = await fetch(`${baseUrl}/api/v1/tenant-context/${slug}`, {
+    const response = await fetch(`${baseUrl}/api/v1/tenant-context/${encodeURIComponent(slug)}`, {
       cache: 'no-store',
     })
-    
+
     if (!response.ok) {
       return null
     }
-    
+
     return await response.json()
   } catch (error) {
     console.error('Failed to fetch tenant context:', error)
@@ -86,18 +70,55 @@ export async function fetchTenantContextServer(slug: string): Promise<TenantCont
   }
 }
 
-export async function fetchTenantContextByHostServer(host: string): Promise<TenantContext | null> {
+/**
+ * Client-side fetch of tenant context. Uses a same-origin relative URL so it
+ * flows through the Next.js `/api/v1/*` rewrite to the control plane in every
+ * environment. `identifier` may be a slug, subdomain, custom domain, or UUID —
+ * the backend's `/tenant-context/{identifier}` resolver handles all of them.
+ * Returns null on any miss/error (caller decides the fallback) — no silent defaults.
+ */
+export async function fetchTenantContextClient(identifier: string): Promise<TenantContext | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
-    const response = await fetch(`${baseUrl}/api/v1/tenant-context/by-host?host=${encodeURIComponent(host)}`, {
+    const response = await fetch(`/api/v1/tenant-context/${encodeURIComponent(identifier)}`, {
       cache: 'no-store',
     })
-    
     if (!response.ok) {
       return null
     }
-    
     return await response.json()
+  } catch (error) {
+    console.error('Failed to fetch tenant context (client):', error)
+    return null
+  }
+}
+
+export async function fetchTenantContextByHostServer(host: string): Promise<TenantContext | null> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
+    const hostname = host.split(':')[0].toLowerCase()
+
+    // Try the full hostname first (matches custom_domain via resolve_tenant)
+    const response = await fetch(`${baseUrl}/api/v1/tenant-context/${encodeURIComponent(hostname)}`, {
+      cache: 'no-store',
+    })
+
+    if (response.ok) {
+      return await response.json()
+    }
+
+    // If full hostname didn't match, try extracting subdomain (e.g., "amooksco" from "amooksco.afruheritage.com")
+    const parts = hostname.split('.')
+    if (parts.length >= 3) {
+      const subdomain = parts[0]
+      const subResponse = await fetch(`${baseUrl}/api/v1/tenant-context/${encodeURIComponent(subdomain)}`, {
+        cache: 'no-store',
+      })
+      if (subResponse.ok) {
+        return await subResponse.json()
+      }
+    }
+
+    return null
   } catch (error) {
     console.error('Failed to fetch tenant context by host:', error)
     return null
