@@ -8,7 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db, require_superuser
+from app.api.deps import get_current_user, get_db, require_superuser, require_active_subscription
 from app.models.kyc import KYCStatus, KYCSubmission
 from app.models.user import User
 from app.services.billing_service import consume_wallet_credits, evaluate_subscription_state, feature_credit_cost, feature_enabled_for_plan
@@ -50,7 +50,7 @@ async def submit_manual_kyc(
     liveness_photo: UploadFile = File(...),
     liveness_video: UploadFile | None = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     # tenant_id is optional — personal shippers have no tenant
     tenant_id = str(getattr(current_user, 'tenant_id', '') or '')
@@ -149,7 +149,7 @@ async def upload_id_document(
     file: UploadFile = File(...),
     side: str = Form('front'),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     side_normalized = side.lower().strip()
     if side_normalized not in {'front', 'back'}:
@@ -193,7 +193,7 @@ async def upload_liveness_capture(
     photo: UploadFile = File(...),
     video: UploadFile | None = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     row = db.query(KYCSubmission).filter(KYCSubmission.user_id == current_user.id).first()
     if not row:
@@ -246,7 +246,7 @@ async def upload_liveness_capture(
 
 
 @router.get('/status')
-async def get_kyc_status(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+async def get_kyc_status(db: Session = Depends(get_db), current_user: User = Depends(require_active_subscription)):
     return await KYCService().get_kyc_status(db, str(current_user.id))
 
 
@@ -370,7 +370,7 @@ def revoke_kyc_submission(
 @router.post('/ocr-parse')
 async def ocr_parse_id(
     id_image: UploadFile = File(...),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """
     Accept an ID document image and attempt to extract:

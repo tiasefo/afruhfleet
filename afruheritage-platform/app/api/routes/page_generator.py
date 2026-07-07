@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user, require_tenant_admin
+from app.api.deps import get_db, get_current_user, require_tenant_admin, require_active_subscription
 from app.models.user import User
 from app.services.page_generator_service import PageGeneratorService, generate_pages_for_tenant
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix='/page-generator', tags=['Page Generator'])
 @router.get("/status")
 def get_page_status(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ) -> dict[str, Any]:
     """Get the status of pages for the current tenant (existing vs generated)."""
     if not current_user.tenant_id:

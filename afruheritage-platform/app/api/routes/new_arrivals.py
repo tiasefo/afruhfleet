@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_tenant_admin, require_superuser
+from app.api.deps import get_current_user, require_tenant_admin, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.new_arrivals import NewArrival, NewArrivalStatus
 from app.models.user import User
@@ -74,7 +74,7 @@ async def list_new_arrivals(
     active_only: bool = True,
     featured_only: bool = False,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """List new arrivals. Superusers see all, tenant admins see their tenant's, regular users see active/featured only."""
     if current_user.is_superuser:
@@ -146,7 +146,7 @@ async def create_new_arrival(
 async def get_new_arrival(
     arrival_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get a specific new arrival. Superusers can access any, tenant admins only their tenant's."""
     query = select(NewArrival).where(NewArrival.id == uuid.UUID(arrival_id))

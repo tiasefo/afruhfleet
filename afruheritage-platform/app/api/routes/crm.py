@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.crm import CrmCustomer, CrmActivity, CustomerStage, ActivityType
 from app.models.user import User
@@ -225,7 +225,7 @@ def create_activity(
     customer_id: str,
     data: ActivityCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Create an activity for a customer (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))

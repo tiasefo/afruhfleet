@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_superuser, require_tenant_admin
+from app.api.deps import get_current_user, require_superuser, require_tenant_admin, require_active_subscription
 from app.core.redis_client import cache_get, cache_set, cache_delete_pattern
 from app.db.session import get_db
 from app.models.storefront_template import StorefrontTemplate

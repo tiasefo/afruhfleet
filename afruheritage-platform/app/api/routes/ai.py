@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from app.api.deps import get_current_user, get_db, require_feature
+from app.api.deps import get_current_user, get_db, require_feature, require_active_subscription
 from app.models.user import User
 from app.services.billing_service import consume_wallet_credits, evaluate_subscription_state, feature_credit_cost, feature_enabled_for_plan
 

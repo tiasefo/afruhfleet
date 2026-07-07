@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.db.session import get_db
 from app.models.shipment import Shipment, ShipmentStatus
 from app.models.user import User, UserRole
@@ -58,7 +58,7 @@ def check_customer_role(user: User) -> None:
 def create_customer_shipment(
     shipment: CustomerShipmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Create a shipment as a customer (simplified form, auto-assigns tenant)."""
     # Check user role
@@ -123,7 +123,7 @@ def create_customer_shipment(
 @router.get('', response_model=list[CustomerShipmentResponse])
 def list_customer_shipments(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """List all shipments for the current customer (read-only, own shipments only)."""
     # Check user role
@@ -163,7 +163,7 @@ def list_customer_shipments(
 def get_customer_shipment(
     tracking_number: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get a specific shipment by tracking number (customer can only view own tenant's shipments)."""
     # Check user role

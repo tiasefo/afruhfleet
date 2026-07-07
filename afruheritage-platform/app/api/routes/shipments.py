@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from fastapi import UploadFile, File, Request, APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_tenant_admin
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
 from app.billing.guards import is_tenant_read_only
 from app.db.session import SessionLocal, get_db
 from app.models.shipment import Shipment, ShipmentStatus
@@ -64,7 +64,7 @@ def transition_shipment_status_route(
     shipment_id: str,
     status: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     shipment = get_shipment(db, shipment_id, tenant_id)
@@ -86,7 +86,7 @@ def transition_shipment_status_route(
 @router.get("/my-shipments")
 def my_shipments(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Returns shipments linked to the currently logged-in user via GroupMember.user_id.
     Also matches by receiver_name/email as a fallback. Includes tracking events."""
@@ -169,7 +169,7 @@ def create_shipment_route(
     tenant_id: str,
     payload: ShipmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     data = payload.model_dump()
@@ -187,7 +187,7 @@ def search_shipments_route(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     items, total = search_shipments(
         db, tenant_id, query=q, status=status, payment_status=payment_status,
@@ -219,7 +219,7 @@ def search_shipments_route(
 def shipment_dashboard_summary_route(
     tenant_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     shipments = db.query(Shipment).filter(Shipment.tenant_id == tenant_id).all()
 
@@ -303,7 +303,7 @@ def create_member_route(
     tenant_id: str,
     payload: GroupMemberCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     member = create_group_member(db, tenant_id, **payload.model_dump())
@@ -317,7 +317,7 @@ def list_members_route(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     items, total = list_group_members(db, tenant_id, query=q, page=page, page_size=page_size)
     pages = max(1, (total + page_size - 1) // page_size)
@@ -335,7 +335,7 @@ def get_member_route(
     tenant_id: str,
     member_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     member = get_group_member(db, member_id, tenant_id)
     if not member:
@@ -349,7 +349,7 @@ def update_member_route(
     member_id: str,
     payload: GroupMemberUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     member = update_group_member(db, member_id, tenant_id, **payload.model_dump(exclude_unset=True))
@@ -363,7 +363,7 @@ def list_member_shipments(
     tenant_id: str,
     member_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """List all shipments assigned to a specific group member."""
     member = get_group_member(db, member_id, tenant_id)
@@ -407,7 +407,7 @@ def get_shipment_route(
     tenant_id: str,
     shipment_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -422,7 +422,7 @@ def update_shipment_route(
     shipment_id: str,
     payload: ShipmentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     shipment = update_shipment(db, shipment_id, tenant_id, **payload.model_dump(exclude_unset=True))
@@ -439,7 +439,7 @@ def add_event_route(
     shipment_id: str,
     payload: ShipmentEventCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     shipment = get_shipment(db, shipment_id, tenant_id)
@@ -472,7 +472,7 @@ def update_location_route(
     shipment_id: str,
     payload: ShipmentLocationUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     shipment = update_shipment_location(
@@ -499,7 +499,7 @@ def ingest_tracking_point_route(
     shipment_id: str,
     payload: TrackingPointIngestRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     _ensure_tenant_writable(tenant_id)
     accepted, reason, point = ingest_tracking_point(
@@ -545,7 +545,7 @@ def latest_tracking_point_route(
     tenant_id: str,
     shipment_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -562,7 +562,7 @@ def tracking_history_route(
     to_ts: datetime | None = Query(None, alias="to"),
     limit: int = Query(500, ge=1, le=2000),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -607,7 +607,7 @@ def get_events_route(
     tenant_id: str,
     shipment_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -695,7 +695,7 @@ def upload_shipment_image(
     shipment_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """
     Upload a cargo image for a shipment.

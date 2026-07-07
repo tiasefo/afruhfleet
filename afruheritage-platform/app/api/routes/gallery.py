@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_tenant, get_current_group_member, require_tenant_admin, get_current_user, require_superuser
+from app.api.deps import get_current_tenant, get_current_group_member, require_tenant_admin, get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.gallery import GalleryPost, MediaType
 from app.models.shipment import GroupMember, GroupMemberRole
@@ -54,7 +54,7 @@ class GalleryPostResponse(BaseModel):
 async def list_gallery_posts(
     active_only: bool = True,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """List all gallery posts for the current tenant (tenant admins) or all posts (superusers)."""
     if current_user.is_superuser:
@@ -84,7 +84,7 @@ async def list_gallery_posts(
 async def create_gallery_post(
     post: GalleryPostCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Create a new gallery post. Tenant admins create for their tenant, superusers can specify tenant_id."""
     if current_user.is_superuser:
@@ -115,7 +115,7 @@ async def create_gallery_post(
 async def get_gallery_post(
     post_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get a specific gallery post. Superusers can access any post, tenant admins only their tenant's posts."""
     query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
@@ -136,7 +136,7 @@ async def update_gallery_post(
     post_id: str,
     post_update: GalleryPostUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Update a gallery post. Superusers can update any post, tenant admins only their tenant's posts."""
     query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
@@ -169,7 +169,7 @@ async def update_gallery_post(
 async def delete_gallery_post(
     post_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Delete a gallery post. Superusers can delete any post, tenant admins only their tenant's posts."""
     query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
@@ -192,7 +192,7 @@ async def delete_gallery_post(
 async def upload_gallery_media(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Upload media for gallery post. Returns the media URL."""
     # For now, return a placeholder URL. In production, this would upload to S3 or similar

@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.tenant import Tenant
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.services.fleetbase_proxy import proxy_fleetbase_api, request_fleetbase_api, resolve_fleetbase_token
 
 router = APIRouter()
@@ -33,7 +33,7 @@ def _resolve_tenant(tenant_id: str, db: Session) -> Tenant:
 
 
 @router.get("/navigator/{tenant_id}/drivers")
-def get_navigator_drivers(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def get_navigator_drivers(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(require_active_subscription)):
     """Fetch driver list for Navigator module for a tenant."""
     tenant = _resolve_tenant(tenant_id, db)
     if not tenant.live_api_url:
@@ -54,7 +54,7 @@ def create_navigator_driver(
     payload: DriverCreateRequest,
     tenant_id: str,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(require_active_subscription),
 ):
     """Create a driver in the Navigator module for a tenant via Fleetbase."""
     tenant = _resolve_tenant(tenant_id, db)
@@ -86,7 +86,7 @@ def create_navigator_driver(
 
 
 @router.get("/navigator/{tenant_id}/tracking")
-def get_navigator_tracking(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+def get_navigator_tracking(tenant_id: str, db: Session = Depends(get_db), current_user=Depends(require_active_subscription)):
     """Fetch real-time tracking data for Navigator module for a tenant."""
     tenant = _resolve_tenant(tenant_id, db)
     if not tenant.live_api_url:

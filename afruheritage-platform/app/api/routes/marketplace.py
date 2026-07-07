@@ -12,7 +12,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, Session
 from app.core.config import settings
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.models.marketplace import MarketplaceShipment, ShipmentBid, MarketplaceReview
 from app.models.user import User, UserRole
 from app.services.entitlements import require_feature_or_raise
@@ -151,7 +151,7 @@ def list_my_shipments(
     status: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Return shipments created by the current user (personal shippers / company admins)."""
@@ -168,7 +168,7 @@ def list_my_shipments(
 @router.get("/shipments/{shipment_id}")
 def get_shipment(
     shipment_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Return a single shipment with its bids. Owners see all bids; drivers see only their own."""
@@ -427,7 +427,7 @@ def get_gps_history(job_id: str):
 def submit_bid(
     shipment_id: str,
     payload: BidCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Driver submits a bid on an open shipment."""
@@ -466,7 +466,7 @@ def submit_bid(
 @router.get("/shipments/{shipment_id}/bids")
 def list_bids(
     shipment_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Shipper or admin views all bids on their shipment."""
@@ -501,7 +501,7 @@ def list_bids(
 def accept_bid(
     shipment_id: str,
     bid_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Shipper accepts a driver's bid — assigns the driver."""
@@ -528,7 +528,7 @@ def accept_bid(
 def reject_bid(
     shipment_id: str,
     bid_id: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Shipper rejects a bid."""
@@ -545,7 +545,7 @@ def counter_bid(
     shipment_id: str,
     bid_id: str,
     payload: BidCounter,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Shipper counter-offers on a bid."""
@@ -564,7 +564,7 @@ def respond_to_counter(
     shipment_id: str,
     bid_id: str,
     payload: BidResponse,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """Driver responds to a counter offer."""
@@ -604,7 +604,7 @@ def driver_dashboard(
     lat: float,
     lon: float,
     radius_km: float = 100.0,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db),
 ):
     """
@@ -696,7 +696,7 @@ def _get_shipment_and_bid(
 def delete_review(
     review_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Delete a marketplace review (admin or review author only)."""
     from app.api.deps import require_superuser

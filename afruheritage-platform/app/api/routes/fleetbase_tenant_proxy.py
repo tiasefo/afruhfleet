@@ -16,7 +16,7 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.tenant import Tenant
@@ -137,7 +137,7 @@ async def _proxy(
 @router.get("/drivers")
 async def list_drivers(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -149,7 +149,7 @@ async def list_drivers(
 async def create_driver(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -168,7 +168,7 @@ async def create_driver(
 @router.get("/vehicles")
 async def list_vehicles(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -180,7 +180,7 @@ async def list_vehicles(
 async def create_vehicle(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -199,7 +199,7 @@ async def create_vehicle(
 @router.get("/orders")
 async def list_orders(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -211,7 +211,7 @@ async def list_orders(
 async def create_order(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -230,7 +230,7 @@ async def create_order(
 @router.get("/tracking")
 async def list_tracking(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -241,7 +241,7 @@ async def list_tracking(
 @router.get("/tracking-statuses")
 async def list_tracking_statuses(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -255,7 +255,7 @@ async def list_tracking_statuses(
 @router.get("/positions")
 async def list_positions(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -267,7 +267,7 @@ async def list_positions(
 async def get_driver_position(
     driver_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -281,7 +281,7 @@ async def get_driver_position(
 @router.get("/fleets")
 async def list_fleets(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:
@@ -295,7 +295,7 @@ async def list_fleets(
 @router.get("/live-tracking")
 async def get_live_tracking(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Return a unified snapshot of all live tracking data for the tenant's org:
     drivers, their current positions, and tracking statuses."""
@@ -345,7 +345,7 @@ async def get_live_tracking(
 async def track_order(
     order_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get order details + live driver position if the order has an assigned driver."""
     tenant = _tenant_from_user(db, current_user)
@@ -384,7 +384,7 @@ async def proxy_any(
     path: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant = _tenant_from_user(db, current_user)
     if not tenant or not tenant.fleetbase_org_id:

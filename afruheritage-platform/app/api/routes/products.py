@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.db.session import get_db
 from app.models.product import Product, ProductCategory
 from app.models.tenant import Tenant
@@ -38,7 +38,7 @@ def _ensure_tenant_access(user: User, tenant_id: uuid.UUID) -> None:
 def create_category(
     payload: ProductCategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User has no tenant")
@@ -57,7 +57,7 @@ def create_category(
 @router.get("/categories", response_model=list[ProductCategoryResponse])
 def list_categories(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant_id = current_user.tenant_id
     if not tenant_id:
@@ -74,7 +74,7 @@ def list_categories(
 def delete_category(
     category_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     cat = db.get(ProductCategory, category_id)
     if not cat or cat.tenant_id != current_user.tenant_id:
@@ -91,7 +91,7 @@ def delete_category(
 def create_product(
     payload: ProductCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     if not current_user.tenant_id:
         raise HTTPException(status_code=400, detail="User has no tenant")
@@ -123,7 +123,7 @@ def create_product(
 @router.get("", response_model=list[ProductResponse])
 def list_products(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     featured_only: bool = False,
     category_id: uuid.UUID | None = None,
 ):
@@ -153,7 +153,7 @@ def list_products(
 def get_product(
     product_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     product = db.get(Product, product_id)
     if not product or product.tenant_id != current_user.tenant_id:
@@ -168,7 +168,7 @@ def update_product(
     product_id: uuid.UUID,
     payload: ProductUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     product = db.get(Product, product_id)
     if not product or product.tenant_id != current_user.tenant_id:
@@ -194,7 +194,7 @@ def update_product(
 def delete_product(
     product_id: uuid.UUID,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     product = db.get(Product, product_id)
     if not product or product.tenant_id != current_user.tenant_id:

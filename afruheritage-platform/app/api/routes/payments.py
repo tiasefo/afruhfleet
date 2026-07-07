@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_tenant_admin
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
 from app.models.billing import Payment as BillingPayment
@@ -77,7 +77,7 @@ def _status_response_from_billing(
 async def initiate_payment(
     payment_request: PaymentInitiateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Initiate payment through platform gateway"""
     try:
@@ -129,7 +129,7 @@ async def initiate_payment(
 async def get_payment_status(
     payment_reference: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get payment status"""
     try:
@@ -335,7 +335,7 @@ async def get_payment_statistics(
     start_date: datetime | None = None,
     end_date: datetime | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get payment statistics for tenant"""
     try:
@@ -445,7 +445,7 @@ async def purchase_credits(
 
 @router.get("/methods")
 async def get_payment_methods(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get available payment methods"""
     try:
@@ -503,7 +503,7 @@ async def get_payment_methods(
 @router.get("/balance")
 async def get_account_balance(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get tenant account balance"""
     try:

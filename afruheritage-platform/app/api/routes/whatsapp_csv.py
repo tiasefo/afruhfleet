@@ -5,7 +5,7 @@ import csv
 from io import StringIO
 from typing import Optional
 
-from app.api.deps import get_current_user, get_db, require_superuser
+from app.api.deps import get_current_user, get_db, require_superuser, require_active_subscription
 from app.models.user import User
 from app.models.marketplace import MarketplaceShipment
 

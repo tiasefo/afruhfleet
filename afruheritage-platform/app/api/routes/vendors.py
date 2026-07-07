@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Upl
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.vendor import AutoDispatchRequest, AutoDispatchResponse, BookingCreateRequest, BookingDecisionRequest, BookingResponse, BookingUpdateRequest, VendorAvailabilityResponse, VendorAvailabilityUpdateRequest, VendorDocumentResponse, VendorDocumentSubmitResponse, VendorMatchRequest, VendorMatchResult, VendorRegisterRequest, VendorRegisterResponse, VendorResponse, VendorReviewRequest, VendorSearchResult, VendorVehicleResponse
@@ -199,7 +199,7 @@ async def submit_my_vendor_documents_route(
     insurance_doc: UploadFile | None = File(None),
     roadworthy_doc: UploadFile | None = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     tenant_id = str(getattr(current_user, 'tenant_id', '') or '')
     if not tenant_id:
@@ -276,7 +276,7 @@ async def submit_my_vendor_documents_route(
 def update_my_availability_route(
     payload: VendorAvailabilityUpdateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     vendor = get_vendor_by_email(db, current_user.email)
     if not vendor:
@@ -304,13 +304,13 @@ def update_my_availability_route(
     )
 
 @router.get('/marketplace', response_model=dict)
-def search_vendor_marketplace(region: str | None=Query(None), vehicle_type: str | None=Query(None), q: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def search_vendor_marketplace(region: str | None=Query(None), vehicle_type: str | None=Query(None), q: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     (items, total) = search_marketplace(db, region=region, vehicle_type=vehicle_type, query=q, page=page, page_size=page_size)
     pages = max(1, (total + page_size - 1) // page_size)
     return {'items': [_to_search_result(v).model_dump() for v in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
 
 @router.get('/marketplace/{vendor_id}', response_model=VendorResponse)
-def get_marketplace_vendor(vendor_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def get_marketplace_vendor(vendor_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     vendor = get_vendor(db, vendor_id)
     if not vendor or vendor.status.value != 'approved':
         raise HTTPException(status_code=404, detail='Vendor not found')
@@ -322,7 +322,7 @@ def suggest_marketplace_matches(
     tenant_id: str,
     payload: VendorMatchRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     matches = suggest_vendors_for_pickup(
         db,
@@ -341,7 +341,7 @@ def auto_dispatch_route(
     tenant_id: str,
     payload: AutoDispatchRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     try:
         result = auto_dispatch_booking(
@@ -368,7 +368,7 @@ def auto_dispatch_route(
     )
 
 @router.post('/{tenant_id}/bookings', response_model=BookingResponse)
-def create_booking_route(tenant_id: str, payload: BookingCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_booking_route(tenant_id: str, payload: BookingCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     try:
         booking = create_booking(db, tenant_id, payload.vendor_id, shipment_id=payload.shipment_id, pickup_address=payload.pickup_address, delivery_address=payload.delivery_address, vehicle_type_requested=payload.vehicle_type_requested, notes=payload.notes, booked_by=current_user.email)
         return _booking_to_response(booking)
@@ -376,7 +376,7 @@ def create_booking_route(tenant_id: str, payload: BookingCreateRequest, db: Sess
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 @router.get('/{tenant_id}/bookings', response_model=dict)
-def list_tenant_bookings(tenant_id: str, status: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_tenant_bookings(tenant_id: str, status: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     (items, total) = list_bookings(db, tenant_id=tenant_id, status=status, page=page, page_size=page_size)
     pages = max(1, (total + page_size - 1) // page_size)
     return {'items': [_booking_to_response(b).model_dump(mode='json') for b in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
@@ -388,7 +388,7 @@ def list_my_bookings(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     vendor = get_vendor_by_email(db, current_user.email)
     if not vendor:
@@ -398,14 +398,14 @@ def list_my_bookings(
     return {'items': [_booking_to_response(b).model_dump(mode='json') for b in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
 
 @router.get('/{tenant_id}/bookings/{booking_id}', response_model=BookingResponse)
-def get_booking_route(tenant_id: str, booking_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def get_booking_route(tenant_id: str, booking_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     booking = get_booking(db, booking_id)
     if not booking or str(booking.tenant_id) != tenant_id:
         raise HTTPException(status_code=404, detail='Booking not found')
     return _booking_to_response(booking)
 
 @router.patch('/{tenant_id}/bookings/{booking_id}', response_model=BookingResponse)
-def update_booking_route(tenant_id: str, booking_id: str, payload: BookingUpdateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def update_booking_route(tenant_id: str, booking_id: str, payload: BookingUpdateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     existing = get_booking(db, booking_id)
     if not existing or str(existing.tenant_id) != tenant_id:
         raise HTTPException(status_code=404, detail='Booking not found')
@@ -420,7 +420,7 @@ def accept_my_booking_route(
     booking_id: str,
     payload: BookingDecisionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     vendor = get_vendor_by_email(db, current_user.email)
     if not vendor:
@@ -439,7 +439,7 @@ def reject_my_booking_route(
     booking_id: str,
     payload: BookingDecisionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     vendor = get_vendor_by_email(db, current_user.email)
     if not vendor:

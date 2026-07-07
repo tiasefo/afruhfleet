@@ -2,7 +2,7 @@ from __future__ import annotations
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
 from app.models.shipment import Shipment, ShipmentStatus
@@ -13,7 +13,7 @@ router = APIRouter(prefix='/geo', tags=['Geo & Maps'])
 logger = get_logger('afruheritage.geo.api')
 
 @router.get('/geocode')
-def geocode_address(tenant_id: str, address: str=Query(..., min_length=2), city: str | None=Query(None), region: str | None=Query(None), country: str | None=Query(None), use_priority_service: bool=Query(False), current_user: User=Depends(get_current_user)):
+def geocode_address(tenant_id: str, address: str=Query(..., min_length=2), city: str | None=Query(None), region: str | None=Query(None), country: str | None=Query(None), use_priority_service: bool=Query(False), current_user: User=Depends(require_active_subscription)):
     """Geocode address with optional priority country enhancements"""
     if use_priority_service:
         result = global_geo_service.geocode_priority_country(address, city, region, country)
@@ -29,7 +29,7 @@ def geocode_address(tenant_id: str, address: str=Query(..., min_length=2), city:
     raise HTTPException(status_code=404, detail='Could not geocode address')
 
 @router.get('/geocode/priority')
-def geocode_priority_address(tenant_id: str, address: str=Query(..., min_length=2), city: str | None=Query(None), region: str | None=Query(None), country: str | None=Query(None), current_user: User=Depends(get_current_user)):
+def geocode_priority_address(tenant_id: str, address: str=Query(..., min_length=2), city: str | None=Query(None), region: str | None=Query(None), country: str | None=Query(None), current_user: User=Depends(require_active_subscription)):
     """Priority geocoding with Ghana and China optimizations"""
     result = global_geo_service.geocode_priority_country(address, city, region, country)
     if not result:
@@ -39,7 +39,7 @@ def geocode_priority_address(tenant_id: str, address: str=Query(..., min_length=
     return result
 
 @router.get('/geocode/city')
-def geocode_city_region(tenant_id: str, city: str=Query(..., min_length=2), region: str | None=Query(None), country: str | None=Query(None), current_user: User=Depends(get_current_user)):
+def geocode_city_region(tenant_id: str, city: str=Query(..., min_length=2), region: str | None=Query(None), country: str | None=Query(None), current_user: User=Depends(require_active_subscription)):
     """Geocode city with region context for priority countries"""
     result = global_geo_service.geocode_country_city_region(city, region, country)
     if not result:
@@ -49,7 +49,7 @@ def geocode_city_region(tenant_id: str, city: str=Query(..., min_length=2), regi
     return result
 
 @router.get('/route')
-def calculate_route(tenant_id: str, origin_lat: float=Query(...), origin_lng: float=Query(...), dest_lat: float=Query(...), dest_lng: float=Query(...), origin_city: str | None=Query(None), dest_city: str | None=Query(None), country: str | None=Query(None), use_priority_service: bool=Query(False), current_user: User=Depends(get_current_user)):
+def calculate_route(tenant_id: str, origin_lat: float=Query(...), origin_lng: float=Query(...), dest_lat: float=Query(...), dest_lng: float=Query(...), origin_city: str | None=Query(None), dest_city: str | None=Query(None), country: str | None=Query(None), use_priority_service: bool=Query(False), current_user: User=Depends(require_active_subscription)):
     """Calculate route with optional priority country optimizations"""
     if use_priority_service:
         result = global_geo_service.calculate_priority_route((origin_lat, origin_lng), (dest_lat, dest_lng), origin_city, dest_city, country)
@@ -62,7 +62,7 @@ def calculate_route(tenant_id: str, origin_lat: float=Query(...), origin_lng: fl
     return result
 
 @router.get('/route/priority')
-def calculate_priority_route(tenant_id: str, origin: str=Query(..., min_length=2), destination: str=Query(..., min_length=2), country: str | None=Query(None), current_user: User=Depends(get_current_user)):
+def calculate_priority_route(tenant_id: str, origin: str=Query(..., min_length=2), destination: str=Query(..., min_length=2), country: str | None=Query(None), current_user: User=Depends(require_active_subscription)):
     """Calculate priority route using city names"""
     result = global_geo_service.calculate_priority_route(origin, destination, country=country)
     if not result:
@@ -72,21 +72,21 @@ def calculate_priority_route(tenant_id: str, origin: str=Query(..., min_length=2
     return result
 
 @router.get('/nearby-cities')
-def get_nearby_priority_cities(tenant_id: str, lat: float=Query(...), lng: float=Query(...), radius_km: float=Query(50, ge=1, le=200), country: str | None=Query(None), current_user: User=Depends(get_current_user)):
+def get_nearby_priority_cities(tenant_id: str, lat: float=Query(...), lng: float=Query(...), radius_km: float=Query(50, ge=1, le=200), country: str | None=Query(None), current_user: User=Depends(require_active_subscription)):
     """Find priority country cities within radius of coordinates"""
     cities = global_geo_service.get_nearby_priority_cities(lat, lng, radius_km, country)
     logger.info('Found %d priority cities within %s km', len(cities), radius_km)
     return {'cities': cities, 'count': len(cities)}
 
 @router.post('/validate/address')
-def validate_priority_address(tenant_id: str, address: str=Query(..., min_length=5), current_user: User=Depends(get_current_user)):
+def validate_priority_address(tenant_id: str, address: str=Query(..., min_length=5), current_user: User=Depends(require_active_subscription)):
     """Validate priority country address and extract components"""
     validation = global_geo_service.validate_priority_address(address)
     logger.info('Address validation: confidence=%.2f, country=%s', validation['confidence'], validation['country'])
     return validation
 
 @router.get('/country/{country}')
-def get_country_info(tenant_id: str, country: str, current_user: User=Depends(get_current_user)):
+def get_country_info(tenant_id: str, country: str, current_user: User=Depends(require_active_subscription)):
     """Get country information for priority countries"""
     info = global_geo_service.get_country_info(country)
     if not info:
@@ -94,7 +94,7 @@ def get_country_info(tenant_id: str, country: str, current_user: User=Depends(ge
     return info
 
 @router.get('/{tenant_id}/shipment-routes')
-def get_active_shipment_routes(tenant_id: str, use_priority_service: bool=Query(False), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def get_active_shipment_routes(tenant_id: str, use_priority_service: bool=Query(False), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Get active shipment routes with optional priority country geocoding"""
     active_statuses = [ShipmentStatus.BOOKED, ShipmentStatus.PICKED_UP, ShipmentStatus.IN_TRANSIT, ShipmentStatus.AT_CUSTOMS, ShipmentStatus.CUSTOMS_CLEARED, ShipmentStatus.OUT_FOR_DELIVERY]
     shipments = db.query(Shipment).filter(Shipment.tenant_id == tenant_id, Shipment.status.in_(active_statuses)).limit(500).all()

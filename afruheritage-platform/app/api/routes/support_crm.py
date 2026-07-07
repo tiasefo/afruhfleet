@@ -3,7 +3,7 @@ from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from uuid import UUID
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.support_crm import CRMAccount, CRMContact, Opportunity, Quote, SupportTicket, SupportTicketMessage
 from app.models.tenant import Tenant
@@ -23,7 +23,7 @@ def _resolve_tenant_uuid(db: Session, tenant_identifier: str) -> str:
         raise HTTPException(status_code=422, detail='Invalid tenant_id. Provide a valid tenant UUID or known tenant slug.')
 
 @router.post('/accounts', response_model=CRMAccountResponse)
-def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -32,7 +32,7 @@ def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session
     return CRMAccountResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), account_type=obj.account_type.value, company_name=obj.company_name, email=obj.email, phone=obj.phone)
 
 @router.get('/accounts', response_model=list[CRMAccountResponse])
-def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     accounts = db.query(CRMAccount).filter(CRMAccount.tenant_id == str(current_user.tenant_id)).order_by(CRMAccount.created_at.desc()).all()
@@ -49,7 +49,7 @@ def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
     ]
 
 @router.get('/contacts', response_model=list[CRMContactResponse])
-def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     contacts = db.query(CRMContact).filter(CRMContact.tenant_id == str(current_user.tenant_id)).order_by(CRMContact.created_at.desc()).all()
@@ -67,7 +67,7 @@ def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
     ]
 
 @router.post('/contacts', response_model=CRMContactResponse)
-def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -76,7 +76,7 @@ def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session
     return CRMContactResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), account_id=str(obj.account_id), first_name=obj.first_name, last_name=obj.last_name, email=obj.email, phone=obj.phone)
 
 @router.get('/opportunities', response_model=list[OpportunityResponse])
-def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     opportunities = db.query(Opportunity).filter(Opportunity.tenant_id == str(current_user.tenant_id)).order_by(Opportunity.created_at.desc()).all()
@@ -93,7 +93,7 @@ def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user
     ]
 
 @router.post('/opportunities', response_model=OpportunityResponse)
-def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -102,7 +102,7 @@ def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, 
     return OpportunityResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), title=obj.title, stage=obj.stage.value, currency=obj.currency, estimated_value=float(obj.estimated_value) if obj.estimated_value is not None else None)
 
 @router.get('/quotes', response_model=list[QuoteResponse])
-def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     quotes = db.query(Quote).filter(Quote.tenant_id == str(current_user.tenant_id)).order_by(Quote.created_at.desc()).all()
@@ -119,7 +119,7 @@ def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=
     ]
 
 @router.post('/quotes', response_model=QuoteResponse)
-def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -212,7 +212,7 @@ def list_tenant_tickets(
     page: int=Query(1, ge=1),
     page_size: int=Query(20, ge=1, le=100),
     db: Session=Depends(get_db),
-    current_user: User=Depends(get_current_user),
+    current_user: User=Depends(require_active_subscription),
 ):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
@@ -253,7 +253,7 @@ def list_tenant_tickets(
 
 
 @router.get('/tickets/{ticket_id}/messages', response_model=list[SupportTicketMessageResponse])
-def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
@@ -264,7 +264,7 @@ def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), cur
 
 
 @router.post('/tickets/{ticket_id}/reply', response_model=SupportTicketMessageResponse)
-def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
@@ -279,7 +279,7 @@ def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session
 
 
 @router.patch('/tickets/{ticket_id}/status', response_model=dict)
-def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()

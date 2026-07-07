@@ -2,7 +2,7 @@ from app.core.config import settings
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
 from app.models.tenant import Tenant
 from app.models.user import User
@@ -26,7 +26,7 @@ def admin_analytics_summary(db: Session=Depends(get_db), current_user: User=Depe
     return {'tenants': tenants, 'users': users, 'kyc_total': kyc_total, 'kyc_approved': kyc_approved, 'shipments': shipments, 'payments': payments, 'revenue': revenue_sum}
 
 @router.get('/{tenant_id}/dashboard')
-def tenant_analytics_dashboard(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def tenant_analytics_dashboard(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Return tenant-scoped analytics dashboard data."""
     from app.models.tenant import LaunchStatus
     tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import io
 import uuid
 
-from app.api.deps import get_current_user, require_tenant_admin
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.branding import BrandingResponse, BrandingUpdate
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/branding", tags=["Tenant Branding"])
 def get_branding_route(
     tenant_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     branding = get_tenant_branding(db, tenant_id)
     if not branding:

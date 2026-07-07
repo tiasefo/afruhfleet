@@ -8,7 +8,7 @@ from pydantic import BaseModel, field_serializer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_superuser, require_tenant_admin
+from app.api.deps import get_current_user, require_superuser, require_tenant_admin, require_active_subscription
 from app.db.session import get_db
 from app.models.rbac import Role, Permission, RolePermission, UserRole, PermissionType, ResourceType
 from app.models.user import User
@@ -228,7 +228,7 @@ def create_permission(
 
 
 @router.get('/roles', response_model=list[RoleResponse])
-def list_roles(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def list_roles(db: Session = Depends(get_db), current_user: User = Depends(require_active_subscription)):
     """List roles - superusers see all, tenant admins see only public roles."""
     seed_default_roles(db)
     
@@ -431,7 +431,7 @@ def remove_role_from_user(
 def list_user_roles(
     user_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_active_subscription),
 ):
     """List all roles for a user."""
     user_roles = db.scalars(
@@ -457,7 +457,7 @@ def list_user_roles(
 def list_role_permissions(
     role_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_active_subscription),
 ):
     """List all permissions for a role."""
     role_permissions = db.scalars(

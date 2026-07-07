@@ -2,7 +2,7 @@ from __future__ import annotations
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser, require_feature
+from app.api.deps import get_current_user, require_superuser, require_feature, require_active_subscription
 from app.db.session import get_db
 from app.models.custom_domains import CustomDomain, CustomDomainEvent, DomainStatus, TenantDomainSettings
 from app.models.user import User
@@ -128,7 +128,7 @@ def request_domain_simple(
 @router.get('/my-domains', response_model=list[DomainResponse])
 def get_my_domains(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get all custom domains for the authenticated user's tenant."""
     if not current_user.tenant_id:
@@ -141,7 +141,7 @@ def get_my_domains(
 def get_domain_dns_instructions(
     domain_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get the DNS records a tenant needs to add at their registrar for this domain."""
     instructions = get_dns_instructions(db, domain_id)
@@ -154,7 +154,7 @@ def get_domain_dns_instructions(
 def verify_domain(
     domain_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Verify a domain's DNS records and auto-activate if all checks pass.
     Works in both Cloudflare and manual DNS modes."""
@@ -168,7 +168,7 @@ def verify_domain(
 def refresh_domain_status(
     domain_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Polls Cloudflare for the latest SSL/verification status and updates the record."""
     domain = db.query(CustomDomain).filter(CustomDomain.id == domain_id).first()
@@ -217,7 +217,7 @@ def request_domain(
 def get_tenant_domains(
     tenant_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     rows = list_tenant_domains(db, tenant_id)
     return [_domain_to_response(x) for x in rows]
@@ -252,7 +252,7 @@ def fail_domain(
 def get_domain_events(
     domain_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     rows = db.query(CustomDomainEvent).filter(CustomDomainEvent.domain_id == domain_id).order_by(CustomDomainEvent.created_at.asc()).all()
     return [DomainEventResponse(id=str(x.id), domain_id=str(x.domain_id), event_type=x.event_type, message=x.message, payload_json=x.payload_json) for x in rows]
@@ -262,7 +262,7 @@ def get_domain_events(
 def get_tenant_domain_settings(
     tenant_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     row = db.query(TenantDomainSettings).filter(TenantDomainSettings.tenant_id == tenant_id).first()
     if not row:

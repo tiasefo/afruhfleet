@@ -4,7 +4,7 @@ from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
 from app.models.user import User
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/whatsapp", tags=["WhatsApp Notifications"])
 async def configure_whatsapp_groups(
     groups: list[dict],
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Configure WhatsApp groups for tenant notifications"""
     try:
@@ -49,7 +49,7 @@ async def configure_whatsapp_groups(
 
 @router.post("/test-connection")
 async def test_whatsapp_connection(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Test WhatsApp API connection"""
     try:
@@ -81,7 +81,7 @@ async def test_whatsapp_connection(
 async def send_shipment_update(
     shipment_data: dict,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Send shipment update to WhatsApp groups"""
     try:
@@ -116,7 +116,7 @@ async def send_customer_notification(
     customer_phone: str,
     shipment_data: dict,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Send WhatsApp notification directly to customer"""
     try:
@@ -150,7 +150,7 @@ async def send_customer_notification(
 
 @router.get("/status")
 async def get_whatsapp_status(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Get WhatsApp service status"""
     try:

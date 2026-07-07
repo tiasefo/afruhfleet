@@ -6,7 +6,7 @@ import requests
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_active_subscription
 from app.models.user import User
 from app.models.tenant import Tenant
 
@@ -89,7 +89,7 @@ def _get(path: str, tenant: Tenant | None = None):
 
 
 def _get_tenant_from_user(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
     db: Session = Depends(get_db)
 ) -> Tenant | None:
     """Get tenant from current user for org-scoping."""

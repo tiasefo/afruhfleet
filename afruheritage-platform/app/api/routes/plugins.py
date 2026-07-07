@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import json
 
-from app.api.deps import get_db, require_superuser, get_current_user, require_tenant_admin
+from app.api.deps import get_db, require_superuser, get_current_user, require_tenant_admin, require_active_subscription
 from app.plugins import get_all_plugins, get_plugin
 from app.models.user import User
 from app.models.audit import AuditEvent
@@ -77,7 +77,8 @@ def get_plugin_catalog_detail(
 def install_plugin_with_consent(
     request: PluginInstallRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_tenant_admin),
+    current_user: User = Depends(require_active_subscription),
+    _: User = Depends(require_tenant_admin),
 ) -> dict[str, Any]:
     """Install a plugin with explicit consent from tenant admin."""
     if not current_user.tenant_id:

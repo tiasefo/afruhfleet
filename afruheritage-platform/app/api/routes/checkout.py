@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.models.user import User
 from app.models.shipment import Shipment
 
@@ -51,7 +51,7 @@ class CheckoutResponse(BaseModel):
 def create_checkout_shipment(
     request: CheckoutRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """Create a shipment from checkout flow."""
     

@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.core.config import settings
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
@@ -22,7 +22,7 @@ def _resolve_uuid(value: str):
         return value
 
 @router.post('/create', response_model=TenantCreationResponse)
-def create_tenant(request: TenantCreationRequest, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def create_tenant(request: TenantCreationRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Create a new tenant with complete setup"""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can create tenants')
@@ -36,7 +36,7 @@ def create_tenant(request: TenantCreationRequest, db: Session=Depends(get_db), c
         raise HTTPException(status_code=500, detail=f'Failed to create tenant: {str(e)}')
 
 @router.post('/{tenant_id}/setup-infrastructure')
-def setup_tenant_infrastructure(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def setup_tenant_infrastructure(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Queue infrastructure provisioning for a tenant."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can setup infrastructure')
@@ -57,7 +57,7 @@ def setup_tenant_infrastructure(tenant_id: str, db: Session=Depends(get_db), cur
         raise HTTPException(status_code=500, detail=f'Failed to setup infrastructure: {str(e)}')
 
 @router.get('/{tenant_id}/status')
-def get_tenant_status(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def get_tenant_status(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Get comprehensive tenant status"""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can view tenant status')
@@ -70,7 +70,7 @@ def get_tenant_status(tenant_id: str, db: Session=Depends(get_db), current_user:
         raise HTTPException(status_code=500, detail=f'Failed to get tenant status: {str(e)}')
 
 @router.get('/{tenant_id}/portal-url')
-def get_tenant_portal_url(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def get_tenant_portal_url(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Get the portal URL for a tenant"""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can view tenant portal URL')
@@ -87,7 +87,7 @@ def get_tenant_portal_url(tenant_id: str, db: Session=Depends(get_db), current_u
         raise HTTPException(status_code=500, detail=f'Failed to get portal URL: {str(e)}')
 
 @router.post('/auto-provision')
-def auto_provision_tenant(request_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def auto_provision_tenant(request_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     """Auto-provision tenant from registration request (for admin approval)"""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can auto-provision tenants')

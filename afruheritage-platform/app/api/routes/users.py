@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_active_subscription
 from app.core.security import get_password_hash
 from app.core.config import settings
 from app.db.session import get_db
@@ -122,7 +122,7 @@ def _ensure_not_last_tenant_admin(db: Session, target_user: User) -> None:
 def list_users(
     tenant_id: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
     users = db.query(User).filter(User.tenant_id == scope_tenant_id).order_by(User.created_at.desc()).all()
@@ -133,7 +133,7 @@ def list_users(
 def create_user(
     payload: TenantUserCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, payload.tenant_id)
 
@@ -196,7 +196,7 @@ def update_user_status(
     payload: TenantUserStatusUpdateRequest,
     tenant_id: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
 
@@ -236,7 +236,7 @@ def update_user_role(
     payload: TenantUserRoleUpdateRequest,
     tenant_id: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
 
@@ -278,7 +278,7 @@ def delete_user(
     user_id: str,
     tenant_id: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
 
@@ -313,7 +313,7 @@ def list_user_audit_events(
     tenant_id: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
     prefix = f'{{"tenant_id":"{scope_tenant_id}"'
@@ -346,7 +346,7 @@ def send_user_reset_link(
     user_id: str,
     tenant_id: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     scope_tenant_id = _resolve_tenant_scope(current_user, tenant_id)
 
@@ -406,7 +406,7 @@ def bulk_import_users(
     send_invite_email: bool = Query(True),
     domain: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """
     CSV columns (header required): full_name, email, phone, role, goods_description
@@ -654,7 +654,7 @@ def bulk_import_preview(
     tenant_id: str | None = Query(None),
     domain: str | None = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_active_subscription),
 ):
     """
     Parse a CSV file and return a preview of what would happen during bulk import,
