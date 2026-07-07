@@ -34,6 +34,8 @@ class TenantSubscription(Base):
     plan_code: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(50), default="active")
     trial: Mapped[bool] = mapped_column(Boolean, default=False)
+    trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     selected_addons_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     credits_balance: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -44,4 +46,16 @@ class FeatureUsage(Base):
     tenant_id: Mapped[str] = mapped_column(String(255), index=True)
     feature_code: Mapped[str] = mapped_column(String(100), index=True)
     units_used: Mapped[int] = mapped_column(Integer, default=1)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class GiftCard(Base):
+    __tablename__ = "gift_cards"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    code: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    credits: Mapped[int] = mapped_column(Integer, default=0)
+    max_uses: Mapped[int] = mapped_column(Integer, default=1)
+    remaining_uses: Mapped[int] = mapped_column(Integer, default=1)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

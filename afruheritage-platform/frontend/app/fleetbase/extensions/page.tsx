@@ -254,12 +254,18 @@ export default function ExtensionsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <BackButton fallback="/dashboard" />
+      {/* Coming Soon Banner */}
+      <div className="bg-blue-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-center text-sm font-medium">
+          This page is under development. Deploy and install actions are not yet functional.
+        </div>
+      </div>
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Fleetbase Extensions</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Fleetbase Extensions <span className="text-lg font-normal text-gray-500">(Coming Soon)</span></h1>
               <p className="mt-2 text-sm text-gray-600">Manage runtime deployments and extensions</p>
             </div>
             <div className="flex space-x-3">

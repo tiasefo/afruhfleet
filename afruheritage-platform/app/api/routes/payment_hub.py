@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import uuid
+from datetime import datetime, timedelta
 
 import requests
 from fastapi import APIRouter, HTTPException
@@ -47,6 +48,8 @@ def activate_subscription_after_payment(db, tx, raw_data=None):
             plan_code=plan_code,
             status="active",
             trial=False,
+            trial_ends_at=None,
+            current_period_end=datetime.utcnow() + timedelta(days=30),
             selected_addons_json=_json.dumps(addons),
             credits_balance=included_credits,
         )
@@ -54,6 +57,8 @@ def activate_subscription_after_payment(db, tx, raw_data=None):
         sub.plan_code = plan_code
         sub.status = "active"
         sub.trial = False
+        sub.trial_ends_at = None
+        sub.current_period_end = datetime.utcnow() + timedelta(days=30)
         sub.selected_addons_json = _json.dumps(addons)
         sub.credits_balance += included_credits
 

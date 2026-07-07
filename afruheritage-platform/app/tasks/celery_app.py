@@ -33,4 +33,8 @@ celery_app.conf.beat_schedule = {
         'task': 'app.tasks.subscription_checks.check_expiring_subscriptions',
         'schedule': crontab(hour='3', minute='0'),  # Daily at 3 AM UTC
     },
+    'trial-expiry-downgrade': {
+        'task': 'app.tasks.subscription_checks.downgrade_expired_trials',
+        'schedule': crontab(hour='3', minute='15'),  # Daily at 3:15 AM UTC
+    },
 }

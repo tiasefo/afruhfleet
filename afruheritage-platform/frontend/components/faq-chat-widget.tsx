@@ -29,6 +29,7 @@ interface Message {
   content: string
   timestamp: Date
   isSupportRedirect?: boolean
+  isUpgradePrompt?: boolean
 }
 
 interface WidgetConfig {
@@ -206,7 +207,22 @@ export function FAQChatWidget() {
         }),
       })
 
-      if (!res.ok) throw new Error('AI request failed')
+      if (!res.ok) {
+        if (res.status === 403) {
+          const errorData = await res.json().catch(() => null)
+          const featureName = errorData?.detail?.required_feature || 'this feature'
+          const upgradeMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: `AI chat is not available on your current plan. Upgrade to Pro to unlock ${featureName.replace(/_/g, ' ')} and more features.`,
+            timestamp: new Date(),
+            isUpgradePrompt: true,
+          }
+          setMessages((prev) => [...prev, upgradeMessage])
+          return
+        }
+        throw new Error('AI request failed')
+      }
       const data = await res.json()
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -427,6 +443,21 @@ export function FAQChatWidget() {
                               >
                                 <HelpCircle className="h-3.5 w-3.5" />
                                 Create Support Ticket
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Button>
+                            </Link>
+                          </div>
+                        )}
+                        {message.isUpgradePrompt && (
+                          <div className="mt-3">
+                            <Link href="/billing">
+                              <Button
+                                size="sm"
+                                className="gap-1 text-white hover:opacity-90"
+                                style={{ backgroundColor: headerColor }}
+                              >
+                                <Sparkles className="h-3.5 w-3.5" />
+                                Upgrade Plan
                                 <ArrowRight className="h-3.5 w-3.5" />
                               </Button>
                             </Link>

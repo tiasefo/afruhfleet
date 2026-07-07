@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_feature
 from app.models.user import User
 from app.services.billing_service import consume_wallet_credits, evaluate_subscription_state, feature_credit_cost, feature_enabled_for_plan
 
@@ -85,14 +85,9 @@ def ai_chat_public(payload: AIChatRequest) -> AIChatResponse:
 def ai_chat(
     payload: AIChatRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature('ai_basic')),
 ) -> AIChatResponse:
     tenant_id = str(getattr(current_user, 'tenant_id', '') or '')
-
-    if tenant_id:
-        sub = evaluate_subscription_state(db, tenant_id)
-        if sub and not feature_enabled_for_plan(sub.plan_code.value, 'ai_assistant'):
-            raise HTTPException(status_code=403, detail='Current plan does not include AI Assistant')
 
     scopes = ['shared']
     if payload.tenant_scope:

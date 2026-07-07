@@ -2,7 +2,7 @@ from __future__ import annotations
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_feature
 from app.db.session import get_db
 from app.models.custom_domains import CustomDomain, CustomDomainEvent, DomainStatus, TenantDomainSettings
 from app.models.user import User
@@ -96,7 +96,7 @@ def resolve_hostname(hostname: str = Query(..., description="Full hostname to re
 def request_domain_simple(
     request: DomainRequestSimple,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature('custom_domain')),
 ):
     """Simplified domain request — auto-resolves tenant from the authenticated user.
     No need to pass tenant_id. Determines domain_type automatically."""
@@ -193,7 +193,7 @@ def request_domain(
     tenant_id: str,
     request: DomainRequestCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature('custom_domain')),
 ):
     effective_tenant_id = current_user.tenant_id or tenant_id or request.tenant_id
     if not effective_tenant_id:

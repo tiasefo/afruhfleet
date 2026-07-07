@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_feature
 from app.models.user import User
 
 router = APIRouter(prefix="/estimate", tags=["Shipping Estimate"])
@@ -52,7 +52,7 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 def get_shipping_estimate(
     request: EstimateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_feature('shipping_estimator')),
 ):
     """Get shipping cost estimate based on distance and weight."""
     

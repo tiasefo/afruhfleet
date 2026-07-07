@@ -111,6 +111,60 @@ def require_superuser(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+def require_tenant_admin(current_user: User = Depends(get_current_user)) -> User:
+    """Require tenant admin access (superuser or tenant admin)."""
+    if not current_user.is_superuser and not current_user.is_tenant_admin:
+        raise HTTPException(status_code=403, detail='Tenant admin access required')
+    return current_user
+
+
+def get_current_tenant(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Get current tenant context for the authenticated user."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=404, detail='No tenant context')
+    
+    tenant = db.get(Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    
+    return {
+        "id": str(tenant.id),
+        "slug": tenant.slug,
+        "company_name": tenant.company_name,
+    }
+
+
+def get_current_group_member(request: Request, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get current group member for the authenticated user."""
+    from app.models.shipment import GroupMember
+    from app.models.group_members import GroupMemberRole
+    
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=403, detail='No tenant context')
+    
+    member = db.query(GroupMember).filter(
+        GroupMember.user_id == current_user.id,
+        GroupMember.tenant_id == current_user.tenant_id
+    ).first()
+    
+    if not member:
+        # Create a GroupMember if it doesn't exist, using is_tenant_admin to determine role
+        role = GroupMemberRole.ADMIN if current_user.is_tenant_admin else GroupMemberRole.CUSTOMER
+        member = GroupMember(
+            tenant_id=current_user.tenant_id,
+            user_id=current_user.id,
+            full_name=current_user.full_name,
+            email=current_user.email,
+            role=role,
+            is_active=True,
+        )
+        db.add(member)
+        db.commit()
+        db.refresh(member)
+    
+    return member
+
+
 def require_active_subscription(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -148,3 +202,44 @@ def require_active_subscription(
         )
     
     return current_user
+
+
+def require_feature(feature_code: str):
+    """FastAPI dependency factory that checks if the current user's tenant has
+    access to a specific feature based on their subscription tier.
+
+    Usage:
+        @router.post("/ai/chat")
+        def ai_chat(..., _: User = Depends(require_feature("ai_chat"))):
+    """
+    def _check_feature(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> User:
+        if current_user.is_superuser:
+            return current_user
+
+        if not current_user.tenant_id:
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "no_tenant_context",
+                    "required_feature": feature_code,
+                    "message": "No tenant associated with this user.",
+                },
+            )
+
+        from app.services.entitlements import tenant_has_feature
+
+        if not tenant_has_feature(db, str(current_user.tenant_id), feature_code):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "feature_not_available_on_plan",
+                    "required_feature": feature_code,
+                    "message": "Upgrade your subscription to access this feature.",
+                },
+            )
+        return current_user
+
+    return _check_feature
