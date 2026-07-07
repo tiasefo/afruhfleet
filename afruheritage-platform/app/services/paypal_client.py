@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 
 import httpx
 
@@ -95,3 +96,36 @@ def get_order(order_id: str) -> dict:
         )
         resp.raise_for_status()
         return resp.json()
+
+
+def verify_webhook_signature(
+    *,
+    webhook_id: str,
+    transmission_id: str,
+    transmission_sig: str,
+    cert_url: str,
+    auth_algo: str,
+    raw_body: bytes,
+) -> bool:
+    if not webhook_id:
+        return False
+    token = get_access_token()
+    with httpx.Client(timeout=30.0) as client:
+        resp = client.post(
+            f"{_base_url()}/v1/notifications/verify-webhook-signature",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "auth_algo": auth_algo,
+                "cert_url": cert_url,
+                "transmission_id": transmission_id,
+                "transmission_sig": transmission_sig,
+                "webhook_id": webhook_id,
+                "webhook_event": json.loads(raw_body),
+            },
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        return result.get("verification_status") == "SUCCESS"

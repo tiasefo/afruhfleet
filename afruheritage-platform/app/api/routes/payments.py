@@ -22,7 +22,9 @@ from app.schemas.payment import (
     PaymentStatistics,
     WebhookResponse,
 )
+from app.core.config import settings
 from app.services.paystack_client import verify_webhook_signature
+from app.services.paypal_client import verify_webhook_signature as verify_paypal_webhook_signature
 from app.services.platform_payment_service import get_platform_payment_service
 
 logger = get_logger("afruheritage.payments_api")
@@ -268,6 +270,39 @@ async def paypal_webhook(
 ):
     """Handle PayPal webhook notifications"""
     try:
+        raw_body = await request.body()
+
+        webhook_id = settings.paypal_webhook_id
+        if not webhook_id:
+            logger.error("PayPal webhook received but PAYPAL_WEBHOOK_ID is not configured")
+            raise HTTPException(status_code=500, detail="PayPal webhook verification not configured")
+
+        transmission_id = request.headers.get("paypal-transmission-id", "")
+        transmission_sig = request.headers.get("paypal-transmission-sig", "")
+        cert_url = request.headers.get("paypal-cert-url", "")
+        auth_algo = request.headers.get("paypal-auth-algo", "")
+
+        if not transmission_sig or not cert_url or not transmission_id:
+            logger.warning("PayPal webhook missing required signature headers")
+            raise HTTPException(status_code=401, detail="Missing PayPal signature headers")
+
+        try:
+            verified = verify_paypal_webhook_signature(
+                webhook_id=webhook_id,
+                transmission_id=transmission_id,
+                transmission_sig=transmission_sig,
+                cert_url=cert_url,
+                auth_algo=auth_algo,
+                raw_body=raw_body,
+            )
+        except Exception as verify_exc:
+            logger.error("PayPal webhook signature verification failed", extra={"error": str(verify_exc)})
+            raise HTTPException(status_code=401, detail="PayPal webhook signature verification failed")
+
+        if not verified:
+            logger.warning("PayPal webhook signature verification returned FAILURE")
+            raise HTTPException(status_code=401, detail="Invalid PayPal webhook signature")
+
         webhook_data = await request.json()
 
         resource = webhook_data.get("resource") or {}
@@ -288,6 +323,8 @@ async def paypal_webhook(
         result = await payment_service.handle_paypal_webhook(webhook_data, db)
         logger.info("PayPal webhook processed", extra={"event": webhook_data.get("event_type"), "result": result})
         return WebhookResponse(**result)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("PayPal webhook processing failed", extra={"error": str(e)})
         return WebhookResponse(status="error", reason=str(e))

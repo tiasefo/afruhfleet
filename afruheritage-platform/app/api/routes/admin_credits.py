@@ -1,8 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.models.saas_subscription import TenantSubscription, FeatureUsage
+from app.api.deps import require_superuser
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/credits", tags=["Admin Credits"])
 
@@ -10,7 +12,7 @@ engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 @router.get("/{tenant_id}")
-def tenant_credits(tenant_id: str):
+def tenant_credits(tenant_id: str, _: User = Depends(require_superuser)):
     db = SessionLocal()
     try:
         sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == tenant_id).first()
@@ -42,7 +44,7 @@ def tenant_credits(tenant_id: str):
         db.close()
 
 @router.post("/{tenant_id}/topup/{credits}")
-def topup_credits(tenant_id: str, credits: int):
+def topup_credits(tenant_id: str, credits: int, _: User = Depends(require_superuser)):
     db = SessionLocal()
     try:
         sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == tenant_id).first()

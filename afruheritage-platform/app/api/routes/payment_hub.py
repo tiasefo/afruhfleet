@@ -301,6 +301,18 @@ def verify_payment(reference: str):
         paystack_status = data.get("data", {}).get("status")
 
         if data.get("status") and paystack_status == "success":
+            if tx.status == "success":
+                return {
+                    "reference": tx.reference,
+                    "provider_reference": tx.provider_reference,
+                    "status": tx.status,
+                    "tenant_id": tx.tenant_id,
+                    "purpose": tx.purpose,
+                    "amount": tx.amount,
+                    "currency": tx.currency,
+                    "paystack_status": paystack_status,
+                }
+
             tx.status = "success"
 
             if tx.purpose == "credit_topup":
@@ -308,9 +320,6 @@ def verify_payment(reference: str):
                 if sub:
                     sub.credits_balance += int(tx.amount)
                     db.add(sub)
-
-            if tx.purpose == "subscription":
-                activate_subscription_after_payment(db, tx)
 
             if tx.purpose == "subscription":
                 activate_subscription_after_payment(db, tx)
@@ -433,9 +442,6 @@ async def paystack_webhook(request: Request):
                 if sub:
                     sub.credits_balance += int(tx.amount)
                     db.add(sub)
-
-            if tx.purpose == "subscription":
-                activate_subscription_after_payment(db, tx)
 
             if tx.purpose == "subscription":
                 activate_subscription_after_payment(db, tx)

@@ -4,6 +4,8 @@ from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional, Any
 from app.db.session import get_db
+from app.api.deps import require_superuser
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/billing-config", tags=["Admin Billing Config"])
 
@@ -36,7 +38,7 @@ class ExchangeRateUpdate(BaseModel):
     rate: float
 
 @router.get("/plans")
-def list_plans(db: Session = Depends(get_db)):
+def list_plans(db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     rows = db.execute(text("""
         SELECT bp.id, bp.code, bp.name, bp.description, bp.price_amount, bp.currency,
                bp.billing_interval, bp.is_active,
@@ -54,7 +56,7 @@ def list_plans(db: Session = Depends(get_db)):
     return [dict(r) for r in rows]
 
 @router.get("/features/{plan_code}")
-def list_plan_features(plan_code: str, db: Session = Depends(get_db)):
+def list_plan_features(plan_code: str, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     rows = db.execute(text("""
         SELECT bpf.*
         FROM billing_plan_features bpf
@@ -65,7 +67,7 @@ def list_plan_features(plan_code: str, db: Session = Depends(get_db)):
     return [dict(r) for r in rows]
 
 @router.put("/plans/{plan_code}/price/{currency}")
-def update_plan_price(plan_code: str, currency: str, payload: PlanPriceUpdate, db: Session = Depends(get_db)):
+def update_plan_price(plan_code: str, currency: str, payload: PlanPriceUpdate, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     plan = db.execute(text("SELECT id FROM billing_plans WHERE code=:code"), {"code": plan_code}).mappings().first()
     if not plan:
         raise HTTPException(404, "Plan not found")
@@ -96,7 +98,7 @@ def update_plan_price(plan_code: str, currency: str, payload: PlanPriceUpdate, d
     return {"status": "updated"}
 
 @router.put("/plans/{plan_code}/features/{feature_code}")
-def update_feature(plan_code: str, feature_code: str, payload: FeatureUpdate, db: Session = Depends(get_db)):
+def update_feature(plan_code: str, feature_code: str, payload: FeatureUpdate, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     plan = db.execute(text("SELECT id FROM billing_plans WHERE code=:code"), {"code": plan_code}).mappings().first()
     if not plan:
         raise HTTPException(404, "Plan not found")
@@ -126,7 +128,7 @@ def update_feature(plan_code: str, feature_code: str, payload: FeatureUpdate, db
     return {"status": "updated"}
 
 @router.get("/credit-packs")
-def list_credit_packs(db: Session = Depends(get_db)):
+def list_credit_packs(db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     rows = db.execute(text("""
         SELECT * FROM billing_credit_packs
         ORDER BY sort_order, credits
@@ -134,7 +136,7 @@ def list_credit_packs(db: Session = Depends(get_db)):
     return [dict(r) for r in rows]
 
 @router.put("/credit-packs/{code}")
-def upsert_credit_pack(code: str, payload: CreditPackUpdate, db: Session = Depends(get_db)):
+def upsert_credit_pack(code: str, payload: CreditPackUpdate, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     db.execute(text("""
         INSERT INTO billing_credit_packs (
             code,name,credits,bonus_credits,currency,price,display_equivalent,is_active
@@ -162,7 +164,7 @@ def upsert_credit_pack(code: str, payload: CreditPackUpdate, db: Session = Depen
     return {"status": "updated"}
 
 @router.get("/payment-providers")
-def list_payment_providers(db: Session = Depends(get_db)):
+def list_payment_providers(db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     rows = db.execute(text("""
         SELECT provider_code, provider_name, enabled, supported_currencies, config
         FROM billing_payment_providers
@@ -171,7 +173,7 @@ def list_payment_providers(db: Session = Depends(get_db)):
     return [dict(r) for r in rows]
 
 @router.put("/payment-providers/{provider_code}")
-def update_payment_provider(provider_code: str, payload: ProviderUpdate, db: Session = Depends(get_db)):
+def update_payment_provider(provider_code: str, payload: ProviderUpdate, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     db.execute(text("""
         UPDATE billing_payment_providers
         SET enabled=:enabled, supported_currencies=:currencies
@@ -185,7 +187,7 @@ def update_payment_provider(provider_code: str, payload: ProviderUpdate, db: Ses
     return {"status": "updated"}
 
 @router.get("/exchange-rates")
-def list_exchange_rates(db: Session = Depends(get_db)):
+def list_exchange_rates(db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     rows = db.execute(text("""
         SELECT base_currency, target_currency, rate, source, is_active, updated_at
         FROM billing_exchange_rates
@@ -194,7 +196,7 @@ def list_exchange_rates(db: Session = Depends(get_db)):
     return [dict(r) for r in rows]
 
 @router.put("/exchange-rates/USD/{target_currency}")
-def update_exchange_rate(target_currency: str, payload: ExchangeRateUpdate, db: Session = Depends(get_db)):
+def update_exchange_rate(target_currency: str, payload: ExchangeRateUpdate, db: Session = Depends(get_db), _: User = Depends(require_superuser)):
     db.execute(text("""
         INSERT INTO billing_exchange_rates (base_currency,target_currency,rate,source,is_active,updated_at)
         VALUES ('USD',:target,:rate,'admin_configured',true,now())
