@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://api:8000/api/v1'
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100') + '/api/v1'
 
 // Hosts that are the platform itself — never resolve as tenant subdomains
 const PLATFORM_HOSTS = new Set([
@@ -10,13 +10,16 @@ const PLATFORM_HOSTS = new Set([
   'www.afruheritage.com',
   'app.afruheritage.com',
   'api.afruheritage.com',
+  'admin.afruheritage.com',
+  'sentinel.afruheritage.com',
 ])
 
-// Emergency: Force Amooksco template for specific subdomains
-const AMOOKSCO_SUBDOMAINS = new Set([
-  'amooskco',
-  'amooskco.afruheritage.com',
-])
+// Subdomains that should render specific storefront templates.
+// TEMPORARILY DISABLED (Jul 2026): the golden tenant `amooksco` is being validated
+// on the DEFAULT platform template first (verify all tenant features work end-to-end)
+// before the custom `/amooksco-storefront` template is re-enabled and its routing fixed.
+// Re-add `'amooksco': '/amooksco-storefront'` here to switch back to the custom storefront.
+const STOREFRONT_SUBDOMAINS: Record<string, string> = {}
 
 // Routes that are publicly accessible without auth
 const PUBLIC_ROUTES = new Set([
@@ -27,6 +30,9 @@ const PUBLIC_ROUTES = new Set([
   '/terms-of-service',
   '/privacy-policy',
   '/track',
+  '/amooksco-storefront',
+  '/amooksco-storefront/login',
+  '/amooksco-storefront/signup',
 ])
 
 // Route prefixes that are publicly accessible
@@ -47,6 +53,7 @@ const PUBLIC_PREFIXES = [
   '/favicon',
   '/static/',
   '/assets/',
+  '/amooksco-storefront',
 ]
 
 function isIp(host: string) {
@@ -77,21 +84,26 @@ export async function middleware(req: NextRequest) {
   const host = req.headers.get('host')?.toLowerCase().split(':')[0] ?? ''
   const pathname = req.nextUrl.pathname
 
-  // DEBUG: Log all requests
-  console.log('Middleware - Host:', host, 'Path:', pathname)
-
-  // Emergency: Force Amooksco template for Amooksco subdomains
-  if (AMOOKSCO_SUBDOMAINS.has(host) || host.includes('amooskco')) {
-    console.log('Detected Amooksco subdomain, redirecting to /amooskco-storefront')
-    // Redirect to a dedicated Amooksco route
-    if (pathname !== '/amooskco-storefront') {
-      const amooskcoUrl = new URL('/amooskco-storefront', req.url)
-      return NextResponse.redirect(amooskcoUrl)
+  // 0. Check for storefront subdomains and redirect to their specific routes
+  const subdomain = isPlatformSubdomain(host)
+  if (subdomain && STOREFRONT_SUBDOMAINS[subdomain]) {
+    const storefrontPath = STOREFRONT_SUBDOMAINS[subdomain]
+    // Skip redirect for API requests - let them pass through to backend
+    if (pathname.startsWith('/api/')) {
+      const res = NextResponse.next()
+      res.headers.set('x-tenant-slug', subdomain)
+      return res
     }
-    // Inject headers to force Amooksco template
+    // If not already on the storefront path, redirect
+    if (!pathname.startsWith(storefrontPath)) {
+      const storefrontUrl = new URL(storefrontPath, req.url)
+      const res = NextResponse.redirect(storefrontUrl)
+      res.headers.set('x-tenant-slug', subdomain)
+      return res
+    }
+    // Already on storefront path, inject tenant slug header
     const res = NextResponse.next()
-    res.headers.set('x-tenant-slug', 'amooskco')
-    res.headers.set('x-force-template', 'amooksco')
+    res.headers.set('x-tenant-slug', subdomain)
     return res
   }
 
@@ -107,11 +119,12 @@ export async function middleware(req: NextRequest) {
   }
 
   // 3. Skip for *.afruheritage.com subdomains — those use the subdomain as slug directly
-  const subdomain = isPlatformSubdomain(host)
-  if (subdomain) {
+  // (Note: subdomain was already checked in step 0 for storefront routing)
+  const tenantSubdomain = isPlatformSubdomain(host)
+  if (tenantSubdomain) {
     // Inject x-tenant-slug header so pages can use it as fallback
     const res = NextResponse.next()
-    res.headers.set('x-tenant-slug', subdomain)
+    res.headers.set('x-tenant-slug', tenantSubdomain)
     return res
   }
 

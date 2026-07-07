@@ -45,34 +45,30 @@ All 12 custom domain endpoints were tested against a live FastAPI server. All pa
 
 ---
 
-## 2. Known Bugs — Fixed in Working Tree (UNCOMMITTED) ⚠️
+## 2. Known Bugs — Status Update (Jul 7, 2026)
 
-These bugs were identified in a prior deep-dive review. The fixes exist in the **working tree** but have **not been committed to git**. `git log --since="2 days ago"` returns empty for all three files. `git diff` confirms the changes are present but unstaged.
-
-> **Action required:** These changes need to be committed. If the working tree is lost (e.g. `git checkout`), the fixes revert and the deep-dive findings stand again.
+All four bugs identified in a prior deep-dive review have been fixed. Three are committed; one remains uncommitted in the working tree.
 
 ### Bug A: `fleetbase_tenant_proxy.py` — POST body data loss
 - **Status:** FIXED (uncommitted) — All POST handlers are `async def` and use `await request.json()`.
 - **Verified at:** `app/api/routes/fleetbase_tenant_proxy.py:149,180,211,383`
-- **Git status:** No uncommitted changes to this file (fix was committed in `b1c0385`)
+- **Git status:** Modified, not yet committed (232 insertions, 63 deletions). The report's earlier claim of commit `b1c0385` was incorrect — that commit did not include this fix.
+- **Action required:** Commit this change.
 
 ### Bug B: `tenant-context-provider.tsx` — hardcoded tenant
-- **Status:** FIXED (uncommitted) — Removed hardcoded "amooskco" block, now calls `resolvePublicTenantId()` → `fetchTenantContextClient(tenantId)`.
+- **Status:** FIXED (committed) — Removed hardcoded "amooskco" block, now calls `resolvePublicTenantId()` → `fetchTenantContextClient(tenantId)`.
 - **Verified at:** `frontend/components/tenant-context-provider.tsx:30-41`
-- **Git diff confirms:** Old code had `if (tenantId === 'amooskco')` block returning hardcoded context. Diff removes it and replaces with `fetchTenantContextClient(tenantId)`.
-- **Last commit:** `d4bb177` (still has the hardcode)
+- **Committed in:** `6d5d50d` ("fix: custom domain endpoints + remove hardcoded token/tenant + idempotent migration")
 
 ### Bug C: Frontend calls non-existent endpoint
-- **Status:** FIXED (uncommitted) — Old code called `/api/v1/tenant-context/by-host?host=` (nonexistent). Now calls `/api/v1/tenant-context/${identifier}` which matches backend route.
+- **Status:** FIXED (committed) — Old code called `/api/v1/tenant-context/by-host?host=` (nonexistent). Now calls `/api/v1/tenant-context/${identifier}` which matches backend route.
 - **Verified at:** `frontend/lib/tenant-context.ts:82`
-- **Git diff confirms:** Old `fetchTenantContextByHostServer` called `/by-host?host=`. Diff replaces with `/tenant-context/${hostname}` + subdomain fallback. New `fetchTenantContextClient` uses same-origin relative URL.
-- **Last commit:** `d4bb177` (still calls `/by-host`)
+- **Committed in:** `6d5d50d`
 
 ### Bug D: Hardcoded Fleetbase token
-- **Status:** FIXED (uncommitted) — Old code had literal token `"1|KPPhwb69LydQ7mNNK2AvCQVGD9ifGtFSX2GNKok2"` as default. Now uses empty string default with clear error if missing.
+- **Status:** FIXED (committed) — Old code had literal token `"1|KPPhwb69LydQ7mNNK2AvCQVGD9ifGtFSX2GNKok2"` as default. Now uses empty string default with clear error if missing.
 - **Verified at:** `app/api/routes/fleetbase_proxy.py:20,32-35`
-- **Git diff confirms:** Old: `os.getenv("FLEETBASE_API_TOKEN", "1|KPPhwb69LydQ7mNNK2AvCQVGD9ifGtFSX2GNKok2")`. New: `os.getenv("FLEETBASE_API_TOKEN", "")`.
-- **Last commit:** `b1c0385` (still has the hardcoded token)
+- **Committed in:** `6d5d50d`
 
 ---
 
@@ -85,3 +81,7 @@ These bugs were identified in a prior deep-dive review. The fixes exist in the *
 3. **Legacy + self-service duplication** — The custom domains API has both "legacy" endpoints (require `tenant_id` param) and "self-service" endpoints (auto-resolve from JWT). The legacy endpoints are kept for backward compatibility but add maintenance burden. Consider deprecation timeline.
 
 4. **Manual DNS mode SSL gap** — In manual mode (no Cloudflare), SSL provisioning is not handled. The doc notes this as a manual step, but there's no automation or integration with Let's Encrypt/Certbot.
+
+5. **Three parallel subscription tables** — `tenant_subscriptions` (TenantSubscription), `billing_subscriptions` (Subscription), and `Tenant.plan_code` all track plan/tier. As of Jul 7, 2026, `TenantSubscription` is the source of truth for feature gating. The `billing_subscriptions` table remains for financial/billing reporting. `Tenant.plan_code` is a denormalized cache. A `normalize_tier_code()` function maps legacy plan codes (`professional` → `pro`, `business` → `pro`, `vendor_driver` → `starter`, `delivery_services` → `enterprise`, `free` → `free_trial`) to the 4 canonical tiers.
+
+6. **Feature gating now enforced** — `require_feature()` FastAPI dependency in `deps.py` checks `tenant_has_feature()` against `TIER_FEATURES` dict. Applied to: AI chat (`ai_basic`), custom domain requests (`custom_domain`), shipping estimator (`shipping_estimator`). Marketplace already gated via `require_feature_or_raise`. Trial expiry auto-downgrades to Starter via Celery beat task at 3:15 AM UTC daily.

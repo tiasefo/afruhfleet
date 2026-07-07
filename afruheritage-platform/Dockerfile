@@ -45,13 +45,9 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Copy application code
 COPY --chown=appuser:appuser . .
 
-# Set permissions
-RUN chmod -R 755 /app \
-    && if [ -f /app/secrets/runner_key ]; then chmod 600 /app/secrets/runner_key; fi \
-    && mkdir -p /home/appuser/.ssh \
-    && chown -R appuser:appuser /home/appuser \
-    && chmod 700 /home/appuser/.ssh \
-    && if [ -f /app/secrets/runner_key ]; then chmod 600 /app/secrets/runner_key; fi \
+# Set permissions (simple, no find commands)
+RUN chown -R appuser:appuser /app \
+    && chmod 755 /app \
     && mkdir -p /home/appuser/.ssh \
     && chown -R appuser:appuser /home/appuser \
     && chmod 700 /home/appuser/.ssh

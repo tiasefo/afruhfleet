@@ -15,6 +15,11 @@ from app.models.custom_domains import (
     VerificationMethod,
 )
 from app.services.cloudflare_domains import CloudflareDomainClient
+from app.services.dns_verification import (
+    build_dns_instructions,
+    generate_verification_token,
+    verify_domain_dns,
+)
 
 
 HOSTNAME_RE = re.compile(
@@ -140,12 +145,17 @@ def request_custom_domain(db: Session, *, tenant_id: str, hostname: str, domain_
             db.refresh(domain)
             log_event(db, domain.id, "cloudflare_hostname_failed", f"Cloudflare custom hostname creation failed: {exc}")
     else:
+        # Manual DNS mode — generate a verification token for the tenant to add as a TXT record
+        token = generate_verification_token()
         domain.status = DomainStatus.PENDING_VERIFICATION
-        domain.last_error = "Cloudflare not configured"
+        domain.verification_method = VerificationMethod.TXT
+        domain.verification_name = f"_afruheritage-verify.{normalized}"
+        domain.verification_value = token
+        domain.last_error = None
         db.add(domain)
         db.commit()
         db.refresh(domain)
-        log_event(db, domain.id, "domain_pending_manual_setup", "Cloudflare not configured; manual setup required")
+        log_event(db, domain.id, "manual_dns_pending", f"Manual DNS verification pending for {normalized}. Tenant must add TXT record.")
 
     return domain
 
@@ -189,6 +199,151 @@ def mark_domain_failed(db: Session, domain_id: str, reason: str) -> CustomDomain
 
 def list_tenant_domains(db: Session, tenant_id: str) -> list[CustomDomain]:
     return db.query(CustomDomain).filter(CustomDomain.tenant_id == tenant_id).order_by(CustomDomain.created_at.asc()).all()
+
+
+def get_dns_instructions(db: Session, domain_id: str) -> dict | None:
+    """Get the DNS records a tenant needs to add for their custom domain.
+
+    Works in both Cloudflare and manual modes. In Cloudflare mode, returns the
+    records Cloudflare generated. In manual mode, returns the TXT verification
+    record plus CNAME/A routing records.
+    """
+    domain = db.query(CustomDomain).filter(CustomDomain.id == domain_id).first()
+    if not domain:
+        return None
+
+    settings_row = db.query(TenantDomainSettings).filter(
+        TenantDomainSettings.tenant_id == domain.tenant_id
+    ).first()
+    platform_fallback = settings_row.platform_subdomain if settings_row else "afruheritage.com"
+
+    client = CloudflareDomainClient()
+    provider_mode = "cloudflare" if client.enabled() else "manual"
+
+    token = domain.verification_value or generate_verification_token()
+    if not domain.verification_value:
+        domain.verification_value = token
+        domain.verification_name = f"_afruheritage-verify.{domain.hostname}"
+        db.commit()
+
+    instructions = build_dns_instructions(
+        hostname=domain.hostname,
+        verification_token=token,
+        platform_fallback=platform_fallback,
+        provider_mode=provider_mode,
+    )
+
+    return {
+        "hostname": instructions.hostname,
+        "verification_token": instructions.verification_token,
+        "records": [
+            {
+                "record_type": r.record_type,
+                "name": r.name,
+                "value": r.value,
+                "priority": r.priority,
+                "ttl": r.ttl,
+                "purpose": r.purpose,
+            }
+            for r in instructions.records
+        ],
+        "instructions_text": instructions.instructions_text,
+        "provider_mode": instructions.provider_mode,
+    }
+
+
+def verify_and_activate_domain(db: Session, domain_id: str) -> dict:
+    """Verify a domain's DNS records and auto-activate if all checks pass.
+
+    In Cloudflare mode, polls Cloudflare for status.
+    In manual mode, does direct DNS lookups via dnspython.
+    """
+    domain = db.query(CustomDomain).filter(CustomDomain.id == domain_id).first()
+    if not domain:
+        return {"error": "Domain not found"}
+
+    if domain.status == DomainStatus.ACTIVE:
+        return {"status": "active", "message": "Domain is already active"}
+
+    settings_row = db.query(TenantDomainSettings).filter(
+        TenantDomainSettings.tenant_id == domain.tenant_id
+    ).first()
+    platform_fallback = settings_row.platform_subdomain if settings_row else "afruheritage.com"
+
+    client = CloudflareDomainClient()
+
+    if client.enabled() and domain.cloudflare_hostname_id:
+        # Cloudflare mode — poll Cloudflare API
+        from app.services.cloudflare_domains import get_custom_hostname_status
+        cf_status = get_custom_hostname_status(domain.cloudflare_hostname_id)
+        if cf_status:
+            ssl_status = cf_status.get("ssl", {}).get("status", "")
+            cf_hostname_status = cf_status.get("status", "")
+            domain.ssl_status = ssl_status
+
+            if cf_hostname_status == "active" and ssl_status == "active":
+                domain.status = DomainStatus.ACTIVE
+                domain.last_error = None
+                _update_tenant_custom_domain(db, domain)
+                log_event(db, domain.id, "domain_active", "Domain verified and SSL active (Cloudflare)")
+                db.commit()
+                return {"status": "active", "message": "Domain verified and activated via Cloudflare"}
+
+            return {
+                "status": domain.status.value,
+                "ssl_status": ssl_status,
+                "cf_status": cf_hostname_status,
+                "message": f"Cloudflare status: {cf_hostname_status}, SSL: {ssl_status}",
+            }
+        else:
+            return {"status": domain.status.value, "message": "Could not fetch Cloudflare status"}
+
+    # Manual mode — do DNS lookups
+    if not domain.verification_value:
+        return {"status": domain.status.value, "error": "No verification token set"}
+
+    result = verify_domain_dns(
+        hostname=domain.hostname,
+        verification_token=domain.verification_value,
+        platform_fallback=platform_fallback,
+    )
+
+    if result["all_verified"]:
+        domain.status = DomainStatus.ACTIVE
+        domain.ssl_status = "active"
+        domain.last_error = None
+        _update_tenant_custom_domain(db, domain)
+        log_event(db, domain.id, "domain_active", "Domain verified via DNS lookup (manual mode)")
+        db.commit()
+        return {
+            "status": "active",
+            "message": "Domain verified and activated!",
+            "verification": result,
+        }
+
+    return {
+        "status": domain.status.value,
+        "message": "DNS records not yet propagated. Please wait and try again.",
+        "verification": result,
+    }
+
+
+def _update_tenant_custom_domain(db: Session, domain: CustomDomain) -> None:
+    """Update the Tenant model's custom_domain field when a domain becomes active."""
+    from app.models.tenant import Tenant
+    tenant = db.query(Tenant).filter(Tenant.id == domain.tenant_id).first()
+    if tenant:
+        tenant.custom_domain = domain.hostname
+        tenant.custom_domain_verified = True
+        db.add(tenant)
+
+    # Also update TenantDomainSettings
+    settings = db.query(TenantDomainSettings).filter(
+        TenantDomainSettings.tenant_id == domain.tenant_id
+    ).first()
+    if settings:
+        settings.active_primary_hostname = domain.hostname
+        db.add(settings)
 
 
 def log_event(db: Session, domain_id, event_type: str, message: str, payload: dict | None = None) -> None:

@@ -51,13 +51,6 @@ export class TokenManager {
       headers['X-CP-Token'] = cpToken;
     }
     
-    // Debug logging
-    console.log('=== AUTH HEADERS ===');
-    console.log('Admin Token in headers:', adminToken ? 'PRESENT' : 'MISSING');
-    console.log('CP Token in headers:', cpToken ? 'PRESENT' : 'MISSING');
-    console.log('Headers:', headers);
-    console.log('==================');
-    
     return headers;
   }
 

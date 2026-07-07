@@ -40,6 +40,10 @@ class ShipmentCreate(BaseModel):
     group_member_id: str | None = None
     notes: str | None = None
     cargo_image_url: str | None = None
+    loading_date: datetime | None = None
+    storage_days: int | None = None
+    storage_rate: float | None = None
+    storage_fee: float | None = None
 
 
 class ShipmentUpdate(BaseModel):
@@ -76,6 +80,10 @@ class ShipmentUpdate(BaseModel):
     group_member_id: str | None = None
     notes: str | None = None
     cargo_image_url: str | None = None
+    loading_date: datetime | None = None
+    storage_days: int | None = None
+    storage_rate: float | None = None
+    storage_fee: float | None = None
 
 
 class ShipmentEventCreate(BaseModel):
@@ -177,6 +185,12 @@ class ShipmentResponse(BaseModel):
     group_member_name: str | None = None
     notes: str | None = None
     cargo_image_url: str | None = None
+    loading_date: datetime | None = None
+    storage_days: int | None = None
+    storage_rate: float | None = None
+    storage_fee: float | None = None
+    volume_cbm: float | None = None
+    description: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -229,6 +243,7 @@ class GroupMemberCreate(BaseModel):
     company: str | None = None
     notes: str | None = None
     preferred_language: str = "en"
+    role: str = "customer"  # "customer" or "admin"
 
 
 class GroupMemberUpdate(BaseModel):
@@ -240,6 +255,7 @@ class GroupMemberUpdate(BaseModel):
     notes: str | None = None
     preferred_language: str | None = None
     is_active: bool | None = None
+    role: str | None = None  # "customer" or "admin"
 
 
 class GroupMemberResponse(BaseModel):
@@ -252,9 +268,13 @@ class GroupMemberResponse(BaseModel):
     company: str | None = None
     notes: str | None = None
     preferred_language: str
+    role: str
     is_active: bool
+    created_at: str
+    updated_at: str
     shipment_count: int = 0
-    created_at: datetime
+    login_email: str | None = None
+    temp_password: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

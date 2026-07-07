@@ -13,12 +13,9 @@ __pycache__
 
 logs
 
-frontend/.next
-frontend/node_modules
-admin-console/frontend/.next
-admin-console/frontend/node_modules
-admin-console/.next
-admin-console/node_modules
+# Exclude frontend and admin-console entirely from backend build
+frontend
+admin-console
 
 node_modules
 

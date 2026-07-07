@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_current_user_no_tenant_check
@@ -146,6 +146,57 @@ def complete_onboarding(
         'role': current_user.role.value,
         'onboarding_complete': True,
     }
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+@router.post('/forgot-password')
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)) -> dict[str, str]:
+    """Request a password reset email."""
+    user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    if not user:
+        # Don't reveal if email exists for security
+        return {'status': 'ok', 'message': 'If an account with this email exists, a reset link has been sent.'}
+
+    # Generate reset token
+    import secrets
+    token = secrets.token_urlsafe(32)
+    user.password_reset_token = token
+    user.password_reset_expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
+    user.must_reset_password = True
+    db.add(user)
+    db.commit()
+
+    # Send reset email
+    try:
+        from app.services.notification_service import get_notification_service
+        notification_service = get_notification_service()
+        base_url = settings.base_url.rstrip("/")
+        reset_url = f"{base_url}/login?reset_token={token}"
+        subject = "Password Reset Request"
+        body = f"""
+        <html>
+            <body>
+                <p>Dear {user.full_name or user.email},</p>
+                <p>You have requested a password reset for your Afruheritage account.</p>
+                <p>Click the link below to reset your password:</p>
+                <p><a href="{reset_url}">Reset Password</a></p>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you did not request this reset, please ignore this email.</p>
+                <p>Thank you,<br>The Afruheritage Team</p>
+            </body>
+        </html>
+        """
+        notification_service.send_email(to_email=user.email, subject=subject, html_content=body)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send password reset email: {e}")
+        # Don't fail the request - token is still set
+
+    return {'status': 'ok', 'message': 'If an account with this email exists, a reset link has been sent.'}
 
 
 @router.post('/password-reset/confirm')

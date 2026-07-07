@@ -64,12 +64,15 @@ class Role(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_system_role: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)  # Controls visibility to tenant admins/regular users
+    tenant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)  # For tenant-specific roles
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
     role_permissions: Mapped[list["RolePermission"]] = relationship("RolePermission", back_populates="role")
     user_roles: Mapped[list["UserRole"]] = relationship("UserRole", back_populates="role")
+    tenant: Mapped["Tenant"] = relationship("Tenant", foreign_keys=[tenant_id])
 
 
 class RolePermission(Base):
@@ -91,6 +94,7 @@ class UserRole(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     role_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
+    tenant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=True)  # For tenant-scoped roles
     assigned_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     assigned_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
@@ -100,6 +104,7 @@ class UserRole(Base):
     user: Mapped["User"] = relationship("User", back_populates="user_roles", foreign_keys=[user_id])
     role: Mapped[Role] = relationship("Role", back_populates="user_roles")
     assigned_by_user: Mapped["User"] = relationship("User", foreign_keys=[assigned_by])
+    tenant: Mapped["Tenant"] = relationship("Tenant", foreign_keys=[tenant_id])
 
 
 class UserActivityLog(Base):

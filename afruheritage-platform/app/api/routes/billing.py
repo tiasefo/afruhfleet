@@ -3,7 +3,7 @@ from app.core.config import settings
 from datetime import datetime
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser
+from app.api.deps import get_current_user, require_superuser, require_tenant_admin
 from app.db.session import get_db
 from app.models.billing import Payment, PaymentStatus, Plan, Subscription, Wallet, WalletTransaction, WalletTransactionType
 from app.models.user import User
@@ -57,11 +57,20 @@ def list_plans(tenant_id: str | None = None, db: Session=Depends(get_db)):
     ]
 
 @router.post('/subscriptions/trial/{tenant_id}', response_model=SubscriptionResponse)
-def start_trial(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def start_trial(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     _assert_tenant_access(current_user, tenant_id)
     seed_default_plans(db)
     sub = create_trial_subscription(db, tenant_id)
     ensure_wallet(db, tenant_id, sub.currency)
+
+    # Advance launch_status from draft to active.
+    # Fleetbase org was already provisioned at signup — no need to re-provision.
+    from app.models.tenant import Tenant, LaunchStatus
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
+    if tenant and tenant.launch_status == LaunchStatus.draft:
+        tenant.launch_status = LaunchStatus.active
+        db.commit()
+
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.get('/subscriptions/{tenant_id}', response_model=SubscriptionResponse | None)
@@ -73,7 +82,7 @@ def get_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: 
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.post('/subscriptions/{tenant_id}/cancel', response_model=SubscriptionResponse | None)
-def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer requested cancellation"), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer requested cancellation"), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     _assert_tenant_access(current_user, tenant_id)
     sub = cancel_subscription(db, tenant_id, reason)
     if not sub:
@@ -81,7 +90,7 @@ def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer reques
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.post('/subscriptions/{tenant_id}/pause', response_model=SubscriptionResponse | None)
-def post_pause_subscription(tenant_id: str, reason: str = Body("Customer requested pause"), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def post_pause_subscription(tenant_id: str, reason: str = Body("Customer requested pause"), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     _assert_tenant_access(current_user, tenant_id)
     sub = pause_subscription(db, tenant_id, reason)
     if not sub:
@@ -89,7 +98,7 @@ def post_pause_subscription(tenant_id: str, reason: str = Body("Customer request
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.post('/subscriptions/{tenant_id}/resume', response_model=SubscriptionResponse | None)
-def post_resume_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def post_resume_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     _assert_tenant_access(current_user, tenant_id)
     sub = resume_subscription(db, tenant_id)
     if not sub:
@@ -138,7 +147,7 @@ def get_usage_costs(db: Session = Depends(get_db), current_user: User = Depends(
     return [UsageCreditCostResponse(feature_key=k, credits=v) for k, v in sorted(costs.items())]
 
 @router.post('/payments/init', response_model=PaymentInitResponse)
-def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(...), db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
+def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(...), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     amount_minor = int(round(request.amount_major * 100))
     effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
     if not effective_tenant_id:

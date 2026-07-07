@@ -126,20 +126,6 @@ export default function AdminPage() {
           </Card>
           <Card>
             <CardContent className="p-6">
-              <Link href="/admin/runtime" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
-                  <Server className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">Runtime</p>
-                  <p className="text-xs text-gray-500">Fleetbase Instances</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-gray-400 ml-auto" />
-              </Link>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
                   <CreditCard className="h-5 w-5 text-orange-600" />
@@ -153,23 +139,6 @@ export default function AdminPage() {
           </Card>
         </div>
 
-        {/* Quick actions */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <Link href="/admin/runtime">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6 flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100">
-                  <Server className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-semibold">Runtime Manager</p>
-                  <p className="text-sm text-gray-500">Manage Fleetbase instances</p>
-                </div>
-                <ExternalLink className="h-4 w-4 text-gray-400 ml-auto" />
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
 
         {/* Tenants list */}
         <Card>

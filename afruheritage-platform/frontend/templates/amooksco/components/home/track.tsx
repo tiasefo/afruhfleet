@@ -72,7 +72,7 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
     try {
       if (kind === "number") {
         // Track by tracking number using public API
-        const data = await api.get(`/shipments/public/track/${tenant?.id || 'amooskco'}/${key}`)
+        const data = await api.get(`/shipments/public/track/${tenant?.id || 'amooksco'}/${key}`)
         if (data) {
           setResult({
             ref: data.tracking_number || key,

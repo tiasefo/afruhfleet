@@ -28,6 +28,7 @@ class TenantResponse(BaseModel):
     fleetbase_install_path: str | None
     fleetbase_org_id: str | None
     fleetbase_api_key: str | None
+    whatsapp_channel_url: str | None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -85,6 +86,14 @@ class TenantRuntimeAuthUpdate(BaseModel):
     live_api_token: str | None = None
     live_api_auth_scheme: str | None = Field(default='bearer', min_length=3, max_length=32)
     clear_live_api_token: bool = False
+
+
+class TenantUpdate(BaseModel):
+    whatsapp_channel_url: str | None = None
+    fleetbase_org_id: str | None = None
+    fleetbase_api_key: str | None = None
+    live_console_url: str | None = None
+    live_api_url: str | None = None
 
 
 class JobResponse(BaseModel):

@@ -21,11 +21,11 @@ const nextConfig = {
       },
       {
         source: '/api/v1/billing/:path*',
-        destination: 'http://localhost:8100/api/v1/billing/:path*',
+        destination: 'http://10.0.0.115:8000/api/v1/billing/:path*',
       },
       {
         source: '/api/v1/vendors/:path*',
-        destination: 'http://localhost:8100/api/v1/vendors/:path*',
+        destination: 'http://10.0.0.115:8000/api/v1/vendors/:path*',
       },
     ]
   },

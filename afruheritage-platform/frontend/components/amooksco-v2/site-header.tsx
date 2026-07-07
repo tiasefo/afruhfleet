@@ -87,7 +87,7 @@ export function SiteHeader() {
             </a>
           </Button>
 
-          <Link href="/login" className="rounded-full border px-4 py-2 text-sm font-semibold">Login</Link>
+          <Link href="/amooksco-storefront/login" className="rounded-full border px-4 py-2 text-sm font-semibold">Login</Link>
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -116,7 +116,7 @@ export function SiteHeader() {
                   </Link>
                 ))}
                 <Link
-                  href="/sign-in"
+                  href="/amooksco-storefront/login"
                   onClick={() => setOpen(false)}
                   className="mt-2 rounded-md bg-accent px-3 py-2.5 text-sm font-semibold text-accent-foreground hover:bg-accent/90"
                 >

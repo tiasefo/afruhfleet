@@ -38,7 +38,7 @@ export function RegisterForm() {
   const [registeredEmail, setRegisteredEmail] = useState('')
   const [showTemplatePicker, setShowTemplatePicker] = useState(false)
   const [templates, setTemplates] = useState<any[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('azure_cloud')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('freight')
   const [templateLoading, setTemplateLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -51,6 +51,13 @@ class TenantBranding(Base):
     template_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     storefront_config: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     pseudo_email_domain: Mapped[str] = mapped_column(String(255), nullable=False, default="phone.afruheritage.com")
+    bus_fleet_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    storage_fees_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    tracking_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    fleetbase_integration_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    shipping_estimator_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    has_mock_tracking_data: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    tracking_data_source: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

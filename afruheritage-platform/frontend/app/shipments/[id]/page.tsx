@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
@@ -29,7 +29,9 @@ import {
   AlertCircle
 } from 'lucide-react'
 
-export default function ShipmentDetailPage({ params }: { params: { id: string } }) {
+export default function ShipmentDetailPage() {
+    const params = useParams<{ id: string }>()
+    const shipmentId = params.id
     // Status transition loading state
     const [isTransitioning, setIsTransitioning] = useState(false)
 
@@ -37,7 +39,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
     const handleStatusTransition = async (nextStatus: string) => {
       setIsTransitioning(true)
       try {
-        await shipmentsAPI.transitionStatus(params.id, nextStatus)
+        await shipmentsAPI.transitionStatus(shipmentId, nextStatus)
         await loadShipment()
       } catch (err) {
         alert('Failed to update status')
@@ -72,7 +74,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
     setIsLoading(true)
     setError(null)
     try {
-      const shipmentData = await shipmentsAPI.get(params.id)
+      const shipmentData = await shipmentsAPI.get(shipmentId)
       setShipment(shipmentData)
     } catch (err) {
       setError('Failed to load shipment')
@@ -85,7 +87,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
   // Fetch shipment events
   const loadEvents = async () => {
     try {
-      const eventsData = await shipmentsAPI.getEvents(params.id)
+      const eventsData = await shipmentsAPI.getEvents(shipmentId)
       setEvents(eventsData)
     } catch (err) {
       console.error('Failed to load events:', err)
@@ -95,7 +97,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
   useEffect(() => {
     loadShipment()
     loadEvents()
-  }, [params.id])
+  }, [shipmentId])
 
   const getStatusBadgeClass = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -129,7 +131,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
 
     setIsAddingEvent(true)
     try {
-      await shipmentsAPI.addEvent(params.id, {
+      await shipmentsAPI.addEvent(shipmentId, {
         event_type: newEvent.event_type,
         location: newEvent.location,
         description: newEvent.description,
@@ -163,7 +165,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          await shipmentsAPI.updateLocation(params.id, {
+          await shipmentsAPI.updateLocation(shipmentId, {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
             location: locationLabel.trim() || undefined,
@@ -288,7 +290,7 @@ export default function ShipmentDetailPage({ params }: { params: { id: string } 
                   </div>
                 </DialogContent>
               </Dialog>
-              <Link href={`/shipments/${params.id}/edit`}>
+              <Link href={`/shipments/${shipmentId}/edit`}>
                 <Button variant="outline">
                   <Edit className="w-4 h-4 mr-2" />
                   Edit

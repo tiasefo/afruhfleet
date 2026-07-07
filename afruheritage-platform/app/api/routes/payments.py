@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_tenant_admin
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
 from app.models.billing import Payment as BillingPayment
@@ -385,7 +385,7 @@ async def get_payment_statistics(
 async def purchase_credits(
     purchase_request: CreditPurchaseRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_tenant_admin),
 ):
     """Purchase virtual credits"""
     try:

@@ -42,7 +42,7 @@ import { adminMarketplaceApi, adminVendorApi, adminReviewApi, templatesApi, crmA
 import { CrmPanel } from "./crm-panel"
 import { BillingPanel } from "./billing-panel"
 
-type TabKey = "vendors" | "crm" | "billing" | "reviews" | "logs" | "jobs" | "settings" | "templates"
+type TabKey = "vendors" | "crm" | "billing" | "reviews" | "logs" | "jobs" | "settings" | "templates" | "rbac"
 
 const tabs: { key: TabKey; label: string; icon: typeof Users }[] = [
   { key: "vendors", label: "Vendors", icon: Users },
@@ -52,6 +52,7 @@ const tabs: { key: TabKey; label: string; icon: typeof Users }[] = [
   { key: "logs", label: "Delivery logs", icon: Navigation },
   { key: "jobs", label: "Jobs", icon: Boxes },
   { key: "templates", label: "Templates", icon: Boxes },
+  { key: "rbac", label: "RBAC", icon: ShieldCheck },
   { key: "settings", label: "Settings", icon: Settings2 },
 ]
 

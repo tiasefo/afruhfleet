@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { BackButton } from '@/components/back-button'
+import { BillingDrawer } from '@/components/billing-drawer'
 import {
   Building2,
   Truck,
@@ -14,6 +16,7 @@ import {
   Container,
   Users,
   TrendingUp,
+  Settings,
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -56,6 +59,7 @@ export default function DashboardPage() {
   const [tenants, setTenants] = useState<any[]>([])
   const [vendors, setVendors] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [billingDrawerOpen, setBillingDrawerOpen] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -116,9 +120,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Afruheritage Control Plane overview</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="mt-1 text-muted-foreground">Afruheritage Control Plane overview</p>
+        </div>
+        <Button onClick={() => setBillingDrawerOpen(true)}>
+          <Settings className="mr-2 h-4 w-4" /> Billing Settings
+        </Button>
       </div>
 
       {/* Stat cards */}
@@ -288,6 +297,8 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <BillingDrawer open={billingDrawerOpen} onOpenChange={setBillingDrawerOpen} />
     </div>
   )
 }

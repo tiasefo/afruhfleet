@@ -146,12 +146,16 @@ def create_user(
 
     hashed_password = get_password_hash(payload.password) if payload.password and not payload.send_invite_email else get_password_hash(secrets.token_urlsafe(40))
     should_send_invite = payload.send_invite_email or payload.password is None
+    
+    # Map role to is_tenant_admin for backward compatibility
+    is_tenant_admin = payload.role == 'admin'
+    
     user = User(
         email=payload.email.lower(),
         full_name=payload.full_name,
         hashed_password=hashed_password,
         tenant_id=scope_tenant_id,
-        is_tenant_admin=payload.is_tenant_admin,
+        is_tenant_admin=is_tenant_admin,
         is_superuser=False,
         is_active=True,
         must_reset_password=should_send_invite,
@@ -165,10 +169,24 @@ def create_user(
         event_type='tenant_user_created',
         entity_type='user',
         entity_id=str(user.id),
-        details_json=f'{{"tenant_id":"{scope_tenant_id}","is_tenant_admin":{str(payload.is_tenant_admin).lower()},"invite_email":{str(should_send_invite).lower()}}}',
+        details_json=f'{{"tenant_id":"{scope_tenant_id}","role":"{payload.role}","invite_email":{str(should_send_invite).lower()}}}',
     )
     db.commit()
     db.refresh(user)
+    
+    # Create GroupMember with the specified role
+    from app.models.shipment import GroupMember as GroupMemberModel
+    member = GroupMemberModel(
+        tenant_id=scope_tenant_id,
+        user_id=user.id,
+        full_name=payload.full_name,
+        email=payload.email,
+        role=payload.role,  # Use the role from the request
+        is_active=True,
+    )
+    db.add(member)
+    db.commit()
+    
     return _to_response(user)
 
 
@@ -368,10 +386,17 @@ class BulkImportResult(BaseModel):
     total: int
     created: int
     skipped: int
+    duplicates: int
     errors: list[str]
+    duplicate_details: list[str]
 
 
-DEFAULT_IMPORT_PASSWORD = 'afruheritage@1'
+DEFAULT_IMPORT_PASSWORD = 'afruheritage@1'  # Legacy — only used for backward-compat display. New imports use random passwords.
+
+
+def _generate_random_password() -> str:
+    """Generate a cryptographically secure random password for bulk-imported accounts."""
+    return secrets.token_urlsafe(12)
 
 
 @router.post('/bulk-import', response_model=BulkImportResult)
@@ -387,7 +412,7 @@ def bulk_import_users(
     CSV columns (header required): full_name, email, phone, role, goods_description
 
     For each row:
-    1. Creates a User login account (email or phone-as-email, password afruheritage@1, is_active=True)
+    1. Creates a User login account (email or phone-as-email, random secure password, is_active=True, must_reset_password=True)
     2. Creates a GroupMember record linked to the User via user_id
     3. Creates/updates a tenant_customer record
     4. Skips rows where the user already exists (by email)
@@ -413,7 +438,9 @@ def bulk_import_users(
 
     created = 0
     skipped = 0
+    duplicates = 0
     errors: list[str] = []
+    duplicate_details: list[str] = []
     rows_processed = 0
 
     for row_num, row in enumerate(reader, start=2):
@@ -446,10 +473,18 @@ def bulk_import_users(
             skipped += 1
             continue
 
-        # Check if User already exists (by email) — skip if so
+        # Check if User already exists (by email) — track as duplicate
         existing_user = db.query(User).filter(User.email == login_email).first()
         if existing_user:
-            skipped += 1
+            duplicates += 1
+            duplicate_details.append(f'Row {row_num}: {login_email} already exists as user')
+            # Also check if GroupMember exists
+            existing_member = db.query(GroupMemberModel).filter(
+                GroupMemberModel.user_id == existing_user.id,
+                GroupMemberModel.tenant_id == scope_tenant_id
+            ).first()
+            if existing_member:
+                duplicate_details.append(f'  → Already a member of this tenant')
             continue
 
         # 1. Create User account
@@ -457,13 +492,13 @@ def bulk_import_users(
         user = User(
             email=login_email,
             full_name=full_name,
-            hashed_password=get_password_hash(DEFAULT_IMPORT_PASSWORD),
+            hashed_password=get_password_hash(_generate_random_password()),
             role=UserRoleEnum.customer,
             tenant_id=scope_tenant_id,
             is_tenant_admin=False,
             is_superuser=False,
             is_active=True,
-            must_reset_password=False,
+            must_reset_password=True,
         )
         db.add(user)
         db.flush()  # get user.id
@@ -477,6 +512,7 @@ def bulk_import_users(
             email=email or login_email,
             notes=goods_desc,
             preferred_language='en',
+            role='customer',  # Default to customer role for CSV imports
             is_active=True,
         )
         db.add(member)
@@ -580,7 +616,14 @@ def bulk_import_users(
         created += 1
 
     db.commit()
-    return BulkImportResult(total=rows_processed, created=created, skipped=skipped, errors=errors)
+    return BulkImportResult(
+        total=rows_processed,
+        created=created,
+        skipped=skipped,
+        duplicates=duplicates,
+        errors=errors,
+        duplicate_details=duplicate_details
+    )
 
 
 class BulkImportPreviewRow(BaseModel):

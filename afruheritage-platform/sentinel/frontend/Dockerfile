@@ -26,33 +26,15 @@ COPY . .
 # Build the application
 RUN pnpm build
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
+# Production image - serve static export with nginx
+FROM nginx:alpine AS runner
 
-ENV NODE_ENV production
+# Copy static export from builder
+COPY --from=builder /app/out /usr/share/nginx/html
 
-# Create a non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy build artifacts
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3001
 
-ENV PORT 3001
-ENV HOSTNAME "0.0.0.0"
-
-# Start the application
-CMD ["node", "server.js"]
+CMD ["nginx", "-g", "daemon off;"]

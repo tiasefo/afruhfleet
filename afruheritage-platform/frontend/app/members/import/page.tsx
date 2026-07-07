@@ -259,8 +259,8 @@ export default function BulkImportPage() {
                   <p className="mt-1">Each imported member gets a login account with:</p>
                   <ul className="mt-1 ml-4 list-disc text-xs">
                     <li><strong>Email:</strong> their CSV email, or <code>{'{phone}'}@{domain || defaultDomain}</code> if no email</li>
-                    <li><strong>Password:</strong> <code>afruheritage@1</code> (same for all)</li>
-                    <li><strong>Status:</strong> Active immediately</li>
+                    <li><strong>Password:</strong> A unique random password is generated per member</li>
+                    <li><strong>Status:</strong> Active, but must reset password on first login</li>
                     <li><strong>Portal:</strong> They can log in at <Link href="/portal" className="underline">/portal</Link> to view their shipments</li>
                   </ul>
                 </div>
@@ -476,11 +476,11 @@ export default function BulkImportPage() {
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-sm font-medium text-amber-900 mb-1">Login Credentials for New Members</p>
                   <p className="text-xs text-amber-800">
-                    All imported members have been created with a default password: <code className="font-mono font-bold">afruheritage@1</code>
+                    Each imported member has a unique randomly-generated password and must reset it on first login.
                   </p>
                   <p className="text-xs text-amber-600 mt-1">
-                    They can log in using their generated email (e.g. <code className="font-mono">phone@{domain || defaultDomain}</code>) and this password.
-                    Share these credentials with your members so they can access the platform.
+                    They can log in using their generated email (e.g. <code className="font-mono">phone@{domain || defaultDomain}</code>) and their individual password.
+                    Use the password reset flow to set initial credentials.
                   </p>
                 </div>
               )}

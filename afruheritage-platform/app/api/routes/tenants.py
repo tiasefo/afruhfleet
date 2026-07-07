@@ -5,17 +5,19 @@ from slugify import slugify
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.api.deps import require_superuser
+from app.api.deps import require_superuser, get_current_user
 from app.db.session import get_db
 from app.models.tenant import DomainType, LaunchStatus, ProvisioningJob, Tenant
 from app.models.user import User
-from app.schemas.tenant import ApprovalRequest, JobResponse, LaunchRequest, TenantCreate, TenantResponse, TenantRuntimeAuthUpdate
+from app.models.rbac import Role, UserRole
+from app.schemas.tenant import ApprovalRequest, JobResponse, LaunchRequest, TenantCreate, TenantResponse, TenantRuntimeAuthUpdate, TenantUpdate
 from app.services.audit_service import record_audit_event
 from app.services.billing_service import assert_tenant_launch_ready, create_trial_subscription, ensure_wallet
 from app.services.notification_service import get_notification_service
 from app.services.tenant_creation_service import TenantCreationService
 from app.tasks.provisioning import provision_tenant
 from app.middleware.rate_limit import rate_limit
+from pydantic import BaseModel
 router = APIRouter(prefix='/tenants', tags=['tenants'])
 
 
@@ -115,6 +117,48 @@ def update_tenant_runtime_auth(tenant_id: str, payload: TenantRuntimeAuthUpdate,
     db.commit()
     db.refresh(tenant)
     record_audit_event(db, current_user, 'tenant.runtime_auth.updated', 'tenant', str(tenant.id), {'auth_scheme': tenant.live_api_auth_scheme, 'token_configured': bool(tenant.live_api_token)})
+    return tenant
+
+
+@router.patch('/{tenant_id}', response_model=TenantResponse)
+def update_tenant(tenant_id: str, payload: TenantUpdate, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)) -> Tenant:
+    """Update tenant settings (e.g., WhatsApp channel URL, Fleetbase integration)."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+
+    # Only allow updating own tenant unless superuser
+    if current_user.tenant_id != tenant.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail='You can only update your own tenant')
+
+    if payload.whatsapp_channel_url is not None:
+        tenant.whatsapp_channel_url = payload.whatsapp_channel_url
+
+    if payload.fleetbase_org_id is not None:
+        tenant.fleetbase_org_id = payload.fleetbase_org_id
+
+    if payload.fleetbase_api_key is not None:
+        tenant.fleetbase_api_key = payload.fleetbase_api_key
+
+    if payload.live_console_url is not None:
+        tenant.live_console_url = payload.live_console_url
+
+    if payload.live_api_url is not None:
+        tenant.live_api_url = payload.live_api_url
+
+    db.commit()
+    db.refresh(tenant)
+    return tenant
+
+
+@router.get('/me', response_model=TenantResponse)
+def get_my_tenant(db: Session=Depends(get_db), current_user: User=Depends(get_current_user)) -> Tenant:
+    """Get the current user's tenant."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=404, detail='User is not associated with a tenant')
+    tenant = db.get(Tenant, current_user.tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
     return tenant
 
 @router.get('/jobs/{job_id}', response_model=JobResponse)
@@ -331,3 +375,230 @@ def resend_portal_url(
         "portal_url": portal_url,
         "email_sent": sent,
     }
+
+
+# ── Tenant User Management (Nested RBAC) ─────────────────────────────────
+
+class TenantUserCreate(BaseModel):
+    email: str
+    full_name: str
+    password: str
+    role_name: str = "tenant_user"  # Default role for tenant users
+
+
+class TenantUserRoleUpdate(BaseModel):
+    role_name: str
+
+
+@router.get("/{tenant_id}/users")
+def list_tenant_users(
+    tenant_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """List all users for a specific tenant."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    users = db.scalars(
+        select(User).where(User.tenant_id == _resolve_uuid(tenant_id))
+    ).all()
+    
+    return {
+        "tenant_id": tenant_id,
+        "users": [
+            {
+                "id": str(user.id),
+                "email": user.email,
+                "full_name": user.full_name,
+                "is_tenant_admin": user.is_tenant_admin,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+            }
+            for user in users
+        ]
+    }
+
+
+@router.post("/{tenant_id}/users")
+def create_tenant_user(
+    tenant_id: str,
+    payload: TenantUserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """Create a new user for a specific tenant with a role."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    # Check if user already exists
+    existing_user = db.scalar(
+        select(User).where(User.email == payload.email.lower())
+    )
+    if existing_user:
+        raise HTTPException(status_code=409, detail="User with this email already exists")
+    
+    # Find or create the role
+    role = db.scalar(
+        select(Role).where(
+            (Role.name == payload.role_name) & 
+            ((Role.tenant_id == _resolve_uuid(tenant_id)) | (Role.tenant_id == None))
+        )
+    )
+    if not role:
+        # Create tenant-specific role if it doesn't exist
+        role = Role(
+            name=payload.role_name,
+            display_name=payload.role_name.replace("_", " ").title(),
+            description=f"Tenant-specific role for {tenant.company_name}",
+            tenant_id=_resolve_uuid(tenant_id),
+            is_system_role=False,
+            is_public=True,
+        )
+        db.add(role)
+        db.commit()
+        db.refresh(role)
+    
+    # Create user
+    from app.core.security import get_password_hash
+    user = User(
+        email=payload.email.lower(),
+        full_name=payload.full_name,
+        hashed_password=get_password_hash(payload.password),
+        tenant_id=_resolve_uuid(tenant_id),
+        is_tenant_admin=(payload.role_name == "tenant_admin"),
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    # Assign role
+    user_role = UserRole(
+        user_id=user.id,
+        role_id=role.id,
+        tenant_id=_resolve_uuid(tenant_id),
+        assigned_by=current_user.id,
+    )
+    db.add(user_role)
+    db.commit()
+    
+    record_audit_event(
+        db, current_user,
+        'tenant_user.created',
+        'tenant_user', str(user.id),
+        {'tenant_id': tenant_id, 'role': payload.role_name},
+    )
+    
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "full_name": user.full_name,
+        "role": payload.role_name,
+        "tenant_id": tenant_id,
+    }
+
+
+@router.patch("/{tenant_id}/users/{user_id}/role")
+def update_tenant_user_role(
+    tenant_id: str,
+    user_id: str,
+    payload: TenantUserRoleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """Update a tenant user's role."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    user = db.get(User, _resolve_uuid(user_id))
+    if not user or user.tenant_id != _resolve_uuid(tenant_id):
+        raise HTTPException(status_code=404, detail="User not found in this tenant")
+    
+    # Find the role
+    role = db.scalar(
+        select(Role).where(
+            (Role.name == payload.role_name) & 
+            ((Role.tenant_id == _resolve_uuid(tenant_id)) | (Role.tenant_id == None))
+        )
+    )
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
+    
+    # Deactivate existing role assignments
+    existing_roles = db.scalars(
+        select(UserRole).where(
+            (UserRole.user_id == user.id) & 
+            (UserRole.tenant_id == _resolve_uuid(tenant_id)) &
+            (UserRole.is_active == True)
+        )
+    ).all()
+    for ur in existing_roles:
+        ur.is_active = False
+    
+    # Create new role assignment
+    user_role = UserRole(
+        user_id=user.id,
+        role_id=role.id,
+        tenant_id=_resolve_uuid(tenant_id),
+        assigned_by=current_user.id,
+    )
+    db.add(user_role)
+    
+    # Update tenant admin flag if role is tenant_admin
+    user.is_tenant_admin = (payload.role_name == "tenant_admin")
+    
+    db.commit()
+    
+    record_audit_event(
+        db, current_user,
+        'tenant_user.role_updated',
+        'tenant_user', str(user.id),
+        {'tenant_id': tenant_id, 'new_role': payload.role_name},
+    )
+    
+    return {"detail": "User role updated successfully"}
+
+
+@router.delete("/{tenant_id}/users/{user_id}")
+def delete_tenant_user(
+    tenant_id: str,
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    """Delete a tenant user."""
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    user = db.get(User, _resolve_uuid(user_id))
+    if not user or user.tenant_id != _resolve_uuid(tenant_id):
+        raise HTTPException(status_code=404, detail="User not found in this tenant")
+    
+    # Deactivate user instead of hard delete
+    user.is_active = False
+    
+    # Deactivate all role assignments
+    user_roles = db.scalars(
+        select(UserRole).where(
+            (UserRole.user_id == user.id) & 
+            (UserRole.tenant_id == _resolve_uuid(tenant_id))
+        )
+    ).all()
+    for ur in user_roles:
+        ur.is_active = False
+    
+    db.commit()
+    
+    record_audit_event(
+        db, current_user,
+        'tenant_user.deactivated',
+        'tenant_user', str(user_id),
+        {'tenant_id': tenant_id},
+    )
+    
+    return {"detail": "User deactivated successfully"}

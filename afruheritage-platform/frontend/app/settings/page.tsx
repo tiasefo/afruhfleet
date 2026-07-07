@@ -10,7 +10,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
 import { BackButton } from '@/components/back-button'
+import { NewArrivalsDrawer } from '@/components/admin/new-arrivals-drawer'
 import { 
   Settings, 
   Palette, 
@@ -30,6 +32,7 @@ import {
   Check,
   X,
   Mail,
+  AlertTriangle,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -65,18 +68,27 @@ export default function SettingsPage() {
   const [domainError, setDomainError] = useState('')
   const [domainSuccess, setDomainSuccess] = useState('')
   const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [verifyingId, setVerifyingId] = useState<string | null>(null)
   const [copiedText, setCopiedText] = useState('')
+  const [dnsInstructions, setDnsInstructions] = useState<Record<string, any>>({})
 
   // Storefront templates state
   const [templates, setTemplates] = useState<any[]>([])
   const [showTemplateDrawer, setShowTemplateDrawer] = useState(false)
   const [selectingTemplate, setSelectingTemplate] = useState<string | null>(null)
   const [currentTemplateCode, setCurrentTemplateCode] = useState<string | null>(null)
+  const [previousTemplateCode, setPreviousTemplateCode] = useState<string | null>(null)
+  const [showTemplateConfirm, setShowTemplateConfirm] = useState(false)
+  const [pendingTemplate, setPendingTemplate] = useState<any | null>(null)
 
   // Import settings state
   const [pseudoEmailDomain, setPseudoEmailDomain] = useState('phone.afruheritage.com')
   const [importSaving, setImportSaving] = useState(false)
   const [importSaved, setImportSaved] = useState(false)
+
+  // Gallery/New Arrivals state
+  const [galleryPosts, setGalleryPosts] = useState<any[]>([])
+  const [galleryLoading, setGalleryLoading] = useState(false)
 
   const isAdmin = user?.role === 'company_admin' || user?.is_tenant_admin
 
@@ -84,7 +96,7 @@ export default function SettingsPage() {
     if (!user?.tenant_id) return
     try {
       const [domains, settings] = await Promise.all([
-        domainsAPI.list(user.tenant_id),
+        domainsAPI.myDomains(),
         domainsAPI.settings(user.tenant_id),
       ])
       setCustomDomains(Array.isArray(domains) ? domains : [])
@@ -95,7 +107,7 @@ export default function SettingsPage() {
   }, [user?.tenant_id])
 
   const handleRequestDomain = async () => {
-    if (!newHostname.trim() || !user?.tenant_id) return
+    if (!newHostname.trim()) return
     const hostname = newHostname.trim().toLowerCase()
     if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z]{2,})+$/.test(hostname)) {
       setDomainError('Enter a valid domain (e.g. portal.yourcompany.com)')
@@ -105,14 +117,47 @@ export default function SettingsPage() {
     setDomainError('')
     setDomainSuccess('')
     try {
-      const domain = await domainsAPI.request(user.tenant_id, hostname, user.email)
+      const domain = await domainsAPI.requestSimple(hostname)
       setCustomDomains(prev => [domain, ...prev.filter((d: any) => d.hostname !== hostname)])
       setNewHostname('')
-      setDomainSuccess(`Domain ${hostname} requested. Add the DNS record below to verify.`)
+      setDomainSuccess(`Domain ${hostname} requested. Add the DNS records below to verify.`)
+      // Fetch DNS instructions for the new domain
+      try {
+        const instructions = await domainsAPI.dnsInstructions(domain.id)
+        setDnsInstructions(prev => ({ ...prev, [domain.id]: instructions }))
+      } catch {
+        // Instructions will load on next render
+      }
     } catch (err: any) {
       setDomainError(err?.message || 'Failed to request domain')
     } finally {
       setDomainLoading(false)
+    }
+  }
+
+  const handleVerifyDomain = async (domainId: string) => {
+    setVerifyingId(domainId)
+    try {
+      const result = await domainsAPI.verify(domainId)
+      if (result.status === 'active') {
+        setDomainSuccess(`Domain verified and activated!`)
+        await loadDomains()
+      } else {
+        setDomainError(result.message || 'DNS records not yet propagated. Please wait and try again.')
+      }
+    } catch (err: any) {
+      setDomainError(err?.message || 'Verification failed')
+    } finally {
+      setVerifyingId(null)
+    }
+  }
+
+  const handleLoadDnsInstructions = async (domainId: string) => {
+    try {
+      const instructions = await domainsAPI.dnsInstructions(domainId)
+      setDnsInstructions(prev => ({ ...prev, [domainId]: instructions }))
+    } catch {
+      // ignore
     }
   }
 
@@ -199,6 +244,29 @@ export default function SettingsPage() {
     loadTemplates()
   }, [])
 
+  // Load gallery posts
+  useEffect(() => {
+    const loadGallery = async () => {
+      if (!user?.tenant_id) return
+      setGalleryLoading(true)
+      try {
+        const token = localStorage.getItem('afruheritage_access_token')
+        const res = await fetch('/api/v1/gallery', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setGalleryPosts(Array.isArray(data) ? data : [])
+        }
+      } catch {
+        // ignore
+      } finally {
+        setGalleryLoading(false)
+      }
+    }
+    loadGallery()
+  }, [user?.tenant_id])
+
   // Load domains when user is available
   useEffect(() => {
     if (user?.tenant_id) {
@@ -242,17 +310,44 @@ export default function SettingsPage() {
   }
 
   const handleSelectTemplate = async (templateCode: string) => {
+    const template = templates.find(t => t.template_code === templateCode)
+    if (!template) return
+
+    // Show confirmation dialog if changing to a different template
+    if (currentTemplateCode && currentTemplateCode !== templateCode) {
+      setPendingTemplate(template)
+      setShowTemplateConfirm(true)
+      return
+    }
+
+    // No change or first template selection - proceed directly
+    await applyTemplate(templateCode)
+  }
+
+  const applyTemplate = async (templateCode: string) => {
     setSelectingTemplate(templateCode)
     try {
+      // Save previous template for rollback
+      if (currentTemplateCode) {
+        setPreviousTemplateCode(currentTemplateCode)
+      }
+      
       await templatesApi.select(templateCode)
       setCurrentTemplateCode(templateCode)
       setShowTemplateDrawer(false)
+      setShowTemplateConfirm(false)
       await refreshBranding()
     } catch (error) {
       console.error('Failed to select template:', error)
     } finally {
       setSelectingTemplate(null)
+      setPendingTemplate(null)
     }
+  }
+
+  const handleRollbackTemplate = async () => {
+    if (!previousTemplateCode) return
+    await applyTemplate(previousTemplateCode)
   }
 
   const handleSaveImportSettings = async () => {
@@ -544,6 +639,20 @@ export default function SettingsPage() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={() => handleVerifyDomain(domain.id)}
+                                  disabled={verifyingId === domain.id}
+                                  title="Verify DNS records now"
+                                  className="text-blue-600 hover:text-blue-700"
+                                >
+                                  {verifyingId === domain.id ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
                                   onClick={() => handleRefreshStatus(domain.id)}
                                   disabled={refreshingId === domain.id}
                                   title="Refresh verification status"
@@ -554,61 +663,125 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Show CNAME + TXT records when pending */}
-                            {domain.status !== 'active' && (
+                            {domain.status !== 'active' && (() => {
+                              const instructions = dnsInstructions[domain.id]
+                              const records = instructions?.records || []
+                              return (
                               <div className="bg-gray-50 rounded p-3 text-xs space-y-2">
-                                <p className="font-medium text-gray-700">Add a CNAME record in your DNS provider:</p>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div>
-                                    <p className="text-gray-500 mb-0.5">Name</p>
-                                    <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
-                                      <code className="flex-1 truncate">{domain.hostname}</code>
-                                      <button onClick={() => copyToClipboard(domain.hostname, 'name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                                        <Copy className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                    {copiedText === 'name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-500 mb-0.5">Points to</p>
-                                    <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
-                                      <code className="flex-1 truncate">{domain.fallback_hostname || 'afruheritage.com'}</code>
-                                      <button onClick={() => copyToClipboard(domain.fallback_hostname || 'afruheritage.com', 'value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
-                                        <Copy className="w-3 h-3" />
-                                      </button>
-                                    </div>
-                                    {copiedText === 'value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
-                                  </div>
+                                <div className="flex items-center justify-between">
+                                  <p className="font-medium text-gray-700">DNS Records to Add</p>
+                                  {records.length === 0 && (
+                                    <button
+                                      onClick={() => handleLoadDnsInstructions(domain.id)}
+                                      className="text-blue-500 hover:text-blue-700 text-xs underline"
+                                    >
+                                      Show DNS instructions
+                                    </button>
+                                  )}
                                 </div>
-                                {domain.verification_name && (
-                                  <div className="mt-2 pt-2 border-t">
-                                    <p className="font-medium text-gray-700 mb-1">Also add this TXT record for SSL:</p>
+                                {records.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {records.map((rec: any, idx: number) => (
+                                      <div key={idx} className="border-b last:border-b-0 pb-2 last:pb-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-mono text-[10px] font-bold">{rec.record_type}</span>
+                                          <span className="text-gray-500">{rec.purpose}</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          <div>
+                                            <p className="text-gray-500 mb-0.5">Name / Host</p>
+                                            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                              <code className="flex-1 truncate text-[11px]">{rec.name}</code>
+                                              <button onClick={() => copyToClipboard(rec.name, `name-${idx}`)} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                                <Copy className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                            {copiedText === `name-${idx}` && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                          </div>
+                                          <div>
+                                            <p className="text-gray-500 mb-0.5">Value / Target{rec.priority != null ? ` (Priority: ${rec.priority})` : ''}</p>
+                                            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                              <code className="flex-1 truncate text-[11px]">{rec.value}</code>
+                                              <button onClick={() => copyToClipboard(rec.value, `value-${idx}`)} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                                <Copy className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                            {copiedText === `value-${idx}` && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="space-y-2">
                                     <div className="grid grid-cols-2 gap-2">
                                       <div>
-                                        <p className="text-gray-500 mb-0.5">TXT Name</p>
+                                        <p className="text-gray-500 mb-0.5">CNAME Name</p>
                                         <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
-                                          <code className="flex-1 truncate">{domain.verification_name}</code>
-                                          <button onClick={() => copyToClipboard(domain.verification_name, 'txt-name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                          <code className="flex-1 truncate">{domain.hostname}</code>
+                                          <button onClick={() => copyToClipboard(domain.hostname, 'name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
                                             <Copy className="w-3 h-3" />
                                           </button>
                                         </div>
-                                        {copiedText === 'txt-name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                        {copiedText === 'name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
                                       </div>
                                       <div>
-                                        <p className="text-gray-500 mb-0.5">TXT Value</p>
+                                        <p className="text-gray-500 mb-0.5">Points to</p>
                                         <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
-                                          <code className="flex-1 truncate">{domain.verification_value}</code>
-                                          <button onClick={() => copyToClipboard(domain.verification_value, 'txt-value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                          <code className="flex-1 truncate">{domain.fallback_hostname || 'afruheritage.com'}</code>
+                                          <button onClick={() => copyToClipboard(domain.fallback_hostname || 'afruheritage.com', 'value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
                                             <Copy className="w-3 h-3" />
                                           </button>
                                         </div>
-                                        {copiedText === 'txt-value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                        {copiedText === 'value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
                                       </div>
                                     </div>
+                                    {domain.verification_name && (
+                                      <div className="mt-2 pt-2 border-t">
+                                        <p className="font-medium text-gray-700 mb-1">TXT record for verification:</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          <div>
+                                            <p className="text-gray-500 mb-0.5">TXT Name</p>
+                                            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                              <code className="flex-1 truncate">{domain.verification_name}</code>
+                                              <button onClick={() => copyToClipboard(domain.verification_name, 'txt-name')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                                <Copy className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                            {copiedText === 'txt-name' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                          </div>
+                                          <div>
+                                            <p className="text-gray-500 mb-0.5">TXT Value</p>
+                                            <div className="flex items-center gap-1 bg-white border rounded px-2 py-1">
+                                              <code className="flex-1 truncate">{domain.verification_value}</code>
+                                              <button onClick={() => copyToClipboard(domain.verification_value, 'txt-value')} className="text-gray-400 hover:text-gray-600 flex-shrink-0">
+                                                <Copy className="w-3 h-3" />
+                                              </button>
+                                            </div>
+                                            {copiedText === 'txt-value' && <p className="text-green-600 text-xs mt-0.5">Copied!</p>}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
-                                <p className="text-gray-500 pt-1">DNS changes can take up to 48 hours to propagate. Use the refresh button to check status.</p>
+                                <div className="flex items-center justify-between pt-1">
+                                  <p className="text-gray-500">DNS changes can take 5-60 min to propagate.</p>
+                                  <button
+                                    onClick={() => handleVerifyDomain(domain.id)}
+                                    disabled={verifyingId === domain.id}
+                                    className="text-blue-500 hover:text-blue-700 text-xs font-medium flex items-center gap-1"
+                                  >
+                                    {verifyingId === domain.id ? (
+                                      <><Loader2 className="w-3 h-3 animate-spin" /> Verifying...</>
+                                    ) : (
+                                      <><CheckCircle className="w-3 h-3" /> Verify Now</>
+                                    )}
+                                  </button>
+                                </div>
                               </div>
-                            )}
+                              )
+                            })()}
                             {domain.last_error && (
                               <p className="text-xs text-red-600 bg-red-50 rounded p-2">{domain.last_error}</p>
                             )}
@@ -623,7 +796,7 @@ export default function SettingsPage() {
                       Request a custom domain
                     </label>
                     <p className="text-xs text-gray-500 mb-3">
-                      Use your own domain (e.g. <code>portal.mycompany.com</code>). You will add a CNAME record pointing to this platform and a TXT record for SSL verification.
+                      Use your own domain (e.g. <code>portal.mycompany.com</code> or <code>mycompany.com</code>). We'll generate the DNS records you need to add at your registrar. Once verified, your domain will be active automatically.
                     </p>
                     <div className="flex gap-2">
                       <Input
@@ -775,10 +948,18 @@ export default function SettingsPage() {
                   <Store className="w-5 h-5" />
                   Storefront Template
                 </CardTitle>
-                <Button size="sm" variant="outline" onClick={() => setShowTemplateDrawer(true)}>
-                  <Palette className="h-4 w-4 mr-1" />
-                  {currentTemplateCode ? 'Change' : 'Select'}
-                </Button>
+                <div className="flex gap-2">
+                  {previousTemplateCode && (
+                    <Button size="sm" variant="outline" onClick={handleRollbackTemplate}>
+                      <RefreshCw className="h-4 w-4 mr-1" />
+                      Rollback
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => setShowTemplateDrawer(true)}>
+                    <Palette className="h-4 w-4 mr-1" />
+                    {currentTemplateCode ? 'Change' : 'Select'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -852,7 +1033,81 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* New Arrivals / Gallery Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5" />
+                New Arrivals & Gallery
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-500">
+                Manage new arrivals products and gallery posts for your storefront.
+              </p>
+              <div className="flex gap-3">
+                <Button size="sm" onClick={() => alert('New Arrivals clicked - tenantId: ' + (user?.tenant_id || 'none'))}>
+                  <Store className="h-4 w-4 mr-2" />
+                  Manage New Arrivals
+                </Button>
+                <Button size="sm" asChild>
+                  <a href="/portal/gallery">
+                    <Globe className="h-4 w-4 mr-2" />
+                    Manage Gallery
+                  </a>
+                </Button>
+              </div>
+              {galleryLoading ? (
+                <div className="text-sm text-gray-500">Loading...</div>
+              ) : (
+                <div className="text-sm text-gray-600">
+                  {galleryPosts.length} gallery post{galleryPosts.length !== 1 ? 's' : ''} published
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Template Confirmation Dialog */}
+        {showTemplateConfirm && pendingTemplate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="text-lg">Confirm Template Change</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  You are about to change your storefront template from <span className="font-medium">{templates.find(t => t.template_code === currentTemplateCode)?.name || currentTemplateCode}</span> to <span className="font-medium">{pendingTemplate.name}</span>.
+                </p>
+                <div className="rounded-md bg-amber-50 border border-amber-200 p-3">
+                  <p className="text-xs text-amber-800">
+                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                    This will update your storefront appearance. You can rollback to the previous template if needed.
+                  </p>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setShowTemplateConfirm(false)
+                      setPendingTemplate(null)
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => applyTemplate(pendingTemplate.template_code)}
+                  >
+                    Apply Template
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Template Drawer */}
         {showTemplateDrawer && (
@@ -874,6 +1129,11 @@ export default function SettingsPage() {
                       className={`rounded-lg border p-4 cursor-pointer transition-all hover:border-primary ${currentTemplateCode === t.template_code ? 'border-primary bg-primary/5' : ''}`}
                       onClick={() => handleSelectTemplate(t.template_code)}
                     >
+                      {t.image && (
+                        <div className="aspect-video w-full rounded-md overflow-hidden mb-3 bg-gray-100">
+                          <img src={t.image} alt={t.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-sm">{t.name}</span>
                         {currentTemplateCode === t.template_code && (

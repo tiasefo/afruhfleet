@@ -25,6 +25,7 @@ import {
   Truck,
   Calculator,
   UserCircle,
+  Store,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -60,6 +61,7 @@ interface NavItem {
   badge?: string
   roles?: string[]   // undefined = visible to all authenticated users
   superonly?: boolean
+  adminOnly?: boolean  // visible to tenant admins and superusers only
   tenantAware?: boolean  // if true, href is computed from tenant slug at render time
 }
 
@@ -70,11 +72,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
   { label: 'CRM', href: '/crm', icon: BarChart3 },
   { label: 'Customs Duty', href: '/customs/duty-calculator', icon: Calculator },
-  { label: 'Team Members', href: '/members', icon: Users },
+  { label: 'Team Members', href: '/members', icon: Users, adminOnly: true },
   { label: 'KYC', href: '/kyc', icon: BadgeCheck },
   { label: 'Support', href: '/support/dashboard', icon: HelpCircle },
   { label: 'Billing', href: '/billing', icon: CreditCard },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
+  { label: 'Templates', href: '/templates', icon: Store },
+  { label: 'Gallery', href: '/portal/gallery', icon: Globe },
   { label: 'Storefront', href: '/store', icon: ShoppingBag, tenantAware: true },
   { label: 'Vendors', href: '/vendors', icon: Truck },
   { label: 'Profile', href: '/profile', icon: UserCircle },
@@ -138,6 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
     if (item.superonly) return false
+    if (item.adminOnly && !user?.is_tenant_admin && !user?.is_superuser) return false
     return true
   })
   const adminItems = user?.is_superuser ? ADMIN_ITEMS : []

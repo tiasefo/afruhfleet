@@ -157,11 +157,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="mt-6 space-y-2">
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/settings">
-                      Edit Branding
-                    </Link>
-                  </Button>
+                  {(user?.is_tenant_admin || user?.is_superuser) && (
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href="/settings">
+                        Edit Branding
+                      </Link>
+                    </Button>
+                  )}
                   <Button variant="outline" className="w-full" asChild>
                     <Link href="/billing">
                       Manage Billing

@@ -265,12 +265,20 @@ export function CustomerDashboard({ tenantId }: CustomerDashboardProps) {
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Link
+          href="/customer/shipments"
+          className="block rounded-lg border bg-white p-6 shadow hover:shadow-md transition-shadow text-center"
+        >
+          <div className="text-3xl mb-2">📦</div>
+          <div className="font-semibold text-lg">My Shipments</div>
+          <div className="text-sm text-gray-500 mt-1">Manage shipments</div>
+        </Link>
         <Link
           href="/track"
           className="block rounded-lg border bg-white p-6 shadow hover:shadow-md transition-shadow text-center"
         >
-          <div className="text-3xl mb-2">📦</div>
+          <div className="text-3xl mb-2">�</div>
           <div className="font-semibold text-lg">Track Shipment</div>
           <div className="text-sm text-gray-500 mt-1">Enter a tracking number</div>
         </Link>

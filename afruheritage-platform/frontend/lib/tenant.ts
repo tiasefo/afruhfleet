@@ -10,7 +10,7 @@ function isIpAddressHost(host: string): boolean {
   return /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || host.includes(':')
 }
 
-function readEnvTenantId(): string | null {
+export function readEnvTenantId(): string | null {
   const configured = process.env.NEXT_PUBLIC_TENANT_ID?.trim()
   return configured ? configured : null
 }

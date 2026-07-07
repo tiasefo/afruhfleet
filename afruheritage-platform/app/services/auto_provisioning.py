@@ -71,29 +71,33 @@ def handle_subscription_payment_success(
         actions.append(f"already_{tenant.launch_status.value}")
         return {"actions": actions, "launched": False, "reason": "already_in_progress_or_active"}
 
-    # Auto-approve if still pending
+    # Auto-approve if still pending or draft
     if tenant.launch_status in (LaunchStatus.pending_verification, LaunchStatus.draft):
         tenant.launch_status = LaunchStatus.approved
-        tenant.verification_notes = "Auto-approved after successful subscription payment"
+        tenant.verification_notes = "Auto-approved after subscription selection"
         db.commit()
         actions.append("auto_approved")
 
-    # Auto-launch via Fleetbase org creation
+    # Fleetbase org may already be provisioned at signup — skip if so
+    if tenant.fleetbase_org_id:
+        if tenant.launch_status != LaunchStatus.active:
+            tenant.launch_status = LaunchStatus.active
+            db.commit()
+        actions.append("fleetbase_org_already_provisioned")
+        actions.append("tenant_active")
+        return {"actions": actions, "launched": True, "fleetbase_org_id": tenant.fleetbase_org_id}
+
+    # Auto-launch via Fleetbase org creation (for tenants provisioned before signup-time provisioning)
     if tenant.launch_status == LaunchStatus.approved:
         try:
-            # Create Fleetbase organization for this tenant
             org = fleetbase_client.provision_org(
                 company_name=tenant.company_name,
                 admin_email=tenant.contact_email,
-                admin_password=secrets.token_urlsafe(16),  # Random password, user never logs in directly
+                admin_password=secrets.token_urlsafe(16),
                 phone="",
             )
             tenant.fleetbase_org_id = org.org_id
             tenant.fleetbase_api_key = org.api_key
-            tenant.fleetbase_admin_token = org.admin_token
-            tenant.live_api_token = org.api_key
-            tenant.live_console_url = org.console_url
-            tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
             tenant.fleetbase_admin_token = org.admin_token
             tenant.live_api_token = org.api_key
             tenant.live_console_url = org.console_url

@@ -233,3 +233,98 @@ def resend_portal_url(
         details={"portal_url": result.get("portal_url"), "email_sent": result.get("email_sent")},
     )
     return result
+
+
+# ── Tenant User Management (Nested RBAC) ─────────────────────────────
+
+class TenantUserCreate(BaseModel):
+    email: str
+    full_name: str
+    password: str
+    role_name: str = "tenant_user"
+
+
+class TenantUserRoleUpdate(BaseModel):
+    role_name: str
+
+
+@router.get("/{tenant_id}/users")
+def list_tenant_users(
+    tenant_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.list_tenant_users(_get_cp_token(request), tenant_id)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.post("/{tenant_id}/users")
+def create_tenant_user(
+    tenant_id: str,
+    payload: TenantUserCreate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        result = cp.create_tenant_user(_get_cp_token(request), tenant_id, payload.model_dump())
+        record_admin_audit(
+            db,
+            admin_email=current_admin.email,
+            action="tenant_user.created_via_admin",
+            entity_type="tenant_user",
+            entity_id=result.get("id"),
+            details={"tenant_id": tenant_id, "role": payload.role_name},
+        )
+        return result
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.patch("/{tenant_id}/users/{user_id}/role")
+def update_tenant_user_role(
+    tenant_id: str,
+    user_id: str,
+    payload: TenantUserRoleUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        result = cp.update_tenant_user_role(_get_cp_token(request), tenant_id, user_id, payload.model_dump())
+        record_admin_audit(
+            db,
+            admin_email=current_admin.email,
+            action="tenant_user.role_updated_via_admin",
+            entity_type="tenant_user",
+            entity_id=user_id,
+            details={"tenant_id": tenant_id, "new_role": payload.role_name},
+        )
+        return result
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.delete("/{tenant_id}/users/{user_id}")
+def delete_tenant_user(
+    tenant_id: str,
+    user_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        result = cp.delete_tenant_user(_get_cp_token(request), tenant_id, user_id)
+        record_admin_audit(
+            db,
+            admin_email=current_admin.email,
+            action="tenant_user.deactivated_via_admin",
+            entity_type="tenant_user",
+            entity_id=user_id,
+            details={"tenant_id": tenant_id},
+        )
+        return result
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)

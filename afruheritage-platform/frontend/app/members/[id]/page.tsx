@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { membersAPI } from '@/lib/api'
 import { resolveTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,9 @@ import {
   Loader2,
 } from 'lucide-react'
 
-export default function MemberDetailPage({ params }: { params: { id: string } }) {
+export default function MemberDetailPage() {
+  const params = useParams<{ id: string }>()
+  const memberId = params.id
   const [member, setMember] = useState<any>(null)
   const [shipments, setShipments] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -44,13 +47,13 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       setIsLoading(true)
       setError(null)
       try {
-        const memberData = await membersAPI.get(params.id)
+        const memberData = await membersAPI.get(memberId)
         setMember(memberData)
 
         const tid = memberData.tenant_id || resolveTenantId()
         const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
         const resp = await fetch(
-          `/api/v1/shipments/${tid}/members/${params.id}/shipments`,
+          `/api/v1/shipments/${tid}/members/${memberId}/shipments`,
           { headers: token ? { Authorization: `Bearer ${token}` } : {} }
         )
         if (resp.ok) {
@@ -65,7 +68,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
     }
 
     loadData()
-  }, [params.id])
+  }, [memberId])
 
   if (isLoading) {
     return (
@@ -111,7 +114,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               Back to Members
             </Button>
           </Link>
-          <Link href={`/members/${params.id}/edit`}>
+          <Link href={`/members/${memberId}/edit`}>
             <Button>
               <Edit className="mr-2 h-4 w-4" />
               Edit Member
@@ -198,6 +201,23 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               </CardContent>
             </Card>
 
+            {/* Documents Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <FileText className="h-4 w-4" />
+                  Documents
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="py-8 text-center text-gray-500">
+                  <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm">No documents uploaded yet.</p>
+                  <p className="text-xs text-gray-400 mt-1">Documents will appear here once uploaded.</p>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -208,14 +228,14 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-xs text-gray-500">Login Email</p>
-                  <p className="mt-1 font-mono text-sm text-gray-900 break-all">{member.email || 'Not set'}</p>
+                  <p className="mt-1 font-mono text-sm text-gray-900 break-all">{member.login_email || member.email || 'Not set'}</p>
                 </div>
                 <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
                   <p className="text-xs text-amber-800">
-                    Default password: <code className="font-mono font-bold">afruheritage@1</code>
+                    A random secure password was generated for this member.
                   </p>
                   <p className="text-xs text-amber-600 mt-1">
-                    Member should change this after first login.
+                    Member must set their own password on first login.
                   </p>
                 </div>
                 <Button

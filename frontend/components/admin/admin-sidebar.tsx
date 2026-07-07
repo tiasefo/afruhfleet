@@ -10,6 +10,7 @@ import {
   Palette,
   Settings,
   Globe,
+  Shield,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -32,6 +33,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
       { label: 'Tenants', href: '/admin/tenants', icon: Building2 },
       { label: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
       { label: 'Users', href: '/admin/users', icon: Settings },
+      { label: 'RBAC', href: '/admin/rbac', icon: Shield },
     ],
   },
   {

@@ -5,6 +5,7 @@ import csv
 import io
 import logging
 import math
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -965,10 +966,94 @@ ALLOWED_CSV_COLS = {
     "receiver_name", "receiver_phone", "receiver_address",
     "origin_country", "origin_city", "destination_country", "destination_city",
     "shipped_date", "estimated_arrival",
-    "weight_kg", "package_count", "cargo_type", "description",
+    "weight_kg", "volume_cbm", "package_count", "cargo_type", "description",
     "total_cost", "amount_paid", "currency",
     "group_member_name", "notes",
+    "loading_date", "storage_days", "storage_rate", "storage_fee",
 }
+
+# Bilingual column aliases (EN → ZH) for XLSX import
+XLSX_COLUMN_ALIASES: dict[str, list[str]] = {
+    "group_member_name": ["SHIPPIN MARK/CLIENT", "唛头/客户名", "shipping_mark", "client", "group_member_name"],
+    "shipped_date": ["DATE OF RECEIPT", "送货日期", "receipt_date", "shipped_date"],
+    "estimated_arrival": ["DATE OF LOADING", "装柜日期", "loading_date_col", "estimated_arrival"],
+    "loading_date": ["DATE OF LOADING", "装柜日期", "loading_date"],
+    "description": ["DESCRIPTION", "商品名", "goods", "description"],
+    "package_count": ["CTNS", "件数", "cartons", "packages", "package_count"],
+    "volume_cbm": ["CBM", "体积", "volume", "volume_cbm"],
+    "tracking_number": ["SUPPLIER&TRACKING NO", "供应商/快递单号", "tracking", "supplier_tracking", "tracking_number"],
+    "notes": ["NOTES", "备注", "notes"],
+    "storage_days": ["DAYS", "天数", "storage_days"],
+    "storage_rate": ["UNIT PRICE", "单价/天/方", "unit_price", "storage_rate"],
+    "storage_fee": ["STORAGE FEE", "舱租", "storage", "storage_fee"],
+}
+
+
+def _evaluate_cbm_formula(val: str) -> float | None:
+    """Evaluate Excel-style CBM formula like '=0.55*0.25*0.54' to a float."""
+    if not val:
+        return None
+    val = val.strip()
+    if val.startswith("="):
+        expr = val[1:]
+        try:
+            result = eval(expr, {"__builtins__": {}}, {})
+            return round(float(result), 4)
+        except Exception:
+            return None
+    try:
+        return float(val)
+    except ValueError:
+        return None
+
+
+def _parse_xlsx(file_content: bytes) -> list[dict[str, Any]]:
+    """Parse XLSX file and return list of row dicts with normalized column names."""
+    try:
+        import openpyxl
+    except ImportError:
+        raise RuntimeError("openpyxl is required for XLSX import. Install with: pip install openpyxl")
+    wb = openpyxl.load_workbook(io.BytesIO(file_content), read_only=True, data_only=False)
+    ws = wb.active
+    rows = list(ws.iter_rows(values_only=True))
+    wb.close()
+    if not rows:
+        return []
+    headers = [str(h).strip() if h is not None else "" for h in rows[0]]
+    # Build alias reverse map: alias → canonical name
+    alias_map: dict[str, str] = {}
+    for canonical, aliases in XLSX_COLUMN_ALIASES.items():
+        for alias in aliases:
+            alias_map[alias.lower().strip()] = canonical
+    # Map header indices to canonical names
+    col_map: dict[int, str] = {}
+    for idx, h in enumerate(headers):
+        key = h.lower().strip()
+        if key in alias_map:
+            col_map[idx] = alias_map[key]
+        elif key in ALLOWED_CSV_COLS:
+            col_map[idx] = key
+    result: list[dict[str, Any]] = []
+    for row in rows[1:]:
+        # Skip blank rows
+        if all(c is None or (isinstance(c, str) and not c.strip()) for c in row):
+            continue
+        d: dict[str, Any] = {}
+        for idx, val in enumerate(row):
+            if idx in col_map and val is not None:
+                d[col_map[idx]] = str(val).strip() if not isinstance(val, datetime) else val
+        result.append(d)
+    return result
+
+
+def _strip_shipping_mark_prefix(name: str, prefix: str = "AMOOKSCO") -> str:
+    """Strip tenant prefix from shipping mark to get client name."""
+    if not name:
+        return name
+    name = name.strip()
+    if name.upper().startswith(prefix.upper()):
+        return name[len(prefix):].strip()
+    return name
 
 
 def import_shipments_csv(
@@ -976,33 +1061,54 @@ def import_shipments_csv(
     tenant_id: str,
     file_content: bytes,
     created_by: str | None = None,
+    filename: str | None = None,
 ) -> dict[str, Any]:
     tenant_uuid = _coerce_uuid(tenant_id)
-    text = file_content.decode("utf-8-sig")
-    reader = csv.DictReader(io.StringIO(text))
-    if not reader.fieldnames:
-        return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": "Empty CSV"}]}
+    is_xlsx = filename and filename.endswith(".xlsx") if filename else False
 
-    headers = {h.strip().lower() for h in reader.fieldnames}
-    missing = REQUIRED_CSV_COLS - headers
-    if missing:
-        return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": f"Missing columns: {missing}"}]}
+    if is_xlsx:
+        rows_data = _parse_xlsx(file_content)
+        if not rows_data:
+            return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": "Empty XLSX"}]}
+        # For XLSX, group_member_name is required (shipping mark)
+        if not any("group_member_name" in r for r in rows_data):
+            return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": "Missing SHIPPIN MARK/CLIENT column"}]}
+    else:
+        text = file_content.decode("utf-8-sig")
+        reader = csv.DictReader(io.StringIO(text))
+        if not reader.fieldnames:
+            return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": "Empty CSV"}]}
+        headers = {h.strip().lower() for h in reader.fieldnames}
+        missing = REQUIRED_CSV_COLS - headers
+        if missing:
+            return {"total_rows": 0, "created": 0, "updated": 0, "errors": [{"row": 0, "error": f"Missing columns: {missing}"}]}
+        rows_data = []
+        for raw_row in reader:
+            d = {k.strip().lower(): (v.strip() if v else "") for k, v in raw_row.items() if k}
+            rows_data.append(d)
 
     created, updated, errors = 0, 0, []
     member_cache: dict[str, str] = {}
 
-    for i, raw_row in enumerate(reader, start=2):
-        row = {k.strip().lower(): (v.strip() if v else "") for k, v in raw_row.items()}
+    for i, row in enumerate(rows_data, start=2):
+        # For XLSX: sender_name/receiver_name may not exist — use group_member_name as both
+        sender = row.get("sender_name", "").strip() or row.get("group_member_name", "").strip()
+        receiver = row.get("receiver_name", "").strip() or row.get("group_member_name", "").strip()
+        if not sender and not receiver:
+            errors.append({"row": i, "error": "Missing sender_name/receiver_name/group_member_name"})
+            continue
+        # Use group_member_name as fallback for sender/receiver
+        if not sender:
+            sender = receiver
+        if not receiver:
+            receiver = sender
+
         tracking = row.get("tracking_number", "").strip() or _generate_tracking_number(db, tenant_id)
-        if not row.get("sender_name"):
-            errors.append({"row": i, "error": "Missing sender_name"})
-            continue
-        if not row.get("receiver_name"):
-            errors.append({"row": i, "error": "Missing receiver_name"})
-            continue
 
         try:
             member_name = row.get("group_member_name", "").strip()
+            if member_name:
+                member_name = _strip_shipping_mark_prefix(member_name)
             member_id = None
             if member_name:
                 if member_name in member_cache:
@@ -1042,14 +1148,20 @@ def import_shipments_csv(
 
             if existing_shipment:
                 for col in ALLOWED_CSV_COLS - {"group_member_name"}:
-                    val = row.get(col, "").strip()
-                    if val and hasattr(existing_shipment, col):
-                        if col in ("total_cost", "amount_paid", "weight_kg"):
+                    val = row.get(col, "")
+                    if isinstance(val, datetime):
+                        setattr(existing_shipment, col, val)
+                    elif val and hasattr(existing_shipment, col):
+                        if col in ("total_cost", "amount_paid", "weight_kg", "storage_rate", "storage_fee"):
                             setattr(existing_shipment, col, float(val))
                         elif col == "package_count":
                             setattr(existing_shipment, col, int(val))
-                        elif col in ("shipped_date", "estimated_arrival"):
-                            setattr(existing_shipment, col, _parse_date(val))
+                        elif col == "storage_days":
+                            setattr(existing_shipment, col, int(float(val)))
+                        elif col == "volume_cbm":
+                            setattr(existing_shipment, col, _evaluate_cbm_formula(val))
+                        elif col in ("shipped_date", "estimated_arrival", "loading_date"):
+                            setattr(existing_shipment, col, _parse_date(val) if isinstance(val, str) else val)
                         else:
                             setattr(existing_shipment, col, val)
                 existing_shipment.balance_due = balance
@@ -1058,23 +1170,25 @@ def import_shipments_csv(
                     existing_shipment.group_member_id = member_id
                 updated += 1
             else:
+                vol_cbm = _evaluate_cbm_formula(row.get("volume_cbm", "")) if row.get("volume_cbm") else None
                 shipment = Shipment(
                     tenant_id=tenant_uuid,
                     tracking_number=tracking,
                     reference_number=row.get("reference_number", "").strip() or None,
-                    sender_name=row["sender_name"],
+                    sender_name=sender,
                     sender_phone=row.get("sender_phone", "").strip() or None,
                     sender_address=row.get("sender_address", "").strip() or None,
-                    receiver_name=row["receiver_name"],
+                    receiver_name=receiver,
                     receiver_phone=row.get("receiver_phone", "").strip() or None,
                     receiver_address=row.get("receiver_address", "").strip() or None,
                     origin_country=row.get("origin_country", "").strip() or None,
                     origin_city=row.get("origin_city", "").strip() or None,
                     destination_country=row.get("destination_country", "").strip() or None,
                     destination_city=row.get("destination_city", "").strip() or None,
-                    shipped_date=_parse_date(row.get("shipped_date", "")),
-                    estimated_arrival=_parse_date(row.get("estimated_arrival", "")),
+                    shipped_date=_parse_date(row.get("shipped_date", "")) if isinstance(row.get("shipped_date"), str) else row.get("shipped_date"),
+                    estimated_arrival=_parse_date(row.get("estimated_arrival", "")) if isinstance(row.get("estimated_arrival"), str) else row.get("estimated_arrival"),
                     weight_kg=float(row["weight_kg"]) if row.get("weight_kg") else None,
+                    volume_cbm=vol_cbm,
                     package_count=int(row["package_count"]) if row.get("package_count") else None,
                     cargo_type=row.get("cargo_type", "").strip() or None,
                     description=row.get("description", "").strip() or None,
@@ -1087,6 +1201,10 @@ def import_shipments_csv(
                     group_member_id=member_id,
                     notes=row.get("notes", "").strip() or None,
                     created_by=created_by,
+                    loading_date=_parse_date(row.get("loading_date", "")) if isinstance(row.get("loading_date"), str) else row.get("loading_date"),
+                    storage_days=int(float(row["storage_days"])) if row.get("storage_days") else None,
+                    storage_rate=float(row["storage_rate"]) if row.get("storage_rate") else None,
+                    storage_fee=float(row["storage_fee"]) if row.get("storage_fee") else None,
                 )
                 db.add(shipment)
                 created += 1

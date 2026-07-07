@@ -24,7 +24,12 @@ import {
   X,
   Mail,
   Save,
+  Plug,
+  Zap,
 } from 'lucide-react'
+import { BrandingDrawer } from '@/components/branding-drawer'
+import { NewArrivalsDrawer } from '@/components/new-arrivals-drawer'
+import { GalleryDrawer } from '@/components/gallery-drawer'
 
 export default function TenantDetailPage() {
   const { id } = useParams() as { id: string }
@@ -41,6 +46,9 @@ export default function TenantDetailPage() {
   const [pseudoEmailDomain, setPseudoEmailDomain] = useState('phone.afruheritage.com')
   const [brandingLoading, setBrandingLoading] = useState(false)
   const [brandingSaving, setBrandingSaving] = useState(false)
+  const [plugins, setPlugins] = useState<any[]>([])
+  const [tenantPlugins, setTenantPlugins] = useState<any[]>([])
+  const [pluginsLoading, setPluginsLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -82,6 +90,20 @@ export default function TenantDetailPage() {
         }
       } catch {
         // ignore
+      }
+
+      try {
+        setPluginsLoading(true)
+        const [allPlugins, tenantPluginData] = await Promise.all([
+          api.get('/admin/plugins'),
+          api.get(`/admin/tenants/${id}/plugins`)
+        ])
+        setPlugins(Array.isArray(allPlugins) ? allPlugins : [])
+        setTenantPlugins(Array.isArray(tenantPluginData) ? tenantPluginData : [])
+      } catch {
+        // ignore
+      } finally {
+        setPluginsLoading(false)
       }
     } catch (e: any) {
       toast.error(e.message)
@@ -209,6 +231,7 @@ export default function TenantDetailPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
           <TabsTrigger value="storefront">Storefront</TabsTrigger>
+          <TabsTrigger value="plugins">Plugins ({tenantPlugins.length})</TabsTrigger>
           <TabsTrigger value="fleetbase">Fleetbase</TabsTrigger>
         </TabsList>
 
@@ -276,6 +299,79 @@ export default function TenantDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="plugins" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plug className="h-5 w-5 text-primary" />
+                Plugin Marketplace
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pluginsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : plugins.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  <Plug className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No plugins available in the marketplace.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {plugins.map((plugin: any) => {
+                    const isInstalled = tenantPlugins.some((tp: any) => tp.plugin_code === plugin.plugin_code)
+                    return (
+                      <Card key={plugin.id} className="overflow-hidden">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <Zap className="h-4 w-4 text-primary" />
+                                {plugin.name}
+                              </CardTitle>
+                              <p className="text-xs text-muted-foreground font-mono mt-1">{plugin.plugin_code}</p>
+                            </div>
+                            <Badge variant={isInstalled ? 'default' : 'outline'}>
+                              {isInstalled ? 'Installed' : 'Available'}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <p className="text-sm text-muted-foreground line-clamp-2">{plugin.description || 'No description'}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-muted-foreground">v{plugin.version || '1.0.0'}</span>
+                            <Button
+                              size="sm"
+                              variant={isInstalled ? 'outline' : 'default'}
+                              onClick={async () => {
+                                try {
+                                  if (isInstalled) {
+                                    await api.delete(`/admin/tenants/${id}/plugins/${plugin.plugin_code}`)
+                                    toast.success('Plugin disabled')
+                                  } else {
+                                    await api.post(`/admin/tenants/${id}/plugins`, { plugin_code: plugin.plugin_code })
+                                    toast.success('Plugin enabled')
+                                  }
+                                  load()
+                                } catch (e: any) {
+                                  toast.error('Failed: ' + e.message)
+                                }
+                              }}
+                            >
+                              {isInstalled ? 'Disable' : 'Enable'}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="storefront" className="space-y-4">
           <Card>
             <CardHeader>
@@ -320,6 +416,26 @@ export default function TenantDetailPage() {
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Storefront Configuration Drawers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="h-5 w-5 text-primary" />
+                Storefront Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Configure your storefront appearance, content, and branding settings.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <BrandingDrawer tenantId={id} />
+                <NewArrivalsDrawer tenantId={id} />
+                <GalleryDrawer tenantId={id} />
+              </div>
             </CardContent>
           </Card>
 
@@ -404,26 +520,30 @@ export default function TenantDetailPage() {
                           toast.error('Failed to select template: ' + e.message)
                         } finally {
                           setSelectingTemplate(null)
-                        }
-                      }}
+                        }}
+                      }
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-sm">{t.name}</span>
-                        {selectedTemplate === t.template_code && (
-                          <Check className="h-4 w-4 text-primary" />
+                      <div className="aspect-video bg-gray-100 rounded-md overflow-hidden mb-3 flex items-center justify-center">
+                        {t.preview_image ? (
+                          <img src={t.preview_image} alt={t.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <ImagePlus className="h-8 w-8 text-gray-300" />
                         )}
                       </div>
-                      {t.description && (
-                        <p className="text-xs text-muted-foreground mb-2">{t.description}</p>
-                      )}
-                      <div className="flex gap-1">
-                        {['primary_color', 'secondary_color', 'accent_color', 'background_color'].map(key => (
-                          <div key={key} className="h-6 w-6 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
-                        ))}
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-medium">{t.name}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{t.template_code}</p>
+                        </div>
+                        {selectedTemplate === t.template_code && (
+                          <Check className="h-5 w-5 text-primary" />
+                        )}
                       </div>
-                      {selectingTemplate === t.template_code && (
-                        <div className="mt-2 flex items-center gap-1 text-xs text-primary">
-                          <Loader2 className="h-3 w-3 animate-spin" /> Applying...
+                      {t.preset && (
+                        <div className="flex gap-1 mt-2">
+                          {['primary_color', 'secondary_color', 'accent_color'].map(key => (
+                            <div key={key} className="h-4 w-4 rounded border" style={{ backgroundColor: t.preset?.[key] || '#ccc' }} />
+                          ))}
                         </div>
                       )}
                     </div>

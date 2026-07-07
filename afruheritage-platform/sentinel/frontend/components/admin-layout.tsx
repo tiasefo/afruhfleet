@@ -24,6 +24,10 @@ import {
   SlidersHorizontal,
   FileText,
   Store,
+  Package,
+  DollarSign,
+  Cpu,
+  Activity,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -53,6 +57,11 @@ const navItems = [
   { href: '/dashboard/vendor-actions', label: 'Vendor Actions', icon: Building2 },
   { href: '/dashboard/control-center', label: 'Control Center', icon: SlidersHorizontal },
   { href: '/dashboard/documentation', label: 'Documentation', icon: FileText },
+  { href: '/dashboard/shipments', label: 'Shipments', icon: Package },
+  { href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+  { href: '/dashboard/fleetbase', label: 'Fleetbase', icon: Cpu },
+  { href: '/dashboard/feature-flags', label: 'Feature Flags', icon: SlidersHorizontal },
+  { href: '/dashboard/diagnostics', label: 'Diagnostics', icon: Activity },
 ]
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

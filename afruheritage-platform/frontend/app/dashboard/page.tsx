@@ -294,19 +294,21 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </Link>
-              <Link href="/members">
-                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-                  <CardContent className="flex items-center gap-4 p-6">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-                      <Users className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Team Members</p>
-                      <p className="text-sm text-muted-foreground">Manage team</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              {(user?.is_tenant_admin || user?.is_superuser) && (
+                <Link href="/members">
+                  <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                    <CardContent className="flex items-center gap-4 p-6">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Team Members</p>
+                        <p className="text-sm text-muted-foreground">Manage team</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )}
               <Link href="/billing">
                 <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                   <CardContent className="flex items-center gap-4 p-6">
@@ -353,19 +355,21 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/settings">
-              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-                <CardContent className="flex items-center gap-4 p-6">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
-                    <Settings className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Settings</p>
-                    <p className="text-sm text-muted-foreground">Configure</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            {(user?.is_tenant_admin || user?.is_superuser) && (
+              <Link href="/settings">
+                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
+                  <CardContent className="flex items-center gap-4 p-6">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                      <Settings className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Settings</p>
+                      <p className="text-sm text-muted-foreground">Configure</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
             <Link href="/templates">
               <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                 <CardContent className="flex items-center gap-4 p-6">

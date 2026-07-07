@@ -8,67 +8,77 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { waLink, whatsapp } from "@/lib/amooksco"
+import { useTenant } from "@/components/tenant-context-provider"
+import { api } from "@/lib/api"
 
-type Stage = { label: string; done: boolean }
+type Stage = { label: string; done: boolean; at?: string }
 
 type Result = {
   ref: string
   mark: string
   status: string
-  mode: string
+  route: string
+  current: string
   eta: string
   stages: Stage[]
 }
 
-// Demo dataset (mocked for presentation per spec).
-const demo: Record<string, Result> = {
-  "AFR-AMO-04A3302D82": {
-    ref: "AFR-AMO-04A3302D82",
-    mark: "AGYIRIGO",
-    status: "In Transit (Sea)",
-    mode: "Sea Cargo",
-    eta: "Arriving Tema Port in ~6 days",
-    stages: [
-      { label: "Received at China Warehouse", done: true },
-      { label: "Consolidated & Loaded", done: true },
-      { label: "Departed China Port", done: true },
-      { label: "In Transit to Ghana", done: true },
-      { label: "Customs Clearance", done: false },
-      { label: "Ready for Delivery", done: false },
-    ],
-  },
-  AGYIRIGO: {
-    ref: "AFR-AMO-04A3302D82",
-    mark: "AGYIRIGO",
-    status: "In Transit (Sea)",
-    mode: "Sea Cargo",
-    eta: "Arriving Tema Port in ~6 days",
-    stages: [
-      { label: "Received at China Warehouse", done: true },
-      { label: "Consolidated & Loaded", done: true },
-      { label: "Departed China Port", done: true },
-      { label: "In Transit to Ghana", done: true },
-      { label: "Customs Clearance", done: false },
-      { label: "Ready for Delivery", done: false },
-    ],
-  },
+function formatStatus(s: string): string {
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+function formatDate(value?: string | null): string {
+  if (!value) return "TBD"
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return "TBD"
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
 }
 
 function TrackForm({ kind }: { kind: "number" | "mark" }) {
+  const { tenant } = useTenant()
   const [query, setQuery] = useState("")
   const [result, setResult] = useState<Result | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const key = query.trim().toUpperCase()
-    const match = demo[key]
-    if (match) {
-      setResult(match)
-      setNotFound(false)
-    } else {
+    const key = query.trim()
+    if (!key) return
+    const tenantSlug = tenant?.slug || tenant?.id
+    if (!tenantSlug) {
       setResult(null)
       setNotFound(true)
+      return
+    }
+    setLoading(true)
+    setNotFound(false)
+    try {
+      const data: any = await api.get(
+        `/shipments/public/track/${encodeURIComponent(tenantSlug)}/${encodeURIComponent(key)}`,
+      )
+      const origin = data.origin_city || data.origin_country || "Origin"
+      const destination = data.destination_city || data.destination_country || "Destination"
+      const events = Array.isArray(data.events) ? data.events : []
+      const stages: Stage[] = events.map((ev: any) => ({
+        label: ev.description || formatStatus(ev.event_type || "Update"),
+        done: true,
+        at: ev.occurred_at,
+      }))
+      setResult({
+        ref: data.tracking_number || key,
+        mark: data.receiver_name || data.sender_name || "—",
+        status: formatStatus(data.status || "Unknown"),
+        route: `${origin} → ${destination}`,
+        current: data.current_location || "In transit",
+        eta: formatDate(data.estimated_arrival),
+        stages,
+      })
+    } catch {
+      setResult(null)
+      setNotFound(true)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -91,9 +101,9 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
             className="h-11"
           />
         </div>
-        <Button type="submit" size="lg" className="h-11">
+        <Button type="submit" size="lg" className="h-11" disabled={loading}>
           <PackageSearch className="size-4" />
-          Track
+          {loading ? "Searching…" : "Track"}
         </Button>
       </form>
 
@@ -108,14 +118,18 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
             </div>
             <Badge className="bg-accent text-accent-foreground">{result.status}</Badge>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <div>
               <p className="text-muted-foreground">Shipping Mark</p>
               <p className="font-medium text-foreground">{result.mark}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Mode</p>
-              <p className="font-medium text-foreground">{result.mode}</p>
+              <p className="text-muted-foreground">Route</p>
+              <p className="font-medium text-foreground">{result.route}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Current Location</p>
+              <p className="font-medium text-foreground">{result.current}</p>
             </div>
             <div>
               <p className="text-muted-foreground">ETA</p>
@@ -123,26 +137,37 @@ function TrackForm({ kind }: { kind: "number" | "mark" }) {
             </div>
           </div>
 
-          <ol className="mt-5 space-y-3">
-            {result.stages.map((stage) => (
-              <li key={stage.label} className="flex items-center gap-3">
-                {stage.done ? (
-                  <CheckCircle2 className="size-5 shrink-0 text-primary" />
-                ) : (
-                  <Circle className="size-5 shrink-0 text-muted-foreground/50" />
-                )}
-                <span
-                  className={
-                    stage.done
-                      ? "text-sm font-medium text-foreground"
-                      : "text-sm text-muted-foreground"
-                  }
-                >
-                  {stage.label}
-                </span>
-              </li>
-            ))}
-          </ol>
+          {result.stages.length > 0 ? (
+            <ol className="mt-5 space-y-3">
+              {result.stages.map((stage, i) => (
+                <li key={`${stage.label}-${i}`} className="flex items-start gap-3">
+                  {stage.done ? (
+                    <CheckCircle2 className="size-5 shrink-0 text-primary" />
+                  ) : (
+                    <Circle className="size-5 shrink-0 text-muted-foreground/50" />
+                  )}
+                  <span className="flex flex-col">
+                    <span
+                      className={
+                        stage.done
+                          ? "text-sm font-medium text-foreground"
+                          : "text-sm text-muted-foreground"
+                      }
+                    >
+                      {stage.label}
+                    </span>
+                    {stage.at && (
+                      <span className="text-xs text-muted-foreground">{formatDate(stage.at)}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="mt-5 text-sm text-muted-foreground">
+              No tracking events recorded yet. Check back soon for updates.
+            </p>
+          )}
         </div>
       )}
 
@@ -205,8 +230,7 @@ export function Track() {
             </TabsContent>
           </Tabs>
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Demo data — try <span className="font-mono">AFR-AMO-04A3302D82</span> or{" "}
-            <span className="font-mono">AGYIRIGO</span>.
+            Enter your AMOOKSCO tracking number or shipping mark exactly as provided.
           </p>
         </div>
       </div>

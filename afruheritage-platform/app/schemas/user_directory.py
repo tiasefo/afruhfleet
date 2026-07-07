@@ -6,7 +6,7 @@ class TenantUserCreateRequest(BaseModel):
     full_name: str = Field(min_length=2, max_length=255)
     password: str | None = Field(default=None, min_length=8)
     send_invite_email: bool = False
-    is_tenant_admin: bool = False
+    role: str = "customer"  # "customer" or "admin"
     tenant_id: str | None = None
 
 

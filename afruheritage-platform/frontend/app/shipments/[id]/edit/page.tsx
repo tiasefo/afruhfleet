@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { membersAPI, shipmentsAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,8 +11,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertCircle, ArrowLeft, Loader2, Save } from 'lucide-react'
 
-export default function EditShipmentPage({ params }: { params: { id: string } }) {
+export default function EditShipmentPage() {
   const router = useRouter()
+  const params = useParams<{ id: string }>()
+  const shipmentId = params.id
   const unassignedMemberValue = '__unassigned__'
   const [members, setMembers] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -51,7 +53,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
       setError(null)
       try {
         const [shipment, memberList] = await Promise.all([
-          shipmentsAPI.get(params.id),
+          shipmentsAPI.get(shipmentId),
           membersAPI.list(),
         ])
 
@@ -90,7 +92,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
     }
 
     loadData()
-  }, [params.id])
+  }, [shipmentId])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -107,7 +109,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
 
     setIsSubmitting(true)
     try {
-      await shipmentsAPI.update(params.id, {
+      await shipmentsAPI.update(shipmentId, {
         tracking_number: formData.tracking_number.trim(),
         reference_number: formData.reference_number.trim() || undefined,
         cargo_type: formData.cargo_type.trim() || undefined,
@@ -133,7 +135,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
         group_member_id: formData.group_member_id === unassignedMemberValue ? null : formData.group_member_id,
         status: formData.status,
       })
-      router.push(`/shipments/${params.id}`)
+      router.push(`/shipments/${shipmentId}`)
     } catch (err: any) {
       setError(err?.message || 'Failed to update shipment.')
     } finally {
@@ -153,7 +155,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow">
         <div className="mx-auto flex max-w-5xl items-center px-4 py-6 sm:px-6 lg:px-8">
-          <Link href={`/shipments/${params.id}`}>
+          <Link href={`/shipments/${shipmentId}`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Shipment
@@ -308,7 +310,7 @@ export default function EditShipmentPage({ params }: { params: { id: string } })
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                   {isSubmitting ? 'Saving...' : 'Save Shipment'}
                 </Button>
-                <Link href={`/shipments/${params.id}`}>
+                <Link href={`/shipments/${shipmentId}`}>
                   <Button type="button" variant="outline">Cancel</Button>
                 </Link>
               </div>

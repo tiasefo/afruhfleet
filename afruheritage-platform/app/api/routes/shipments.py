@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from fastapi import UploadFile, File, Request, APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_tenant_admin
 from app.billing.guards import is_tenant_read_only
 from app.db.session import SessionLocal, get_db
 from app.models.shipment import Shipment, ShipmentStatus
@@ -750,15 +750,15 @@ def import_csv_route(
     tenant_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_tenant_admin),
 ):
     _ensure_tenant_writable(tenant_id)
-    if not file.filename or not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="Only .csv files are accepted")
+    if not file.filename or not (file.filename.endswith(".csv") or file.filename.endswith(".xlsx")):
+        raise HTTPException(status_code=400, detail="Only .csv and .xlsx files are accepted")
     content = file.file.read()
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File size exceeds 10MB limit")
-    result = import_shipments_csv(db, tenant_id, content, created_by=current_user.email)
+    result = import_shipments_csv(db, tenant_id, content, created_by=current_user.email, filename=file.filename)
     return CSVUploadResponse(**result)
 
 
@@ -844,6 +844,13 @@ def _to_search_result(s, live_snapshot: dict | None = None) -> ShipmentSearchRes
 
 def _member_to_response(db: Session, m) -> GroupMemberResponse:
     count = db.query(Shipment).filter(Shipment.group_member_id == m.id).count()
+    login_email = None
+    temp_password = None
+    if m.user_id:
+        user = db.query(User).filter(User.id == m.user_id).first()
+        if user:
+            login_email = user.email
+            temp_password = None
     return GroupMemberResponse(
         id=str(m.id),
         tenant_id=str(m.tenant_id),
@@ -854,9 +861,13 @@ def _member_to_response(db: Session, m) -> GroupMemberResponse:
         company=m.company,
         notes=m.notes,
         preferred_language=m.preferred_language,
+        role=m.role.value if hasattr(m.role, 'value') else str(m.role),
         is_active=m.is_active,
         shipment_count=count,
-        created_at=m.created_at,
+        login_email=login_email,
+        temp_password=temp_password,
+        created_at=m.created_at.isoformat() if m.created_at else None,
+        updated_at=m.updated_at.isoformat() if m.updated_at else None,
     )
 
 

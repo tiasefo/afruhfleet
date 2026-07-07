@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { membersAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,8 +11,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { AlertCircle, ArrowLeft, Loader2, Save } from 'lucide-react'
 
-export default function EditMemberPage({ params }: { params: { id: string } }) {
+export default function EditMemberPage() {
   const router = useRouter()
+  const params = useParams<{ id: string }>()
+  const memberId = params.id
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,7 +34,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
       setIsLoading(true)
       setError(null)
       try {
-        const data = await membersAPI.get(params.id)
+        const data = await membersAPI.get(memberId)
         setFormData({
           full_name: data.full_name || '',
           phone: data.phone || '',
@@ -51,7 +53,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
     }
 
     loadMember()
-  }, [params.id])
+  }, [memberId])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -68,7 +70,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
 
     setIsSubmitting(true)
     try {
-      await membersAPI.update(params.id, {
+      await membersAPI.update(memberId, {
         full_name: formData.full_name.trim(),
         phone: formData.phone.trim() || undefined,
         email: formData.email.trim() || undefined,
@@ -78,7 +80,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
         preferred_language: formData.preferred_language,
         is_active: formData.is_active === 'true',
       })
-      router.push(`/members/${params.id}`)
+      router.push(`/members/${memberId}`)
     } catch (err: any) {
       setError(err?.message || 'Failed to update member.')
     } finally {
@@ -98,7 +100,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white shadow">
         <div className="mx-auto flex max-w-4xl items-center px-4 py-6 sm:px-6 lg:px-8">
-          <Link href={`/members/${params.id}`}>
+          <Link href={`/members/${memberId}`}>
             <Button variant="ghost" size="sm">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Member
@@ -178,7 +180,7 @@ export default function EditMemberPage({ params }: { params: { id: string } }) {
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Link href={`/members/${params.id}`}>
+                <Link href={`/members/${memberId}`}>
                   <Button type="button" variant="outline">Cancel</Button>
                 </Link>
               </div>

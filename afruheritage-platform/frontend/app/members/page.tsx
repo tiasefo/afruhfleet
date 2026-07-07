@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { membersAPI, usersApi } from '@/lib/api'
+import { persistTenantId } from '@/lib/tenant'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -16,6 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { BackButton } from '@/components/back-button'
 import {
   Users,
@@ -33,6 +41,8 @@ import {
   Building2,
   Package,
   FileText,
+  Filter,
+  ChevronDown,
 } from 'lucide-react'
 
 export default function MembersPage() {
@@ -45,20 +55,30 @@ export default function MembersPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize] = useState(50)
+  const [filterRole, setFilterRole] = useState<string>('all')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [showFilters, setShowFilters] = useState(false)
 
   // Invite modal state
   const [inviteOpen, setInviteOpen] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     full_name: '',
     email: '',
-    is_tenant_admin: false,
+    role: 'customer',  // 'customer' or 'admin'
     send_invite_email: true,
   })
   const [inviteLoading, setInviteLoading] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null)
 
   const tenantId = user?.tenant_id || (typeof window !== 'undefined' ? localStorage.getItem('tenant_id') : null)
+
+  useEffect(() => {
+    if (user?.tenant_id) {
+      persistTenantId(user.tenant_id)
+    }
+  }, [user?.tenant_id])
 
   const loadMembers = async () => {
     if (!tenantId) {
@@ -69,7 +89,10 @@ export default function MembersPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const data = await membersAPI.list({ q: search || undefined, page, page_size: pageSize })
+      const params: any = { q: search || undefined, page, page_size: pageSize }
+      if (filterRole !== 'all') params.role = filterRole
+      if (filterStatus !== 'all') params.is_active = filterStatus === 'active'
+      const data = await membersAPI.list(params)
       setMembers(data.items || [])
       setTotal(data.total || 0)
     } catch (err: any) {
@@ -92,7 +115,7 @@ export default function MembersPage() {
       }
     }, 300)
     return () => clearTimeout(timer)
-  }, [search])
+  }, [search, filterRole, filterStatus])
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,19 +135,32 @@ export default function MembersPage() {
         email: inviteForm.email.trim(),
         full_name: inviteForm.full_name.trim(),
         send_invite_email: inviteForm.send_invite_email,
-        is_tenant_admin: inviteForm.is_tenant_admin,
+        role: inviteForm.role,  // 'customer' or 'admin'
       })
       setInviteSuccess(
         inviteForm.send_invite_email
           ? `Invite sent to ${inviteForm.email}! They will receive an email to set their password.`
           : `Team member ${inviteForm.full_name} added successfully.`
       )
-      setInviteForm({ full_name: '', email: '', is_tenant_admin: false, send_invite_email: true })
+      setInviteForm({ full_name: '', email: '', role: 'customer', send_invite_email: true })
       loadMembers()
     } catch (err: any) {
       setInviteError(err?.message || 'Failed to send invite. The email may already be registered.')
     } finally {
       setInviteLoading(false)
+    }
+  }
+
+  const handleUpdateRole = async (memberId: string, newRole: string) => {
+    if (!tenantId) return
+    setUpdatingRole(memberId)
+    try {
+      await membersAPI.update(memberId, { role: newRole })
+      loadMembers()
+    } catch (err: any) {
+      console.error('Failed to update role:', err)
+    } finally {
+      setUpdatingRole(null)
     }
   }
 
@@ -211,6 +247,26 @@ export default function MembersPage() {
                           required
                         />
                       </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Role *</label>
+                        <Select
+                          value={inviteForm.role}
+                          onValueChange={(value) => setInviteForm((f) => ({ ...f, role: value }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="customer">Customer - Read-only (track, view, search, calculator)</SelectItem>
+                            <SelectItem value="admin">Admin - Full access (settings, templates, members)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-gray-500">
+                          {inviteForm.role === 'customer' 
+                            ? 'Customers can track shipments, view items, search, and use the customs calculator but cannot modify settings.'
+                            : 'Admins have full access to manage settings, templates, billing, and members.'}
+                        </p>
+                      </div>
                       <div className="space-y-3">
                         <label className="flex items-center gap-3 cursor-pointer">
                           <input
@@ -225,21 +281,6 @@ export default function MembersPage() {
                               Send invite email
                             </span>
                             <p className="text-xs text-gray-500">User will receive an email to set their password</p>
-                          </div>
-                        </label>
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-primary"
-                            checked={inviteForm.is_tenant_admin}
-                            onChange={(e) => setInviteForm((f) => ({ ...f, is_tenant_admin: e.target.checked }))}
-                          />
-                          <div>
-                            <span className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-                              <Shield className="h-3.5 w-3.5" />
-                              Admin access
-                            </span>
-                            <p className="text-xs text-gray-500">Can manage settings, billing and members</p>
                           </div>
                         </label>
                       </div>
@@ -277,15 +318,68 @@ export default function MembersPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
-        <div className="mb-4 relative max-w-md">
-          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search members by name, email, phone, or company..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        {/* Search and Filters */}
+        <div className="mb-4 flex gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search members by name, email, phone, or company..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="relative">
+            <Button
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className={showFilters ? 'bg-primary/10 border-primary' : ''}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+              <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </Button>
+            {showFilters && (
+              <div className="absolute right-0 top-full mt-2 w-64 bg-white border rounded-lg shadow-lg p-4 z-10 space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-2 block">Role</label>
+                  <Select value={filterRole} onValueChange={setFilterRole}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-2 block">Status</label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(filterRole !== 'all' || filterStatus !== 'all') && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => { setFilterRole('all'); setFilterStatus('all') }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <Card>
@@ -337,11 +431,12 @@ export default function MembersPage() {
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Goods Description</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shipments</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created Date</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -378,6 +473,25 @@ export default function MembersPage() {
                           ) : (
                             <span className="text-gray-300">—</span>
                           )}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                          <Select
+                            value={member.role || 'customer'}
+                            onValueChange={(value) => handleUpdateRole(member.id, value)}
+                            disabled={updatingRole === member.id}
+                          >
+                            <SelectTrigger className="h-7 w-24 text-xs">
+                              {updatingRole === member.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <SelectValue />
+                              )}
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="customer">Customer</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 max-w-xs truncate">
                           {member.notes || <span className="text-gray-300">—</span>}

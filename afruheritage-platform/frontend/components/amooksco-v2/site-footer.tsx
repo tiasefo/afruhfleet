@@ -59,7 +59,7 @@ export function SiteFooter() {
               <li><Link href="/support" className="hover:text-accent">Support Ticket</Link></li>
               <li><Link href="/privacy" className="hover:text-accent">Privacy Policy</Link></li>
               <li><Link href="/cookies" className="hover:text-accent">Cookies Policy</Link></li>
-              <li><Link href="/admin" className="hover:text-accent">Staff Login</Link></li>
+              <li><Link href="/login" className="hover:text-accent">Staff Login</Link></li>
             </ul>
           </div>
 

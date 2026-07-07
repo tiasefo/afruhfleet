@@ -12,6 +12,7 @@ import {
   CreditCard,
   Settings,
   FileText,
+  Image as ImageIcon,
   type LucideIcon,
 } from 'lucide-react'
 import { useTenant } from '@/components/tenant-context-provider'
@@ -50,6 +51,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Billing', href: '/portal/billing', icon: CreditCard },
       { label: 'Documents', href: '/portal/documents', icon: FileText },
+      { label: 'Gallery', href: '/portal/gallery', icon: ImageIcon },
       { label: 'Settings', href: '/portal/settings', icon: Settings },
     ],
   },

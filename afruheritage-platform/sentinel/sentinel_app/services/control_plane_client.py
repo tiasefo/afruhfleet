@@ -376,3 +376,151 @@ def select_storefront_template(cp_token: str, template_code: str) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.post(_url("/storefront-templates/select"), headers=_headers(cp_token), json={"template_code": template_code})
         return _handle(resp)
+
+
+# ── Shipments (Admin) ─────────────────────────────────────────────────────
+
+def list_admin_shipments(cp_token: str, params: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/shipments/admin"), params=params, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def get_admin_shipment(cp_token: str, shipment_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/shipments/admin/{shipment_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def update_admin_shipment(cp_token: str, shipment_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/shipments/admin/{shipment_id}"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def reroute_shipment(cp_token: str, shipment_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/shipments/admin/{shipment_id}/reroute"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def cancel_shipment(cp_token: str, shipment_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/shipments/admin/{shipment_id}/cancel"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def get_shipment_tracking(cp_token: str, shipment_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/shipments/admin/{shipment_id}/tracking"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def add_shipment_notes(cp_token: str, shipment_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/shipments/admin/{shipment_id}/notes"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+# ── Payments (Admin) ─────────────────────────────────────────────────────
+
+def list_admin_payments(cp_token: str, params: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/payments/admin"), params=params, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def get_admin_payment(cp_token: str, payment_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/payments/admin/{payment_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def create_manual_payment(cp_token: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url("/payments/admin/manual"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def refund_payment(cp_token: str, payment_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/payments/admin/{payment_id}/refund"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def handle_dispute(cp_token: str, payment_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/payments/admin/{payment_id}/dispute"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def check_payment_status(cp_token: str, payment_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/payments/admin/{payment_id}/status"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+# ── Fleetbase Operations (Admin) ─────────────────────────────────────────────
+
+def get_fleetbase_tenant_status(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/fleetbase/admin/tenant/{tenant_id}/status"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def restart_fleetbase_tenant(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/fleetbase/admin/tenant/{tenant_id}/restart"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def get_fleetbase_tenant_logs(cp_token: str, tenant_id: str, params: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/fleetbase/admin/tenant/{tenant_id}/logs"), params=params, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def debug_fleetbase_tenant(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/fleetbase/admin/tenant/{tenant_id}/debug"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def check_fleetbase_tenant_health(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/fleetbase/admin/tenant/{tenant_id}/health"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+# ── Feature Flags (Admin) ─────────────────────────────────────────────────────
+
+def get_tenant_feature_flags(cp_token: str, tenant_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/feature-flags/tenant/{tenant_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def update_tenant_feature_flags(cp_token: str, tenant_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/feature-flags/tenant/{tenant_id}"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def get_global_feature_flags(cp_token: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/feature-flags/global"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def update_global_feature_flags(cp_token: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url("/feature-flags/global"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+# ── Tenant List (for diagnostics) ─────────────────────────────────────────────
+
+def get_tenant_list(cp_token: str, limit: int = 1) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/tenants"), params={"limit": limit}, headers=_headers(cp_token))
+        return _handle(resp)

@@ -52,11 +52,20 @@ class Tenant(Base):
     fleetbase_api_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     fleetbase_admin_token: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Gallery settings
+    whatsapp_channel_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Template auto-fix tracking
+    pending_endpoints: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array of endpoints that failed auto-fix
+    pending_endpoints_notified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     runner = relationship('RunnerNode')
     jobs = relationship('ProvisioningJob', back_populates='tenant', cascade='all, delete-orphan')
+    gallery_posts = relationship('GalleryPost', back_populates='tenant', cascade='all, delete-orphan')
+    new_arrivals = relationship('NewArrival', back_populates='tenant', cascade='all, delete-orphan')
 
 
 class ProvisioningJob(Base):

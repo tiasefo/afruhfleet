@@ -10,19 +10,6 @@ from app.services.tenant_context_service import get_tenant_context, resolve_tena
 router = APIRouter(prefix="/tenant-context", tags=["Tenant Context"])
 
 
-@router.get("/{identifier}", response_model=TenantContextResponse)
-def get_public_tenant_context(
-    identifier: str,
-    db: Session = Depends(get_db),
-):
-    """Public endpoint: fetch full tenant context by slug, subdomain, custom domain, or UUID.
-    No authentication required — this is used by the storefront and public website."""
-    context = get_tenant_context(db, identifier)
-    if not context:
-        raise HTTPException(status_code=404, detail="Tenant not found")
-    return context
-
-
 @router.get("/resolve/host", response_model=TenantContextResponse)
 def resolve_tenant_by_host(
     request: Request,
@@ -51,3 +38,37 @@ def resolve_tenant_by_host(
 
     from app.services.tenant_context_service import build_tenant_context
     return build_tenant_context(db, tenant)
+
+
+@router.get("/subdomain/{subdomain}", response_model=TenantContextResponse)
+def resolve_tenant_by_subdomain(
+    subdomain: str,
+    db: Session = Depends(get_db),
+):
+    """Resolve tenant by subdomain (e.g., amooksco for amooksco.afruheritage.com).
+    No authentication required - used for storefront routing."""
+    from app.models.tenant import Tenant
+    from app.services.tenant_context_service import build_tenant_context
+    
+    tenant = db.query(Tenant).filter(Tenant.subdomain == subdomain).first()
+    if not tenant:
+        raise HTTPException(status_code=404, detail=f"No tenant found for subdomain: {subdomain}")
+    
+    return build_tenant_context(db, tenant)
+
+
+@router.get("/{identifier}", response_model=TenantContextResponse)
+def get_public_tenant_context(
+    identifier: str,
+    db: Session = Depends(get_db),
+):
+    """Public endpoint: fetch full tenant context by slug, subdomain, custom domain, or UUID.
+    No authentication required - used by the storefront and public website.
+
+    NOTE: declared LAST so this single-segment catch-all never shadows the more
+    specific /resolve/host and /subdomain/{subdomain} routes.
+    """
+    context = get_tenant_context(db, identifier)
+    if not context:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return context

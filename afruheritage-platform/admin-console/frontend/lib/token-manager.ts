@@ -12,32 +12,20 @@ export class TokenManager {
         localStorage.removeItem(this.CP_TOKEN_KEY);
       }
       
-      // Debug logging
-      console.log('=== TOKENS STORED ===');
-      console.log('Admin Token:', adminToken ? 'PRESENT' : 'MISSING');
-      console.log('Admin Token Length:', adminToken ? adminToken.length : 0);
-      console.log('CP Token:', cpToken ? 'PRESENT' : 'MISSING');
-      console.log('CP Token Length:', cpToken ? cpToken.length : 0);
-      console.log('CP Token Value:', cpToken);
-      console.log('==================');
+      // Tokens stored silently
     }
   }
 
   static getAdminToken(): string | null {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(this.ADMIN_TOKEN_KEY);
-      console.log('Admin Token retrieved:', token ? 'PRESENT' : 'MISSING');
-      return token;
+      return localStorage.getItem(this.ADMIN_TOKEN_KEY);
     }
     return null;
   }
 
   static getCPToken(): string | null {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem(this.CP_TOKEN_KEY);
-      console.log('CP Token retrieved:', token ? 'PRESENT' : 'MISSING');
-      console.log('CP Token Value:', token);
-      return token;
+      return localStorage.getItem(this.CP_TOKEN_KEY);
     }
     return null;
   }
@@ -46,7 +34,6 @@ export class TokenManager {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(this.ADMIN_TOKEN_KEY);
       localStorage.removeItem(this.CP_TOKEN_KEY);
-      console.log('Tokens cleared');
     }
   }
 
@@ -64,13 +51,6 @@ export class TokenManager {
       headers['X-CP-Token'] = cpToken;
     }
     
-    // Debug logging
-    console.log('=== AUTH HEADERS ===');
-    console.log('Admin Token in headers:', adminToken ? 'PRESENT' : 'MISSING');
-    console.log('CP Token in headers:', cpToken ? 'PRESENT' : 'MISSING');
-    console.log('Headers:', headers);
-    console.log('==================');
-    
     return headers;
   }
 
@@ -79,18 +59,9 @@ export class TokenManager {
       const adminToken = localStorage.getItem(this.ADMIN_TOKEN_KEY);
       const cpToken = localStorage.getItem(this.CP_TOKEN_KEY);
       
-      console.log('=== TOKEN DEBUG ===');
-      console.log('Admin Token:', adminToken ? 'PRESENT' : 'MISSING');
-      console.log('Admin Token Length:', adminToken ? adminToken.length : 0);
-      console.log('CP Token:', cpToken ? 'PRESENT' : 'MISSING');
-      console.log('CP Token Length:', cpToken ? cpToken.length : 0);
-      console.log('CP Token Value:', cpToken);
-      console.log('==================');
-      
       return {
         adminToken: adminToken ? 'PRESENT' : 'MISSING',
         cpToken: cpToken ? 'PRESENT' : 'MISSING',
-        cpTokenValue: cpToken
       };
     }
     return null;

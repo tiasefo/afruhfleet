@@ -17,6 +17,7 @@ class StorefrontTemplate(Base):
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     preset: Mapped[str] = mapped_column(Text, nullable=False, default="{}")  # JSON string of color/layout preset
+    image: Mapped[str | None] = mapped_column(String(255), nullable=True)  # Hero image path
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

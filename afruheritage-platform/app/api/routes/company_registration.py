@@ -164,17 +164,16 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
     db.add(admin_user)
     db.flush()
 
-    # --- Do NOT provision Fleetbase immediately here. ---
-    # Provisioning will be triggered after the tenant selects a subscription
-    # and completes payment (handled via the billing/payment flow). Keep the
-    # tenant in draft so the frontend MUST present the blocking subscription
-    # selection modal before any other action.
+    # --- Provision Fleetbase org at signup (shared instance, per-org isolation) ---
+    # Tenants are registered as an org in the shared Fleetbase instance at signup
+    # so the platform is ready. Subscription is NOT auto-created — the tenant
+    # selects a plan (free trial or paid) after logging in. Operational features
+    # are gated by require_active_subscription until a plan is chosen.
     fleetbase_console_url = ""
 
     # --- Billing / wallet / branding / AI --------------------------------
-    # NOTE: Do NOT auto-create a trial subscription here. Subscription
-    # selection must occur immediately after registration on the frontend
-    # (popup) and payment must complete before provisioning is queued.
+    # Subscription is NOT auto-created here. The frontend presents a subscription
+    # selection screen after registration. Features are gated by billing guards.
 
     try:
         ensure_tenant_branding(db, tenant_id=str(tenant.id), company_name=tenant.company_name, contact_email=tenant.contact_email)
@@ -185,6 +184,24 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
         ensure_tenant_ai_settings(db, tenant_id=str(tenant.id), tenant_slug=slug, company_name=tenant.company_name)
     except Exception:
         pass
+
+    # --- Register tenant as org in shared Fleetbase instance ---
+    try:
+        fb_org = fleetbase_client.provision_org(
+            company_name=tenant.company_name,
+            admin_email=payload.admin_email.lower(),
+            admin_password=secrets.token_urlsafe(16),
+        )
+        tenant.fleetbase_org_id = fb_org.org_id
+        tenant.fleetbase_api_key = fb_org.api_key
+        tenant.fleetbase_admin_token = fb_org.admin_token
+        tenant.live_api_token = fb_org.api_key
+        tenant.live_console_url = fb_org.console_url
+        tenant.live_api_url = settings.fleetbase_internal_url.rstrip("/")
+        fleetbase_console_url = fb_org.console_url
+        logger.info("fleetbase_org_provisioned: org_id=%s for tenant=%s", fb_org.org_id, str(tenant.id))
+    except Exception as fb_exc:
+        logger.warning("fleetbase_provisioning_failed: %s — tenant can retry via /companies/retry-provisioning", fb_exc)
 
     # --- Commit ----------------------------------------------------------
     try:
@@ -221,7 +238,7 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
         message=(
             "Your freight portal has been created! "
             f"Access it at {portal_url}. "
-            "Log in with your email and password to complete setup and start customising your branding."
+            "Log in with your email and password, then select a subscription plan to activate your storefront."
         ),
     )
 

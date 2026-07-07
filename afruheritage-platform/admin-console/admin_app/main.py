@@ -20,6 +20,11 @@ from admin_app.api.routes.dashboard_local import router as dashboard_router
 from admin_app.api.routes.tickets import router as tickets_router
 from admin_app.api.routes.tracking import router as tracking_router
 from admin_app.api.routes.templates import router as templates_router
+from admin_app.api.routes.shipments import router as shipments_router
+from admin_app.api.routes.payments import router as payments_router
+from admin_app.api.routes.fleetbase_ops import router as fleetbase_ops_router
+from admin_app.api.routes.feature_flags import router as feature_flags_router
+from admin_app.api.routes.diagnostics import router as diagnostics_router
 from admin_app.core.config import admin_settings
 from admin_app.db.session import Base, engine
 
@@ -67,6 +72,11 @@ app.include_router(analytics_router, prefix="/admin")
 app.include_router(tickets_router, prefix="/admin")
 app.include_router(tracking_router, prefix="/admin")
 app.include_router(templates_router, prefix="/admin")
+app.include_router(shipments_router, prefix="/admin")
+app.include_router(payments_router, prefix="/admin")
+app.include_router(fleetbase_ops_router, prefix="/admin")
+app.include_router(feature_flags_router, prefix="/admin")
+app.include_router(diagnostics_router, prefix="/admin")
 
 
 @app.get("/admin/health")

@@ -391,19 +391,32 @@ export const brandingAPI = {
 }
 
 export const domainsAPI = {
-  /** Get all custom domains for the current tenant */
+  /** Get all custom domains for the current tenant (auto-resolved from auth) */
+  myDomains: () => api.get('/domains/my-domains'),
+
+  /** Get all custom domains for a specific tenant (legacy) */
   list: (tenantId: string) => api.get(`/domains/tenant/${tenantId}`),
 
   /** Get domain settings (platform subdomain, active hostname) */
   settings: (tenantId: string) => api.get(`/domains/settings/${tenantId}`),
 
-  /** Request a new custom domain (calls Cloudflare Custom Hostnames API) */
+  /** Request a new custom domain — auto-resolves tenant from auth user */
+  requestSimple: (hostname: string, enableEmail?: boolean) =>
+    api.post('/domains/request-simple', { hostname, enable_email: enableEmail ?? false }),
+
+  /** Request a new custom domain (legacy — requires tenant_id query param) */
   request: (tenantId: string, hostname: string, createdBy?: string) =>
     api.post(`/domains/request?tenant_id=${tenantId}`, {
       hostname,
       domain_type: 'customer_domain',
       created_by: createdBy,
     }),
+
+  /** Get DNS instructions for a domain (TXT, CNAME, MX records to add) */
+  dnsInstructions: (domainId: string) => api.get(`/domains/${domainId}/dns-instructions`),
+
+  /** Verify domain DNS records and auto-activate if checks pass */
+  verify: (domainId: string) => api.post(`/domains/${domainId}/verify`),
 
   /** Poll Cloudflare for latest SSL/verification status */
   refreshStatus: (domainId: string) => api.get(`/domains/${domainId}/refresh-status`),
@@ -711,6 +724,7 @@ export const usersApi = {
     send_invite_email: boolean
     is_tenant_admin?: boolean
     password?: string
+    role?: string
   }) => api.post(`/users?tenant_id=${tenantId}`, data),
   updateStatus: (userId: string, tenantId: string, is_active: boolean) =>
     api.patch(`/users/${userId}/status?tenant_id=${tenantId}`, { is_active }),
@@ -761,6 +775,12 @@ export const fleetbaseTenantApi = {
 export const navigatorApi = {
   getDrivers: (tenantId: string) => api.get(`/navigator/${tenantId}/drivers`),
   getTracking: (tenantId: string) => api.get(`/navigator/${tenantId}/tracking`),
+}
+
+// Plugin catalog API
+export const pluginsAPI = {
+  listCatalog: () => api.get('/plugins/catalog'),
+  getCatalogDetail: (pluginName: string) => api.get(`/plugins/catalog/${pluginName}`),
 }
 
 // Fleetbase-backed logistics API

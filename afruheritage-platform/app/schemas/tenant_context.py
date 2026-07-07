@@ -75,6 +75,7 @@ class TenantContextResponse(BaseModel):
     domain: Optional[str] = None
     subdomain: Optional[str] = None
     custom_domain: Optional[str] = None
+    whatsapp_channel_url: Optional[str] = None
     default_language: str = "en"
     supported_languages: list[str] = ["en"]
     template_code: Optional[str] = None

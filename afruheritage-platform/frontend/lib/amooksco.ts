@@ -98,6 +98,7 @@ export const workflow = [
 
 export const navLinks = [
   { label: "New Arrivals", href: "/new-arrivals" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Home", href: "/" },
   { label: "Services", href: "/#services" },
   { label: "Track", href: "/#track" },

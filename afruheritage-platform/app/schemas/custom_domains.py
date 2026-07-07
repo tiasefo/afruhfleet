@@ -11,6 +11,37 @@ class DomainRequestCreate(BaseModel):
     created_by: str | None = None
 
 
+class DomainRequestSimple(BaseModel):
+    """Simplified domain request — tenant_id auto-resolved from auth user."""
+    hostname: str = Field(..., min_length=3, max_length=255)
+    enable_email: bool = False
+
+
+class DNSRecordResponse(BaseModel):
+    record_type: str
+    name: str
+    value: str
+    priority: int | None = None
+    ttl: int = 3600
+    purpose: str = ""
+
+
+class DNSInstructionsResponse(BaseModel):
+    hostname: str
+    verification_token: str
+    records: list[DNSRecordResponse]
+    instructions_text: str
+    provider_mode: str
+
+
+class DNSVerificationResult(BaseModel):
+    txt_verified: bool
+    cname_verified: bool
+    mx_verified: bool | None = None
+    all_verified: bool
+    details: dict
+
+
 class DomainResponse(BaseModel):
     id: str
     tenant_id: str
@@ -25,6 +56,7 @@ class DomainResponse(BaseModel):
     fallback_hostname: str | None = None
     fallback_active: bool
     last_error: str | None = None
+    dns_instructions: DNSInstructionsResponse | None = None
 
 
 class DomainEventResponse(BaseModel):

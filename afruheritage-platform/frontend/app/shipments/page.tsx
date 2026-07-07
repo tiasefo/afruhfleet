@@ -60,11 +60,14 @@ export default function ShipmentsPage() {
     try {
       // Get tenant ID from context or user
       const tenantId = user?.tenant_id || 'default'
-      const data = await shipmentApi.getAll(tenantId, {
+      const params: any = {
         status: statusFilter || undefined,
         page: currentPage,
         page_size: pageSize,
-      })
+      }
+      if (searchQuery) params.q = searchQuery
+      if (paymentStatusFilter) params.payment_status = paymentStatusFilter
+      const data = await shipmentApi.getAll(tenantId, params)
       setShipments(data.items || [])
       setTotal(data.total || 0)
       setPages(data.pages || 1)
@@ -77,8 +80,16 @@ export default function ShipmentsPage() {
 
   // Load shipments on mount and when filters change
   React.useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1)
+    } else {
+      loadShipments()
+    }
+  }, [searchQuery, statusFilter, paymentStatusFilter])
+
+  React.useEffect(() => {
     loadShipments()
-  }, [searchQuery, statusFilter, paymentStatusFilter, currentPage])
+  }, [currentPage])
 
   const getStatusBadgeClass = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -233,10 +244,12 @@ export default function ShipmentsPage() {
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Import
-              </Button>
+              <Link href="/shipments/import">
+                <Button variant="outline" size="sm">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

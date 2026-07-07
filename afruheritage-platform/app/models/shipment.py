@@ -5,11 +5,16 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
+
+
+class GroupMemberRole(str, enum.Enum):
+    customer = "customer"  # Read-only: track, view, search, calculator
+    admin = "admin"        # Full access: edit, templates, settings, etc.
 
 
 class PaymentStatus(str, enum.Enum):
@@ -92,6 +97,11 @@ class Shipment(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     cargo_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    loading_date: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    storage_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    storage_rate: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
+    storage_fee: Mapped[float | None] = mapped_column(Numeric(12, 2), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -130,6 +140,9 @@ class GroupMember(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
 
+    role: Mapped[GroupMemberRole] = mapped_column(
+        Enum(GroupMemberRole), default=GroupMemberRole.customer, nullable=False
+    )
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

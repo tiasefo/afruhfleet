@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import io
 import uuid
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_tenant_admin
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.branding import BrandingResponse, BrandingUpdate
@@ -43,7 +43,7 @@ def create_branding_route(
     tenant_id: str,
     payload: BrandingUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_tenant_admin),
 ):
     """Create branding for a tenant (admin only)."""
     from app.models.tenant import Tenant
@@ -71,7 +71,7 @@ def update_branding_route(
     tenant_id: str,
     payload: BrandingUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_tenant_admin),
 ):
     branding = update_tenant_branding(db, tenant_id, **payload.model_dump(exclude_unset=True))
     if not branding:
@@ -88,7 +88,7 @@ def upload_branding_logo(
     tenant_id: str,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_tenant_admin),
 ):
     """Upload a logo image and store the public URL in tenant branding."""
     if file.content_type not in _ALLOWED_IMAGE_TYPES:

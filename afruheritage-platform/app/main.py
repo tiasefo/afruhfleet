@@ -33,7 +33,7 @@ from app.core.middleware import RequestIdMiddleware
 from app.core.structured_logging import configure_structured_logging, StructuredLoggingMiddleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler, RateLimitMiddleware
 
-from app.api.routes import auth, auth_pages, runners, tenants, tenant_creation, tenant_requests
+from app.api.routes import auth, auth_pages, tenants, tenant_creation, tenant_requests
 from app.api.routes.navigator import router as navigator_router
 from app.api.routes.storefront import router as storefront_router
 from app.api.routes.pallet import router as pallet_router
@@ -46,7 +46,6 @@ from app.api.routes.tenant_context import router as tenant_context_router
 from app.api.routes.custom_domains import router as custom_domains_router
 from app.api.routes.customer_cargo_portal import router as customer_cargo_portal_router
 from app.api.routes.geo import router as geo_router
-from app.api.routes.fleetbase_runtime import router as fleetbase_runtime_router
 from app.api.routes.i18n import router as i18n_router
 from app.api.routes.payments import router as payments_router
 from app.api.routes.shipments import router as shipments_router
@@ -58,6 +57,12 @@ from app.api.routes.vendors import router as vendors_router
 from app.api.routes.users import router as users_router
 from app.api.routes.company_registration import router as company_registration_router
 from app.api.routes.storefront_templates import router as storefront_templates_router
+from app.api.routes.plugins import router as plugins_router
+from app.api.routes.page_generator import router as page_generator_router
+from app.api.routes.gallery import router as gallery_router
+from app.api.routes.rbac import router as rbac_router
+from app.api.routes.new_arrivals import router as new_arrivals_router
+from app.api.routes.customer_shipments import router as customer_shipments_router
 from app.api.routes import customs_guest
 
 
@@ -74,7 +79,6 @@ import app.models.commercial_orchestration  # noqa: F401
 import app.models.marketplace  # noqa: F401
 import app.models.marketplace_gps  # noqa: F401
 import app.models.custom_domains  # noqa: F401
-import app.models.fleetbase_runtime  # noqa: F401
 import app.models.support_crm  # noqa: F401
 import app.models.tenant_ai_settings  # noqa: F401
 import app.models.shipment  # noqa: F401
@@ -90,6 +94,9 @@ import app.models.product  # noqa: F401
 import app.models.crm  # noqa: F401
 import app.models.feature_flags  # noqa: F401
 import app.models.invoice  # noqa: F401
+import app.models.gallery  # noqa: F401
+import app.models.rbac  # noqa: F401
+import app.models.new_arrivals  # noqa: F401
 from app.api.routes import fleetbase_proxy
 from app.api.routes import customs
 from app.api.routes.fleetbase_tenant_proxy import router as fleetbase_tenant_proxy_router
@@ -164,8 +171,6 @@ app.include_router(commercial_orchestration_router, prefix=settings.api_v1_prefi
 app.include_router(whatsapp_router, prefix=settings.api_v1_prefix)
 app.include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)
 
-app.include_router(runners.router, prefix=settings.api_v1_prefix)
-app.include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_proxy.router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_tenant_proxy_router, prefix=settings.api_v1_prefix)
 app.include_router(products_router, prefix=settings.api_v1_prefix)
@@ -192,6 +197,12 @@ app.include_router(vendors_router, prefix=settings.api_v1_prefix)
 app.include_router(users_router, prefix=settings.api_v1_prefix)
 app.include_router(company_registration_router, prefix=settings.api_v1_prefix)
 app.include_router(storefront_templates_router, prefix=settings.api_v1_prefix)
+app.include_router(plugins_router, prefix=settings.api_v1_prefix)
+app.include_router(page_generator_router, prefix=settings.api_v1_prefix)
+app.include_router(gallery_router, prefix=settings.api_v1_prefix)
+app.include_router(rbac_router, prefix=settings.api_v1_prefix)
+app.include_router(new_arrivals_router, prefix=settings.api_v1_prefix)
+app.include_router(customer_shipments_router, prefix=settings.api_v1_prefix)
 app.include_router(analytics_router, prefix=settings.api_v1_prefix)
 app.include_router(kyc_router, prefix=settings.api_v1_prefix)
 app.include_router(customs_guest.router, prefix=settings.api_v1_prefix)

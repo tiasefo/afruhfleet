@@ -240,11 +240,11 @@ class FleetbaseAPIClient:
                 token=token,
             )
             key = find_key(data)
-            if key:
+            if key and isinstance(key, str) and not key.startswith("{"):
                 return key
 
             logger.warning(
-                "Fleetbase API credential response had no visible key; using admin token fallback",
+                "Fleetbase API credential response had no usable string key; using admin token fallback",
                 extra={"org_id": org_id, "response_type": type(data).__name__},
             )
             return token

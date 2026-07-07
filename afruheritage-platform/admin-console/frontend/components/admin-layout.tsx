@@ -22,6 +22,10 @@ import {
   BookOpen,
   GitBranch,
   Store,
+  Package,
+  DollarSign,
+  Activity,
+  Flag,
 } from 'lucide-react'
 
 interface AdminUser {
@@ -38,6 +42,10 @@ const navItems = [
   { href: '/dashboard/templates', label: 'Templates', icon: Store },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
+  { href: '/dashboard/shipments', label: 'Shipments', icon: Package },
+  { href: '/dashboard/payments', label: 'Payments', icon: DollarSign },
+  { href: '/dashboard/fleetbase', label: 'Fleetbase Ops', icon: Activity },
+  { href: '/dashboard/feature-flags', label: 'Feature Flags', icon: Flag },
   { href: '/dashboard/analytics', label: 'Analytics', icon: Server },
   { href: '/dashboard/architecture', label: 'Architecture', icon: GitBranch },
   { href: '/dashboard/knowledge-base', label: 'Knowledge Base', icon: BookOpen },
