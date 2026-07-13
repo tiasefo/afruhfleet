@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.models.marketplace import MarketplaceShipment
 from app.api.routes.marketplace import serialize
+from app.api.deps import require_superuser
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/marketplace", tags=["Admin Marketplace"])
 
@@ -11,7 +13,7 @@ engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 @router.get("/jobs")
-def list_jobs():
+def list_jobs(_: User = Depends(require_superuser)):
     db = SessionLocal()
     try:
         return {"jobs": [serialize(x) for x in db.query(MarketplaceShipment).order_by(MarketplaceShipment.created_at.desc()).all()]}
@@ -19,7 +21,7 @@ def list_jobs():
         db.close()
 
 @router.post("/jobs/{job_id}/cancel")
-def cancel_job(job_id: str):
+def cancel_job(job_id: str, _: User = Depends(require_superuser)):
     db = SessionLocal()
     try:
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
@@ -35,7 +37,7 @@ def cancel_job(job_id: str):
         db.close()
 
 @router.post("/jobs/{job_id}/reassign/{driver_id}")
-def reassign_job(job_id: str, driver_id: str):
+def reassign_job(job_id: str, driver_id: str, _: User = Depends(require_superuser)):
     db = SessionLocal()
     try:
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
@@ -52,7 +54,7 @@ def reassign_job(job_id: str, driver_id: str):
         db.close()
 
 @router.get("/jobs/{job_id}/eligible-drivers")
-def get_eligible_drivers(job_id: str):
+def get_eligible_drivers(job_id: str, _: User = Depends(require_superuser)):
     """Return list of eligible drivers for a job (for reassignment picker)."""
     from app.models.vendor import DeliveryVendor
     from app.models.user import User, UserRole

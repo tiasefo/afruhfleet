@@ -1,3 +1,8 @@
 STUBS.txt
 admin_console_e2e_audit_*.txt
 reports/
+.env
+.env.*
+*.pyc
+__pycache__/
+.venv/

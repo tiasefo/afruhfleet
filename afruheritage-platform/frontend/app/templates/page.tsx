@@ -36,11 +36,7 @@ interface Template {
 }
 
 export default function TemplatesPage() {
-  // Prevent rendering during build time
-  if (typeof window === 'undefined') {
-    return <div className="p-8">Templates page loading...</div>
-  }
-  
+  const [mounted, setMounted] = useState(false)
   const { user, token } = useAuth()
   const [templates, setTemplates] = useState<Template[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -55,17 +51,14 @@ export default function TemplatesPage() {
   })
 
   useEffect(() => {
-    loadTemplates()
-  }, [token])
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && token) loadTemplates()
+  }, [token, mounted])
 
   const loadTemplates = async () => {
-    // Skip API calls during build time
-    if (typeof window === 'undefined') {
-      setTemplates([])
-      setIsLoading(false)
-      return
-    }
-    
     if (!token) return
     setIsLoading(true)
     try {
@@ -134,6 +127,10 @@ export default function TemplatesPage() {
 
   const getFeatures = (template: Template) => {
     return template.preset?.features || []
+  }
+
+  if (!mounted) {
+    return <div className="p-8">Loading templates...</div>
   }
 
   return (

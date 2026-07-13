@@ -2,6 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { ApiError, brandingAPI, getToken } from '@/lib/api'
+import { resolvePublicTenantId } from '@/lib/tenant'
+
+function getPublicTenantSlug(): string | null {
+  if (typeof window === 'undefined') return null
+  return resolvePublicTenantId()
+}
 
 interface TenantBranding {
   company_name: string
@@ -79,6 +85,15 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
 
       if (token) {
         const response = await brandingAPI.get()
+        setBranding(response)
+        return
+      }
+
+      // For unauthenticated users, try to resolve tenant from cookie/path/localStorage
+      // so auth pages show correct tenant branding instead of platform defaults.
+      const tenantSlug = getPublicTenantSlug()
+      if (tenantSlug) {
+        const response = await brandingAPI.getPublic(tenantSlug)
         setBranding(response)
         return
       }

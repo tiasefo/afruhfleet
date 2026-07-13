@@ -1,0 +1,13 @@
+
+============================================================
+E2E UAT AUTOMATED TEST SUITE
+============================================================
+  [INFO] Date: Sun Jul 12 06:02:43 AM UTC 2026
+  [INFO] API: http://localhost:8100
+  [INFO] Frontend: http://localhost:3002
+  [INFO] Results file: e2e_uat_results_20260712_060243.txt
+
+============================================================
+1. DOCKER SERVICES HEALTH
+============================================================
+  [PASS] afruheritage-api is healthy (Up 13 minutes (healthy))

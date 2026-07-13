@@ -106,7 +106,7 @@ export default function PricingPage() {
     const suffix = tenantId ? `&tenant_id=${encodeURIComponent(tenantId)}` : ''
 
     if (!token) {
-      router.push(`/register?plan=${encodeURIComponent(plan.code)}${suffix}`)
+      router.push(`/checkout?plan=${encodeURIComponent(plan.code)}${suffix}`)
       return
     }
 

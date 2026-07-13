@@ -6,6 +6,8 @@ from app.api.deps import get_current_user, require_superuser, require_feature, r
 from app.db.session import get_db
 from app.models.custom_domains import CustomDomain, CustomDomainEvent, DomainStatus, TenantDomainSettings
 from app.models.user import User
+from app.services.billing_service import write_audit_log
+import logging
 from app.schemas.custom_domains import (
     DNSInstructionsResponse,
     DNSVerificationResult,
@@ -195,7 +197,21 @@ def request_domain(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_feature('custom_domain')),
 ):
-    effective_tenant_id = current_user.tenant_id or tenant_id or request.tenant_id
+    if current_user.is_superuser:
+        effective_tenant_id = tenant_id or request.tenant_id or str(current_user.tenant_id)
+    else:
+        effective_tenant_id = str(current_user.tenant_id)
+        supplied = tenant_id or request.tenant_id
+        if supplied and str(supplied) != effective_tenant_id:
+            logging.getLogger('afruheritage.security').warning(
+                'tenant_id_mismatch: user=%s endpoint=request_domain supplied=%s actual=%s',
+                current_user.id, supplied, effective_tenant_id,
+            )
+            write_audit_log(
+                db, 'user', current_user.id, 'tenant_id_mismatch', 'custom_domains',
+                str(effective_tenant_id),
+                {'endpoint': 'request_domain', 'spoofed_tenant_id': str(supplied)},
+            )
     if not effective_tenant_id:
         raise HTTPException(status_code=400, detail="No tenant_id provided and user has no tenant")
     tenant_slug = str(effective_tenant_id)[:12].replace('-', '')
@@ -254,6 +270,11 @@ def get_domain_events(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    domain = db.query(CustomDomain).filter(CustomDomain.id == domain_id).first()
+    if not domain:
+        raise HTTPException(status_code=404, detail="Domain not found")
+    if not current_user.is_superuser and str(domain.tenant_id) != str(current_user.tenant_id):
+        raise HTTPException(status_code=403, detail="You do not have access to this domain")
     rows = db.query(CustomDomainEvent).filter(CustomDomainEvent.domain_id == domain_id).order_by(CustomDomainEvent.created_at.asc()).all()
     return [DomainEventResponse(id=str(x.id), domain_id=str(x.domain_id), event_type=x.event_type, message=x.message, payload_json=x.payload_json) for x in rows]
 

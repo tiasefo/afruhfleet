@@ -12,17 +12,6 @@ export type Template = {
 
 export const templates: Template[] = [
   {
-    slug: "amooksco",
-    name: "Amooksco",
-    category: "Freight & Logistics",
-    description:
-      "Comprehensive freight forwarding storefront with tracking, customs calculator, and shipment management for Ghana-China trade routes.",
-    themeClass: "theme-amooksco",
-    image: "/tenant-assets/amooksco/logo.png",
-    swatches: ["#1a365d", "#d69e2e", "#f7fafc"],
-    tags: ["Freight", "Tracking", "Customs", "China Trade"],
-  },
-  {
     slug: "fleet",
     name: "Vanta Fleet",
     category: "Fleet & Transportation",

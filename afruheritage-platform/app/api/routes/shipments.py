@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from fastapi import UploadFile, File, Request, APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription, require_superuser
 from app.billing.guards import is_tenant_read_only
 from app.db.session import SessionLocal, get_db
 from app.models.shipment import Shipment, ShipmentStatus
@@ -56,6 +56,47 @@ from app.services.storage_service import storage_service
 from app.middleware.rate_limit import rate_limit
 
 router = APIRouter(prefix="/shipments", tags=["Shipments & Tracking"])
+
+# ── Admin: cross-tenant shipment listing (superuser only) ───────
+@router.get("/admin")
+def admin_list_shipments(
+    tenant_id: str | None = Query(None),
+    status: str | None = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    q = db.query(Shipment)
+    if tenant_id:
+        q = q.filter(Shipment.tenant_id == tenant_id)
+    if status:
+        try:
+            status_enum = ShipmentStatus(status)
+            q = q.filter(Shipment.status == status_enum)
+        except ValueError:
+            pass
+    total = q.count()
+    items = q.order_by(Shipment.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    return {
+        "shipments": [
+            {
+                "id": str(s.id),
+                "tracking_number": s.tracking_number,
+                "tenant_id": str(s.tenant_id),
+                "status": s.status.value if s.status else None,
+                "origin_city": s.origin_city,
+                "destination_city": s.destination_city,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+                "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+            }
+            for s in items
+        ],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }
+
 
 # ── Shipment Status Transition (explicit) ───────────────
 @router.post("/{tenant_id}/{shipment_id}/transition", response_model=ShipmentResponse)

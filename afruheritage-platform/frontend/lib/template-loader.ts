@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth"
 import { useBranding } from "@/hooks/useBranding"
 
 // Template imports
-import AmookscoStorefront from "@/templates/amooksco/app/(store)/page"
 import DefaultStorefront from "@/app/storefront/page"
 
 export function useTemplateLoader() {
@@ -18,8 +17,6 @@ export function useTemplateLoader() {
 
   const getTemplateComponent = () => {
     switch (templateCode) {
-      case "amooksco":
-        return AmookscoStorefront
       case "freight":
         // Add other templates as they are integrated
         return DefaultStorefront

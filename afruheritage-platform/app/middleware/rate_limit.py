@@ -12,8 +12,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.structured_logging import security_logger, tenant_id, user_id
 
-# Create limiter instance
-limiter = Limiter(key_func=get_remote_address)
+# Create limiter instance with Redis storage for distributed rate limiting
+limiter = Limiter(key_func=get_remote_address, storage_uri=getattr(settings, 'redis_url', 'memory://'))
 
 # Custom rate limit exceeded handler
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
@@ -93,7 +93,7 @@ class TenantAwareLimiter:
         return ":".join(key_parts)
 
 # Create tenant-aware limiter
-tenant_limiter = Limiter(key_func=TenantAwareLimiter.get_key)
+tenant_limiter = Limiter(key_func=TenantAwareLimiter.get_key, storage_uri=getattr(settings, 'redis_url', 'memory://'))
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
     """Custom middleware for rate limiting with different rules per endpoint"""

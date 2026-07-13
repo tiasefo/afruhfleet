@@ -341,8 +341,24 @@ export const vendorAPI = {
 }
 
 export const fleetbaseAPI = {
-  getRuntimes: () => {
+  getRunners: () => {
     return api.get('/fleetbase-runtime/runners')
+  },
+
+  createRunner: (data: {
+    name: string
+    hostname: string
+    ssh_port: number
+    ssh_user: string
+    root_runtime_path: string
+    max_tenants: number
+    supports_reference_install: boolean
+  }) => {
+    return api.post('/fleetbase-runtime/runners', data)
+  },
+
+  getRuntimes: () => {
+    return api.get('/fleetbase-runtime/runtimes')
   },
 
   deployRuntime: (data: {
@@ -372,8 +388,11 @@ export const brandingAPI = {
     return api.get(`/branding/${tenantId}`)
   },
   
-  getPublic: () => {
-    const tenantId = requireTenantId()
+  getPublic: (slug?: string) => {
+    const tenantId = slug || resolveTenantId()
+    if (!tenantId) {
+      throw new ApiError('No tenant context found.', 400)
+    }
     return api.get(`/branding/public/${tenantId}`)
   },
   

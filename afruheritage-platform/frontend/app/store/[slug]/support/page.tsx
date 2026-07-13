@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { resolveTenantTheme } from '@/lib/tenant-theme-registry'
 import { TenantPublicShell } from '@/components/tenant-public/tenant-public-shell'
-import { AmooskcoSupport } from '@/components/tenant-themes/amooksco-v2/pages/support'
+import { SupportForm } from '@/templates/freight/components/home/support-form'
 
 export default async function TenantSupportPage({
   params,
@@ -9,17 +9,13 @@ export default async function TenantSupportPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const theme = resolveTenantTheme(slug)
+  const theme = await resolveTenantTheme(slug)
 
   if (!theme) notFound()
 
-  if (theme.themeCode === 'amooksco-v2') {
-    return (
-      <TenantPublicShell theme={theme}>
-        <AmooskcoSupport theme={theme} />
-      </TenantPublicShell>
-    )
-  }
-
-  notFound()
+  return (
+    <TenantPublicShell theme={theme}>
+      <SupportForm theme={theme} />
+    </TenantPublicShell>
+  )
 }

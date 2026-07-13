@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { TenantContext } from '@/lib/tenant-context'
 import { getDefaultTenantContext, applyTenantTheme, fetchTenantContextClient } from '@/lib/tenant-context'
-import { resolvePublicTenantId } from '@/lib/tenant'
+import { resolvePublicTenantId, persistTenantId } from '@/lib/tenant'
 
 interface TenantContextType {
   tenant: TenantContext
@@ -13,8 +13,8 @@ interface TenantContextType {
 
 const TenantContextReact = createContext<TenantContextType | undefined>(undefined)
 
-export function TenantContextProvider({ children }: { children: React.ReactNode }) {
-  const [tenant, setTenant] = useState<TenantContext>(getDefaultTenantContext())
+export function TenantContextProvider({ children, initialTenant }: { children: React.ReactNode; initialTenant?: TenantContext }) {
+  const [tenant, setTenant] = useState<TenantContext>(initialTenant || getDefaultTenantContext())
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,6 +35,10 @@ export function TenantContextProvider({ children }: { children: React.ReactNode 
         if (fetched) {
           setTenant(fetched)
           applyTenantTheme(fetched)
+          // Persist slug so it survives navigations to /sign-in, /dashboard, etc.
+          if (fetched.slug && fetched.slug !== 'platform') {
+            persistTenantId(fetched.slug)
+          }
           return
         }
         setError(`Tenant context not found for "${tenantId}"`)

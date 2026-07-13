@@ -90,92 +90,9 @@ export default function ExtensionsPage() {
   const loadExtensionsData = async () => {
     setIsLoading(true)
     try {
-      // Mock data for now - in real implementation would call APIs
-      const mockRuntimes = [
-        {
-          id: '1',
-          tenant_id: 'tenant-1',
-          tenant_slug: 'demo-company',
-          runner_id: 'runner-1',
-          status: 'active',
-          install_directory: '/opt/afruheritage/tenants/demo-company',
-          runtime_url: 'https://demo-company.afruheritage.com',
-          console_url: 'https://demo-company.afruheritage.com/console',
-          api_url: 'https://demo-company.afruheritage.com/api',
-          fleetbase_version: 'v2.4.1',
-          last_error: null,
-          is_reference_install: false,
-          created_at: '2024-01-15T10:30:00Z',
-        },
-        {
-          id: '2',
-          tenant_id: 'tenant-2',
-          tenant_slug: 'reference',
-          runner_id: 'runner-1',
-          status: 'active',
-          install_directory: '/opt/afruheritage/tenants/reference',
-          runtime_url: 'https://reference.afruheritage.com',
-          console_url: 'https://reference.afruheritage.com/console',
-          api_url: 'https://reference.afruheritage.com/api',
-          fleetbase_version: 'v2.4.1',
-          last_error: null,
-          is_reference_install: true,
-          created_at: '2024-01-10T09:00:00Z',
-        },
-      ]
-      
-      const mockExtensions = [
-        {
-          id: '1',
-          name: 'Paystack Payment Gateway',
-          type: 'payment_gateway',
-          version: '1.2.0',
-          status: 'active',
-          description: 'Ghana payment gateway integration',
-          repository_url: 'https://github.com/afruheritage/paystack-extension',
-          installed_runtimes: ['1'],
-          config: {
-            public_key: 'pk_test_...',
-            secret_key: 'sk_test_...',
-            webhook_url: 'https://demo-company.afruheritage.com/webhooks/paystack',
-          },
-          created_at: '2024-01-15T11:00:00Z',
-        },
-        {
-          id: '2',
-          name: 'GhanaPost Shipping',
-          type: 'shipping_provider',
-          version: '1.0.0',
-          status: 'active',
-          description: 'Ghana Post shipping integration',
-          repository_url: 'https://github.com/afruheritage/ghanapost-extension',
-          installed_runtimes: ['1'],
-          config: {
-            api_key: 'ghp_...',
-            base_url: 'https://api.ghanapost.com',
-            tracking_enabled: true,
-          },
-          created_at: '2024-01-16T14:30:00Z',
-        },
-        {
-          id: '3',
-          name: 'Custom Analytics Dashboard',
-          type: 'analytics',
-          version: '0.9.0',
-          status: 'pending',
-          description: 'Advanced analytics and reporting',
-          repository_url: 'https://github.com/afruheritage/analytics-extension',
-          installed_runtimes: [],
-          config: {
-            dashboard_url: 'https://analytics-demo.afruheritage.com',
-            metrics_enabled: ['shipments', 'revenue', 'customers'],
-          },
-          created_at: '2024-01-17T16:45:00Z',
-        },
-      ]
-      
-      setRuntimes(mockRuntimes)
-      setExtensions(mockExtensions)
+      const runtimesRes = await fleetbaseAPI.getRuntimes()
+      setRuntimes(runtimesRes.data || [])
+      setExtensions([])
     } catch (error) {
       console.error('Failed to load extensions data:', error)
     } finally {
@@ -188,8 +105,7 @@ export default function ExtensionsPage() {
     
     setIsProcessing(true)
     try {
-      // Mock deployment - in real implementation would call API
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await fleetbaseAPI.deployRuntime(deployForm)
       
       await loadExtensionsData()
       setShowDeployModal(false)

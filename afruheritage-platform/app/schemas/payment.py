@@ -30,7 +30,6 @@ class PaymentInitiateResponse(BaseModel):
     payment_method: str
     status: str
     expires_at: datetime | None = None
-    mock: bool | None = None
 
 
 class PaymentStatusResponse(BaseModel):

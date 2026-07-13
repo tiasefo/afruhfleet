@@ -21,7 +21,10 @@ import {
   TrendingUp,
   AlertCircle,
   ChevronRight,
+  Tag,
 } from 'lucide-react'
+import { PlansPricingDrawer } from '@/components/admin/plans-pricing-drawer'
+import { TenantProvisioningDrawer } from '@/components/admin/tenant-provisioning-drawer'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -139,6 +142,12 @@ export default function AdminPage() {
           </Card>
         </div>
 
+
+        {/* Sentinel controls */}
+        <div className="flex flex-wrap gap-3">
+          <PlansPricingDrawer />
+          <TenantProvisioningDrawer />
+        </div>
 
         {/* Tenants list */}
         <Card>

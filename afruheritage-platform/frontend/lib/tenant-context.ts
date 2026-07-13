@@ -24,6 +24,21 @@ export interface TenantContext {
   legal_footer_text: string
   legal_company_name: string
   theme_code: string
+  template_code?: string
+  storefront_config?: {
+    motto?: string
+    headline?: string
+    whatsapp?: { tracking?: string; general?: string }
+    contacts?: {
+      tracking?: { department?: string; staff?: string; phone?: string; whatsapp?: string; notes?: string }
+      general?: { department?: string; phone?: string; whatsapp?: string }
+    }
+    billing_staff?: Array<{ range?: string; name?: string; phone?: string; phone_digits?: string; note?: string }>
+    payment?: { network?: string; merchant_name?: string; merchant_id?: string; phone?: string; phone_digits?: string; is_placeholder?: boolean }
+    services?: Array<{ title?: string; desc?: string }>
+    marketplaces?: string[]
+    workflow?: Array<{ step?: string; title?: string; desc?: string }>
+  }
 }
 
 const DEFAULT_TENANT_CONTEXT: TenantContext = {
@@ -50,11 +65,12 @@ const DEFAULT_TENANT_CONTEXT: TenantContext = {
   legal_footer_text: '© 2024 Afruheritage. All rights reserved.',
   legal_company_name: 'Afruheritage Logistics Ltd',
   theme_code: 'default',
+  storefront_config: undefined,
 }
 
 export async function fetchTenantContextServer(slug: string): Promise<TenantContext | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NEXT_PUBLIC_API_BASE_URL.startsWith('http') ? process.env.NEXT_PUBLIC_API_BASE_URL : 'http://api:8000')
     const response = await fetch(`${baseUrl}/api/v1/tenant-context/${encodeURIComponent(slug)}`, {
       cache: 'no-store',
     })
@@ -63,7 +79,12 @@ export async function fetchTenantContextServer(slug: string): Promise<TenantCont
       return null
     }
 
-    return await response.json()
+    const data = await response.json()
+    // Map template_code → theme_code if theme_code is not set
+    if (!data.theme_code && data.template_code) {
+      data.theme_code = data.template_code
+    }
+    return data
   } catch (error) {
     console.error('Failed to fetch tenant context:', error)
     return null
@@ -85,7 +106,11 @@ export async function fetchTenantContextClient(identifier: string): Promise<Tena
     if (!response.ok) {
       return null
     }
-    return await response.json()
+    const data = await response.json()
+    if (!data.theme_code && data.template_code) {
+      data.theme_code = data.template_code
+    }
+    return data
   } catch (error) {
     console.error('Failed to fetch tenant context (client):', error)
     return null
@@ -94,7 +119,7 @@ export async function fetchTenantContextClient(identifier: string): Promise<Tena
 
 export async function fetchTenantContextByHostServer(host: string): Promise<TenantContext | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8100'
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NEXT_PUBLIC_API_BASE_URL.startsWith('http') ? process.env.NEXT_PUBLIC_API_BASE_URL : 'http://api:8000')
     const hostname = host.split(':')[0].toLowerCase()
 
     // Try the full hostname first (matches custom_domain via resolve_tenant)
@@ -106,7 +131,7 @@ export async function fetchTenantContextByHostServer(host: string): Promise<Tena
       return await response.json()
     }
 
-    // If full hostname didn't match, try extracting subdomain (e.g., "amooksco" from "amooksco.afruheritage.com")
+    // If full hostname didn't match, try extracting subdomain (e.g., "mycompany" from "mycompany.afruheritage.com")
     const parts = hostname.split('.')
     if (parts.length >= 3) {
       const subdomain = parts[0]

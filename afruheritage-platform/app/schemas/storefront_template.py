@@ -20,3 +20,4 @@ class StorefrontTemplateResponse(BaseModel):
 
 class TenantTemplateSelectionRequest(BaseModel):
     template_code: str
+    tenant_id: str | None = None

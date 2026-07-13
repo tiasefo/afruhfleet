@@ -39,21 +39,17 @@ class ExchangeRateUpdate(BaseModel):
 
 @router.get("/plans")
 def list_plans(db: Session = Depends(get_db), _: User = Depends(require_superuser)):
-    rows = db.execute(text("""
-        SELECT bp.id, bp.code, bp.name, bp.description, bp.price_amount, bp.currency,
-               bp.billing_interval, bp.is_active,
-               COALESCE(json_agg(DISTINCT jsonb_build_object(
-                   'currency', bpp.currency,
-                   'monthly_price', bpp.monthly_price,
-                   'annual_price', bpp.annual_price,
-                   'display_equivalent', bpp.display_equivalent
-               )) FILTER (WHERE bpp.id IS NOT NULL), '[]') AS prices
-        FROM billing_plans bp
-        LEFT JOIN billing_plan_prices bpp ON bpp.plan_id = bp.id
-        GROUP BY bp.id
-        ORDER BY bp.price_amount
-    """)).mappings().all()
-    return [dict(r) for r in rows]
+    try:
+        rows = db.execute(text("""
+            SELECT bp.id, bp.code, bp.name, bp.price_amount, bp.currency,
+                   bp.active AS is_active,
+                   '[]'::json AS prices
+            FROM billing_plans bp
+            ORDER BY bp.price_amount
+        """)).mappings().all()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Billing plans query failed: {str(e)}")
 
 @router.get("/features/{plan_code}")
 def list_plan_features(plan_code: str, db: Session = Depends(get_db), _: User = Depends(require_superuser)):

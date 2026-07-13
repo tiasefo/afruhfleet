@@ -1,0 +1,161 @@
+
+============================================================
+E2E UAT AUTOMATED TEST SUITE
+============================================================
+  [INFO] Date: Sun Jul 12 06:19:34 AM UTC 2026
+  [INFO] API: http://localhost:8100
+  [INFO] Frontend: http://localhost:3002
+  [INFO] Results file: e2e_uat_results_20260712_061934.txt
+
+============================================================
+1. DOCKER SERVICES HEALTH
+============================================================
+  [PASS] afruheritage-api is healthy (Up 30 minutes (healthy))
+  [PASS] afruheritage-frontend is healthy (Up 30 minutes (healthy))
+  [PASS] afruheritage-postgres is healthy (Up 10 days (healthy))
+  [PASS] afruheritage-redis is healthy (Up 2 weeks (healthy))
+
+============================================================
+2. API HEALTH & DOCS
+============================================================
+  [PASS] GET /health (HTTP 200)
+  [PASS] GET /openapi.json (HTTP 200)
+  [PASS] GET /api/docs — status 200 (404 ok in production)
+
+============================================================
+3. AUTHENTICATION
+============================================================
+  [PASS] Admin login — token received
+  [PASS] Login with wrong password (HTTP 401)
+  [PASS] Login with non-existent user (HTTP 401)
+  [PASS] GET /api/v1/auth/me with valid token (HTTP 200)
+  [PASS] GET /api/v1/auth/me without token (HTTP 401)
+
+============================================================
+4. RATE LIMITING
+============================================================
+  [INFO] Testing login rate limit (5/minute) with unique IP...
+  [PASS] Rate limit triggered on attempt 3 (HTTP 429)
+
+============================================================
+5. SECURITY HEADERS — BACKEND
+============================================================
+  [PASS] Backend X-Frame-Options — X-Frame-Options: DENY
+  [PASS] Backend X-Content-Type-Options — X-Content-Type-Options: nosniff
+  [PASS] Backend Referrer-Policy — Referrer-Policy: strict-origin-when-cross-origin
+  [PASS] Backend Permissions-Policy — Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+============================================================
+6. SECURITY HEADERS — FRONTEND
+============================================================
+  [PASS] Frontend X-Frame-Options — X-Frame-Options: DENY
+  [PASS] Frontend X-Content-Type-Options — X-Content-Type-Options: nosniff
+  [PASS] Frontend Referrer-Policy — Referrer-Policy: strict-origin-when-cross-origin
+  [PASS] Frontend Permissions-Policy — Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+============================================================
+7. STOREFRONT RENDERING & BRANDING
+============================================================
+  [PASS] AMOOKSCO storefront — title: 'AMOOKSCO LOGISTICS | Freight &amp; Customs Services'
+  [PASS] MetroMass storefront — title: 'MetroMass Transit Ltd | Transport &amp; Fleet Operations'
+  [PASS] Accra Florist storefront — title: 'Accra Florist Collective | Online Shopping &amp; Delivery'
+  [PASS] Sahel Freight storefront — title: 'Sahel Freight Express | Freight &amp; Customs Services'
+  [PASS] GET /store/amooksco-logistics (HTTP 200)
+  [PASS] GET /store/metromass-transit (HTTP 200)
+  [PASS] GET /store/accra-florist-collective (HTTP 200)
+  [PASS] GET /store/sahel-freight-express (HTTP 200)
+
+============================================================
+8. TENANT ISOLATION (No Cross-Tenant Data Leakage)
+============================================================
+  [PASS] AMOOKSO storefront does not leak MetroMass branding
+  [PASS] MetroMass storefront does not leak AMOOKSO branding
+  [PASS] /store/amooksco-logistics does not leak visible Fleetbase branding
+  [PASS] /store/metromass-transit does not leak visible Fleetbase branding
+  [PASS] /store/accra-florist-collective does not leak visible Fleetbase branding
+  [PASS] /store/sahel-freight-express does not leak visible Fleetbase branding
+
+============================================================
+9. ADMIN CONSOLE PAGES
+============================================================
+  [PASS] GET /admin — HTTP 307
+  [PASS] GET /admin/runtime — HTTP 307
+  [PASS] GET /fleetbase/extensions — HTTP 307
+  [PASS] GET /dashboard — HTTP 307
+
+============================================================
+10. FLEETBASE RUNTIME API
+============================================================
+  [PASS] GET /fleetbase-runtime/runners (HTTP 200)
+  [PASS] GET /fleetbase-runtime/runtimes (HTTP 200)
+  [PASS] Runners response is valid JSON array with 1 runner(s)
+  [PASS] Runtimes response is valid JSON array with 8 runtime(s)
+
+============================================================
+11. TENANT MANAGEMENT API
+============================================================
+  [PASS] GET /api/v1/tenants (HTTP 200)
+  [PASS] Tenants response valid — 21 tenant(s) found
+
+============================================================
+12. BRANDING API (Public)
+============================================================
+  [PASS] GET /api/v1/branding/public/amooksco-logistics — 200, company_name: AMOOKSCO LOGISTICS
+  [PASS] GET /api/v1/branding/public/metromass-transit — 200, company_name: MetroMass Transit Ltd
+  [PASS] GET /api/v1/branding/public/accra-florist-collective — 200, company_name: Accra Florist Collective
+
+============================================================
+13. PUBLIC TRACKING ENDPOINT
+============================================================
+  [PASS] Public tracking with fake number — HTTP 404 (expected 404/422)
+
+============================================================
+14. WHATSAPP WEBHOOK
+============================================================
+  [PASS] WhatsApp webhook with wrong token — HTTP 404 (expected 403/404)
+
+============================================================
+15. GALLERY UPLOAD (Auth Required)
+============================================================
+  [PASS] Gallery upload without file — HTTP 422 (expected 422/400)
+
+============================================================
+16. CORS HEADERS
+============================================================
+  [SKIP] CORS preflight — OPTIONS not explicitly handled (normal for FastAPI with CORSMiddleware)
+  [PASS] CORS origin is restricted: 
+
+============================================================
+17. LANDING PAGE
+============================================================
+  [PASS] Landing page — title: 'Afruheritage | The Only African TransUnion Multi-Tenant Freight Forwarding Platform'
+
+============================================================
+18. AUTH PAGES RENDER
+============================================================
+  [PASS] GET /sign-in (HTTP 200)
+  [PASS] GET /sign-up (HTTP 200)
+
+============================================================
+19. NO TODO/MOCK REMNANTS IN PRODUCTION CODE
+============================================================
+  [PASS] No TODO/FIXME/HACK in frontend production code
+  [PASS] No TODO/FIXME/HACK in backend production code
+
+============================================================
+20. DATABASE CONNECTIVITY
+============================================================
+  [PASS] Database has 91 tables — connectivity OK
+
+============================================================
+TEST SUMMARY
+============================================================
+
+  Passed: 58
+  Failed: 0
+  Skipped: 1
+  Total:  59
+
+  ✅ ALL TESTS PASSED — Ready for human UAT
+
+Results saved to: e2e_uat_results_20260712_061934.txt

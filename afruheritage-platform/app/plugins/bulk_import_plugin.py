@@ -13,6 +13,8 @@ class BulkImportPlugin(BasePlugin):
     feature_flags = ["csv_import_enabled"]
 
     def check(self, tenant_id: str, db: Session) -> bool:
+        if not tenant_id:
+            return True
         branding = ensure_tenant_branding(db, tenant_id, "", "")
         return getattr(branding, "csv_import_enabled", False)
 
@@ -26,6 +28,14 @@ class BulkImportPlugin(BasePlugin):
         return True, "Already enabled"
 
     def get_health(self, tenant_id: str, db: Session) -> dict:
+        if not tenant_id:
+            return {
+                "plugin": self.name,
+                "healthy": True,
+                "endpoints": self.required_endpoints,
+                "details": "Global health check (no tenant)",
+                "auto_fixed": False,
+            }
         healthy = self.check(tenant_id, db)
         return {
             "plugin": self.name,

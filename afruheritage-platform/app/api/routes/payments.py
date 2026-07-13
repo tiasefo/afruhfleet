@@ -337,11 +337,13 @@ async def get_payment_statistics(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
-    """Get payment statistics for tenant"""
+    """Get payment statistics for tenant (or global for superuser)."""
     try:
-        billing_payments = db.query(BillingPayment).filter(
-            BillingPayment.tenant_id == current_user.tenant_id,
-        )
+        billing_payments = db.query(BillingPayment)
+        if not current_user.is_superuser:
+            billing_payments = billing_payments.filter(
+                BillingPayment.tenant_id == current_user.tenant_id,
+            )
         if start_date:
             billing_payments = billing_payments.filter(BillingPayment.created_at >= start_date)
         if end_date:
@@ -361,6 +363,16 @@ async def get_payment_statistics(
                 total_platform_fees=round(total_platform_fees, 2),
                 total_tenant_earnings=total_tenant_earnings,
                 success_rate=success_rate,
+            )
+
+        if current_user.is_superuser:
+            return PaymentStatistics(
+                total_payments=0,
+                completed_payments=0,
+                total_revenue=0,
+                total_platform_fees=0,
+                total_tenant_earnings=0,
+                success_rate=0,
             )
 
         # Fallback to legacy stats when canonical rows are absent.

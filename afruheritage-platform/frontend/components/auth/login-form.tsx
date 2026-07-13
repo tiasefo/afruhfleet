@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useTranslation } from '@/hooks/useTranslation'
 import { useBranding } from '@/hooks/useBranding'
 import { useTenant } from '@/components/tenant-context-provider'
-import { resolveTenantTheme } from '@/lib/tenant-theme-registry'
+import { resolveTenantThemeFromContext } from '@/lib/tenant-theme-registry'
 
 export function LoginForm() {
   const router = useRouter()
@@ -24,7 +24,7 @@ export function LoginForm() {
   const { branding } = useBranding()
   const { tenant } = useTenant()
   const tenantSlug = searchParams.get('tenant')
-  const tenantTheme = tenantSlug ? resolveTenantTheme(tenantSlug) : null
+  const tenantTheme = tenant.slug !== 'platform' ? resolveTenantThemeFromContext(tenant) : null
   const [isLoading, setIsLoading] = useState(false)
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)

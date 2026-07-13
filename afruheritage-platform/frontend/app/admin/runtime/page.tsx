@@ -91,114 +91,12 @@ export default function RuntimeOrchestrationPage() {
   const loadRuntimeData = async () => {
     setIsLoading(true)
     try {
-      // Mock data for now - in real implementation would call APIs
-      const mockRunners = [
-        {
-          id: 'runner-1',
-          name: 'Primary Runner - Accra',
-          hostname: 'runner1.afruheritage.com',
-          ssh_port: 22,
-          ssh_user: 'root',
-          root_runtime_path: '/opt/afruheritage/tenants',
-          status: 'online',
-          max_tenants: 50,
-          current_tenants: 12,
-          supports_reference_install: true,
-          cpu_usage: 45,
-          memory_usage: 67,
-          disk_usage: 78,
-          last_heartbeat: '2024-01-20T10:30:00Z',
-          created_at: '2024-01-01T00:00:00Z',
-        },
-        {
-          id: 'runner-2',
-          name: 'Secondary Runner - Kumasi',
-          hostname: 'runner2.afruheritage.com',
-          ssh_port: 22,
-          ssh_user: 'root',
-          root_runtime_path: '/opt/afruheritage/tenants',
-          status: 'online',
-          max_tenants: 30,
-          current_tenants: 8,
-          supports_reference_install: false,
-          cpu_usage: 32,
-          memory_usage: 45,
-          disk_usage: 56,
-          last_heartbeat: '2024-01-20T10:29:00Z',
-          created_at: '2024-01-05T00:00:00Z',
-        },
-        {
-          id: 'runner-3',
-          name: 'Backup Runner - Tema',
-          hostname: 'runner3.afruheritage.com',
-          ssh_port: 22,
-          ssh_user: 'root',
-          root_runtime_path: '/opt/afruheritage/tenants',
-          status: 'maintenance',
-          max_tenants: 25,
-          current_tenants: 0,
-          supports_reference_install: false,
-          cpu_usage: 0,
-          memory_usage: 0,
-          disk_usage: 45,
-          last_heartbeat: '2024-01-19T15:45:00Z',
-          created_at: '2024-01-10T00:00:00Z',
-        },
-      ]
-      
-      const mockRuntimes = [
-        {
-          id: 'runtime-1',
-          tenant_id: 'tenant-1',
-          tenant_slug: 'demo-company',
-          runner_id: 'runner-1',
-          status: 'active',
-          install_directory: '/opt/afruheritage/tenants/demo-company',
-          runtime_url: 'https://demo-company.afruheritage.com',
-          console_url: 'https://demo-company.afruheritage.com/console',
-          api_url: 'https://demo-company.afruheritage.com/api',
-          fleetbase_version: 'v2.4.1',
-          last_error: null,
-          is_reference_install: false,
-          created_at: '2024-01-15T10:30:00Z',
-          last_heartbeat: '2024-01-20T10:25:00Z',
-        },
-        {
-          id: 'runtime-2',
-          tenant_id: 'tenant-2',
-          tenant_slug: 'reference',
-          runner_id: 'runner-1',
-          status: 'active',
-          install_directory: '/opt/afruheritage/tenants/reference',
-          runtime_url: 'https://reference.afruheritage.com',
-          console_url: 'https://reference.afruheritage.com/console',
-          api_url: 'https://reference.afruheritage.com/api',
-          fleetbase_version: 'v2.4.1',
-          last_error: null,
-          is_reference_install: true,
-          created_at: '2024-01-10T09:00:00Z',
-          last_heartbeat: '2024-01-20T10:28:00Z',
-        },
-        {
-          id: 'runtime-3',
-          tenant_id: 'tenant-3',
-          tenant_slug: 'test-company',
-          runner_id: 'runner-2',
-          status: 'installing',
-          install_directory: '/opt/afruheritage/tenants/test-company',
-          runtime_url: null,
-          console_url: null,
-          api_url: null,
-          fleetbase_version: 'v2.4.1',
-          last_error: null,
-          is_reference_install: false,
-          created_at: '2024-01-19T14:15:00Z',
-          last_heartbeat: null,
-        },
-      ]
-      
-      setRunners(mockRunners)
-      setRuntimes(mockRuntimes)
+      const [runnersRes, runtimesRes] = await Promise.all([
+        fleetbaseAPI.getRunners(),
+        fleetbaseAPI.getRuntimes(),
+      ])
+      setRunners(runnersRes.data || [])
+      setRuntimes(runtimesRes.data || [])
     } catch (error) {
       console.error('Failed to load runtime data:', error)
     } finally {
@@ -211,8 +109,11 @@ export default function RuntimeOrchestrationPage() {
     
     setIsProcessing(true)
     try {
-      // Mock creation - in real implementation would call API
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await fleetbaseAPI.createRunner({
+        ...runnerForm,
+        ssh_port: Number(runnerForm.ssh_port),
+        max_tenants: Number(runnerForm.max_tenants),
+      })
       
       await loadRuntimeData()
       setShowRunnerModal(false)
@@ -237,8 +138,7 @@ export default function RuntimeOrchestrationPage() {
     
     setIsProcessing(true)
     try {
-      // Mock deployment - in real implementation would call API
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await fleetbaseAPI.deployRuntime(deployForm)
       
       await loadRuntimeData()
       setShowDeployModal(false)

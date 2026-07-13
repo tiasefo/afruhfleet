@@ -42,7 +42,9 @@ from app.models.billing import (
     WalletTransactionType,
 )
 from app.models.tenant import Tenant
+from app.models.saas_subscription import TenantSubscription
 from app.services.notification_service import notification_service
+from app.services.platform_config_service import get_default_trial_days
 
 
 PLAN_ALIAS_MAP: dict[str, PlanCode] = {
@@ -286,14 +288,15 @@ def create_trial_subscription(
     resolved_plan = normalize_plan_code(plan_code)
 
     now = datetime.utcnow()
+    trial_days = get_default_trial_days(db)
     sub = Subscription(
         tenant_id=tenant_pk,
         plan_code=resolved_plan,
         status=SubscriptionStatus.TRIALING if resolved_plan == PlanCode.FREE_TRIAL else SubscriptionStatus.ACTIVE,
         currency=currency,
         started_at=now,
-        current_period_end=now + timedelta(days=30),
-        trial_ends_at=now + timedelta(days=30) if resolved_plan == PlanCode.FREE_TRIAL else None,
+        current_period_end=now + timedelta(days=trial_days),
+        trial_ends_at=now + timedelta(days=trial_days) if resolved_plan == PlanCode.FREE_TRIAL else None,
     )
     db.add(sub)
     tenant = db.query(Tenant).filter(Tenant.id == tenant_pk).first()
@@ -311,6 +314,7 @@ def create_trial_subscription(
         str(sub.id),
         {"tenant_id": tenant_id, "plan_code": resolved_plan.value},
     )
+    sync_subscription_state(db, tenant_id)
     return sub
 
 
@@ -470,6 +474,7 @@ def activate_or_upgrade_subscription(db: Session, tenant_id: str, plan_code: str
     resolved_plan = normalize_plan_code(plan_code)
     sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
     now = datetime.utcnow()
+    period_days = get_default_trial_days(db)
     if not sub:
         sub = Subscription(
             tenant_id=tenant_pk,
@@ -477,7 +482,7 @@ def activate_or_upgrade_subscription(db: Session, tenant_id: str, plan_code: str
             status=SubscriptionStatus.ACTIVE,
             currency=currency,
             started_at=now,
-            current_period_end=now + timedelta(days=30),
+            current_period_end=now + timedelta(days=period_days),
             trial_ends_at=None,
         )
         db.add(sub)
@@ -485,7 +490,7 @@ def activate_or_upgrade_subscription(db: Session, tenant_id: str, plan_code: str
         sub.plan_code = resolved_plan
         sub.status = SubscriptionStatus.ACTIVE
         sub.currency = currency
-        sub.current_period_end = now + timedelta(days=30)
+        sub.current_period_end = now + timedelta(days=period_days)
         sub.trial_ends_at = None
         sub.read_only_reason = None
         db.add(sub)
@@ -504,6 +509,7 @@ def activate_or_upgrade_subscription(db: Session, tenant_id: str, plan_code: str
         str(sub.id),
         {"tenant_id": tenant_id, "plan_code": resolved_plan.value},
     )
+    sync_subscription_state(db, tenant_id)
     return sub
 
 
@@ -729,3 +735,91 @@ def write_audit_log(db: Session, actor_type: str, actor_id: str | uuid.UUID | No
     )
     db.add(log)
     db.commit()
+
+_STATUS_MAP_TO_TENANT = {
+    SubscriptionStatus.ACTIVE: "active",
+    SubscriptionStatus.TRIALING: "trial",
+    SubscriptionStatus.READ_ONLY: "suspended",
+    SubscriptionStatus.SUSPENDED: "suspended",
+    SubscriptionStatus.CANCELED: "canceled",
+    SubscriptionStatus.EXPIRED: "expired",
+}
+
+_PLAN_MAP_TO_TENANT = {
+    PlanCode.FREE_TRIAL: "free_trial",
+    PlanCode.PROFESSIONAL: "pro",
+    PlanCode.BUSINESS: "pro",
+    PlanCode.DELIVERY_SERVICES: "enterprise",
+}
+
+
+def sync_subscription_state(db: Session, tenant_id: str) -> None:
+    """Keep plan_code, status, and trial_ends_at aligned between Subscription (billing_subscriptions)
+    and TenantSubscription (tenant_subscriptions).
+
+    The Subscription table is the authoritative source -- it's what the billing/payment flow writes to.
+    This function propagates its values to TenantSubscription so feature-gating code that reads
+    tenant_subscriptions sees consistent state.
+    """
+    tenant_pk = _as_uuid(tenant_id)
+    billing_sub = db.query(Subscription).filter(Subscription.tenant_id == tenant_pk).first()
+    if not billing_sub:
+        return
+
+    tenant_sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == str(tenant_pk)).first()
+    if not tenant_sub:
+        mapped_plan = _PLAN_MAP_TO_TENANT.get(billing_sub.plan_code, billing_sub.plan_code.value)
+        mapped_status = _STATUS_MAP_TO_TENANT.get(billing_sub.status, billing_sub.status.value)
+        tenant_sub = TenantSubscription(
+            tenant_id=str(tenant_pk),
+            plan_code=mapped_plan,
+            status=mapped_status,
+            trial=billing_sub.status == SubscriptionStatus.TRIALING,
+            trial_ends_at=billing_sub.trial_ends_at,
+            current_period_end=billing_sub.current_period_end,
+            credits_balance=0,
+        )
+        db.add(tenant_sub)
+        db.commit()
+        db.refresh(tenant_sub)
+        write_audit_log(
+            db,
+            "system",
+            None,
+            "tenant_subscription_created_via_sync",
+            "tenant_subscription",
+            str(tenant_sub.id),
+            {"plan_code": mapped_plan, "status": mapped_status, "trial_ends_at": str(billing_sub.trial_ends_at) if billing_sub.trial_ends_at else None},
+        )
+        return
+
+    mapped_plan = _PLAN_MAP_TO_TENANT.get(billing_sub.plan_code, billing_sub.plan_code.value)
+    mapped_status = _STATUS_MAP_TO_TENANT.get(billing_sub.status, billing_sub.status.value)
+
+    changed = False
+    if tenant_sub.plan_code != mapped_plan:
+        tenant_sub.plan_code = mapped_plan
+        changed = True
+    if tenant_sub.status != mapped_status:
+        tenant_sub.status = mapped_status
+        changed = True
+    if tenant_sub.trial_ends_at != billing_sub.trial_ends_at:
+        tenant_sub.trial_ends_at = billing_sub.trial_ends_at
+        changed = True
+    if tenant_sub.current_period_end != billing_sub.current_period_end:
+        tenant_sub.current_period_end = billing_sub.current_period_end
+        changed = True
+    tenant_sub.trial = billing_sub.status == SubscriptionStatus.TRIALING
+
+    if changed:
+        db.add(tenant_sub)
+        db.commit()
+        write_audit_log(
+            db,
+            "system",
+            None,
+            "subscription_state_synced",
+            "tenant_subscription",
+            str(tenant_sub.id),
+            {"plan_code": mapped_plan, "status": mapped_status, "trial_ends_at": str(billing_sub.trial_ends_at) if billing_sub.trial_ends_at else None},
+        )

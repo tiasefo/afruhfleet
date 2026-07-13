@@ -12,6 +12,8 @@ from app.services.email_client import send_email
 # from app.services.notification_preferences_service import is_notification_enabled  # Will create when needed
 from app.services.sms_client import send_sms
 
+from sqlalchemy.orm import Session
+
 logger = logging.getLogger("afruheritage.notifications")
 
 

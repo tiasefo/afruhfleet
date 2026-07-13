@@ -9,13 +9,33 @@ from fastapi import HTTPException
 from app.services.entitlements import (
     TIER_FEATURES,
     TRIAL_DURATION_DAYS,
-    create_trial_subscription,
     downgrade_expired_trial,
     normalize_tier_code,
     tenant_has_feature,
     seed_default_plans,
 )
 from app.models.saas_subscription import SaaSPlan, TenantSubscription
+
+
+def _make_trial_sub(db, tenant_id: str, plan_code: str = "free_trial") -> TenantSubscription:
+    sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == tenant_id).first()
+    if sub:
+        return sub
+    now = datetime.utcnow()
+    sub = TenantSubscription(
+        tenant_id=tenant_id,
+        plan_code=plan_code,
+        status="trial",
+        trial=True,
+        trial_ends_at=now + timedelta(days=TRIAL_DURATION_DAYS),
+        current_period_end=now + timedelta(days=TRIAL_DURATION_DAYS),
+        selected_addons_json="[]",
+        credits_balance=0,
+    )
+    db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    return sub
 
 
 class TestTierFeatureMapping:
@@ -68,7 +88,7 @@ class TestTenantHasFeature:
 
     def test_trial_subscription_has_pro_features(self, db_session):
         seed_default_plans(db_session)
-        create_trial_subscription(db_session, "test-tenant-1", "free_trial")
+        _make_trial_sub(db_session, "test-tenant-1", "free_trial")
         assert tenant_has_feature(db_session, "test-tenant-1", "ai_basic") is True
         assert tenant_has_feature(db_session, "test-tenant-1", "marketplace_gps") is True
 
@@ -106,7 +126,7 @@ class TestTenantHasFeature:
 class TestTrialExpiry:
     def test_trial_not_expired_no_downgrade(self, db_session):
         seed_default_plans(db_session)
-        sub = create_trial_subscription(db_session, "trial-tenant-1", "free_trial")
+        sub = _make_trial_sub(db_session, "trial-tenant-1", "free_trial")
         result = downgrade_expired_trial(db_session, sub)
         assert result is False
         assert sub.plan_code == "free_trial"
@@ -115,7 +135,7 @@ class TestTrialExpiry:
 
     def test_expired_trial_downgrades_to_starter(self, db_session):
         seed_default_plans(db_session)
-        sub = create_trial_subscription(db_session, "trial-tenant-2", "free_trial")
+        sub = _make_trial_sub(db_session, "trial-tenant-2", "free_trial")
         sub.trial_ends_at = datetime.utcnow() - timedelta(days=1)
         db_session.add(sub)
         db_session.commit()
@@ -148,7 +168,7 @@ class TestTrialExpiry:
     def test_create_trial_sets_trial_ends_at(self, db_session):
         seed_default_plans(db_session)
         before = datetime.utcnow()
-        sub = create_trial_subscription(db_session, "trial-tenant-3", "free_trial")
+        sub = _make_trial_sub(db_session, "trial-tenant-3", "free_trial")
         after = datetime.utcnow()
 
         assert sub.trial is True

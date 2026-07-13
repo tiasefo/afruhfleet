@@ -98,7 +98,7 @@ class Subscription(Base):
     status: Mapped[SubscriptionStatus] = mapped_column(Enum(SubscriptionStatus), nullable=False, default=SubscriptionStatus.TRIALING)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="GHS")
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
-    current_period_end: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=30))
+    current_period_end: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda: datetime.utcnow() + timedelta(days=14))
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     grace_period_ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

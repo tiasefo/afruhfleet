@@ -41,8 +41,26 @@ def list_feature_flags(
     _: User = Depends(require_superuser),
 ):
     """List all feature flags (admin only)."""
-    flags = db.scalars(select(FeatureFlag).order_by(FeatureFlag.key)).all()
-    return flags
+    try:
+        flags = db.scalars(select(FeatureFlag).order_by(FeatureFlag.key)).all()
+    except Exception:
+        try:
+            seed_default_flags(db)
+            flags = db.scalars(select(FeatureFlag).order_by(FeatureFlag.key)).all()
+        except Exception:
+            return []
+    return [
+        FeatureFlagResponse(
+            id=str(f.id),
+            key=f.key,
+            label=f.label,
+            description=f.description,
+            enabled=f.enabled,
+            created_at=f.created_at,
+            updated_at=f.updated_at,
+        )
+        for f in flags
+    ]
 
 
 @router.patch("/{flag_key}", response_model=FeatureFlagResponse)
@@ -53,7 +71,10 @@ def toggle_feature_flag(
     _: User = Depends(require_superuser),
 ):
     """Toggle a feature flag (admin only)."""
-    flag = db.scalar(select(FeatureFlag).where(FeatureFlag.key == flag_key))
+    try:
+        flag = db.scalar(select(FeatureFlag).where(FeatureFlag.key == flag_key))
+    except Exception:
+        raise HTTPException(status_code=500, detail="Feature flags table not available")
     if not flag:
         raise HTTPException(status_code=404, detail="Feature flag not found")
     
@@ -61,7 +82,15 @@ def toggle_feature_flag(
     db.add(flag)
     db.commit()
     db.refresh(flag)
-    return flag
+    return FeatureFlagResponse(
+        id=str(flag.id),
+        key=flag.key,
+        label=flag.label,
+        description=flag.description,
+        enabled=flag.enabled,
+        created_at=flag.created_at,
+        updated_at=flag.updated_at,
+    )
 
 
 # Seed default feature flags

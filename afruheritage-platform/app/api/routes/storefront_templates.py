@@ -64,7 +64,7 @@ DEFAULT_TEMPLATES = [
             ],
             "features": ["tracking", "bulk_import", "ai_chat", "fleetbase_integration", "shipping_estimator"],
             "fallbacks": {
-                "tracking": "show_mock_data",
+                "tracking": "show_demo_tracking",
                 "fleetbase_integration": "show_static_message",
                 "ai_chat": "hide_widget",
                 "shipping_estimator": "use_default_rates",
@@ -313,7 +313,12 @@ def select_template(
     current_user: User = Depends(require_tenant_admin),
 ) -> dict:
     if not current_user.tenant_id:
-        raise HTTPException(status_code=400, detail='User has no tenant')
+        if current_user.is_superuser and request.tenant_id:
+            pass
+        else:
+            raise HTTPException(status_code=400, detail='User has no tenant')
+
+    effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
 
     template = db.scalar(
         select(StorefrontTemplate).where(
@@ -324,7 +329,7 @@ def select_template(
     if not template:
         raise HTTPException(status_code=404, detail='Template not found')
 
-    tenant = db.get(Tenant, current_user.tenant_id)
+    tenant = db.get(Tenant, effective_tenant_id)
     if not tenant:
         raise HTTPException(status_code=404, detail='Tenant not found')
 
@@ -343,7 +348,12 @@ def select_template(
 
     # Run auto-fix plugins for the selected template
     from app.services.template_manifest_service import auto_fix_template_endpoints
-    fix_results = auto_fix_template_endpoints(str(tenant.id), template.template_code, db)
+    try:
+        fix_results = auto_fix_template_endpoints(str(tenant.id), template.template_code, db)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error("auto_fix_template_endpoints failed: %s", exc)
+        fix_results = {"template_code": template.template_code, "auto_fixed": [], "still_failing": [], "error": str(exc)}
 
     # Track failed endpoints for business liability
     failed_plugins = [item["plugin"] for item in fix_results.get("auto_fixed", []) if not item.get("success", False)]
@@ -393,7 +403,7 @@ def select_template(
                 </body>
             </html>
             """
-            notification_service.send_email(to_email=tenant.contact_email, subject=subject, html_content=body)
+            notification_service.send_generic_email(to=tenant.contact_email, subject=subject, html_body=body)
             tenant.pending_endpoints_notified_at = datetime.now(timezone.utc)
             db.add(tenant)
         except Exception as e:

@@ -41,11 +41,17 @@ def check_template_endpoints(tenant_id: str, template_code: str, db: Session) ->
     for plugin in get_all_plugins():
         if plugin.name not in features:
             continue
-        healthy = plugin.check(tenant_id, db)
+        try:
+            healthy = plugin.check(tenant_id, db)
+            details = plugin.get_health(tenant_id, db).get("details", "")
+        except Exception as exc:
+            logger.warning("Plugin %s check failed for tenant %s: %s", plugin.name, tenant_id, exc)
+            healthy = False
+            details = str(exc)
         checks.append({
             "plugin": plugin.name,
             "healthy": healthy,
-            "details": plugin.get_health(tenant_id, db).get("details", ""),
+            "details": details,
         })
         if not healthy:
             missing.append(plugin.name)
@@ -83,10 +89,20 @@ def auto_fix_template_endpoints(tenant_id: str, template_code: str, db: Session)
     for plugin in get_all_plugins():
         if plugin.name not in features:
             continue
-        if plugin.check(tenant_id, db):
+        try:
+            if plugin.check(tenant_id, db):
+                continue
+        except Exception as exc:
+            logger.warning("Plugin %s check() failed for tenant %s: %s", plugin.name, tenant_id, exc)
+            still_failing.append(plugin.name)
             continue
 
-        success, message = plugin.auto_fix(tenant_id, db)
+        try:
+            success, message = plugin.auto_fix(tenant_id, db)
+        except Exception as exc:
+            logger.warning("Plugin %s auto_fix() failed for tenant %s: %s", plugin.name, tenant_id, exc)
+            success, message = False, str(exc)
+
         auto_fixed.append({
             "plugin": plugin.name,
             "success": success,
@@ -97,10 +113,14 @@ def auto_fix_template_endpoints(tenant_id: str, template_code: str, db: Session)
 
     # Also apply storage_fees_enabled from template manifest
     storage_fees_enabled = preset.get("storage_fees_enabled", False)
-    branding = ensure_tenant_branding(db, tenant_id, "", "")
-    branding.storage_fees_enabled = storage_fees_enabled
-    db.add(branding)
-    db.commit()
+    try:
+        branding = ensure_tenant_branding(db, tenant_id, "", "")
+        branding.storage_fees_enabled = storage_fees_enabled
+        db.add(branding)
+        db.commit()
+    except Exception as exc:
+        logger.warning("Failed to apply storage_fees_enabled for tenant %s: %s", tenant_id, exc)
+        db.rollback()
 
     logger.info(
         "Auto-fix for tenant %s template %s: %d fixed, %d still failing",

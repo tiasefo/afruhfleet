@@ -152,10 +152,24 @@ def list_plugins(
     current_user: Any = Depends(require_superuser),
 ) -> list[dict[str, Any]]:
     """List all registered plugins with their health status (admin only)."""
-    plugins = get_all_plugins()
+    try:
+        plugins = get_all_plugins()
+    except Exception:
+        return []
+
     result = []
     for plugin in plugins:
-        health = plugin.get_health(tenant_id=None, db=db)  # Global health check
+        try:
+            health = plugin.get_health(tenant_id=None, db=db)
+        except Exception:
+            health = {
+                "healthy": False,
+                "endpoints": plugin.required_endpoints,
+                "features": plugin.feature_flags,
+                "details": {},
+                "auto_fixed": False,
+                "error": "Health check failed (no tenant context)",
+            }
         result.append({
             "name": plugin.name,
             "feature_name": plugin.feature_name,

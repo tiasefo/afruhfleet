@@ -12,6 +12,7 @@ from app.services.billing_service import activate_or_upgrade_subscription, add_w
 from app.services.paystack_client import initialize_transaction, verify_transaction
 import app.services.flutterwave_client as _flw
 from app.middleware.rate_limit import rate_limit
+import logging
 router = APIRouter(prefix='/billing', tags=['Billing'])
 
 
@@ -149,7 +150,20 @@ def get_usage_costs(db: Session = Depends(get_db), current_user: User = Depends(
 @router.post('/payments/init', response_model=PaymentInitResponse)
 def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(...), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
     amount_minor = int(round(request.amount_major * 100))
-    effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
+    if current_user.is_superuser:
+        effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
+    else:
+        effective_tenant_id = str(current_user.tenant_id)
+        if request.tenant_id and str(request.tenant_id) != effective_tenant_id:
+            logging.getLogger('afruheritage.security').warning(
+                'tenant_id_mismatch: user=%s endpoint=init_payment supplied=%s actual=%s',
+                current_user.id, request.tenant_id, effective_tenant_id,
+            )
+            write_audit_log(
+                db, 'user', current_user.id, 'tenant_id_mismatch', 'billing',
+                str(effective_tenant_id),
+                {'endpoint': 'init_payment', 'spoofed_tenant_id': str(request.tenant_id)},
+            )
     if not effective_tenant_id:
         raise HTTPException(status_code=400, detail='tenant_id is required')
     payment = create_payment(db=db, tenant_id=effective_tenant_id, purpose=request.purpose, currency=request.currency, amount_minor=amount_minor)

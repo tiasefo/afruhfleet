@@ -82,6 +82,15 @@ class AmookscoTemplatePlugin(BasePlugin):
     
     def get_health(self, tenant_id: str, db: Session) -> dict[str, any]:
         """Return health status for Amooksco template features."""
+        if not tenant_id:
+            return {
+                "healthy": True,
+                "endpoints": self.required_endpoints,
+                "features": self.feature_flags,
+                "details": {},
+                "auto_fixed": False,
+            }
+        
         branding = ensure_tenant_branding(db, tenant_id, "", "")
         
         return {

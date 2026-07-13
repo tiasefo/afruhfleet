@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import Optional
 from datetime import datetime
 import uuid
+import os
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
@@ -195,14 +197,20 @@ async def upload_gallery_media(
     current_user: User = Depends(require_active_subscription),
 ):
     """Upload media for gallery post. Returns the media URL."""
-    # For now, return a placeholder URL. In production, this would upload to S3 or similar
-    # TODO: Implement actual file upload to cloud storage
     file_ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     media_type = MediaType.VIDEO if file_ext in ["mp4", "mov", "avi"] else MediaType.IMAGE
     
-    # Placeholder URL - in production, this would be the actual uploaded file URL
     tenant_id = current_user.tenant_id if current_user.tenant_id else "admin"
-    media_url = f"https://storage.afruheritage.com/gallery/{tenant_id}/{uuid.uuid4()}.{file_ext}"
+    static_dir = Path(__file__).resolve().parent / "static" / "gallery" / str(tenant_id)
+    static_dir.mkdir(parents=True, exist_ok=True)
+    
+    saved_filename = f"{uuid.uuid4()}.{file_ext}"
+    file_path = static_dir / saved_filename
+    
+    content = await file.read()
+    file_path.write_bytes(content)
+    
+    media_url = f"/static/gallery/{tenant_id}/{saved_filename}"
     
     return {
         "media_url": media_url,

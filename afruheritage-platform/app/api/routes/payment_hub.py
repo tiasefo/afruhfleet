@@ -14,14 +14,16 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.models.payment_hub import PaymentTransaction
 from app.models.saas_subscription import TenantSubscription
+from app.services.platform_config_service import get_default_trial_days
 
 router = APIRouter(prefix="/payment-hub", tags=["Payment Hub"])
 
 engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
-PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY") or os.getenv("PAYSTACK_SECRET") or os.getenv("PAYSTACK_API_KEY")
+PAYSTACK_SECRET_KEY = settings.paystack_secret_key or os.getenv("PAYSTACK_SECRET_KEY") or os.getenv("PAYSTACK_SECRET") or os.getenv("PAYSTACK_API_KEY")
 PAYSTACK_BASE_URL = "https://api.paystack.co"
+PAYSTACK_WEBHOOK_SECRET = settings.paystack_webhook_secret or PAYSTACK_SECRET_KEY
 
 
 
@@ -49,7 +51,7 @@ def activate_subscription_after_payment(db, tx, raw_data=None):
             status="active",
             trial=False,
             trial_ends_at=None,
-            current_period_end=datetime.utcnow() + timedelta(days=30),
+            current_period_end=datetime.utcnow() + timedelta(days=get_default_trial_days(db)),
             selected_addons_json=_json.dumps(addons),
             credits_balance=included_credits,
         )
@@ -58,7 +60,7 @@ def activate_subscription_after_payment(db, tx, raw_data=None):
         sub.status = "active"
         sub.trial = False
         sub.trial_ends_at = None
-        sub.current_period_end = datetime.utcnow() + timedelta(days=30)
+        sub.current_period_end = datetime.utcnow() + timedelta(days=get_default_trial_days(db))
         sub.selected_addons_json = _json.dumps(addons)
         sub.credits_balance += included_credits
 
@@ -390,7 +392,6 @@ import hmac
 import hashlib
 from fastapi import Request
 
-PAYSTACK_WEBHOOK_SECRET = os.getenv("PAYSTACK_WEBHOOK_SECRET") or PAYSTACK_SECRET_KEY
 
 
 @router.post("/webhook/paystack")

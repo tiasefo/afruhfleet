@@ -423,7 +423,7 @@ export function RegisterForm() {
               Start Your Freight Forwarding Journey
             </h2>
             <p className="mt-4 text-pretty text-primary-foreground/80">
-              Join thousands of businesses already using Afruheritage to streamline their logistics operations, track shipments in real-time, and grow their global reach.
+              {`Join thousands of businesses already using ${branding?.company_name || tenant.company_name} to streamline their logistics operations, track shipments in real-time, and grow their global reach.`}
             </p>
           </div>
         </div>

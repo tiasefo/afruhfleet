@@ -23,6 +23,9 @@ RUN npm install -g pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Use Docker-specific env file for build-time NEXT_PUBLIC_* inlining
+RUN cp .env.docker .env.production.local
+
 # Build the application
 ENV NEXT_PUBLIC_BUILD_TIME=true
 RUN pnpm build

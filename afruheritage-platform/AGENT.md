@@ -734,3 +734,80 @@ For production:
 * let tenants customize greeting/theme later
 * only expose model-switching in internal admin tools, not public tenant UI
 
+---
+
+## 21. Zero hardcoded tenant rule (COMMERCIAL READINESS)
+
+> **Do not optimize for passing tests. Optimize for removing assumptions.**
+>
+> Every hardcoded tenant name, color, logo, URL, business term, workflow, or conditional based on a specific customer is considered technical debt unless it belongs exclusively to a reusable business engine. A tenant must be created, branded, subscribed, operated, suspended, upgraded, and deleted entirely through configuration and data — not source code changes.
+
+### The three-product separation
+
+This platform is three products, not one:
+
+**Product A — SaaS Platform (Control Plane)**
+Owns signup, checkout, subscriptions, billing, tenant lifecycle, domains, branding, onboarding, packages, plugins. Nothing customer-specific belongs here.
+
+**Product B — Business Engines (Templates)**
+Reusable engines: Freight, Fleet, Marketplace, Healthcare, Education, Hotel, Restaurant, Real Estate, Ecommerce, Bookings, etc. An engine must not know any tenant name exists. Engines are selected via `template_code` / `theme_code` and render using data from the branding API.
+
+**Product C — Tenants (Data, not code)**
+AMOOKSCO, MetroMass, Empire Drips, Sahel Freight, John's Flowers, etc. Tenants contain logo, colors, business name, addresses, products, pricing, warehouses, vehicles, routes, staff. They must contain **zero application code**. All tenant identity lives in the database (`tenant_branding` table) and is fetched at runtime.
+
+### Hierarchy
+
+```
+Platform Admin → Business Package (Engine) → Tenant → Customer
+```
+
+### What is now forbidden
+
+The following patterns are architectural failures:
+
+1. **Tenant-specific route directories** — e.g. `frontend/app/amooksco-storefront/`. All tenants must be served through generic routes like `/store/[slug]`.
+
+2. **Tenant-specific component directories** — e.g. `frontend/components/amooksco-v2/`, `frontend/components/tenant-themes/amooksco-v2/`. Components must be engine-generic and read brand data from context/API.
+
+3. **Tenant-specific template directories** — e.g. `frontend/templates/amooksco/`. Templates are engines, not tenants. A freight engine should not know AMOOKSCO exists.
+
+4. **Hardcoded tenant identity files** — e.g. `frontend/lib/amooksco.ts`. Brand name, logo, tagline, WhatsApp numbers, contact staff, payment details, services list — all of this must come from the database via the branding API, not from a `.ts` file.
+
+5. **Tenant name in switch/if statements** — e.g. `if (themeCode === 'amooksco-v2')`. Theme codes must map to engine types (`freight`, `fleet`, `ecommerce`, `restaurant`, etc.), never to tenant names.
+
+6. **Tenant name in template registries** — e.g. `templates.ts` listing `{ slug: "amooksco", name: "Amooksco" }`. The registry lists engines, not tenants.
+
+7. **Hardcoded tenant contact details** — WhatsApp numbers, staff names, phone numbers, billing staff ranges. These belong in `tenant_branding.storefront_config` (JSON) or dedicated tenant config tables.
+
+### What is allowed
+
+- `template_code: "freight"` or `theme_code: "freight"` — engine selection by type.
+- `frontend/templates/freight/` — a freight engine template (generic, data-driven).
+- `frontend/templates/fleet/` — a fleet engine template (generic, data-driven).
+- `frontend/components/generic-storefront/` — default fallback storefront.
+- `tenant_branding.storefront_config` JSON column — tenant-specific content (services list, payment details, contact staff, etc.) stored as data.
+- Runtime fetch of tenant branding from `/api/v1/tenant-context/{slug}` — the only correct way to get tenant identity.
+
+### Enforcement
+
+Any pull request or code change that introduces a hardcoded tenant name, a tenant-specific route, a tenant-specific component, or a tenant-specific import is rejected unless it is part of a migration that removes existing hardcoded tenant code.
+
+### Commercial readiness checklist
+
+Before claiming the platform is commercially ready, all of the following must be true:
+
+1. Can someone create a tenant without developer involvement? YES/NO
+2. Can they upload a logo? YES/NO
+3. Can they choose colors? YES/NO
+4. Can they choose a business package (engine)? YES/NO
+5. Can they pay? YES/NO
+6. Can they invite staff? YES/NO
+7. Can they receive email? YES/NO
+8. Can they start operating? YES/NO
+
+If any answer is NO, the platform is not commercially ready. Do not add features until all answers are YES.
+
+### Dead architecture rule
+
+If a frontend, backend, or component exists but is not deployed or not reachable, it must be either deployed or retired. Do not let dead architecture accumulate. One source of truth per concern.
+

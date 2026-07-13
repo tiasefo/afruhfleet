@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.saas_subscription import SaaSPlan, TenantSubscription
 
 
-TRIAL_DURATION_DAYS = 14
+TRIAL_DURATION_DAYS = 14  # fallback; actual value comes from PlatformSettings DB row
 
 TIER_FEATURES: dict[str, list[str]] = {
     "free_trial": [
@@ -122,33 +122,6 @@ def ensure_demo_subscription(db: Session, tenant_id: str, plan_code: str = "busi
         status="active",
         trial=False,
         selected_addons_json=json.dumps(["marketplace", "gps_tracking"]),
-        credits_balance=credits,
-    )
-    db.add(sub)
-    db.commit()
-    db.refresh(sub)
-    return sub
-
-
-def create_trial_subscription(db: Session, tenant_id: str, plan_code: str = "free_trial") -> TenantSubscription:
-    seed_default_plans(db)
-
-    sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == tenant_id).first()
-    if sub:
-        return sub
-
-    plan = db.query(SaaSPlan).filter(SaaSPlan.code == plan_code).first()
-    credits = plan.included_credits if plan else 0
-    now = datetime.utcnow()
-
-    sub = TenantSubscription(
-        tenant_id=tenant_id,
-        plan_code=plan_code,
-        status="trial",
-        trial=True,
-        trial_ends_at=now + timedelta(days=TRIAL_DURATION_DAYS),
-        current_period_end=now + timedelta(days=TRIAL_DURATION_DAYS),
-        selected_addons_json=json.dumps([]),
         credits_balance=credits,
     )
     db.add(sub)

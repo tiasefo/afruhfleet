@@ -64,6 +64,22 @@ export function getTenantFromMetaTag(): string | null {
   return meta?.content?.trim() || null
 }
 
+export function getTenantFromPath(): string | null {
+  if (typeof window === 'undefined') return null
+  const path = window.location.pathname
+  const match = path.match(/^\/store\/([^/]+)/)
+  if (match && match[1] !== 'storefront') {
+    return match[1]
+  }
+  return null
+}
+
+export function getTenantFromCookie(): string | null {
+  if (typeof document === 'undefined') return null
+  const match = document.cookie.match(/(?:^|;\s*)tenant_slug=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 export function resolvePublicTenantId(): string | null {
-  return getQueryTenantId() || getTenantFromMetaTag() || resolveTenantId({ preferHost: true })
+  return getQueryTenantId() || getTenantFromMetaTag() || getTenantFromPath() || getTenantFromCookie() || resolveTenantId({ preferHost: true })
 }

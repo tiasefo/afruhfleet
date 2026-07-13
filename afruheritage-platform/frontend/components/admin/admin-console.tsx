@@ -78,9 +78,9 @@ const statusStyles: Record<VendorStatus, string> = {
 
 export function AdminConsole() {
   const [tab, setTab] = useState<TabKey>("vendors")
-  const [vendors, setVendors] = useState<AdminVendor[]>(adminVendors)
-  const [reviews, setReviews] = useState(adminReviews)
-  const [jobs, setJobs] = useState(adminJobs)
+  const [vendors, setVendors] = useState<AdminVendor[]>([])
+  const [reviews, setReviews] = useState<typeof adminReviews>([])
+  const [jobs, setJobs] = useState<typeof adminJobs>([])
   const [flags, setFlags] = useState(featureFlags)
   const [templates, setTemplates] = useState<any[]>([])
   const [query, setQuery] = useState("")
@@ -115,7 +115,6 @@ export function AdminConsole() {
         }
       } catch (err) {
         console.error("Failed to load admin data:", err)
-        // Keep mock data as fallback
       } finally {
         setIsLoading(false)
       }

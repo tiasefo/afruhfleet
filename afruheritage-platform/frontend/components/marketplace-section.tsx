@@ -134,7 +134,7 @@ export function MarketplaceSection() {
             ))}
           </ol>
 
-          {/* Live shipment + bids mock */}
+          {/* Product demo: sample shipment + bids */}
           <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-sm lg:sticky lg:top-24">
             {/* Shipment header */}
             <div className="flex items-start justify-between gap-3 border-b border-border pb-4">

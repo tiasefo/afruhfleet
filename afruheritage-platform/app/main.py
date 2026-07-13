@@ -29,7 +29,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.i18n import init_i18n
 from app.core.logging_config import setup_logging
-from app.core.middleware import RequestIdMiddleware
+from app.core.middleware import RequestIdMiddleware, SecurityHeadersMiddleware
 from app.core.structured_logging import configure_structured_logging, StructuredLoggingMiddleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler, RateLimitMiddleware
 
@@ -97,11 +97,16 @@ import app.models.invoice  # noqa: F401
 import app.models.gallery  # noqa: F401
 import app.models.rbac  # noqa: F401
 import app.models.new_arrivals  # noqa: F401
+import app.models.payment  # noqa: F401
+import app.models.cargo  # noqa: F401
+import app.models.platform_config  # noqa: F401
 from app.api.routes import fleetbase_proxy
 from app.api.routes import customs
 from app.api.routes.fleetbase_tenant_proxy import router as fleetbase_tenant_proxy_router
+from app.api.routes.fleetbase_runtime import router as fleetbase_runtime_router
 from app.api.routes.products import router as products_router
 from app.api.routes.admin_tenant_preview import router as admin_tenant_preview_router
+from app.api.routes.sentinel import router as sentinel_router
 
 
 setup_logging(level="INFO")
@@ -127,6 +132,17 @@ async def lifespan(app: FastAPI):
     
     init_i18n()
     logger.info("i18n locales loaded")
+
+    # Validate Paystack configuration
+    if not settings.paystack_secret_key:
+        logger.warning("PAYSTACK_SECRET_KEY is not set — payment features will be unavailable")
+    else:
+        logger.info("Paystack secret key configured")
+    if not settings.paystack_webhook_secret:
+        logger.warning("PAYSTACK_WEBHOOK_SECRET is not set — webhook signature verification will fall back to secret key")
+    if settings.payment_webhook_url and "wc-api" in settings.payment_webhook_url:
+        logger.warning("PAYMENT_WEBHOOK_URL appears to point to a WooCommerce endpoint (%s) — should be an Afruheritage URL", settings.payment_webhook_url)
+
     yield
     logger.info("Shutting down Afruheritage Control Plane")
 
@@ -145,10 +161,11 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 app.add_middleware(RequestIdMiddleware)
 app.add_middleware(StructuredLoggingMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins or ["*"],
+    allow_origins=settings.cors_origins or ["http://localhost:3000", "http://localhost:3002"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -173,6 +190,7 @@ app.include_router(whatsapp_csv_router, prefix=settings.api_v1_prefix)
 
 app.include_router(fleetbase_proxy.router, prefix=settings.api_v1_prefix)
 app.include_router(fleetbase_tenant_proxy_router, prefix=settings.api_v1_prefix)
+app.include_router(fleetbase_runtime_router, prefix=settings.api_v1_prefix)
 app.include_router(products_router, prefix=settings.api_v1_prefix)
 
 app.include_router(ai_router, prefix=settings.api_v1_prefix)
@@ -235,3 +253,4 @@ app.include_router(billing_admin_router, prefix=settings.api_v1_prefix)
 app.include_router(estimate_router, prefix=settings.api_v1_prefix)
 app.include_router(checkout_router, prefix=settings.api_v1_prefix)
 app.include_router(tenant_assets_router, prefix=settings.api_v1_prefix)
+app.include_router(sentinel_router, prefix=settings.api_v1_prefix)

@@ -97,28 +97,36 @@ def get_audit_logs(
     current_admin: AdminUser = Depends(get_current_admin),
 ):
     """Get recent audit logs for diagnostics."""
-    from sentinel_app.models.audit_log import AdminAuditLog
-    
-    logs = db.query(AdminAuditLog).order_by(
-        AdminAuditLog.created_at.desc()
-    ).limit(limit).all()
-    
-    return {
-        "logs": [
-            {
-                "id": str(log.id),
-                "admin_email": log.admin_email,
-                "action": log.action,
-                "entity_type": log.entity_type,
-                "entity_id": log.entity_id,
-                "details": log.details,
-                "created_at": log.created_at.isoformat() if log.created_at else None,
-            }
-            for log in logs
-        ],
-        "count": len(logs),
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    try:
+        from sentinel_app.models.audit_log import AdminAuditLog
+
+        logs = db.query(AdminAuditLog).order_by(
+            AdminAuditLog.created_at.desc()
+        ).limit(limit).all()
+
+        return {
+            "logs": [
+                {
+                    "id": str(log.id),
+                    "admin_email": log.admin_email,
+                    "action": log.action,
+                    "entity_type": log.entity_type,
+                    "entity_id": log.entity_id,
+                    "details": log.details_json,
+                    "created_at": log.created_at.isoformat() if log.created_at else None,
+                }
+                for log in logs
+            ],
+            "count": len(logs),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        return {
+            "logs": [],
+            "count": 0,
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+        }
 
 
 def _get_cp_token(request: Request) -> str:

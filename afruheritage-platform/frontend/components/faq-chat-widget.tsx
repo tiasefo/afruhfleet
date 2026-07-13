@@ -326,7 +326,7 @@ export function FAQChatWidget() {
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-white">Afruheritage Help</h3>
+                <h3 className="text-sm font-semibold text-white">Help</h3>
                 <p className="text-xs text-white/70">{isTyping ? 'Typing...' : 'Online'}</p>
               </div>
             </div>
@@ -522,7 +522,7 @@ export function FAQChatWidget() {
                   </Button>
                 </div>
                 <p className="mt-2 text-center text-[10px] text-muted-foreground">
-                  {configError ? 'Powered by local knowledge base' : 'Powered by Afruheritage AI'}
+                  {configError ? 'Powered by local knowledge base' : 'Powered by AI'}
                 </p>
               </div>
             </>

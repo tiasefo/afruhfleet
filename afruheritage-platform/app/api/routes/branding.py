@@ -32,9 +32,21 @@ def get_public_branding_route(
     tenant_id: str,
     db: Session = Depends(get_db),
 ):
-    branding = get_tenant_branding(db, tenant_id)
+    # Try to resolve as UUID first; if not a UUID, look up tenant by slug.
+    resolved_id = tenant_id
+    try:
+        uuid.UUID(tenant_id)
+    except (ValueError, AttributeError):
+        from app.models.tenant import Tenant
+        tenant = db.query(Tenant).filter(Tenant.slug == tenant_id).first()
+        if tenant:
+            resolved_id = str(tenant.id)
+        else:
+            return _default_response(tenant_id)
+
+    branding = get_tenant_branding(db, resolved_id)
     if not branding:
-        return _default_response(tenant_id)
+        return _default_response(resolved_id)
     return _to_response(branding)
 
 
