@@ -1,4 +1,3 @@
-from app.core.config import settings
 """
 Auto-Provisioning Service
 Bridges payment confirmation → subscription activation → tenant launch.
@@ -12,6 +11,7 @@ import logging
 import secrets
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.tenant import LaunchStatus, Tenant
 from app.models.billing import Subscription, SubscriptionStatus, WalletTransactionType
 from app.services.billing_service import activate_or_upgrade_subscription, ensure_wallet, add_wallet_credits
