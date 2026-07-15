@@ -89,6 +89,16 @@ def resolve_hostname(hostname: str = Query(..., description="Full hostname to re
     if settings_row:
         return {'tenant_id': str(settings_row.tenant_id), 'hostname': hostname, 'source': 'platform_subdomain'}
 
+    # 4. Fallback: extract subdomain prefix and match against tenant slug
+    #    Handles cases where domain was provisioned with UUID prefix but
+    #    the tenant's requested_domain uses the slug (e.g. amooksco.afruheritage.com)
+    if hostname.endswith('.afruheritage.com') or hostname.endswith('.afruhfleet.com'):
+        subdomain_prefix = hostname.split('.')[0]
+        from app.models.tenant import Tenant
+        tenant = db.query(Tenant).filter(Tenant.slug == subdomain_prefix).first()
+        if tenant:
+            return {'tenant_id': str(tenant.id), 'hostname': hostname, 'source': 'slug_fallback'}
+
     raise HTTPException(status_code=404, detail='Hostname not associated with any tenant.')
 
 

@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,7 +16,7 @@ from app.models.invoice import Invoice, InvoiceStatus
 from app.models.user import User
 from app.models.saas_subscription import SaaSPlan, SaaSAddon, TenantSubscription
 
-router = APIRouter(prefix="/billing", tags=["Billing Admin"])
+router = APIRouter(prefix="/admin/billing", tags=["Billing Admin"])
 
 
 # ----- Schemas -----
@@ -46,6 +46,16 @@ class PlanResponse(BaseModel):
     features_json: Optional[str]
     active: bool
     created_at: datetime
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
+
+    @field_validator('code', mode='before')
+    @classmethod
+    def _enum_to_str(cls, v):
+        return v.value if hasattr(v, 'value') else str(v)
 
     class Config:
         from_attributes = True
@@ -77,6 +87,11 @@ class AddonResponse(BaseModel):
     info_text: Optional[str]
     active: bool
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
+
     class Config:
         from_attributes = True
 
@@ -104,6 +119,11 @@ class GiftCardResponse(BaseModel):
     active: bool
     created_at: datetime
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
+
     class Config:
         from_attributes = True
 
@@ -125,6 +145,16 @@ class SubscriptionResponse(BaseModel):
     read_only_reason: Optional[str]
     created_at: datetime
     updated_at: datetime
+
+    @field_validator('id', 'tenant_id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
+
+    @field_validator('plan_code', 'status', mode='before')
+    @classmethod
+    def _enum_to_str(cls, v):
+        return v.value if hasattr(v, 'value') else str(v)
 
     class Config:
         from_attributes = True
@@ -150,6 +180,11 @@ class InvoiceResponse(BaseModel):
     invoice_from_phone: Optional[str]
     created_at: datetime
     updated_at: datetime
+
+    @field_validator('id', 'tenant_id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
 
     class Config:
         from_attributes = True
@@ -488,11 +523,11 @@ def change_subscription_plan(
     _: User = Depends(require_superuser),
 ):
     """Change subscription plan (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == subscription_id))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
-    plan = db.scalar(select(Plan).where(Plan.id == data.plan_id))
+    plan = db.scalar(select(Plan).where(Plan.id == uuid.UUID(data.plan_id)))
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
@@ -510,7 +545,7 @@ def pause_subscription(
     _: User = Depends(require_superuser),
 ):
     """Pause subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == subscription_id))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
@@ -529,7 +564,7 @@ def resume_subscription(
     _: User = Depends(require_superuser),
 ):
     """Resume subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == subscription_id))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
@@ -549,7 +584,7 @@ def cancel_subscription(
     _: User = Depends(require_superuser),
 ):
     """Cancel subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == subscription_id))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
