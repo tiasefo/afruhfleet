@@ -28,7 +28,7 @@ RUN cp .env.docker .env.production.local
 
 # Build the application
 ENV NEXT_PUBLIC_BUILD_TIME=true
-RUN pnpm build
+RUN npx next build --webpack
 
 # Production image, copy all the files and run next
 FROM base AS runner

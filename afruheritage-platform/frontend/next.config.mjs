@@ -13,9 +13,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  turbopack: {
-    root: process.cwd(),
-  },
   // Enable standalone output for Docker
   output: 'standalone',
   // Completely disable caching to prevent Cloudflare from caching old content
