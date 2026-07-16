@@ -21,13 +21,43 @@ const nextConfig = {
   // Completely disable caching to prevent Cloudflare from caching old content
   generateEtags: false,
   async headers() {
+    const securityHeaders = [
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY',
+      },
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'strict-origin-when-cross-origin',
+      },
+      {
+        key: 'Permissions-Policy',
+        value: 'geolocation=(), microphone=(), camera=()',
+      },
+      {
+        key: 'X-XSS-Protection',
+        value: '1; mode=block',
+      },
+    ]
+
     return [
+      // Static assets: allow caching so CSS/JS/fonts load correctly
+      {
+        source: '/_next/static/:path*',
+        headers: securityHeaders,
+      },
+      // All other pages: no-cache for HTML pages
       {
         source: '/:path*',
         headers: [
+          ...securityHeaders,
           {
             key: 'Cache-Control',
-            value: 'private, no-store, no-cache, must-revalidate, max-age=0, s-maxage=0',
+            value: 'private, no-cache, must-revalidate, max-age=0',
           },
           {
             key: 'Surrogate-Control',
@@ -36,26 +66,6 @@ const nextConfig = {
           {
             key: 'CDN-Cache-Control',
             value: 'no-store',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'geolocation=(), microphone=(), camera=()',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
           },
         ],
       },
