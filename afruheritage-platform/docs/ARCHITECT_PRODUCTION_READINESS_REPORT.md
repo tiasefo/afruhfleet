@@ -1,9 +1,10 @@
 # Architect — Production Readiness Validation Report
 
-**Date:** 15 July 2026  
+**Date:** 16 July 2026  
 **Validator:** Cascade AI (acting as QA department)  
 **Methodology:** Runtime evidence collection via real API calls, real database queries, and real HTTP responses — no static analysis  
-**Verdict:** **28/28 core runtime checks + 12/12 concurrent tests PASS — 0 FAIL**
+**Verdict:** **28/28 core runtime checks + 12/12 concurrent tests PASS — 0 FAIL**  
+**Note:** 1 post-validation production incident (CSS rendering failure) discovered, root-caused, and fixed.
 
 ---
 
@@ -11,7 +12,7 @@
 
 The Afruheritage multi-tenant SaaS platform was subjected to a full Production Readiness Validation as prescribed in the Architect's strict guide. Every critical validation area was exercised end-to-end using the real API (port 8100), the real PostgreSQL database, and the real Docker container runtime. All 28 individual checks passed.
 
-During validation, **6 bugs** were discovered and fixed. The platform is now operating correctly across all tested surfaces.
+During validation, **7 bugs** were discovered and fixed in the backend. Post-validation, **1 production incident** (CSS rendering failure) was discovered, root-caused to a Next.js 16 Turbopack build bug, and fixed. The platform is now operating correctly across all tested surfaces.
 
 ---
 
@@ -101,6 +102,42 @@ During validation, **6 bugs** were discovered and fixed. The platform is now ope
 # Before: db.scalar(select(Subscription).where(Subscription.id == subscription_id))  # → None
 # After:  db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))  # → found
 ```
+
+### Bug 7: `from __future__` Import Position
+**File:** `app/services/auto_provisioning.py:1-8`  
+**Symptom:** `auto_provisioning` module failed to import with `SyntaxError` when triggered by Paystack payment confirmation.  
+**Root Cause:** `from __future__ import annotations` was placed after other import statements. Python requires it to be the first statement in the file (after docstrings).  
+**Fix:** Moved `from __future__ import annotations` to the top of the file, immediately after the module docstring.  
+**Evidence:** Paystack free trial payment path (`POST /billing/payments/init` with `amount=0`) now successfully triggers auto-provisioning without import errors.
+
+### Bug 8 (Post-Validation Production Incident): CSS Rendering Failure — Turbopack Build Bug
+**Files:** `frontend/Dockerfile:31`, `frontend/next.config.mjs:16-18`  
+**Symptom:** Platform frontend (`https://afruheritage.com`) rendered as unstyled HTML — no Tailwind CSS applied. Users saw raw text content with no styling, colors, or layout.  
+**Root Cause:** Next.js 16.2.0 defaults to **Turbopack** for `next build`. Turbopack has a known CSS cascade order bug ([vercel/next.js#83941](https://github.com/vercel/next.js/issues/83941)) that breaks CSS ordering in production builds. The previous Docker image was using a **cached build layer** from before the Turbopack default was active. A Docker rebuild busted the cache, producing a fresh Turbopack build with broken CSS cascade order.  
+**Investigation:**  
+- CSS file was served correctly (200 OK, 207KB, `text/css`, all Tailwind utility classes present)  
+- CSS `<link>` tag was properly in `<head>` with correct `href`  
+- No CORS, no Content-Security-Policy, no Cloudflare blocking  
+- The CSS file contained all needed utility classes (`.bg-gradient-to-b`, `.container`, `.mx-auto`, etc.)  
+- Root cause identified via web search: known Next.js 16 Turbopack CSS cascade bug  
+**Fix:**  
+1. `Dockerfile`: Changed `pnpm build` → `npx next build --webpack` (forces webpack instead of Turbopack)  
+2. `next.config.mjs`: Removed `turbopack: { root: process.cwd() }` config  
+3. `next.config.mjs`: Split `headers()` config — `/_next/static/:path*` gets security headers only (no `Cache-Control: no-store`), while `/:path*` retains no-cache headers for HTML pages  
+**Evidence:**  
+```
+# Before (Turbopack build — broken):
+CSS: /_next/static/chunks/0lcnt17x58r_a.css  (Turbopack chunk format)
+Size: 207,164 bytes
+Result: CSS loaded but cascade order broken — styles not applied
+
+# After (webpack build — fixed):
+CSS: /_next/static/css/63a405950a51d7d9.css  (webpack format)
+Size: 193,616 bytes
+Cache-Control: private, no-cache, must-revalidate, max-age=0  (no no-store)
+Result: CSS loads and applies correctly — full Tailwind styling rendered
+```
+**Impact:** All users accessing `https://afruheritage.com` were affected. Duration: ~2 hours from Docker rebuild to fix deployment.
 
 ---
 
@@ -248,6 +285,8 @@ Full subscription management via admin endpoints:
 | `app/api/routes/custom_domains.py` | Added slug_fallback for hostname resolution (lines 92-100) |
 | `app/api/routes/billing_admin.py` | Changed prefix to `/admin/billing`; added UUID/enum field validators; fixed UUID queries |
 | `app/services/auto_provisioning.py` | Fixed `from __future__` import position (was after other imports, causing SyntaxError) |
+| `frontend/Dockerfile` | Changed `pnpm build` → `npx next build --webpack` to avoid Turbopack CSS cascade bug |
+| `frontend/next.config.mjs` | Removed Turbopack config; split cache headers so static assets don't get `no-store` |
 | `scripts/final_validation.py` | New — automated runtime validation script (28 checks) |
 | `scripts/runtime_validation.sh` | New — bash-based validation script |
 | `scripts/concurrent_test.py` | New — concurrent user testing script (12 tests, 40+ parallel requests) |
@@ -378,7 +417,7 @@ A browser preview is available at `http://localhost:3002` for interactive visual
 
 ## Conclusion
 
-The platform has been validated through runtime evidence, not static analysis. All 28 core automated checks and 12 concurrent user tests pass (40/40 under concurrent load). Seven bugs were discovered and fixed during validation. The platform demonstrates correct multi-tenant behavior including:
+The platform has been validated through runtime evidence, not static analysis. All 28 core automated checks and 12 concurrent user tests pass (40/40 under concurrent load). Eight bugs were discovered and fixed — 7 during backend validation and 1 post-validation production incident (CSS rendering failure from Next.js 16 Turbopack build bug). The platform demonstrates correct multi-tenant behavior including:
 
 - **Tenant lifecycle** (create, approve, suspend, activate, delete, restore)
 - **Branding isolation** (zero visual overlap between tenants, verified in rendered HTML)
@@ -389,8 +428,13 @@ The platform has been validated through runtime evidence, not static analysis. A
 - **Database isolation** (zero cross-tenant data leakage, confirmed under concurrent load)
 - **Fleetbase proxy** (tenant-scoped, tested with real tenant users)
 - **Concurrent access** (no race conditions, isolation maintained under 20-way parallelism)
+- **Frontend rendering** (CSS/Tailwind styling verified after webpack build fix)
 
 The only external limitation is Cloudflare SSL for SaaS requiring an Enterprise plan quota — the code handles this gracefully with proper error capture and audit logging.
+
+### Post-Validation Incident: CSS Rendering Failure
+
+After completing all validation checks, a Docker container rebuild triggered a Next.js 16 Turbopack build that broke CSS cascade ordering — a known upstream bug ([vercel/next.js#83941](https://github.com/vercel/next.js/issues/83941)). The fix was to force webpack builds via `npx next build --webpack` in the Dockerfile. The previous working Docker image had been using a cached build layer from before Turbopack became the default in Next.js 16. This incident highlights the risk of Next.js 16's Turbopack default for production builds and the importance of pinning build behavior explicitly.
 
 **Validation scripts:**
 - `scripts/final_validation.py` — 28 core runtime checks
