@@ -13,6 +13,8 @@ import {
   Settings,
   FileText,
   Image as ImageIcon,
+  Palette,
+  Plug,
   type LucideIcon,
 } from 'lucide-react'
 import { useTenant } from '@/components/tenant-context-provider'
@@ -44,6 +46,13 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Fleet', href: '/portal/fleet', icon: Truck },
       { label: 'Warehouse', href: '/portal/warehouse', icon: Warehouse },
+    ],
+  },
+  {
+    title: 'Storefront',
+    items: [
+      { label: 'Templates', href: '/portal/templates', icon: Palette },
+      { label: 'Plugins', href: '/portal/plugins', icon: Plug },
     ],
   },
   {

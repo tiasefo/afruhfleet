@@ -11,6 +11,7 @@ import {
   Settings,
   Globe,
   Shield,
+  Plug,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -41,6 +42,7 @@ const navSections: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Marketplace', href: '/admin/marketplace', icon: Store },
       { label: 'Templates', href: '/admin/templates', icon: Palette },
+      { label: 'Plugins', href: '/admin/plugins', icon: Plug },
       { label: 'Global Settings', href: '/admin/settings', icon: Globe },
     ],
   },
