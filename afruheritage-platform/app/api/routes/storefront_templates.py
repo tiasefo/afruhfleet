@@ -14,7 +14,8 @@ from app.db.session import get_db
 from app.models.storefront_template import StorefrontTemplate
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.schemas.storefront_template import StorefrontTemplateResponse, TenantTemplateSelectionRequest
+from app.schemas.storefront_template import StorefrontTemplateResponse, StorefrontTemplateCatalogResponse, TenantTemplateSelectionRequest
+from app.services.marketplace_service import MarketplaceService
 
 router = APIRouter(prefix='/storefront-templates', tags=['Storefront Templates'])
 
@@ -35,46 +36,10 @@ class TemplateUpdateRequest(BaseModel):
 
 DEFAULT_TEMPLATES = [
     {
-        "template_code": "amooksco",
-        "name": "Amooksco Logistics",
-        "description": "Specialized China-Ghana logistics storefront with tracking, shipping estimator, and WhatsApp integration.",
-        "preset": {
-            "primary_color": "#1f5d72",
-            "secondary_color": "#3aa6b9",
-            "accent_color": "#eef6f8",
-            "background_color": "#ffffff",
-            "font_family": "Inter, sans-serif",
-            "header_style": "white",
-            "footer_style": "dark",
-            "card_style": "rounded",
-            "theme_class": "theme-amooksco",
-            "image": "/images/amooksco-hero.png",
-            "swatches": ["#1f5d72", "#3aa6b9", "#eef6f8"],
-            "tags": ["Freight", "China-Ghana", "Tracking", "WhatsApp"],
-            "storage_fees_enabled": True,
-            "required_endpoints": [
-                "GET /api/v1/fleetbase-proxy/drivers",
-                "GET /api/v1/fleetbase-proxy/vehicles",
-                "GET /api/v1/fleetbase-proxy/fleets",
-                "GET /api/v1/fleetbase-proxy/orders",
-                "GET /api/v1/shipments/{tenant_id}/track",
-                "GET /api/v1/shipments/public/track/{tenant_id}/{tracking_number}",
-                "POST /api/v1/shipments/{tenant_id}/import/csv",
-                "GET /api/v1/ai/chat",
-            ],
-            "features": ["tracking", "bulk_import", "ai_chat", "fleetbase_integration", "shipping_estimator"],
-            "fallbacks": {
-                "tracking": "show_demo_tracking",
-                "fleetbase_integration": "show_static_message",
-                "ai_chat": "hide_widget",
-                "shipping_estimator": "use_default_rates",
-            },
-        },
-    },
-    {
         "template_code": "freight",
         "name": "Meridian Freight",
         "description": "Ocean, air, and land freight forwarding storefront with live quote and tracking flows.",
+        "renderer_key": "freight",
         "preset": {
             "primary_color": "#1f5d72",
             "secondary_color": "#3aa6b9",
@@ -86,6 +51,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-freight",
             "image": "/images/freight-hero.png",
+            "preview_route": "/templates/freight",
             "swatches": ["#1f5d72", "#3aa6b9", "#eef6f8"],
             "tags": ["Freight", "Customs", "Tracking"],
             "storage_fees_enabled": True,
@@ -110,6 +76,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "fleet",
         "name": "Vanta Fleet",
         "description": "Logistics-grade storefront for fleet operators — vehicle leasing, dispatch, and route management.",
+        "renderer_key": "fleet",
         "preset": {
             "primary_color": "#26324d",
             "secondary_color": "#e8a13a",
@@ -121,6 +88,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-fleet",
             "image": "/images/fleet-hero.png",
+            "preview_route": "/templates/fleet",
             "swatches": ["#26324d", "#e8a13a", "#f4f5f8"],
             "tags": ["Logistics", "Leasing", "Dispatch"],
             "storage_fees_enabled": True,
@@ -146,6 +114,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "ecommerce",
         "name": "Verde Goods",
         "description": "Clean, conversion-focused product store with collections, cart, and editorial sections.",
+        "renderer_key": "ecommerce",
         "preset": {
             "primary_color": "#2f9e6b",
             "secondary_color": "#e7c14b",
@@ -157,6 +126,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-ecommerce",
             "image": "/images/ecommerce-hero.png",
+            "preview_route": "/templates/ecommerce",
             "swatches": ["#2f9e6b", "#e7c14b", "#fbfaf4"],
             "tags": ["Retail", "Cart", "Collections"],
             "storage_fees_enabled": False,
@@ -169,6 +139,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "mall",
         "name": "Lumière Mall",
         "description": "Premium multi-brand mall directory with stores, dining, events, and floor guide.",
+        "renderer_key": "mall",
         "preset": {
             "primary_color": "#2b2722",
             "secondary_color": "#c79a4a",
@@ -180,6 +151,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-mall",
             "image": "/images/mall-hero.png",
+            "preview_route": "/templates/mall",
             "swatches": ["#2b2722", "#c79a4a", "#f5f1ea"],
             "tags": ["Directory", "Brands", "Events"],
             "storage_fees_enabled": False,
@@ -192,6 +164,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "bookings",
         "name": "Skyline Travel",
         "description": "Multi-modal booking storefront for flights, buses, and event tickets with a search engine.",
+        "renderer_key": "bookings",
         "preset": {
             "primary_color": "#2f6fd1",
             "secondary_color": "#f08a32",
@@ -203,6 +176,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-bookings",
             "image": "/images/bookings-hero.png",
+            "preview_route": "/templates/bookings",
             "swatches": ["#2f6fd1", "#f08a32", "#eef4fd"],
             "tags": ["Flights", "Buses", "Tickets"],
             "storage_fees_enabled": False,
@@ -215,6 +189,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "restaurant",
         "name": "Ember & Oak",
         "description": "Atmospheric dining storefront with menu, reservations, and online ordering.",
+        "renderer_key": "restaurant",
         "preset": {
             "primary_color": "#c0432b",
             "secondary_color": "#e0a23c",
@@ -226,6 +201,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-restaurant",
             "image": "/images/restaurant-hero.png",
+            "preview_route": "/templates/restaurant",
             "swatches": ["#c0432b", "#e0a23c", "#241d18"],
             "tags": ["Menu", "Reservations", "Ordering"],
             "storage_fees_enabled": False,
@@ -238,6 +214,7 @@ DEFAULT_TEMPLATES = [
         "template_code": "realestate",
         "name": "Haven Estates",
         "description": "Refined property listing storefront with search, featured homes, and agent profiles.",
+        "renderer_key": "realestate",
         "preset": {
             "primary_color": "#2f5d45",
             "secondary_color": "#b69a5e",
@@ -249,6 +226,7 @@ DEFAULT_TEMPLATES = [
             "card_style": "rounded",
             "theme_class": "theme-realestate",
             "image": "/images/realestate-hero.png",
+            "preview_route": "/templates/realestate",
             "swatches": ["#2f5d45", "#b69a5e", "#faf8f2"],
             "tags": ["Listings", "Search", "Agents"],
             "storage_fees_enabled": False,
@@ -269,10 +247,78 @@ def seed_default_templates(db: Session) -> None:
                 name=item["name"],
                 description=item["description"],
                 preset=json.dumps(item["preset"]),
+                renderer_key=item.get("renderer_key"),
                 is_active=True,
+                status="production_ready",
             )
             db.add(template)
+        else:
+            # Backfill renderer_key and preview_route on existing records
+            changed = False
+            if not existing.renderer_key and item.get("renderer_key"):
+                existing.renderer_key = item["renderer_key"]
+                changed = True
+            if existing.status != "production_ready":
+                existing.status = "production_ready"
+                changed = True
+            preset = json.loads(existing.preset) if isinstance(existing.preset, str) else existing.preset
+            if not preset.get("preview_route") and item["preset"].get("preview_route"):
+                preset["preview_route"] = item["preset"]["preview_route"]
+                existing.preset = json.dumps(preset)
+                changed = True
+            if changed:
+                db.add(existing)
     db.commit()
+
+
+_CATALOG_SAFE_PRESET_KEYS = {
+    "primary_color", "secondary_color", "accent_color", "background_color",
+    "font_family", "header_style", "footer_style", "card_style",
+    "theme_class", "image", "swatches", "tags", "features",
+    "storage_fees_enabled",
+}
+
+
+def _sanitize_preset_for_catalog(preset: dict) -> dict:
+    """Strip internal manifest data from preset, keeping only catalog-safe fields."""
+    return {k: v for k, v in preset.items() if k in _CATALOG_SAFE_PRESET_KEYS}
+
+
+@router.get('/catalog', response_model=list[StorefrontTemplateCatalogResponse])
+def list_templates_catalog(db: Session = Depends(get_db)):
+    """Public catalog endpoint — returns sanitized template data safe for display."""
+    cache_key = "storefront_templates:catalog"
+    cached = cache_get(cache_key)
+    if cached:
+        return cached
+
+    seed_default_templates(db)
+    templates = db.scalars(select(StorefrontTemplate).where(StorefrontTemplate.is_active.is_(True))).all()
+
+    result = [
+        StorefrontTemplateCatalogResponse(
+            template_code=t.template_code,
+            name=t.name,
+            description=t.description,
+            preset=_sanitize_preset_for_catalog(json.loads(t.preset) if isinstance(t.preset, str) else t.preset),
+            is_active=t.is_active,
+            status=t.status,
+            version=t.version,
+            renderer_key=t.renderer_key,
+            minimum_platform_version=t.minimum_platform_version,
+            business_type=t.business_type,
+            required_capabilities=[c.code for c in t.required_capabilities],
+            optional_capabilities=[c.code for c in t.optional_capabilities],
+            compatible_plugins=t.compatible_plugins,
+            incompatible_plugins=t.incompatible_plugins,
+            preview_route=t.preview_route,
+            preview_image=t.preview_image,
+        )
+        for t in templates
+    ]
+
+    cache_set(cache_key, result, ttl=3600)
+    return result
 
 
 @router.get('', response_model=list[StorefrontTemplateResponse])
@@ -287,14 +333,31 @@ def list_templates(db: Session = Depends(get_db), _: User = Depends(require_tena
     seed_default_templates(db)
     templates = db.scalars(select(StorefrontTemplate).where(StorefrontTemplate.is_active.is_(True))).all()
     
+    def _preset(t):
+        try:
+            return json.loads(t.preset) if isinstance(t.preset, str) and t.preset else {}
+        except json.JSONDecodeError:
+            return {}
+
     result = [
         StorefrontTemplateResponse(
             id=t.id,
             template_code=t.template_code,
             name=t.name,
             description=t.description,
-            preset=json.loads(t.preset),
+            preset=_preset(t),
             is_active=t.is_active,
+            status=t.status,
+            version=t.version,
+            renderer_key=t.renderer_key,
+            minimum_platform_version=t.minimum_platform_version,
+            business_type=t.business_type,
+            required_capabilities=[c.code for c in t.required_capabilities],
+            optional_capabilities=[c.code for c in t.optional_capabilities],
+            compatible_plugins=t.compatible_plugins,
+            incompatible_plugins=t.incompatible_plugins,
+            preview_route=t.preview_route,
+            preview_image=t.preview_image,
             created_at=t.created_at,
         )
         for t in templates
@@ -319,115 +382,98 @@ def select_template(
             raise HTTPException(status_code=400, detail='User has no tenant')
 
     effective_tenant_id = request.tenant_id or str(current_user.tenant_id)
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(effective_tenant_id):
+        raise HTTPException(status_code=403, detail='Tenant access denied')
 
-    template = db.scalar(
-        select(StorefrontTemplate).where(
-            StorefrontTemplate.template_code == request.template_code,
-            StorefrontTemplate.is_active.is_(True),
-        )
-    )
-    if not template:
-        raise HTTPException(status_code=404, detail='Template not found')
 
-    tenant = db.get(Tenant, effective_tenant_id)
-    if not tenant:
-        raise HTTPException(status_code=404, detail='Tenant not found')
-
-    preset = json.loads(template.preset)
-
-    # Apply template preset to tenant branding
-    from app.services.tenant_branding_service import ensure_tenant_branding
-    branding = ensure_tenant_branding(db, str(tenant.id), tenant.company_name, tenant.contact_email)
-    branding.primary_color = preset.get("primary_color", branding.primary_color)
-    branding.secondary_color = preset.get("secondary_color", branding.secondary_color)
-    branding.accent_color = preset.get("accent_color", branding.accent_color)
-    branding.background_color = preset.get("background_color", branding.background_color)
-    branding.template_code = template.template_code
-    db.add(branding)
-    db.commit()
-
-    # Run auto-fix plugins for the selected template
-    from app.services.template_manifest_service import auto_fix_template_endpoints
+    service = MarketplaceService(db)
     try:
-        fix_results = auto_fix_template_endpoints(str(tenant.id), template.template_code, db)
-    except Exception as exc:
-        import logging
-        logging.getLogger(__name__).error("auto_fix_template_endpoints failed: %s", exc)
-        fix_results = {"template_code": template.template_code, "auto_fixed": [], "still_failing": [], "error": str(exc)}
-
-    # Track failed endpoints for business liability
-    failed_plugins = [item["plugin"] for item in fix_results.get("auto_fixed", []) if not item.get("success", False)]
-    still_failing = fix_results.get("still_failing", [])
-    all_failed = list(set(failed_plugins + still_failing))
-    
-    if all_failed:
-        from datetime import datetime, timezone
-        from app.models.audit import AuditEvent
-        from app.services.notification_service import get_notification_service
-
-        tenant.pending_endpoints = json.dumps(all_failed)
-        tenant.pending_endpoints_notified_at = None  # Will be set when notification is sent
-        db.add(tenant)
-
-        # Create admin notification (audit event)
-        audit_event = AuditEvent(
-            actor_email=current_user.email,
-            event_type="template_auto_fix_failed",
-            entity_type="tenant",
-            entity_id=str(tenant.id),
-            details_json=json.dumps({
-                "template_code": template.template_code,
-                "template_name": template.name,
-                "failed_endpoints": all_failed,
-                "message": f"Tenant {tenant.company_name} switched to template {template.name} — endpoints could not be auto-fixed: {', '.join(all_failed)}"
-            })
+        return service.select_template(
+            tenant_id=effective_tenant_id,
+            template_code=request.template_code,
+            requested_by=str(current_user.id) if current_user.id else None,
+            requested_by_email=current_user.email,
         )
-        db.add(audit_event)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
 
-        # Send tenant notification about 72-hour warning
-        try:
-            notification_service = get_notification_service()
-            subject = f"Template Change: Some features may not work for 72 hours"
-            body = f"""
-            <html>
-                <body>
-                    <p>Dear {tenant.company_name},</p>
-                    <p>You have successfully switched to the <strong>{template.name}</strong> template.</p>
-                    <p>However, some features could not be automatically configured:</p>
-                    <ul>
-                        {"".join(f"<li>{ep}</li>" for ep in all_failed)}
-                    </ul>
-                    <p>These features may not work for up to 72 hours while our team resolves the configuration. Your storefront will continue to function with graceful degradation for these features.</p>
-                    <p>Our team has been notified and is working to resolve this. You will receive another notification when all features are fully operational.</p>
-                    <p>Thank you for your patience.<br>The Afruheritage Team</p>
-                </body>
-            </html>
-            """
-            notification_service.send_generic_email(to=tenant.contact_email, subject=subject, html_body=body)
-            tenant.pending_endpoints_notified_at = datetime.now(timezone.utc)
-            db.add(tenant)
-        except Exception as e:
-            # Log error but don't fail the template selection
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Failed to send tenant notification for failed auto-fix: {e}")
+@router.post('/rollback', response_model=dict)
+def rollback_template(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_tenant_admin),
+) -> dict:
+    """Rollback the most recent template installation to the previous configuration."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail='User has no tenant')
 
-        db.commit()
-    else:
-        # Clear pending endpoints if all succeeded
-        tenant.pending_endpoints = None
-        tenant.pending_endpoints_notified_at = None
-        db.add(tenant)
-        db.commit()
+    service = MarketplaceService(db)
+    try:
+        return service.rollback_template(
+            tenant_id=str(current_user.tenant_id),
+            requested_by_email=current_user.email,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.get('/compatibility/{template_code}', response_model=dict)
+def check_template_compatibility(
+    template_code: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_tenant_admin),
+) -> dict:
+    """Check whether the current tenant can install the given template.
+
+    Runs the CompatibilityValidator against the tenant's enabled plugins
+    and the template's required capabilities. Returns a factual report;
+    does not mutate any state.
+    """
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail='User has no tenant')
+
+    from app.services.compatibility_validator import CompatibilityValidator
+
+    validator = CompatibilityValidator(db)
+    return validator.validate(str(current_user.tenant_id), template_code)
+
+
+@router.get('/installations', response_model=dict)
+def list_tenant_installations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_tenant_admin),
+) -> dict:
+    """Return the installation history for the current tenant."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail='User has no tenant')
+
+    from app.models.tenant_template_installation import TenantTemplateInstallation
+    from sqlalchemy import desc
+
+    rows = db.scalars(
+        select(TenantTemplateInstallation)
+        .where(TenantTemplateInstallation.tenant_id == current_user.tenant_id)
+        .order_by(desc(TenantTemplateInstallation.created_at))
+        .limit(25)
+    ).all()
 
     return {
-        "status": "success",
-        "tenant_id": str(tenant.id),
-        "template_code": template.template_code,
-        "template_name": template.name,
-        "auto_fix": fix_results,
-        "failed_endpoints": all_failed if all_failed else None,
-        "graceful_degradation": len(all_failed) > 0,
+        "installations": [
+            {
+                "id": str(r.id),
+                "template_code": r.template_code,
+                "template_version": r.template_version,
+                "previous_template_code": r.previous_template_code,
+                "previous_template_version": r.previous_template_version,
+                "status": r.status,
+                "requested_at": r.requested_at.isoformat() if r.requested_at else None,
+                "started_at": r.started_at.isoformat() if r.started_at else None,
+                "completed_at": r.completed_at.isoformat() if r.completed_at else None,
+                "failed_at": r.failed_at.isoformat() if r.failed_at else None,
+                "failure_reason": r.failure_reason,
+                "correlation_id": r.correlation_id,
+            }
+            for r in rows
+        ]
     }
 
 

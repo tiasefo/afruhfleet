@@ -9,6 +9,7 @@ import { FeaturesSection } from '@/components/landing/features-section'
 import { HowItWorks } from '@/components/landing/how-it-works'
 import { TestimonialsSection } from '@/components/landing/testimonials-section'
 import { CTASection } from '@/components/landing/cta-section'
+import { TemplateRenderer, isSupportedRenderer } from '@/components/storefront/template-renderer'
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -24,6 +25,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function StorefrontPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const tenant = await fetchTenantContextServer(slug)
+  const rendererKey = tenant?.template_code || null
+  const hasRealTemplate = isSupportedRenderer(rendererKey)
+
+  // When the tenant has selected a real production template, render it
+  // directly. The template owns its own navigation, footer, and theme.
+  if (hasRealTemplate && rendererKey) {
+    return <TemplateRenderer rendererKey={rendererKey} />
+  }
+
+  // Fallback: legacy generic storefront for tenants without a selected template
   return (
     <div className="tenant-themed">
       <Navigation />
