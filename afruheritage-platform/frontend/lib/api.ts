@@ -1,6 +1,6 @@
 import { resolveTenantId } from '@/lib/tenant'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
+const API_BASE = '/api/v1'
 
 function withTenantId(path: string): string {
   if (/([?&])tenant_id=/.test(path)) return path
@@ -21,6 +21,7 @@ function requireTenantId(): string {
 function encodeBody(body: any): BodyInit | undefined {
   if (body === undefined || body === null) return undefined
   if (typeof FormData !== 'undefined' && body instanceof FormData) return body
+  if (typeof URLSearchParams !== 'undefined' && body instanceof URLSearchParams) return body
   return JSON.stringify(body)
 }
 
@@ -53,25 +54,25 @@ async function request<T = any>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
   const lang = typeof window !== 'undefined' ? localStorage.getItem('language') || 'en' : 'en'
   
   const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData
+  const isUrlSearchParamsBody = typeof URLSearchParams !== 'undefined' && options.body instanceof URLSearchParams
   const headers: Record<string, string> = {
     'Accept-Language': lang,
     ...(options.headers as Record<string, string> || {}),
   }
 
-  if (!isFormDataBody && !headers['Content-Type']) {
+  if (!isFormDataBody && !isUrlSearchParamsBody && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json'
   }
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
+
+  // Auth is handled via HttpOnly cookie set by the backend.
+  // The browser automatically sends the cookie with same-origin requests.
+  // Do NOT read or inject the JWT in JavaScript.
 
   const finalPath = withTenantId(path)
-  const res = await fetch(`${API_BASE}${finalPath}`, { ...options, headers })
+  const res = await fetch(`${API_BASE}${finalPath}`, { ...options, headers, credentials: 'same-origin', mode: 'same-origin' })
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }))
@@ -91,22 +92,23 @@ export const api = {
   delete: <T = any>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
-export function setToken(token: string) {
-  localStorage.setItem('auth_token', token)
-  if (typeof document !== 'undefined') {
-    document.cookie = `access_token=${token}; path=/; max-age=604800; SameSite=Lax`
-  }
+// Token management is handled entirely by the backend via HttpOnly cookies.
+// These functions are kept as no-ops for backward compatibility but do NOT
+// touch the JWT in JavaScript.
+export function setToken(_token: string) {
+  // No-op: HttpOnly cookie is set by the backend on login/register/bootstrap
 }
 
 export function clearToken() {
-  localStorage.removeItem('auth_token')
-  if (typeof document !== 'undefined') {
-    document.cookie = `access_token=; path=/; max-age=0; SameSite=Lax`
+  // Call backend logout to clear the HttpOnly cookie
+  if (typeof window !== 'undefined') {
+    fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(() => {})
   }
 }
 
 export function getToken(): string | null {
-  return typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  // No-op: JWT is in HttpOnly cookie, not accessible to JavaScript
+  return null
 }
 
 // Tenant-specific API endpoints
@@ -633,7 +635,7 @@ export const adminReviewApi = {
 }
 
 export const templatesApi = {
-  list: () => api.get('/storefront-templates'),
+  list: () => api.get('/storefront-templates/catalog'),
 
   listAll: () => api.get('/storefront-templates/admin/all'),
 
@@ -654,6 +656,9 @@ export const templatesApi = {
   delete: (templateId: string) => api.delete(`/storefront-templates/admin/${templateId}`),
 
   select: (templateCode: string) => api.post('/storefront-templates/select', { template_code: templateCode }),
+  rollback: () => api.post('/storefront-templates/rollback', {}),
+  installations: () => api.get('/storefront-templates/installations'),
+  compatibility: (templateCode: string) => api.get(`/storefront-templates/compatibility/${templateCode}`),
 }
 
 export const crmApi = {
@@ -800,6 +805,12 @@ export const navigatorApi = {
 export const pluginsAPI = {
   listCatalog: () => api.get('/plugins/catalog'),
   getCatalogDetail: (pluginName: string) => api.get(`/plugins/catalog/${pluginName}`),
+  listInstalled: () => api.get('/plugins/installed'),
+  install: (pluginName: string, consents: { consent_ui_change: boolean; consent_business_type_change: boolean; consent_data_impact: boolean; acknowledged_risks: string[] }) =>
+    api.post('/plugins/install', { plugin_name: pluginName, ...consents }),
+  enable: (pluginName: string) => api.post(`/plugins/${pluginName}/enable`, {}),
+  disable: (pluginName: string) => api.post(`/plugins/${pluginName}/disable`, {}),
+  uninstall: (pluginName: string) => api.post(`/plugins/${pluginName}/uninstall`, {}),
 }
 
 // Fleetbase-backed logistics API

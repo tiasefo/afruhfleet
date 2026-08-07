@@ -25,7 +25,8 @@ import {
   Truck,
   Calculator,
   UserCircle,
-  Store,
+  Puzzle,
+  Palette,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -77,7 +78,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Support', href: '/support/dashboard', icon: HelpCircle },
   { label: 'Billing', href: '/billing', icon: CreditCard },
   { label: 'Settings', href: '/settings', icon: Settings, adminOnly: true },
-  { label: 'Templates', href: '/templates', icon: Store },
+  { label: 'Templates', href: '/templates', icon: Palette, adminOnly: true },
+  { label: 'Plugins', href: '/plugins', icon: Puzzle, adminOnly: true },
   { label: 'Gallery', href: '/portal/gallery', icon: Globe },
   { label: 'Storefront', href: '/store', icon: ShoppingBag, tenantAware: true },
   { label: 'Vendors', href: '/vendors', icon: Truck },
