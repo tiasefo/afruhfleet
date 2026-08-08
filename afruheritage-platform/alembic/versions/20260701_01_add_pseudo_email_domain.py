@@ -19,15 +19,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "tenant_branding",
-        sa.Column(
-            "pseudo_email_domain",
-            sa.String(255),
-            nullable=False,
-            server_default="phone.afruheritage.com",
-        ),
-    )
+    conn = op.get_bind()
+    existing = {row[0] for row in conn.execute(sa.text("SELECT column_name FROM information_schema.columns WHERE table_name = 'tenant_branding'"))}
+    if "pseudo_email_domain" not in existing:
+        op.add_column(
+            "tenant_branding",
+            sa.Column(
+                "pseudo_email_domain",
+                sa.String(255),
+                nullable=False,
+                server_default="phone.afruheritage.com",
+            ),
+        )
 
 
 def downgrade() -> None:

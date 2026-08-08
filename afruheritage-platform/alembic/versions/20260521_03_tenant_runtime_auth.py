@@ -17,8 +17,12 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("tenants", sa.Column("live_api_token", sa.Text(), nullable=True))
-    op.add_column("tenants", sa.Column("live_api_auth_scheme", sa.String(length=32), nullable=True))
+    conn = op.get_bind()
+    existing = {row[0] for row in conn.execute(sa.text("SELECT column_name FROM information_schema.columns WHERE table_name = 'tenants'"))}
+    if "live_api_token" not in existing:
+        op.add_column("tenants", sa.Column("live_api_token", sa.Text(), nullable=True))
+    if "live_api_auth_scheme" not in existing:
+        op.add_column("tenants", sa.Column("live_api_auth_scheme", sa.String(length=32), nullable=True))
 
 
 def downgrade() -> None:

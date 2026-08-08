@@ -16,19 +16,23 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        'users',
-        sa.Column(
-            'onboarding_complete',
-            sa.Boolean(),
-            nullable=False,
-            server_default='false',
-        ),
-    )
+    conn = op.get_bind()
+    existing = {row[0] for row in conn.execute(sa.text("SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"))}
+    if 'onboarding_complete' not in existing:
+        op.add_column(
+            'users',
+            sa.Column(
+                'onboarding_complete',
+                sa.Boolean(),
+                nullable=False,
+                server_default='false',
+            ),
+        )
     # Existing users who already have a tenant_id are considered onboarded
-    op.execute(
-        "UPDATE users SET onboarding_complete = true WHERE tenant_id IS NOT NULL OR is_superuser = true"
-    )
+    if 'onboarding_complete' in existing:
+        op.execute(
+            "UPDATE users SET onboarding_complete = true WHERE tenant_id IS NOT NULL OR is_superuser = true"
+        )
 
 
 def downgrade() -> None:

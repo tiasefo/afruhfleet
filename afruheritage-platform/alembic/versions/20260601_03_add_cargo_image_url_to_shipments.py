@@ -19,10 +19,13 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "shipments",
-        sa.Column("cargo_image_url", sa.Text(), nullable=True),
-    )
+    conn = op.get_bind()
+    existing = {row[0] for row in conn.execute(sa.text("SELECT column_name FROM information_schema.columns WHERE table_name = 'shipments'"))}
+    if "cargo_image_url" not in existing:
+        op.add_column(
+            "shipments",
+            sa.Column("cargo_image_url", sa.Text(), nullable=True),
+        )
 
 
 def downgrade() -> None:

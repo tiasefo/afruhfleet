@@ -11,25 +11,26 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "20260414_01"
-down_revision = None
+down_revision = "20260413_00"
 branch_labels = None
 depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("users", sa.Column("tenant_id", sa.UUID(), nullable=True))
-    op.add_column(
-        "users",
-        sa.Column("is_tenant_admin", sa.Boolean(), nullable=False, server_default=sa.text("false")),
+    op.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS tenant_id UUID;")
+    op.execute(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_tenant_admin BOOLEAN NOT NULL DEFAULT false;"
     )
-    op.create_index("ix_users_tenant_id", "users", ["tenant_id"], unique=False)
-    op.create_foreign_key(
-        "fk_users_tenant_id_tenants",
-        "users",
-        "tenants",
-        ["tenant_id"],
-        ["id"],
-        ondelete="SET NULL",
+    op.execute("CREATE INDEX IF NOT EXISTS ix_users_tenant_id ON users (tenant_id);")
+    op.execute(
+        """
+        DO $$ BEGIN
+            ALTER TABLE users
+            ADD CONSTRAINT fk_users_tenant_id_tenants
+            FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE SET NULL;
+        EXCEPTION WHEN duplicate_object THEN NULL;
+        END $$;
+        """
     )
 
 
