@@ -137,7 +137,7 @@ def tenant_has_feature(db: Session, tenant_id: str, feature_code: str) -> bool:
     if not sub:
         return False
 
-    if sub.status not in ["active", "trial"]:
+    if sub.status not in ["active", "trialing"]:
         return False
 
     tier = normalize_tier_code(sub.plan_code)
@@ -180,7 +180,7 @@ def require_feature_or_raise(db: Session, tenant_id: str, feature_code: str):
 
 
 def downgrade_expired_trial(db: Session, sub: TenantSubscription) -> bool:
-    if not sub.trial or sub.status != "trial":
+    if not sub.trial or sub.status != "trialing":
         return False
     now = datetime.utcnow()
     if sub.trial_ends_at and now >= sub.trial_ends_at:

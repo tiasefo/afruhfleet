@@ -28,7 +28,7 @@ def consume_credits(db: Session, tenant_id: str, feature_code: str, units: int =
     if not sub:
         raise HTTPException(status_code=403, detail="tenant_subscription_not_found")
 
-    if sub.status not in ["active", "trial"]:
+    if sub.status not in ["active", "trialing"]:
         raise HTTPException(status_code=403, detail="subscription_not_active")
 
     try:

@@ -121,7 +121,7 @@ def downgrade_expired_trials() -> dict[str, int]:
         now = datetime.utcnow()
         trial_subs = db.query(TenantSubscription).filter(
             TenantSubscription.trial == True,  # noqa: E712
-            TenantSubscription.status == "trial",
+            TenantSubscription.status == "trialing",
         ).all()
 
         for sub in trial_subs:

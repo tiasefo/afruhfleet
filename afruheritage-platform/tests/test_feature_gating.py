@@ -25,7 +25,7 @@ def _make_trial_sub(db, tenant_id: str, plan_code: str = "free_trial") -> Tenant
     sub = TenantSubscription(
         tenant_id=tenant_id,
         plan_code=plan_code,
-        status="trial",
+        status="trialing",
         trial=True,
         trial_ends_at=now + timedelta(days=TRIAL_DURATION_DAYS),
         current_period_end=now + timedelta(days=TRIAL_DURATION_DAYS),
@@ -131,7 +131,7 @@ class TestTrialExpiry:
         assert result is False
         assert sub.plan_code == "free_trial"
         assert sub.trial is True
-        assert sub.status == "trial"
+        assert sub.status == "trialing"
 
     def test_expired_trial_downgrades_to_starter(self, db_session):
         seed_default_plans(db_session)
@@ -172,7 +172,7 @@ class TestTrialExpiry:
         after = datetime.utcnow()
 
         assert sub.trial is True
-        assert sub.status == "trial"
+        assert sub.status == "trialing"
         assert sub.trial_ends_at is not None
         delta = sub.trial_ends_at - before
         assert timedelta(days=13, hours=23) < delta < timedelta(days=14, seconds=30)

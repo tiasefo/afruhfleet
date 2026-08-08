@@ -738,7 +738,7 @@ def write_audit_log(db: Session, actor_type: str, actor_id: str | uuid.UUID | No
 
 _STATUS_MAP_TO_TENANT = {
     SubscriptionStatus.ACTIVE: "active",
-    SubscriptionStatus.TRIALING: "trial",
+    SubscriptionStatus.TRIALING: "trialing",
     SubscriptionStatus.READ_ONLY: "suspended",
     SubscriptionStatus.SUSPENDED: "suspended",
     SubscriptionStatus.CANCELED: "canceled",
