@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.structured_logging import get_logger
 from app.models.tenant import DomainType, LaunchStatus, Tenant
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.billing_service import create_trial_subscription, ensure_wallet, grant_subscription_allowance, normalize_plan_code
 from app.services.tenant_ai_service import ensure_tenant_ai_settings
 from app.services.tenant_branding_service import ensure_tenant_branding
@@ -169,6 +169,10 @@ def ensure_user_tenant_context(
     plan_code: str = "free_trial",
 ) -> User:
     if user.is_superuser or user.tenant_id:
+        return user
+
+    # Only business-owner accounts should have a workspace provisioned.
+    if not (user.is_tenant_admin or user.role == UserRole.company_admin):
         return user
 
     service = SignupOnboardingService(db)

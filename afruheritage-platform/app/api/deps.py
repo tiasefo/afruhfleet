@@ -9,13 +9,27 @@ from app.core.config import settings
 from app.core.structured_logging import user_id
 from app.db.session import get_db
 from app.models.tenant import Tenant
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.signup_onboarding_service import ensure_user_tenant_context
 from app.services.billing_service import evaluate_subscription_state
 from app.models.billing import SubscriptionStatus
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.api_v1_prefix}/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.api_v1_prefix}/auth/login", auto_error=False)
+
+
+def _extract_token(request: Request, token: str | None = Depends(oauth2_scheme)) -> str:
+    """Extract JWT from Authorization header or HttpOnly cookie."""
+    if token:
+        return token
+    cookie_token = request.cookies.get('access_token')
+    if cookie_token:
+        return cookie_token
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail='Not authenticated',
+        headers={'WWW-Authenticate': 'Bearer'},
+    )
 
 
 def db_session() -> Session:
@@ -32,7 +46,7 @@ def _resolve_tenant_identifier(db: Session, tenant_identifier: str) -> str | Non
         return str(tenant.id) if tenant else None
 
 
-def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user(request: Request, token: str = Depends(_extract_token), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='Could not validate credentials',
@@ -41,6 +55,7 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: 
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
         sub = payload.get('sub')
+        token_tenant_id = payload.get('tenant_id')
         if not sub:
             raise credentials_exception
         user_id_val = uuid.UUID(str(sub))
@@ -51,17 +66,26 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: 
     if user is None or not user.is_active:
         raise credentials_exception
 
-    if not user.is_superuser and not user.tenant_id:
+    # Tokens minted after the fix carry the business identity; reject stale/forged tenant claims.
+    if token_tenant_id and token_tenant_id != str(user.tenant_id):
+        raise credentials_exception
+
+    if not user.is_superuser and not user.tenant_id and (user.is_tenant_admin or user.role == UserRole.company_admin):
         ensure_user_tenant_context(db, user)
         db.refresh(user)
 
+    # Business owners must have a resolved tenant to be authenticated.
+    if not user.is_superuser and (user.is_tenant_admin or user.role == UserRole.company_admin) and not user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Business account not fully onboarded')
+
+    # Enforce explicit tenant_id path/query matches the user's business identity.
     if request and not user.is_superuser:
         candidate_tenant = request.path_params.get('tenant_id') or request.query_params.get('tenant_id')
         if candidate_tenant:
             resolved = _resolve_tenant_identifier(db, candidate_tenant)
             if not resolved or resolved != str(user.tenant_id):
                 raise HTTPException(status_code=403, detail='Tenant access denied')
-    
+
     # Set user context for structured logging
     if request:
         request.state.user_id = str(user_id_val)
@@ -71,7 +95,7 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme), db: 
     return user
 
 
-def get_current_user_no_tenant_check(request: Request, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+def get_current_user_no_tenant_check(request: Request, token: str = Depends(_extract_token), db: Session = Depends(get_db)) -> User:
     """Authenticate user without enforcing tenant_id query param match.
     Use for user-profile endpoints like /auth/me where stale tenant_id in
     browser localStorage should not block access."""
@@ -83,6 +107,7 @@ def get_current_user_no_tenant_check(request: Request, token: str = Depends(oaut
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=['HS256'])
         sub = payload.get('sub')
+        token_tenant_id = payload.get('tenant_id')
         if not sub:
             raise credentials_exception
         user_id_val = uuid.UUID(str(sub))
@@ -93,9 +118,17 @@ def get_current_user_no_tenant_check(request: Request, token: str = Depends(oaut
     if user is None or not user.is_active:
         raise credentials_exception
 
-    if not user.is_superuser and not user.tenant_id:
+    # Tokens minted after the fix carry the business identity; reject stale/forged tenant claims.
+    if token_tenant_id and token_tenant_id != str(user.tenant_id):
+        raise credentials_exception
+
+    if not user.is_superuser and not user.tenant_id and (user.is_tenant_admin or user.role == UserRole.company_admin):
         ensure_user_tenant_context(db, user)
         db.refresh(user)
+
+    # Business owners must have a resolved tenant to be authenticated.
+    if not user.is_superuser and (user.is_tenant_admin or user.role == UserRole.company_admin) and not user.tenant_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Business account not fully onboarded')
 
     if request:
         request.state.user_id = str(user_id_val)

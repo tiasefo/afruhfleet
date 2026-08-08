@@ -18,8 +18,10 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, tenant_id: str | None = None) -> str:
     expires_delta = timedelta(minutes=settings.access_token_expire_minutes)
     expire = datetime.now(timezone.utc) + expires_delta
     to_encode: dict[str, Any] = {'exp': expire, 'sub': str(subject)}
+    if tenant_id:
+        to_encode['tenant_id'] = str(tenant_id)
     return jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)

@@ -1,22 +1,46 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+import uuid
+from jose import jwt
 from app.api.deps import get_current_user, get_current_user_no_tenant_check
 from app.core.config import settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.core.structured_logging import security_logger
 from app.db.session import get_db
 from app.middleware.rate_limit import rate_limit
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.auth import BootstrapAdminRequest, LoginRequest, PasswordResetConfirmRequest, RegisterRequest, TokenResponse
 from app.services.signup_onboarding_service import ensure_user_tenant_context
 from app.services.billing_service import normalize_plan_code
+
 router = APIRouter(prefix='/auth', tags=['auth'])
 
+COOKIE_MAX_AGE = 7 * 24 * 60 * 60  # 7 days in seconds
+
+
+def _set_auth_cookie(response: Response, token: str) -> None:
+    """Set HttpOnly auth cookie so frontend JS never touches the JWT."""
+    is_production = settings.app_env == 'production'
+    response.set_cookie(
+        key='access_token',
+        value=token,
+        httponly=True,
+        secure=is_production,
+        samesite='lax',
+        path='/',
+        max_age=COOKIE_MAX_AGE,
+    )
+
+
+def _clear_auth_cookie(response: Response) -> None:
+    """Clear the HttpOnly auth cookie."""
+    response.delete_cookie(key='access_token', path='/')
+
 @router.post('/bootstrap', response_model=TokenResponse)
-def bootstrap_admin(payload: BootstrapAdminRequest, db: Session=Depends(get_db)) -> TokenResponse:
+def bootstrap_admin(payload: BootstrapAdminRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
     if not settings.enable_bootstrap_admin:
         raise HTTPException(status_code=403, detail='Bootstrap admin route disabled')
     existing_admin = db.scalar(select(User).where(User.is_superuser.is_(True)))
@@ -26,10 +50,12 @@ def bootstrap_admin(payload: BootstrapAdminRequest, db: Session=Depends(get_db))
     db.add(user)
     db.commit()
     db.refresh(user)
-    return TokenResponse(access_token=create_access_token(str(user.id)), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    token = create_access_token(str(user.id), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    _set_auth_cookie(response, token)
+    return TokenResponse(access_token=token, tenant_id=str(user.tenant_id) if user.tenant_id else None)
 
 @router.post('/register', response_model=TokenResponse)
-def register(payload: RegisterRequest, db: Session=Depends(get_db)) -> TokenResponse:
+def register(payload: RegisterRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
         raise HTTPException(status_code=409, detail='An account with this email already exists')
@@ -52,8 +78,10 @@ def register(payload: RegisterRequest, db: Session=Depends(get_db)) -> TokenResp
         if tenant and tenant.slug:
             subdomain = tenant.slug
             portal_url = f"https://{tenant.slug}.afruheritage.com"
+    token = create_access_token(str(user.id), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    _set_auth_cookie(response, token)
     return TokenResponse(
-        access_token=create_access_token(str(user.id)),
+        access_token=token,
         tenant_id=str(user.tenant_id) if user.tenant_id else None,
         subdomain=subdomain,
         portal_url=portal_url,
@@ -62,7 +90,7 @@ def register(payload: RegisterRequest, db: Session=Depends(get_db)) -> TokenResp
 
 @router.post('/login', response_model=TokenResponse)
 @rate_limit(category='public', rule='login')
-def login(request: Request, payload: LoginRequest, db: Session=Depends(get_db)) -> TokenResponse:
+def login(request: Request, payload: LoginRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
     login_email = payload.email.lower()
     user = db.scalar(select(User).where(User.email == login_email))
     ip_address = request.client.host if request.client else 'unknown'
@@ -76,6 +104,11 @@ def login(request: Request, payload: LoginRequest, db: Session=Depends(get_db)) 
 
     if not user.is_superuser and not user.tenant_id:
         ensure_user_tenant_context(db, user)
+
+    # Business owners must resolve to a tenant before they can receive a token.
+    if not user.is_superuser and user.role == UserRole.company_admin and not user.tenant_id:
+        security_logger.log_login_attempt(email=user.email, success=False, ip_address=ip_address, user_agent=user_agent, failure_reason='Business account missing tenant')
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail='Business account not fully onboarded. Please complete registration.')
 
     security_logger.log_login_attempt(email=user.email, success=True, ip_address=ip_address, user_agent=user_agent)
 
@@ -93,8 +126,10 @@ def login(request: Request, payload: LoginRequest, db: Session=Depends(get_db)) 
                 subdomain = tenant.slug
                 portal_url = f"https://{tenant.slug}.afruheritage.com"
 
+    token = create_access_token(str(user.id), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    _set_auth_cookie(response, token)
     return TokenResponse(
-        access_token=create_access_token(str(user.id)),
+        access_token=token,
         tenant_id=str(user.tenant_id) if user.tenant_id else None,
         subdomain=subdomain,
         portal_url=portal_url,
@@ -113,6 +148,40 @@ def me(current_user: User=Depends(get_current_user_no_tenant_check)) -> dict[str
         'onboarding_complete': current_user.onboarding_complete,
         'tenant_id': str(getattr(current_user, 'tenant_id', None)) if getattr(current_user, 'tenant_id', None) else None,
     }
+
+
+@router.get('/session')
+def session(request: Request, db: Session = Depends(get_db)) -> dict:
+    """Lightweight session discovery — always returns 200.
+    Returns {authenticated: true, user: {...}} when a valid cookie exists,
+    or {authenticated: false, user: null} when unauthenticated.
+    This avoids browser console 401 errors on public pages."""
+    cookie_token = request.cookies.get('access_token')
+    if not cookie_token:
+        return {'authenticated': False, 'user': None}
+    try:
+        payload = jwt.decode(cookie_token, settings.secret_key, algorithms=['HS256'])
+        sub = payload.get('sub')
+        if not sub:
+            return {'authenticated': False, 'user': None}
+        user = db.get(User, uuid.UUID(str(sub)))
+        if not user or not user.is_active:
+            return {'authenticated': False, 'user': None}
+        return {
+            'authenticated': True,
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'full_name': user.full_name,
+                'role': user.role.value if user.role else 'personal_shipper',
+                'is_tenant_admin': user.is_tenant_admin,
+                'is_superuser': user.is_superuser,
+                'onboarding_complete': user.onboarding_complete,
+                'tenant_id': str(user.tenant_id) if user.tenant_id else None,
+            },
+        }
+    except Exception:
+        return {'authenticated': False, 'user': None}
 
 
 class CompleteOnboardingRequest(BaseModel):
@@ -138,6 +207,9 @@ def complete_onboarding(
     if payload.full_name:
         current_user.full_name = payload.full_name
     current_user.onboarding_complete = True
+    if current_user.role == UserRole.company_admin:
+        current_user.is_tenant_admin = True
+        ensure_user_tenant_context(db, current_user)
     db.add(current_user)
     db.commit()
     db.refresh(current_user)
@@ -223,3 +295,10 @@ def confirm_password_reset(payload: PasswordResetConfirmRequest, db: Session = D
     db.commit()
 
     return {'status': 'ok', 'message': 'Password updated successfully. You can now sign in.'}
+
+
+@router.post('/logout')
+def logout(response: Response) -> dict[str, str]:
+    """Clear the HttpOnly auth cookie."""
+    _clear_auth_cookie(response)
+    return {'status': 'ok', 'message': 'Logged out successfully'}
