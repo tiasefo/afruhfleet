@@ -33,15 +33,17 @@ const events = [
   { date: "JUN 28", title: "Kids Discovery Day", time: "11:00 AM · L3" },
 ]
 
-export function MallStorefront({ theme }: { theme: TenantPublicTheme }) {
+export function MallStorefront({ theme }: { theme?: TenantPublicTheme }) {
+  const brand = theme?.name ?? "Lumière"
+  const footer = theme?.legalFooterText ?? "Demo storefront."
   return (
-    <div className="theme-mall" style={tenantThemeStyle(theme)}>
+    <div className="theme-mall" style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <Gem className="size-6 text-accent" />
-              <span className="text-lg font-bold tracking-[0.15em] uppercase">{theme.name}</span>
+              <span className="text-lg font-bold tracking-[0.15em] uppercase">{brand}</span>
             </div>
             <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
               <a href="#stores" className="hover:text-foreground">Stores</a>
@@ -209,9 +211,9 @@ export function MallStorefront({ theme }: { theme: TenantPublicTheme }) {
         <footer className="border-t border-border bg-card">
           <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-2 font-bold uppercase tracking-[0.15em] text-foreground">
-              <Gem className="size-5 text-accent" /> {theme.name}
+              <Gem className="size-5 text-accent" /> {brand}
             </div>
-            <p>&copy; {new Date().getFullYear()} {theme.name}. {theme.legalFooterText}</p>
+            <p>&copy; {new Date().getFullYear()} {brand}. {footer}</p>
           </div>
         </footer>
       </main>

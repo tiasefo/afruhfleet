@@ -28,9 +28,11 @@ const perks = [
   { icon: Leaf, title: "Sustainable", body: "Ethically sourced" },
 ]
 
-export function EcommerceStorefront({ theme }: { theme: TenantPublicTheme }) {
+export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
+  const brand = theme?.name ?? "Verde Goods"
+  const footer = theme?.legalFooterText ?? "Demo storefront."
   return (
-    <div className="theme-ecommerce" style={tenantThemeStyle(theme)}>
+    <div className="theme-ecommerce" style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <div className="bg-primary py-2 text-center text-xs font-medium text-primary-foreground">
           Free carbon-neutral shipping on orders over $75
@@ -42,7 +44,7 @@ export function EcommerceStorefront({ theme }: { theme: TenantPublicTheme }) {
               <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <Leaf className="size-5" />
               </span>
-              <span className="text-lg font-bold tracking-tight">{theme.name}</span>
+              <span className="text-lg font-bold tracking-tight">{brand}</span>
             </div>
             <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground lg:flex">
               {categories.map((category) => (
@@ -167,9 +169,9 @@ export function EcommerceStorefront({ theme }: { theme: TenantPublicTheme }) {
           <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 font-bold">
-                <Leaf className="size-5 text-primary" /> {theme.name}
+                <Leaf className="size-5 text-primary" /> {brand}
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">{theme.legalFooterText}</p>
+              <p className="mt-3 text-sm text-muted-foreground">{footer}</p>
             </div>
             {[
               ["Shop", ["New In", "Apparel", "Home", "Sale"]],
@@ -187,7 +189,7 @@ export function EcommerceStorefront({ theme }: { theme: TenantPublicTheme }) {
             ))}
           </div>
           <div className="border-t border-border py-5 text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {theme.name}. {theme.legalFooterText}
+            &copy; {new Date().getFullYear()} {brand}. {footer}
           </div>
         </footer>
       </main>

@@ -24,9 +24,11 @@ const agents = [
   { name: "Elena Vance", title: "Investment Advisor", sales: "$150M sold" },
 ]
 
-export function RealEstateStorefront({ theme }: { theme: TenantPublicTheme }) {
+export function RealEstateStorefront({ theme }: { theme?: TenantPublicTheme }) {
+  const brand = theme?.name ?? "Haven Estates"
+  const footer = theme?.legalFooterText ?? "Demo storefront."
   return (
-    <div className="theme-realestate" style={tenantThemeStyle(theme)}>
+    <div className="theme-realestate" style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
@@ -34,7 +36,7 @@ export function RealEstateStorefront({ theme }: { theme: TenantPublicTheme }) {
               <span className="flex size-9 items-center justify-center rounded-sm bg-primary text-primary-foreground">
                 <Home className="size-5" />
               </span>
-              <span className="text-lg font-bold tracking-tight">{theme.name}</span>
+              <span className="text-lg font-bold tracking-tight">{brand}</span>
             </div>
             <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
               <a href="#listings" className="hover:text-foreground">Buy</a>
@@ -177,9 +179,9 @@ export function RealEstateStorefront({ theme }: { theme: TenantPublicTheme }) {
         <footer className="border-t border-border bg-card">
           <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-2 font-bold text-foreground">
-              <Home className="size-5 text-primary" /> {theme.name}
+              <Home className="size-5 text-primary" /> {brand}
             </div>
-            <p>&copy; {new Date().getFullYear()} {theme.name}. {theme.legalFooterText}</p>
+            <p>&copy; {new Date().getFullYear()} {brand}. {footer}</p>
           </div>
         </footer>
       </main>

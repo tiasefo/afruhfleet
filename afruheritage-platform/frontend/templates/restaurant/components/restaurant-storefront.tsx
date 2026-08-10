@@ -25,15 +25,17 @@ const hours = [
   ["Sunday", "4:00 PM – 10:00 PM"],
 ]
 
-export function RestaurantStorefront({ theme }: { theme: TenantPublicTheme }) {
+export function RestaurantStorefront({ theme }: { theme?: TenantPublicTheme }) {
+  const brand = theme?.name ?? "Ember & Oak"
+  const footer = theme?.legalFooterText ?? "Demo storefront."
   return (
-    <div className="theme-restaurant" style={tenantThemeStyle(theme)}>
+    <div className="theme-restaurant" style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <div className="flex items-center gap-2">
               <Flame className="size-6 text-primary" />
-              <span className="text-lg font-bold tracking-[0.2em] uppercase">{theme.name}</span>
+              <span className="text-lg font-bold tracking-[0.2em] uppercase">{brand}</span>
             </div>
             <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground lg:flex">
               <a href="#menu" className="hover:text-foreground">Menu</a>
@@ -108,7 +110,7 @@ export function RestaurantStorefront({ theme }: { theme: TenantPublicTheme }) {
                 A kitchen built around the fire.
               </h2>
               <p className="mt-5 leading-relaxed text-muted-foreground">
-                Every plate at {theme.name} begins at the hearth. We work with local farmers and fishers to bring the
+                Every plate at {brand} begins at the hearth. We work with local farmers and fishers to bring the
                 best of each season to a menu shaped by smoke, char, and patience.
               </p>
               <div className="mt-7 flex items-center gap-2">
@@ -160,9 +162,9 @@ export function RestaurantStorefront({ theme }: { theme: TenantPublicTheme }) {
         <footer className="border-t border-border bg-card">
           <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-center gap-2 font-bold uppercase tracking-[0.2em] text-foreground">
-              <Flame className="size-5 text-primary" /> {theme.name}
+              <Flame className="size-5 text-primary" /> {brand}
             </div>
-            <p>&copy; {new Date().getFullYear()} {theme.name}. {theme.legalFooterText}</p>
+            <p>&copy; {new Date().getFullYear()} {brand}. {footer}</p>
           </div>
         </footer>
       </main>
