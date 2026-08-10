@@ -656,6 +656,7 @@ export const templatesApi = {
   delete: (templateId: string) => api.delete(`/storefront-templates/admin/${templateId}`),
 
   select: (templateCode: string) => api.post('/storefront-templates/select', { template_code: templateCode }),
+  publish: (installationId?: string) => api.post('/storefront-templates/publish', { installation_id: installationId }),
   rollback: () => api.post('/storefront-templates/rollback', {}),
   installations: () => api.get('/storefront-templates/installations'),
   compatibility: (templateCode: string) => api.get(`/storefront-templates/compatibility/${templateCode}`),

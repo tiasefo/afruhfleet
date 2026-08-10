@@ -69,6 +69,8 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState<StorefrontTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [selecting, setSelecting] = useState<string | null>(null)
+  const [publishing, setPublishing] = useState(false)
+  const [stagedInstallationId, setStagedInstallationId] = useState<string | null>(null)
   const [rollingBack, setRollingBack] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
   const [activeTemplateCode, setActiveTemplateCode] = useState<string | null>(null)
@@ -108,7 +110,6 @@ export default function TemplatesPage() {
       const active = (data.installations || []).find((i: InstallationRecord) => i.status === 'completed')
       if (active) {
         setActiveTemplateCode(active.template_code)
-        setSelectedTemplate(active.template_code)
       }
     } catch (err) {
       // installations endpoint may not exist yet — non-fatal
@@ -136,13 +137,31 @@ export default function TemplatesPage() {
     try {
       const data: any = await templatesApi.select(templateCode)
       setSelectedTemplate(templateCode)
-      setActiveTemplateCode(templateCode)
-      setSuccess(`Installed ${data.template_name || templateCode}. Your storefront now renders this template.`)
+      setStagedInstallationId(data.installation_id || null)
+      setSuccess(`Staged ${data.template_name || templateCode}. Click Publish to make it live.`)
       loadInstallations()
     } catch (err: any) {
       setError(err?.message || err?.detail || 'Failed to select template.')
     } finally {
       setSelecting(null)
+    }
+  }
+
+  const handlePublish = async () => {
+    setPublishing(true)
+    setError('')
+    setSuccess('')
+    try {
+      const data: any = await templatesApi.publish(stagedInstallationId || undefined)
+      setActiveTemplateCode(data.template_code)
+      setSelectedTemplate(data.template_code)
+      setStagedInstallationId(null)
+      setSuccess(`Published ${data.template_code || 'template'}. Your live storefront has been updated.`)
+      loadInstallations()
+    } catch (err: any) {
+      setError(err?.message || err?.detail || 'Failed to publish template.')
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -191,7 +210,7 @@ export default function TemplatesPage() {
             variant="outline"
             size="sm"
             onClick={handleRollback}
-            disabled={rollingBack || !activeTemplateCode}
+            disabled={rollingBack}
           >
             {rollingBack ? (
               <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -211,7 +230,19 @@ export default function TemplatesPage() {
 
       {error && (
         <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
+          <div className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setError('')
+                loadTemplates()
+              }}
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       )}
 
@@ -224,7 +255,8 @@ export default function TemplatesPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {templates.map((template) => {
           const isImplemented = IMPLEMENTED_ENGINES.has(template.template_code)
-          const isSelected = activeTemplateCode === template.template_code
+          const isActive = activeTemplateCode === template.template_code
+          const isPending = selectedTemplate === template.template_code && !isActive
           const compat = compatibility[template.template_code]
           const isCompatible = !compat || compat.compatible
           const previewRoute = template.preset?.preview_route || template.preview_route || `/templates/${template.template_code}`
@@ -245,10 +277,15 @@ export default function TemplatesPage() {
                       </p>
                     </div>
                   </div>
-                  {isSelected && (
+                  {isActive && (
                     <Badge variant="default" className="gap-1">
                       <Check className="h-3 w-3" />
-                      Active
+                      Live
+                    </Badge>
+                  )}
+                  {isPending && (
+                    <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                      Staged
                     </Badge>
                   )}
                 </div>
@@ -290,7 +327,13 @@ export default function TemplatesPage() {
 
                 {compat && !compat.compatible && compat.blocking_issues.length > 0 && (
                   <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700">
-                    {compat.blocking_issues.join(', ')}
+                    <p className="font-medium mb-1">Compatibility issues:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      {compat.blocking_issues.map((issue, i) => (
+                        <li key={i}>{issue}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-1 text-amber-600">Contact your platform administrator to resolve these requirements before selecting this template.</p>
                   </div>
                 )}
 
@@ -310,24 +353,29 @@ export default function TemplatesPage() {
                   <Button
                     size="sm"
                     className="flex-1"
-                    disabled={!isImplemented || !isCompatible || selecting === template.template_code || isSelected}
-                    onClick={() => selectTemplate(template.template_code)}
+                    disabled={!isImplemented || !isCompatible || selecting === template.template_code || isActive || publishing}
+                    onClick={() => isPending ? handlePublish() : selectTemplate(template.template_code)}
                   >
                     {selecting === template.template_code ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isSelected ? (
+                    ) : publishing && isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : isActive ? (
                       <>
                         <Check className="h-4 w-4 mr-1" />
-                        Selected
+                        Live
                       </>
+                    ) : isPending ? (
+                      'Publish'
                     ) : (
-                      'Install'
+                      'Select'
                     )}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => window.open(previewRoute, '_blank')}
+                    aria-label={`Preview ${template.name} template`}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>

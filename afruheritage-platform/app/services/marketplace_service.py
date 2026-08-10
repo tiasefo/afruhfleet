@@ -116,23 +116,19 @@ class MarketplaceService:
             self.db.flush()
 
             # Apply template presentation preset to tenant branding only.
+            # Do NOT set branding.template_code here; publish step makes it live.
             preset = json.loads(template.preset) if isinstance(template.preset, str) else template.preset
             branding.primary_color = preset.get("primary_color", branding.primary_color)
             branding.secondary_color = preset.get("secondary_color", branding.secondary_color)
             branding.accent_color = preset.get("accent_color", branding.accent_color)
             branding.background_color = preset.get("background_color", branding.background_color)
-            branding.template_code = template.template_code
             if preset.get("storefront_config") is not None:
                 branding.storefront_config = preset.get("storefront_config")
             self.db.add(branding)
             self.db.flush()
 
-            installation.status = "configuring"
-            self.db.add(installation)
-            self.db.flush()
-
             configuration_after = {
-                "template_code": branding.template_code,
+                "template_code": template.template_code,
                 "primary_color": branding.primary_color,
                 "secondary_color": branding.secondary_color,
                 "accent_color": branding.accent_color,
@@ -140,8 +136,7 @@ class MarketplaceService:
                 "storefront_config": branding.storefront_config,
             }
 
-            installation.status = "completed"
-            installation.completed_at = datetime.now(timezone.utc)
+            installation.status = "configuring"
             installation.configuration_after = configuration_after
             installation.rollback_data = configuration_before
             self.db.add(installation)
@@ -160,7 +155,7 @@ class MarketplaceService:
             )
 
             return {
-                "status": "success",
+                "status": "configuring",
                 "tenant_id": str(tenant_uuid),
                 "template_code": template.template_code,
                 "template_name": template.name,
@@ -185,6 +180,81 @@ class MarketplaceService:
             self.db.add(installation)
             self.db.commit()
             raise
+
+    def publish_template(
+        self,
+        tenant_id: str,
+        installation_id: str | None = None,
+        requested_by_email: str | None = None,
+    ) -> dict[str, Any]:
+        """Publish a staged (configuring) template to make it the live storefront."""
+        tenant_uuid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        tenant = self.db.get(Tenant, tenant_uuid)
+        if not tenant:
+            raise ValueError("Tenant not found")
+
+        from sqlalchemy import desc
+
+        if installation_id:
+            install_uuid = uuid.UUID(installation_id)
+            installation = self.db.get(TenantTemplateInstallation, install_uuid)
+            if not installation or installation.tenant_id != tenant.id:
+                raise ValueError("Installation not found")
+        else:
+            installation = self.db.scalar(
+                select(TenantTemplateInstallation)
+                .where(
+                    TenantTemplateInstallation.tenant_id == tenant.id,
+                    TenantTemplateInstallation.status == "configuring",
+                )
+                .order_by(desc(TenantTemplateInstallation.created_at))
+                .limit(1)
+            )
+        if not installation:
+            raise ValueError("No staged template to publish")
+
+        after = installation.configuration_after or {}
+        branding = ensure_tenant_branding(
+            self.db, str(tenant_uuid), tenant.company_name, tenant.contact_email
+        )
+        before_publish = {
+            "template_code": branding.template_code,
+            "primary_color": branding.primary_color,
+            "secondary_color": branding.secondary_color,
+            "accent_color": branding.accent_color,
+            "background_color": branding.background_color,
+            "storefront_config": branding.storefront_config,
+        }
+        branding.template_code = after.get("template_code", installation.template_code)
+        branding.primary_color = after.get("primary_color", branding.primary_color)
+        branding.secondary_color = after.get("secondary_color", branding.secondary_color)
+        branding.accent_color = after.get("accent_color", branding.accent_color)
+        branding.background_color = after.get("background_color", branding.background_color)
+        branding.storefront_config = after.get("storefront_config", branding.storefront_config)
+        self.db.add(branding)
+
+        installation.status = "completed"
+        installation.completed_at = datetime.now(timezone.utc)
+        installation.rollback_data = before_publish
+        self.db.add(installation)
+        self.db.commit()
+
+        self._record_audit(
+            actor_email=requested_by_email or "system@afruheritage.com",
+            tenant_id=str(tenant_uuid),
+            event_type="template_published",
+            details={
+                "template_code": installation.template_code,
+                "installation_id": str(installation.id),
+            },
+        )
+
+        return {
+            "status": "success",
+            "tenant_id": str(tenant_uuid),
+            "template_code": branding.template_code,
+            "installation_id": str(installation.id),
+        }
 
     def rollback_template(
         self,

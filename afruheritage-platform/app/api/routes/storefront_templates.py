@@ -416,6 +416,31 @@ def rollback_template(
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+class TemplatePublishRequest(BaseModel):
+    installation_id: Optional[str] = None
+
+
+@router.post('/publish', response_model=dict)
+def publish_template(
+    request: TemplatePublishRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_tenant_admin),
+) -> dict:
+    """Publish a staged template selection, making it the live storefront."""
+    if not current_user.tenant_id:
+        raise HTTPException(status_code=400, detail='User has no tenant')
+
+    service = MarketplaceService(db)
+    try:
+        return service.publish_template(
+            tenant_id=str(current_user.tenant_id),
+            installation_id=request.installation_id,
+            requested_by_email=current_user.email,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @router.get('/compatibility/{template_code}', response_model=dict)
 def check_template_compatibility(
     template_code: str,
