@@ -1,6 +1,14 @@
 import type { TenantContext } from './tenant-context'
 
-export type TenantThemeCode = 'freight' | 'fleet' | 'default'
+export type TenantThemeCode =
+  | 'freight'
+  | 'fleet'
+  | 'ecommerce'
+  | 'mall'
+  | 'bookings'
+  | 'restaurant'
+  | 'realestate'
+  | 'default'
 
 export type StorefrontConfig = {
   motto?: string
@@ -104,12 +112,14 @@ export type TenantPublicTheme = {
  * - Never returns null for a valid TenantContext.
  */
 export function resolveTenantThemeFromContext(ctx: TenantContext): TenantPublicTheme {
+  const knownThemes: TenantThemeCode[] = [
+    'freight', 'fleet', 'ecommerce', 'mall',
+    'bookings', 'restaurant', 'realestate',
+  ]
   const themeCode: TenantThemeCode =
-    ctx.theme_code === 'freight'
-      ? 'freight'
-      : ctx.theme_code === 'fleet'
-        ? 'fleet'
-        : 'default'
+    knownThemes.includes(ctx.theme_code as TenantThemeCode)
+      ? (ctx.theme_code as TenantThemeCode)
+      : 'default'
 
   const primary = ctx.primary_color || '#0ea5e9'
   const accent = ctx.accent_color || '#f59e0b'
@@ -184,6 +194,26 @@ export async function resolveTenantTheme(slug: string): Promise<TenantPublicThem
   } catch {
     return null
   }
+}
+
+export function tenantThemeStyle(theme: TenantPublicTheme) {
+  return {
+    '--primary': theme.primaryColor,
+    '--primary-foreground': '#ffffff',
+    '--primary-dark': theme.primaryDarkColor,
+    '--accent': theme.accentColor,
+    '--accent-foreground': '#ffffff',
+    '--background': theme.bgColor,
+    '--foreground': theme.textColor,
+    '--secondary': '#f4f4f5',
+    '--secondary-foreground': theme.textColor,
+    '--card': '#ffffff',
+    '--card-foreground': theme.textColor,
+    '--muted': '#f4f4f5',
+    '--muted-foreground': '#71717a',
+    '--border': '#e4e4e7',
+    '--ring': theme.primaryColor,
+  } as React.CSSProperties
 }
 
 function darkenHex(hex: string, percent: number): string {
