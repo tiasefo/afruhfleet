@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import require_superuser
 from app.db.session import get_db
-from app.models.billing import Subscription, Plan, PlanCode, SubscriptionStatus
+from app.models.billing import Subscription, Plan, PlanCode, SubscriptionStatus, Promotion, PromotionType
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.user import User
 from app.models.saas_subscription import SaaSPlan, SaaSAddon, TenantSubscription
@@ -23,6 +23,7 @@ router = APIRouter(prefix="/admin/billing", tags=["Billing Admin"])
 class PlanCreate(BaseModel):
     code: str
     name: str
+    display_name: str
     monthly_price: float
     included_credits: int
     features_json: Optional[str] = None
@@ -31,6 +32,7 @@ class PlanCreate(BaseModel):
 
 class PlanUpdate(BaseModel):
     name: Optional[str] = None
+    display_name: Optional[str] = None
     monthly_price: Optional[float] = None
     included_credits: Optional[int] = None
     features_json: Optional[str] = None
@@ -41,6 +43,7 @@ class PlanResponse(BaseModel):
     id: str
     code: str
     name: str
+    display_name: str
     monthly_price: float
     included_credits: int
     features_json: Optional[str]
@@ -132,6 +135,54 @@ class SubscriptionUpdatePlan(BaseModel):
     plan_id: str
 
 
+class PromotionCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    promotion_type: str  # "percentage" or "fixed_amount"
+    value: float
+    applicable_plan_codes: str  # Comma-separated plan codes or "all"
+    start_date: datetime
+    end_date: datetime
+
+
+class PromotionUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    promotion_type: Optional[str] = None
+    value: Optional[float] = None
+    applicable_plan_codes: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    is_active: Optional[bool] = None
+
+
+class PromotionResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    promotion_type: str
+    value: float
+    applicable_plan_codes: str
+    start_date: datetime
+    end_date: datetime
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def _uuid_to_str(cls, v):
+        return str(v) if v is not None else v
+
+    @field_validator('promotion_type', mode='before')
+    @classmethod
+    def _enum_to_str(cls, v):
+        return v.value if hasattr(v, 'value') else str(v)
+
+    class Config:
+        from_attributes = True
+
+
 class SubscriptionResponse(BaseModel):
     id: str
     tenant_id: str
@@ -211,9 +262,9 @@ def list_plans(
     db: Session = Depends(get_db),
     _: User = Depends(require_superuser),
 ):
-    """List all SaaS plans (admin only)."""
+    """List all billing plans (admin only)."""
     plans = db.scalars(
-        select(SaaSPlan).order_by(SaaSPlan.created_at.desc())
+        select(Plan).order_by(Plan.created_at.desc())
     ).all()
     return plans
 
@@ -224,12 +275,24 @@ def create_plan(
     db: Session = Depends(get_db),
     _: User = Depends(require_superuser),
 ):
-    """Create a new SaaS plan (admin only)."""
-    existing = db.scalar(select(SaaSPlan).where(SaaSPlan.code == data.code))
+    """Create a new billing plan (admin only)."""
+    try:
+        plan_code = PlanCode(data.code.upper())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid plan code")
+    
+    existing = db.scalar(select(Plan).where(Plan.code == plan_code))
     if existing:
         raise HTTPException(status_code=400, detail="Plan code already exists")
     
-    plan = SaaSPlan(**data.model_dump())
+    plan = Plan(
+        code=plan_code,
+        name=data.name,
+        display_name=data.display_name,
+        price_amount=data.monthly_price,
+        monthly_credit_allowance=data.included_credits,
+        active=data.active
+    )
     db.add(plan)
     db.commit()
     db.refresh(plan)
@@ -243,13 +306,21 @@ def update_plan(
     db: Session = Depends(get_db),
     _: User = Depends(require_superuser),
 ):
-    """Update a SaaS plan (admin only)."""
-    plan = db.scalar(select(SaaSPlan).where(SaaSPlan.id == uuid.UUID(plan_id)))
+    """Update a billing plan (admin only)."""
+    plan = db.scalar(select(Plan).where(Plan.id == uuid.UUID(plan_id)))
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
-    for field, value in data.model_dump(exclude_unset=True).items():
-        setattr(plan, field, value)
+    if data.name is not None:
+        plan.name = data.name
+    if data.display_name is not None:
+        plan.display_name = data.display_name
+    if data.monthly_price is not None:
+        plan.price_amount = data.monthly_price
+    if data.included_credits is not None:
+        plan.monthly_credit_allowance = data.included_credits
+    if data.active is not None:
+        plan.active = data.active
     
     db.add(plan)
     db.commit()
@@ -689,3 +760,208 @@ def update_invoice_branding(
     db.commit()
     db.refresh(invoice)
     return invoice
+
+
+# ----- Promotion Endpoints -----
+@router.get("/promotions", response_model=list[PromotionResponse])
+def list_promotions(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """List all promotions (admin only)."""
+    promotions = db.scalars(
+        select(Promotion).order_by(Promotion.created_at.desc())
+    ).all()
+    return promotions
+
+
+@router.post("/promotions", response_model=PromotionResponse)
+def create_promotion(
+    data: PromotionCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Create a promotion (admin only)."""
+    # Validate promotion_type
+    try:
+        promo_type = PromotionType(data.promotion_type.upper())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid promotion_type. Must be 'percentage' or 'fixed_amount'")
+    
+    promotion = Promotion(
+        name=data.name,
+        description=data.description,
+        promotion_type=promo_type,
+        value=data.value,
+        applicable_plan_codes=data.applicable_plan_codes,
+        start_date=data.start_date,
+        end_date=data.end_date,
+        is_active=True
+    )
+    db.add(promotion)
+    db.commit()
+    db.refresh(promotion)
+    return promotion
+
+
+@router.get("/promotions/{promotion_id}", response_model=PromotionResponse)
+def get_promotion(
+    promotion_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Get a promotion by ID (admin only)."""
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    if not promotion:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    return promotion
+
+
+@router.patch("/promotions/{promotion_id}", response_model=PromotionResponse)
+def update_promotion(
+    promotion_id: str,
+    data: PromotionUpdate,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Update a promotion (admin only)."""
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    if not promotion:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    
+    # Update fields if provided
+    if data.name is not None:
+        promotion.name = data.name
+    if data.description is not None:
+        promotion.description = data.description
+    if data.promotion_type is not None:
+        try:
+            promotion.promotion_type = PromotionType(data.promotion_type.upper())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid promotion_type. Must be 'percentage' or 'fixed_amount'")
+    if data.value is not None:
+        promotion.value = data.value
+    if data.applicable_plan_codes is not None:
+        promotion.applicable_plan_codes = data.applicable_plan_codes
+    if data.start_date is not None:
+        promotion.start_date = data.start_date
+    if data.end_date is not None:
+        promotion.end_date = data.end_date
+    if data.is_active is not None:
+        promotion.is_active = data.is_active
+    
+    db.add(promotion)
+    db.commit()
+    db.refresh(promotion)
+    return promotion
+
+
+@router.post("/promotions/{promotion_id}/activate", response_model=PromotionResponse)
+def activate_promotion(
+    promotion_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Activate a promotion (admin only)."""
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    if not promotion:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    
+    promotion.is_active = True
+    db.add(promotion)
+    db.commit()
+    db.refresh(promotion)
+    return promotion
+
+
+@router.post("/promotions/{promotion_id}/deactivate", response_model=PromotionResponse)
+def deactivate_promotion(
+    promotion_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Deactivate a promotion (admin only)."""
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    if not promotion:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    
+    promotion.is_active = False
+    db.add(promotion)
+    db.commit()
+    db.refresh(promotion)
+    return promotion
+
+
+@router.delete("/promotions/{promotion_id}")
+def delete_promotion(
+    promotion_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Delete a promotion (admin only)."""
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    if not promotion:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    
+    db.delete(promotion)
+    db.commit()
+    return {"message": "Promotion deleted successfully"}
+
+
+@router.get("/plans/{plan_code}/effective-price")
+def get_effective_price(
+    plan_code: str,
+    db: Session = Depends(get_db),
+):
+    """Get effective price for a plan considering active promotions"""
+    plan = db.scalar(select(Plan).where(Plan.code == plan_code.upper(), Plan.active == True))
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    base_price = float(plan.price_amount)
+    current_time = datetime.utcnow()
+    
+    # Find active promotions for this plan
+    applicable_codes = [plan_code.lower(), "all"]
+    promotions = db.scalars(
+        select(Promotion).filter(
+            Promotion.is_active == True,
+            Promotion.start_date <= current_time,
+            Promotion.end_date >= current_time
+        )
+    ).all()
+    
+    applicable_promotions = []
+    for promo in promotions:
+        promo_plans = [c.strip() for c in promo.applicable_plan_codes.split(",")]
+        if any(pc in applicable_codes for pc in promo_plans):
+            applicable_promotions.append(promo)
+    
+    # Apply the best promotion (highest discount)
+    effective_price = base_price
+    applied_promotion = None
+    
+    for promo in applicable_promotions:
+        if promo.promotion_type == PromotionType.PERCENTAGE:
+            discount = base_price * (float(promo.value) / 100)
+            promo_price = base_price - discount
+        else:  # FIXED_AMOUNT
+            promo_price = base_price - float(promo.value)
+        
+        if promo_price < effective_price:
+            effective_price = promo_price
+            applied_promotion = promo
+    
+    return {
+        "plan_code": plan_code,
+        "base_price": base_price,
+        "currency": plan.currency,
+        "effective_price": max(0, effective_price),
+        "applied_promotion": {
+            "id": str(applied_promotion.id),
+            "name": applied_promotion.name,
+            "promotion_type": applied_promotion.promotion_type.value,
+            "value": float(applied_promotion.value)
+        } if applied_promotion else None,
+        "promotions_available": len(applicable_promotions)
+    }

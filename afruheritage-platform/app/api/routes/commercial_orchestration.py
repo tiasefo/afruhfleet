@@ -2,17 +2,20 @@ from __future__ import annotations
 
 import json
 import uuid
+from datetime import datetime
 
 import requests
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, EmailStr
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.api.routes.payment_hub import PAYSTACK_SECRET_KEY, PAYSTACK_BASE_URL
 from app.models.commercial_orchestration import CommercialSignup
 from app.models.payment_hub import PaymentTransaction
+from app.models.billing import Plan, Promotion, PromotionType
+from app.models.saas_subscription import SaaSAddon
 
 router = APIRouter(prefix="/commercial", tags=["Commercial Orchestration"])
 
@@ -20,20 +23,37 @@ engine = create_engine(settings.database_url)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 
-PLAN_CATALOG = {
-    "free": {"name": "Free", "monthly_price": 0, "credits": 50},
-    "professional": {"name": "Professional", "monthly_price": 1000, "credits": 500},
-    "business": {"name": "Business", "monthly_price": 2500, "credits": 1500},
-    "vendor_driver": {"name": "Vendor / Driver", "monthly_price": 300, "credits": 100},
-}
+def get_plan_catalog():
+    """Get plan catalog from database."""
+    db = SessionLocal()
+    try:
+        plans = db.scalars(select(Plan).where(Plan.active == True)).all()
+        return {
+            plan.code.value.lower(): {
+                "name": plan.display_name,
+                "monthly_price": float(plan.price_amount),
+                "credits": plan.monthly_credit_allowance,
+            }
+            for plan in plans
+        }
+    finally:
+        db.close()
 
-ADDON_CATALOG = {
-    "marketplace": {"name": "Marketplace Access", "monthly_price": 200},
-    "gps_tracking": {"name": "GPS Tracking", "monthly_price": 150},
-    "ai": {"name": "AI Assistant", "monthly_price": 250},
-    "advanced_crm": {"name": "Advanced CRM", "monthly_price": 150},
-    "premium_support": {"name": "Premium Support", "monthly_price": 200},
-}
+
+def get_addon_catalog():
+    """Get addon catalog from database."""
+    db = SessionLocal()
+    try:
+        addons = db.scalars(select(SaaSAddon).where(SaaSAddon.active == True)).all()
+        return {
+            addon.code: {
+                "name": addon.name,
+                "monthly_price": float(addon.monthly_price),
+            }
+            for addon in addons
+        }
+    finally:
+        db.close()
 
 
 class SignupStart(BaseModel):
@@ -52,14 +72,16 @@ class PlanSelect(BaseModel):
 
 @router.get("/catalog")
 def catalog():
+    plan_catalog = get_plan_catalog()
+    addon_catalog = get_addon_catalog()
     return {
         "plans": [
             {"code": code, **value}
-            for code, value in PLAN_CATALOG.items()
+            for code, value in plan_catalog.items()
         ],
         "addons": [
             {"code": code, **value}
-            for code, value in ADDON_CATALOG.items()
+            for code, value in addon_catalog.items()
         ],
         "payment_methods": ["paystack"],
         "note": "Paystack currently covers MoMo/cards where supported. Other providers can be added through the payment hub later.",
@@ -93,10 +115,13 @@ def signup_start(payload: SignupStart):
 
 @router.post("/signup/select-plan")
 def select_plan(payload: PlanSelect):
-    if payload.plan_code not in PLAN_CATALOG:
+    plan_catalog = get_plan_catalog()
+    addon_catalog = get_addon_catalog()
+    
+    if payload.plan_code not in plan_catalog:
         raise HTTPException(status_code=400, detail="invalid_plan_code")
 
-    invalid_addons = [x for x in payload.addons if x not in ADDON_CATALOG]
+    invalid_addons = [x for x in payload.addons if x not in addon_catalog]
     if invalid_addons:
         raise HTTPException(status_code=400, detail={"invalid_addons": invalid_addons})
 
@@ -106,8 +131,45 @@ def select_plan(payload: PlanSelect):
         if not signup:
             raise HTTPException(status_code=404, detail="signup_not_found")
 
-        plan_amount = PLAN_CATALOG[payload.plan_code]["monthly_price"]
-        addon_amount = sum(ADDON_CATALOG[x]["monthly_price"] for x in payload.addons)
+        # Calculate effective price considering active promotions
+        plan = db.query(Plan).filter(Plan.code == payload.plan_code.upper()).first()
+        if not plan:
+            raise HTTPException(status_code=404, detail="plan_not_found")
+        
+        base_price = float(plan.price_amount)
+        current_time = datetime.utcnow()
+        
+        # Find active promotions for this plan
+        applicable_codes = [payload.plan_code, "all"]
+        promotions = db.query(Promotion).filter(
+            Promotion.is_active == True,
+            Promotion.start_date <= current_time,
+            Promotion.end_date >= current_time
+        ).all()
+        
+        applicable_promotions = []
+        for promo in promotions:
+            promo_plans = [c.strip() for c in promo.applicable_plan_codes.split(",")]
+            if any(pc in applicable_codes for pc in promo_plans):
+                applicable_promotions.append(promo)
+        
+        # Apply the best promotion (highest discount)
+        effective_price = base_price
+        applied_promotion = None
+        
+        for promo in applicable_promotions:
+            if promo.promotion_type == PromotionType.PERCENTAGE:
+                discount = base_price * (float(promo.value) / 100)
+                promo_price = base_price - discount
+            else:  # FIXED_AMOUNT
+                promo_price = base_price - float(promo.value)
+            
+            if promo_price < effective_price:
+                effective_price = promo_price
+                applied_promotion = promo
+        
+        plan_amount = max(0, effective_price)
+        addon_amount = sum(addon_catalog[x]["monthly_price"] for x in payload.addons)
         total_amount = plan_amount + addon_amount
 
         signup.selected_plan = payload.plan_code

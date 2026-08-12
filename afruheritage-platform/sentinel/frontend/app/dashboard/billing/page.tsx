@@ -45,8 +45,10 @@ import {
 } from 'lucide-react'
 
 interface Plan {
+  id: string
   code: string
   name: string
+  display_name: string
   currency: string
   price_amount: number
   monthly_credit_allowance: number
@@ -70,6 +72,21 @@ interface Plan {
   maintenance_enabled: boolean
   fuel_tracking_enabled: boolean
   csv_import_enabled: boolean
+  active: boolean
+}
+
+interface Promotion {
+  id: string
+  name: string
+  description?: string
+  promotion_type: string
+  value: number
+  applicable_plan_codes: string
+  start_date: string
+  end_date: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 interface Subscription {
@@ -115,6 +132,7 @@ export default function BillingPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [wallets, setWallets] = useState<Wallet[]>([])
   const [transactions, setTransactions] = useState<WalletTransaction[]>([])
+  const [promotions, setPromotions] = useState<Promotion[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
@@ -135,6 +153,23 @@ export default function BillingPage() {
   const [assignTenantId, setAssignTenantId] = useState('')
   const [assignPlanId, setAssignPlanId] = useState('')
   const [assigning, setAssigning] = useState(false)
+  const [promotionDialogOpen, setPromotionDialogOpen] = useState(false)
+  const [selectedPromotion, setSelectedPromotion] = useState<Promotion | null>(null)
+  const [promotionName, setPromotionName] = useState('')
+  const [promotionDescription, setPromotionDescription] = useState('')
+  const [promotionType, setPromotionType] = useState('percentage')
+  const [promotionValue, setPromotionValue] = useState('')
+  const [promotionPlans, setPromotionPlans] = useState('all')
+  const [promotionStartDate, setPromotionStartDate] = useState('')
+  const [promotionEndDate, setPromotionEndDate] = useState('')
+  const [savingPromotion, setSavingPromotion] = useState(false)
+  const [planEditDialogOpen, setPlanEditDialogOpen] = useState(false)
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null)
+  const [editPlanDisplayName, setEditPlanDisplayName] = useState('')
+  const [editPlanPrice, setEditPlanPrice] = useState('')
+  const [editPlanCredits, setEditPlanCredits] = useState('')
+  const [editPlanActive, setEditPlanActive] = useState(true)
+  const [savingPlan, setSavingPlan] = useState(false)
 
   useEffect(() => {
     async function loadPlans() {
@@ -149,7 +184,108 @@ export default function BillingPage() {
       }
     }
     loadPlans()
+    loadPromotions()
   }, [])
+
+  const loadPromotions = async () => {
+    try {
+      const data = await api.get('/api/v1/admin/billing/promotions')
+      setPromotions(Array.isArray(data) ? data : [])
+    } catch (e: any) {
+      toast.error('Failed to load promotions: ' + (e.message || 'Unknown error'))
+    }
+  }
+
+  const handleCreatePromotion = async () => {
+    setSavingPromotion(true)
+    try {
+      await api.post('/api/v1/admin/billing/promotions', {
+        name: promotionName,
+        description: promotionDescription,
+        promotion_type: promotionType,
+        value: parseFloat(promotionValue),
+        applicable_plan_codes: promotionPlans,
+        start_date: promotionStartDate,
+        end_date: promotionEndDate,
+      })
+      toast.success('Promotion created successfully')
+      setPromotionDialogOpen(false)
+      setPromotionName('')
+      setPromotionDescription('')
+      setPromotionType('percentage')
+      setPromotionValue('')
+      setPromotionPlans('all')
+      setPromotionStartDate('')
+      setPromotionEndDate('')
+      loadPromotions()
+    } catch (e: any) {
+      toast.error('Failed to create promotion: ' + (e.message || 'Unknown error'))
+    } finally {
+      setSavingPromotion(false)
+    }
+  }
+
+  const handleTogglePromotion = async (promotion: Promotion) => {
+    try {
+      const endpoint = promotion.is_active ? 'deactivate' : 'activate'
+      await api.post(`/api/v1/admin/billing/promotions/${promotion.id}/${endpoint}`)
+      toast.success(`Promotion ${promotion.is_active ? 'deactivated' : 'activated'} successfully`)
+      loadPromotions()
+    } catch (e: any) {
+      toast.error('Failed to toggle promotion: ' + (e.message || 'Unknown error'))
+    }
+  }
+
+  const handleDeletePromotion = async (promotionId: string) => {
+    if (!confirm('Are you sure you want to delete this promotion?')) return
+    try {
+      await api.delete(`/api/v1/admin/billing/promotions/${promotionId}`)
+      toast.success('Promotion deleted successfully')
+      loadPromotions()
+    } catch (e: any) {
+      toast.error('Failed to delete promotion: ' + (e.message || 'Unknown error'))
+    }
+  }
+
+  const getPromotionStatus = (promotion: Promotion) => {
+    const now = new Date()
+    const start = new Date(promotion.start_date)
+    const end = new Date(promotion.end_date)
+    
+    if (!promotion.is_active) return 'Disabled'
+    if (now < start) return 'Scheduled'
+    if (now > end) return 'Expired'
+    return 'Active'
+  }
+
+  const handleEditPlan = (plan: Plan) => {
+    setEditingPlan(plan)
+    setEditPlanDisplayName(plan.display_name)
+    setEditPlanPrice(plan.price_amount.toString())
+    setEditPlanCredits(plan.monthly_credit_allowance.toString())
+    setEditPlanActive(plan.active)
+    setPlanEditDialogOpen(true)
+  }
+
+  const handleSavePlan = async () => {
+    if (!editingPlan) return
+    setSavingPlan(true)
+    try {
+      await api.patch(`/api/v1/admin/billing/plans/${editingPlan.id}`, {
+        display_name: editPlanDisplayName,
+        monthly_price: parseFloat(editPlanPrice),
+        included_credits: parseInt(editPlanCredits),
+        active: editPlanActive,
+      })
+      toast.success('Plan updated successfully')
+      setPlanEditDialogOpen(false)
+      loadPlans()
+    } catch (e: any) {
+      toast.error('Failed to update plan: ' + (e.message || 'Unknown error'))
+    } finally {
+      setSavingPlan(false)
+    }
+  }
 
   const lookupWallet = async () => {
     if (!walletTenantId) return
@@ -243,8 +379,13 @@ export default function BillingPage() {
             {plans.map((p: Plan) => (
               <Card key={p.code} className="flex flex-col">
                 <CardContent className="p-6 flex-1">
-                  <Badge className={`mb-3 ${planColor(p.code)}`}>{p.code}</Badge>
-                  <div className="text-lg font-bold">{p.name}</div>
+                  <div className="flex items-start justify-between mb-3">
+                    <Badge className={planColor(p.code)}>{p.code}</Badge>
+                    <Button size="sm" variant="ghost" onClick={() => handleEditPlan(p)}>
+                      Edit
+                    </Button>
+                  </div>
+                  <div className="text-lg font-bold">{p.display_name}</div>
                   <div className="mt-3 text-2xl font-bold">
                     GHS {p.price_amount}
                     <span className="text-sm font-normal text-muted-foreground"> /mo</span>
@@ -283,6 +424,207 @@ export default function BillingPage() {
           </div>
         )}
       </div>
+
+      {/* Promotions Management */}
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Promotions</h2>
+          <Button onClick={() => setPromotionDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Create Promotion
+          </Button>
+        </div>
+        
+        {promotions.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No promotions configured yet
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {promotions.map((promo) => (
+              <Card key={promo.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold">{promo.name}</h3>
+                        <Badge variant={promo.is_active ? 'default' : 'secondary'}>
+                          {getPromotionStatus(promo)}
+                        </Badge>
+                      </div>
+                      {promo.description && (
+                        <p className="mt-1 text-sm text-muted-foreground">{promo.description}</p>
+                      )}
+                      <div className="mt-2 flex gap-4 text-sm">
+                        <span className="text-muted-foreground">
+                          {promo.promotion_type === 'percentage' ? `${promo.value}% off` : `GHS ${promo.value} off`}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Plans: {promo.applicable_plan_codes === 'all' ? 'All' : promo.applicable_plan_codes}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {new Date(promo.start_date).toLocaleDateString()} - {new Date(promo.end_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTogglePromotion(promo)}
+                      >
+                        {promo.is_active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeletePromotion(promo.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Promotion Dialog */}
+      <Dialog open={promotionDialogOpen} onOpenChange={setPromotionDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create Promotion</DialogTitle>
+            <DialogDescription>Create a new promotional discount</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Promotion Name</Label>
+              <Input
+                value={promotionName}
+                onChange={e => setPromotionName(e.target.value)}
+                placeholder="Launch Special"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description (Optional)</Label>
+              <Input
+                value={promotionDescription}
+                onChange={e => setPromotionDescription(e.target.value)}
+                placeholder="50% off for launch"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Discount Type</Label>
+              <Select value={promotionType} onValueChange={setPromotionType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="fixed_amount">Fixed Amount</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Value</Label>
+              <Input
+                type="number"
+                value={promotionValue}
+                onChange={e => setPromotionValue(e.target.value)}
+                placeholder={promotionType === 'percentage' ? '50' : '500'}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Applicable Plans</Label>
+              <Select value={promotionPlans} onValueChange={setPromotionPlans}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Plans</SelectItem>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="business">Business</SelectItem>
+                  <SelectItem value="delivery_services">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Date</Label>
+                <Input
+                  type="datetime-local"
+                  value={promotionStartDate}
+                  onChange={e => setPromotionStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>End Date</Label>
+                <Input
+                  type="datetime-local"
+                  value={promotionEndDate}
+                  onChange={e => setPromotionEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+            <Button className="w-full" onClick={handleCreatePromotion} disabled={savingPromotion || !promotionName || !promotionValue || !promotionStartDate || !promotionEndDate}>
+              {savingPromotion ? 'Creating...' : 'Create Promotion'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Plan Dialog */}
+      <Dialog open={planEditDialogOpen} onOpenChange={setPlanEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Plan</DialogTitle>
+            <DialogDescription>Update plan configuration</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Display Name</Label>
+              <Input
+                value={editPlanDisplayName}
+                onChange={e => setEditPlanDisplayName(e.target.value)}
+                placeholder="Starter"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Monthly Price (GHS)</Label>
+              <Input
+                type="number"
+                value={editPlanPrice}
+                onChange={e => setEditPlanPrice(e.target.value)}
+                placeholder="1000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Included Credits</Label>
+              <Input
+                type="number"
+                value={editPlanCredits}
+                onChange={e => setEditPlanCredits(e.target.value)}
+                placeholder="500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="plan-active"
+                checked={editPlanActive}
+                onChange={e => setEditPlanActive(e.target.checked)}
+              />
+              <Label htmlFor="plan-active">Active</Label>
+            </div>
+            <Button className="w-full" onClick={handleSavePlan} disabled={savingPlan || !editPlanDisplayName || !editPlanPrice || !editPlanCredits}>
+              {savingPlan ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Wallet Lookup */}
       <div>

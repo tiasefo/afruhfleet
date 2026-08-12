@@ -19,6 +19,11 @@ class PlanCode(str, PyEnum):
     DELIVERY_SERVICES = "delivery_services"
 
 
+class PromotionType(str, PyEnum):
+    PERCENTAGE = "percentage"
+    FIXED_AMOUNT = "fixed_amount"
+
+
 class SubscriptionStatus(str, PyEnum):
     TRIALING = "trialing"
     ACTIVE = "active"
@@ -59,7 +64,8 @@ class Plan(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     code: Mapped[PlanCode] = mapped_column(Enum(PlanCode), unique=True, nullable=False)
-    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)  # Internal name
+    display_name: Mapped[str] = mapped_column(String(120), nullable=False)  # User-facing display name
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="GHS")
     price_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
     monthly_credit_allowance: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -169,3 +175,19 @@ class AuditLog(Base):
     target_id: Mapped[str] = mapped_column(String(255), nullable=False)
     metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+
+class Promotion(Base):
+    __tablename__ = "billing_promotions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    promotion_type: Mapped[PromotionType] = mapped_column(Enum(PromotionType), nullable=False)
+    value: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False)
+    applicable_plan_codes: Mapped[str] = mapped_column(String(500), nullable=False, default="all")
+    start_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    end_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
