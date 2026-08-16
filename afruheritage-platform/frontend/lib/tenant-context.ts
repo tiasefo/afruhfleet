@@ -19,6 +19,11 @@ export interface TenantContext {
   csv_import_enabled: boolean
   group_members_enabled: boolean
   max_group_members: number
+  bus_fleet_enabled?: boolean
+  storage_fees_enabled?: boolean
+  tracking_enabled?: boolean
+  fleetbase_integration_enabled?: boolean
+  shipping_estimator_enabled?: boolean
   support_email: string
   support_phone: string
   legal_footer_text: string
@@ -68,6 +73,42 @@ const DEFAULT_TENANT_CONTEXT: TenantContext = {
   storefront_config: undefined,
 }
 
+/** Flatten nested features/theme/contact/legal objects from API response to top-level properties. */
+function flattenTenantContext(data: any): void {
+  if (!data.theme_code && data.template_code) {
+    data.theme_code = data.template_code
+  }
+  if (data.features) {
+    const f = data.features
+    data.maps_enabled = f.maps_enabled ?? data.maps_enabled
+    data.public_tracking_enabled = f.public_tracking_enabled ?? data.public_tracking_enabled
+    data.csv_import_enabled = f.csv_import_enabled ?? data.csv_import_enabled
+    data.group_members_enabled = f.group_members_enabled ?? data.group_members_enabled
+    data.max_group_members = f.max_group_members ?? data.max_group_members
+    data.bus_fleet_enabled = f.bus_fleet_enabled ?? data.bus_fleet_enabled
+    data.storage_fees_enabled = f.storage_fees_enabled ?? data.storage_fees_enabled
+    data.tracking_enabled = f.tracking_enabled ?? data.tracking_enabled
+    data.fleetbase_integration_enabled = f.fleetbase_integration_enabled ?? data.fleetbase_integration_enabled
+    data.shipping_estimator_enabled = f.shipping_estimator_enabled ?? data.shipping_estimator_enabled
+  }
+  if (data.theme) {
+    data.primary_color = data.theme.primary_color ?? data.primary_color
+    data.secondary_color = data.theme.secondary_color ?? data.secondary_color
+    data.accent_color = data.theme.accent_color ?? data.accent_color
+    data.background_color = data.theme.background_color ?? data.background_color
+    data.logo_url = data.theme.logo_url ?? data.logo_url
+    data.favicon_url = data.theme.favicon_url ?? data.favicon_url
+  }
+  if (data.contact) {
+    data.support_email = data.contact.support_email ?? data.support_email
+    data.support_phone = data.contact.support_phone ?? data.support_phone
+  }
+  if (data.legal) {
+    data.legal_footer_text = data.legal.legal_footer_text ?? data.legal_footer_text
+    data.legal_company_name = data.legal.legal_company_name ?? data.legal_company_name
+  }
+}
+
 export async function fetchTenantContextServer(slug: string): Promise<TenantContext | null> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || (process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NEXT_PUBLIC_API_BASE_URL.startsWith('http') ? process.env.NEXT_PUBLIC_API_BASE_URL : 'http://api:8000')
@@ -80,10 +121,7 @@ export async function fetchTenantContextServer(slug: string): Promise<TenantCont
     }
 
     const data = await response.json()
-    // Map template_code → theme_code if theme_code is not set
-    if (!data.theme_code && data.template_code) {
-      data.theme_code = data.template_code
-    }
+    flattenTenantContext(data)
     return data
   } catch (error) {
     console.error('Failed to fetch tenant context:', error)
@@ -107,9 +145,7 @@ export async function fetchTenantContextClient(identifier: string): Promise<Tena
       return null
     }
     const data = await response.json()
-    if (!data.theme_code && data.template_code) {
-      data.theme_code = data.template_code
-    }
+    flattenTenantContext(data)
     return data
   } catch (error) {
     console.error('Failed to fetch tenant context (client):', error)
@@ -128,7 +164,9 @@ export async function fetchTenantContextByHostServer(host: string): Promise<Tena
     })
 
     if (response.ok) {
-      return await response.json()
+      const data = await response.json()
+      flattenTenantContext(data)
+      return data
     }
 
     // If full hostname didn't match, try extracting subdomain (e.g., "mycompany" from "mycompany.afruheritage.com")
@@ -139,7 +177,9 @@ export async function fetchTenantContextByHostServer(host: string): Promise<Tena
         cache: 'no-store',
       })
       if (subResponse.ok) {
-        return await subResponse.json()
+        const data = await subResponse.json()
+        flattenTenantContext(data)
+        return data
       }
     }
 

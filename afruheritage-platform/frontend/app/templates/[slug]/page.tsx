@@ -13,7 +13,6 @@ import {
   Palette,
   Loader2,
   AlertCircle,
-  Check,
   Type,
   Layout,
   Square,
@@ -35,9 +34,6 @@ export default function TemplateDetailPage() {
   const [template, setTemplate] = useState<Template | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selecting, setSelecting] = useState(false)
-  const [selected, setSelected] = useState(false)
-
   useEffect(() => {
     async function load() {
       setIsLoading(true)
@@ -57,19 +53,6 @@ export default function TemplateDetailPage() {
     }
     load()
   }, [slug])
-
-  const handleSelect = async () => {
-    if (!template) return
-    setSelecting(true)
-    try {
-      await templatesApi.select(template.template_code)
-      setSelected(true)
-    } catch (err) {
-      alert('Failed to select template. Make sure you are logged in.')
-    } finally {
-      setSelecting(false)
-    }
-  }
 
   if (isLoading) {
     return (
@@ -133,20 +116,12 @@ export default function TemplateDetailPage() {
               <p className="mt-2 max-w-xl text-muted-foreground">{template.description}</p>
             )}
           </div>
-          <Button
-            size="lg"
-            onClick={handleSelect}
-            disabled={selecting || selected}
-          >
-            {selecting ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : selected ? (
-              <Check className="h-4 w-4 mr-2" />
-            ) : (
-              <Palette className="h-4 w-4 mr-2" />
-            )}
-            {selected ? 'Selected!' : 'Select This Template'}
-          </Button>
+          <Link href="/templates">
+            <Button size="lg" variant="outline">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Templates
+            </Button>
+          </Link>
         </div>
 
         {/* Preview mockup */}
@@ -261,16 +236,6 @@ export default function TemplateDetailPage() {
           </Card>
         </div>
 
-        {selected && (
-          <div className="mt-6 rounded-lg border border-green-200 bg-green-50 p-4 text-center">
-            <p className="text-sm font-medium text-green-800">
-              Template selected! Your storefront has been updated.
-            </p>
-            <Link href="/dashboard">
-              <Button className="mt-3">Go to Dashboard</Button>
-            </Link>
-          </div>
-        )}
       </div>
     </main>
   )

@@ -31,8 +31,9 @@ const perks = [
 export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
   const brand = theme?.name ?? "Verde Goods"
   const footer = theme?.legalFooterText ?? "Demo storefront."
+  const caps = theme?.capabilities
   return (
-    <div className="theme-ecommerce" style={theme ? tenantThemeStyle(theme) : undefined}>
+    <div className="theme-ecommerce" data-capabilities={caps ? JSON.stringify(caps) : undefined} style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <div className="bg-primary py-2 text-center text-xs font-medium text-primary-foreground">
           Free carbon-neutral shipping on orders over $75
@@ -148,6 +149,7 @@ export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
           </div>
         </section>
 
+        {caps?.group_members_enabled && (
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="grid items-center gap-8 rounded-3xl bg-primary p-8 text-primary-foreground sm:p-14 lg:grid-cols-2">
             <div>
@@ -164,6 +166,7 @@ export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
             </div>
           </div>
         </section>
+        )}
 
         <footer className="border-t border-border">
           <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">

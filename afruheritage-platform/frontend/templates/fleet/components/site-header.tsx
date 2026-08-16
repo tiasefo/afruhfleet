@@ -13,19 +13,23 @@ import {
 } from "@/components/ui/sheet"
 import type { TenantPublicTheme } from "@/lib/tenant-theme-registry"
 
-const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Routes", href: "#routes" },
-  { label: "Track", href: "#track" },
-  { label: "Fleet", href: "#fleet" },
-  { label: "Services", href: "#services" },
-  { label: "Marketplace", href: "#marketplace" },
-  { label: "About", href: "/about" },
-  { label: "Support", href: "/support" },
-]
-
 export function SiteHeader({ theme }: { theme: TenantPublicTheme }) {
   const [open, setOpen] = useState(false)
+  const caps = theme.capabilities
+  const allNavLinks = [
+    { label: "Home", href: "#home" },
+    { label: "Routes", href: "#routes" },
+    { label: "Track", href: "#track" },
+    { label: "Fleet", href: "#fleet" },
+    { label: "Services", href: "#services" },
+    { label: "Marketplace", href: "#marketplace" },
+    { label: "About", href: "/about" },
+    { label: "Support", href: "/support" },
+  ]
+  const navLinks = allNavLinks.filter((link) => {
+    if (link.href === '#track' && !caps.public_tracking_enabled) return false
+    return true
+  })
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10" style={{ background: theme.primaryColor, color: "#fff" }}>

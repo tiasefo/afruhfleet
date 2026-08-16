@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { api } from '@/lib/api'
+import { api, pluginsAPI } from '@/lib/api'
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -48,13 +48,18 @@ interface PluginDetail extends Plugin {
   healthy?: boolean
 }
 
+type PluginStatus = 'not_installed' | 'installed' | 'disabled'
+
 export default function PluginCatalogPage() {
   const { user, token } = useAuth()
   const [plugins, setPlugins] = useState<Plugin[]>([])
+  const [pluginStatus, setPluginStatus] = useState<Record<string, PluginStatus>>({})
   const [loading, setLoading] = useState(true)
   const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null)
   const [installDialogOpen, setInstallDialogOpen] = useState(false)
   const [installing, setInstalling] = useState(false)
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null)
+  const [lastError, setLastError] = useState<{ plugin: string; message: string } | null>(null)
   const [consent, setConsent] = useState({
     ui_change: false,
     business_type_change: false,
@@ -62,16 +67,26 @@ export default function PluginCatalogPage() {
   })
   const [acknowledgedRisks, setAcknowledgedRisks] = useState<string[]>([])
 
-  const loadPlugins = async () => {
+  const loadPlugins = async (silent = false) => {
     if (!token) return
-    setLoading(true)
+    if (!silent) setLoading(true)
     try {
-      const data = await api.get('/plugins/catalog')
-      setPlugins(Array.isArray(data) ? data : [])
+      const [catalogData, installedData] = await Promise.all([
+        pluginsAPI.listCatalog(),
+        pluginsAPI.listInstalled().catch(() => []),
+      ])
+      setPlugins(Array.isArray(catalogData) ? catalogData : [])
+      if (Array.isArray(installedData)) {
+        const map: Record<string, PluginStatus> = {}
+        installedData.forEach((p: any) => {
+          map[p.name] = p.status || (p.installed ? 'installed' : 'not_installed')
+        })
+        setPluginStatus(map)
+      }
     } catch (err: any) {
       toast.error('Failed to load plugins: ' + err.message)
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
@@ -98,9 +113,9 @@ export default function PluginCatalogPage() {
     if (!selectedPlugin) return
     
     setInstalling(true)
+    setLastError(null)
     try {
-      const result = await api.post('/plugins/install', {
-        plugin_name: selectedPlugin.name,
+      const result = await pluginsAPI.install(selectedPlugin.name, {
         consent_ui_change: consent.ui_change,
         consent_business_type_change: consent.business_type_change,
         consent_data_impact: consent.data_impact,
@@ -108,16 +123,63 @@ export default function PluginCatalogPage() {
       })
       
       if (result.success) {
-        toast.success(`Plugin installed successfully: ${result.message}`)
+        toast.success(`${selectedPlugin.feature_name} installed! Your storefront has been updated.`, { duration: 6000 })
         setInstallDialogOpen(false)
-        await loadPlugins()
+        await loadPlugins(true)
       } else {
         toast.warning(`Installation attempted: ${result.message}`)
+        setLastError({ plugin: selectedPlugin.name, message: result.message || 'Installation incomplete' })
       }
     } catch (err: any) {
       toast.error('Installation failed: ' + err.message)
+      setLastError({ plugin: selectedPlugin.name, message: err.message })
     } finally {
       setInstalling(false)
+    }
+  }
+
+  const handleEnable = async (plugin: Plugin) => {
+    setActionInProgress(plugin.name)
+    setLastError(null)
+    try {
+      await pluginsAPI.enable(plugin.name)
+      toast.success(`${plugin.feature_name} enabled`)
+      await loadPlugins(true)
+    } catch (err: any) {
+      toast.error('Failed to enable: ' + err.message)
+      setLastError({ plugin: plugin.name, message: err.message })
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
+  const handleDisable = async (plugin: Plugin) => {
+    setActionInProgress(plugin.name)
+    setLastError(null)
+    try {
+      await pluginsAPI.disable(plugin.name)
+      toast.success(`${plugin.feature_name} disabled`)
+      await loadPlugins(true)
+    } catch (err: any) {
+      toast.error('Failed to disable: ' + err.message)
+      setLastError({ plugin: plugin.name, message: err.message })
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
+  const handleUninstall = async (plugin: Plugin) => {
+    setActionInProgress(plugin.name)
+    setLastError(null)
+    try {
+      await pluginsAPI.uninstall(plugin.name)
+      toast.success(`${plugin.feature_name} uninstalled`)
+      await loadPlugins(true)
+    } catch (err: any) {
+      toast.error('Failed to uninstall: ' + err.message)
+      setLastError({ plugin: plugin.name, message: err.message })
+    } finally {
+      setActionInProgress(null)
     }
   }
 
@@ -167,8 +229,12 @@ export default function PluginCatalogPage() {
         ) : (
           /* Plugin Grid */
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {plugins.map((plugin) => (
-              <Card key={plugin.name} className="hover:shadow-lg transition-shadow">
+            {plugins.map((plugin) => {
+              const status = pluginStatus[plugin.name] || 'not_installed'
+              const isBusy = actionInProgress === plugin.name
+              const hasError = lastError?.plugin === plugin.name
+              return (
+              <Card key={plugin.name} data-testid={`plugin-card-${plugin.name}`} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
@@ -180,6 +246,17 @@ export default function PluginCatalogPage() {
                         <p className="text-xs text-slate-500 font-mono mt-1">{plugin.name}</p>
                       </div>
                     </div>
+                    {status === 'installed' && (
+                      <Badge variant="default" className="gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Installed
+                      </Badge>
+                    )}
+                    {status === 'disabled' && (
+                      <Badge variant="outline" className="gap-1 text-amber-600">
+                        Disabled
+                      </Badge>
+                    )}
                   </div>
                   <CardDescription className="text-sm mt-2">
                     {plugin.description}
@@ -240,18 +317,86 @@ export default function PluginCatalogPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Error with retry */}
+                  {hasError && (
+                    <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                      <div className="flex items-center justify-between">
+                        <span>{lastError!.message}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          aria-label={`Retry last action for ${plugin.feature_name}`}
+                          onClick={() => { setLastError(null); loadPlugins(true) }}
+                        >
+                          Retry
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    onClick={() => handleInstallClick(plugin)}
-                  >
-                    <Zap className="h-4 w-4 mr-2" />
-                    Install Plugin
-                  </Button>
+                <CardFooter className="flex gap-2">
+                  {status === 'not_installed' && (
+                    <Button
+                      className="w-full"
+                      onClick={() => handleInstallClick(plugin)}
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Install Plugin
+                    </Button>
+                  )}
+                  {status === 'installed' && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        disabled={isBusy}
+                        onClick={() => handleDisable(plugin)}
+                        aria-label={`Disable ${plugin.feature_name}`}
+                      >
+                        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disable'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        disabled={isBusy}
+                        onClick={() => handleUninstall(plugin)}
+                        aria-label={`Uninstall ${plugin.feature_name}`}
+                      >
+                        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Uninstall'}
+                      </Button>
+                    </>
+                  )}
+                  {status === 'disabled' && (
+                    <>
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1"
+                        disabled={isBusy}
+                        onClick={() => handleEnable(plugin)}
+                        aria-label={`Enable ${plugin.feature_name}`}
+                      >
+                        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enable'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="flex-1"
+                        disabled={isBusy}
+                        onClick={() => handleUninstall(plugin)}
+                        aria-label={`Uninstall ${plugin.feature_name}`}
+                      >
+                        {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Uninstall'}
+                      </Button>
+                    </>
+                  )}
                 </CardFooter>
               </Card>
-            ))}
+              )
+            })}
           </div>
         )}
 

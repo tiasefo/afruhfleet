@@ -368,14 +368,14 @@ export default function TemplatesPage() {
                     ) : isPending ? (
                       'Publish'
                     ) : (
-                      'Select'
+                      'Install'
                     )}
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => window.open(previewRoute, '_blank')}
-                    aria-label={`Preview ${template.name} template`}
+                    aria-label={`Preview ${template.name} in new tab`}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>

@@ -5,6 +5,7 @@ import { waLink } from "@/lib/utils"
 
 export function SiteFooter({ theme }: { theme: TenantPublicTheme }) {
   const cfg = theme.storefrontConfig
+  const caps = theme.capabilities
   const trackingPhone = cfg?.contacts?.tracking?.phone || theme.supportPhone || ""
   const trackingWa = cfg?.contacts?.tracking?.whatsapp || cfg?.whatsapp?.tracking || ""
   const generalPhone = cfg?.contacts?.general?.phone || ""
@@ -33,10 +34,16 @@ export function SiteFooter({ theme }: { theme: TenantPublicTheme }) {
             <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link href="#services" className="hover:text-foreground">Services</Link></li>
-              <li><Link href="#track" className="hover:text-foreground">Track Shipment</Link></li>
+              {caps.public_tracking_enabled && (
+                <li><Link href="#track" className="hover:text-foreground">Track Shipment</Link></li>
+              )}
               <li><Link href="#how" className="hover:text-foreground">How It Works</Link></li>
-              <li><Link href="#warehouse" className="hover:text-foreground">Warehouse</Link></li>
-              <li><Link href="#customs" className="hover:text-foreground">Customs Calculator</Link></li>
+              {caps.storage_fees_enabled && (
+                <li><Link href="#warehouse" className="hover:text-foreground">Warehouse</Link></li>
+              )}
+              {caps.shipping_estimator_enabled && (
+                <li><Link href="#customs" className="hover:text-foreground">Customs Calculator</Link></li>
+              )}
               <li><Link href="/sign-in" className="hover:text-foreground">Staff Login</Link></li>
             </ul>
           </div>

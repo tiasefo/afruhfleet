@@ -17,9 +17,11 @@ export function readEnvTenantId(): string | null {
 
 export function getStoredTenantId(): string | null {
   if (typeof window === 'undefined') return readEnvTenantId()
+  // On the client, the authenticated user's tenant_id must come from localStorage only.
+  // The env default (NEXT_PUBLIC_TENANT_ID) is for server-side rendering of public pages
+  // and must NOT override the authenticated session for client-side API calls.
   const stored = window.localStorage.getItem('tenant_id')?.trim()
-  if (stored) return stored
-  return readEnvTenantId()
+  return stored || null
 }
 
 export function persistTenantId(tenantId?: string | null) {

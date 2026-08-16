@@ -69,10 +69,14 @@ async function request<T = any>(
 
   // Auth is handled via HttpOnly cookie set by the backend.
   // The browser automatically sends the cookie with same-origin requests.
-  // Do NOT read or inject the JWT in JavaScript.
+  // Also send JWT from localStorage as Authorization header for Next.js rewrite compatibility.
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
 
   const finalPath = withTenantId(path)
-  const res = await fetch(`${API_BASE}${finalPath}`, { ...options, headers, credentials: 'same-origin', mode: 'same-origin' })
+  const res = await fetch(`${API_BASE}${finalPath}`, { ...options, headers, credentials: 'same-origin' })
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }))
@@ -812,6 +816,11 @@ export const pluginsAPI = {
   enable: (pluginName: string) => api.post(`/plugins/${pluginName}/enable`, {}),
   disable: (pluginName: string) => api.post(`/plugins/${pluginName}/disable`, {}),
   uninstall: (pluginName: string) => api.post(`/plugins/${pluginName}/uninstall`, {}),
+  listAll: () => api.get('/plugins'),
+  activate: (pluginCode: string) => api.patch(`/plugins/admin/${pluginCode}/activate`, {}),
+  deactivate: (pluginCode: string) => api.patch(`/plugins/admin/${pluginCode}/deactivate`, {}),
+  updateMetadata: (pluginCode: string, data: { name?: string; description?: string; category?: string; version?: string }) =>
+    api.patch(`/plugins/admin/${pluginCode}`, data),
 }
 
 // Fleetbase-backed logistics API

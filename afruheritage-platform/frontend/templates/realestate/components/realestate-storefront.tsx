@@ -27,8 +27,9 @@ const agents = [
 export function RealEstateStorefront({ theme }: { theme?: TenantPublicTheme }) {
   const brand = theme?.name ?? "Haven Estates"
   const footer = theme?.legalFooterText ?? "Demo storefront."
+  const caps = theme?.capabilities
   return (
-    <div className="theme-realestate" style={theme ? tenantThemeStyle(theme) : undefined}>
+    <div className="theme-realestate" data-capabilities={caps ? JSON.stringify(caps) : undefined} style={theme ? tenantThemeStyle(theme) : undefined}>
       <main className="min-h-screen bg-background font-sans text-foreground">
         <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">

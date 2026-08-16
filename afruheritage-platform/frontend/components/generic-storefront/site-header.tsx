@@ -8,10 +8,12 @@ export function SiteHeader({
   companyName,
   logoUrl,
   primaryColor,
+  trackingEnabled = true,
 }: {
   companyName: string
   logoUrl: string
   primaryColor: string
+  trackingEnabled?: boolean
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -32,9 +34,11 @@ export function SiteHeader({
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Track
-          </Link>
+          {trackingEnabled && (
+            <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+              Track
+            </Link>
+          )}
           <Link href="/customs" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Customs Calculator
           </Link>
@@ -62,9 +66,11 @@ export function SiteHeader({
       {mobileOpen && (
         <nav className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="flex flex-col gap-4">
-            <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-              Track Shipment
-            </Link>
+            {trackingEnabled && (
+              <Link href="/track" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+                Track Shipment
+              </Link>
+            )}
             <Link href="/customs" className="text-sm font-medium text-gray-600 hover:text-gray-900">
               Customs Calculator
             </Link>

@@ -18,6 +18,27 @@ class StorefrontTemplateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class StorefrontTemplateCatalogResponse(BaseModel):
+    template_code: str
+    name: str
+    description: str | None = None
+    preset: dict
+    is_active: bool
+    status: str | None = None
+    version: str | None = None
+    renderer_key: str | None = None
+    minimum_platform_version: str | None = None
+    business_type: str | None = None
+    required_capabilities: list[str] = []
+    optional_capabilities: list[str] = []
+    compatible_plugins: list[str] = []
+    incompatible_plugins: list[str] = []
+    preview_route: str | None = None
+    preview_image: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TenantTemplateSelectionRequest(BaseModel):
     template_code: str
     tenant_id: str | None = None

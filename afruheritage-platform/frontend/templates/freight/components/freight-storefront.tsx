@@ -14,20 +14,21 @@ import { SiteFooter } from "./site-footer"
 
 export function FreightStorefront({ theme }: { theme: TenantPublicTheme }) {
   const cfg = theme.storefrontConfig
+  const caps = theme.capabilities
   const hasPayments = (cfg?.payment || (cfg?.billing_staff && cfg.billing_staff.length > 0))
   const hasEstimator = cfg?.estimator || true
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background" data-capabilities={JSON.stringify(caps)}>
       <SiteHeader theme={theme} />
       <main className="flex-1">
         <Hero theme={theme} />
-        <TrackShipment theme={theme} />
+        {caps.public_tracking_enabled && <TrackShipment theme={theme} />}
         <Services theme={theme} />
         <HowItWorks theme={theme} />
-        <WarehouseNotices theme={theme} />
+        {caps.storage_fees_enabled && <WarehouseNotices theme={theme} />}
         {hasEstimator && <Estimator theme={theme} />}
-        <CustomsCalculator theme={theme} />
+        {caps.shipping_estimator_enabled && <CustomsCalculator theme={theme} />}
         {hasPayments && <Payments theme={theme} />}
         <SupportForm theme={theme} />
         <CTA theme={theme} />

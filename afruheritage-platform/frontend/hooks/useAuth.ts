@@ -36,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   const loginWithToken = async (accessToken: string) => {
+    // Clear any stale tenant context from a previous session.
+    persistTenantId(null)
     setToken(accessToken)
     setTokenState(accessToken)
     const userData = await authApi.me()
@@ -63,6 +65,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      // Clear any stale tenant context from a previous session before login.
+      // This prevents cross-tenant contamination if a different user was logged in before.
+      persistTenantId(null)
+
       const response = await authApi.login({ username: email, password })
       const { access_token, subdomain, requires_subscription } = response as any
       

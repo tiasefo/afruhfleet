@@ -85,6 +85,18 @@ export type StorefrontConfig = {
   shipping_policy_content?: string
 }
 
+export type TenantCapabilities = {
+  public_tracking_enabled: boolean
+  maps_enabled: boolean
+  csv_import_enabled: boolean
+  group_members_enabled: boolean
+  bus_fleet_enabled: boolean
+  storage_fees_enabled: boolean
+  tracking_enabled: boolean
+  fleetbase_integration_enabled: boolean
+  shipping_estimator_enabled: boolean
+}
+
 export type TenantPublicTheme = {
   slug: string
   themeCode: TenantThemeCode
@@ -101,6 +113,7 @@ export type TenantPublicTheme = {
   legalFooterText: string
   legalCompanyName: string
   storefrontConfig: StorefrontConfig | null
+  capabilities: TenantCapabilities
 }
 
 /**
@@ -145,6 +158,17 @@ export function resolveTenantThemeFromContext(ctx: TenantContext): TenantPublicT
     legalFooterText: ctx.legal_footer_text || '',
     legalCompanyName: ctx.legal_company_name || '',
     storefrontConfig: ctx.storefront_config || null,
+    capabilities: {
+      public_tracking_enabled: ctx.public_tracking_enabled ?? false,
+      maps_enabled: ctx.maps_enabled ?? false,
+      csv_import_enabled: ctx.csv_import_enabled ?? false,
+      group_members_enabled: ctx.group_members_enabled ?? false,
+      bus_fleet_enabled: (ctx as any).bus_fleet_enabled ?? false,
+      storage_fees_enabled: (ctx as any).storage_fees_enabled ?? false,
+      tracking_enabled: (ctx as any).tracking_enabled ?? false,
+      fleetbase_integration_enabled: (ctx as any).fleetbase_integration_enabled ?? false,
+      shipping_estimator_enabled: (ctx as any).shipping_estimator_enabled ?? false,
+    },
   }
 }
 
@@ -177,11 +201,16 @@ export async function resolveTenantTheme(slug: string): Promise<TenantPublicThem
       default_currency: raw.default_currency || 'GHS',
       default_language: raw.default_language || 'en',
       supported_languages: raw.supported_languages || ['en'],
-      maps_enabled: raw.maps_enabled ?? raw.features?.maps_enabled ?? true,
-      public_tracking_enabled: raw.public_tracking_enabled ?? raw.features?.public_tracking_enabled ?? true,
-      csv_import_enabled: raw.csv_import_enabled ?? raw.features?.csv_import_enabled ?? true,
-      group_members_enabled: raw.group_members_enabled ?? raw.features?.group_members_enabled ?? true,
+      maps_enabled: raw.maps_enabled ?? raw.features?.maps_enabled ?? false,
+      public_tracking_enabled: raw.public_tracking_enabled ?? raw.features?.public_tracking_enabled ?? false,
+      csv_import_enabled: raw.csv_import_enabled ?? raw.features?.csv_import_enabled ?? false,
+      group_members_enabled: raw.group_members_enabled ?? raw.features?.group_members_enabled ?? false,
       max_group_members: raw.max_group_members ?? raw.features?.max_group_members ?? 50,
+      bus_fleet_enabled: raw.bus_fleet_enabled ?? raw.features?.bus_fleet_enabled ?? false,
+      storage_fees_enabled: raw.storage_fees_enabled ?? raw.features?.storage_fees_enabled ?? false,
+      tracking_enabled: raw.tracking_enabled ?? raw.features?.tracking_enabled ?? false,
+      fleetbase_integration_enabled: raw.fleetbase_integration_enabled ?? raw.features?.fleetbase_integration_enabled ?? false,
+      shipping_estimator_enabled: raw.shipping_estimator_enabled ?? raw.features?.shipping_estimator_enabled ?? false,
       support_email: raw.support_email || raw.contact?.support_email || '',
       support_phone: raw.support_phone || raw.contact?.support_phone || '',
       legal_footer_text: raw.legal_footer_text || raw.legal?.legal_footer_text || '',

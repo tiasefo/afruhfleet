@@ -14,12 +14,25 @@ export function GenericStorefront() {
   const supportEmail = tenant.support_email || "support@afruheritage.com"
   const supportPhone = tenant.support_phone || ""
 
+  const caps = {
+    public_tracking_enabled: tenant.public_tracking_enabled,
+    maps_enabled: tenant.maps_enabled,
+    csv_import_enabled: tenant.csv_import_enabled,
+    group_members_enabled: tenant.group_members_enabled,
+    bus_fleet_enabled: (tenant as any).bus_fleet_enabled ?? false,
+    storage_fees_enabled: (tenant as any).storage_fees_enabled ?? false,
+    tracking_enabled: (tenant as any).tracking_enabled ?? false,
+    fleetbase_integration_enabled: (tenant as any).fleetbase_integration_enabled ?? false,
+    shipping_estimator_enabled: (tenant as any).shipping_estimator_enabled ?? false,
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <div className="flex min-h-screen flex-col bg-white" data-capabilities={JSON.stringify(caps)}>
       <SiteHeader
         companyName={companyName}
         logoUrl={logoUrl}
         primaryColor={tenant.primary_color}
+        trackingEnabled={tenant.public_tracking_enabled}
       />
       <main className="flex-1">
         {/* Hero */}
@@ -52,14 +65,23 @@ export function GenericStorefront() {
           </div>
         </section>
 
-        {/* Track Shipment */}
+        {/* Track Shipment — only if tracking plugin is enabled */}
         {tenant.public_tracking_enabled && (
           <section className="mx-auto -mt-12 max-w-3xl px-4">
             <TrackShipment primaryColor={tenant.primary_color} />
           </section>
+        )
+        }
+        {/* If tracking is disabled, show a notice */}
+        {!tenant.public_tracking_enabled && (
+          <section className="mx-auto max-w-3xl px-4 py-8">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-500">
+              Shipment tracking is not currently available. Contact us for shipment status updates.
+            </div>
+          </section>
         )}
 
-        {/* Services */}
+        {/* Services — conditionally shown based on enabled plugins */}
         <section className="mx-auto max-w-5xl px-4 py-16">
           <h2 className="text-center text-3xl font-bold text-gray-900">
             Our Services
@@ -73,11 +95,13 @@ export function GenericStorefront() {
               description="Air, sea, and land freight forwarding with global coverage and competitive rates."
               icon="container"
             />
-            <ServiceCard
-              title="Shipment Tracking"
-              description="Real-time tracking for all your shipments with automated status updates."
-              icon="track"
-            />
+            {tenant.public_tracking_enabled && (
+              <ServiceCard
+                title="Shipment Tracking"
+                description="Real-time tracking for all your shipments with automated status updates."
+                icon="track"
+              />
+            )}
             <ServiceCard
               title="Cargo Management"
               description="Comprehensive cargo management including storage, packaging, and distribution."
@@ -88,11 +112,13 @@ export function GenericStorefront() {
               description="Expert customs clearance services to ensure smooth international trade."
               icon="customs"
             />
-            <ServiceCard
-              title="Group Shipments"
-              description="Group your shipments together for cost-effective consolidated shipping."
-              icon="group"
-            />
+            {tenant.group_members_enabled && (
+              <ServiceCard
+                title="Group Shipments"
+                description="Group your shipments together for cost-effective consolidated shipping."
+                icon="group"
+              />
+            )}
             <ServiceCard
               title="Online Payments"
               description="Secure online payment system for invoices, storage fees, and shipping costs."
@@ -125,6 +151,7 @@ export function GenericStorefront() {
         supportPhone={supportPhone}
         legalFooterText={tenant.legal_footer_text}
         primaryColor={tenant.primary_color}
+        trackingEnabled={tenant.public_tracking_enabled}
       />
     </div>
   )

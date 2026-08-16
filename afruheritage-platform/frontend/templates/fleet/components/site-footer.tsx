@@ -3,6 +3,7 @@ import { Bus, Phone, Mail, MapPin } from "lucide-react"
 import type { TenantPublicTheme } from "@/lib/tenant-theme-registry"
 
 export function SiteFooter({ theme }: { theme: TenantPublicTheme }) {
+  const caps = theme.capabilities
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -27,7 +28,9 @@ export function SiteFooter({ theme }: { theme: TenantPublicTheme }) {
             <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link href="#routes" className="hover:text-foreground">Routes &amp; Schedules</Link></li>
-              <li><Link href="#track" className="hover:text-foreground">Track Vehicle</Link></li>
+              {caps.public_tracking_enabled && (
+                <li><Link href="#track" className="hover:text-foreground">Track Vehicle</Link></li>
+              )}
               <li><Link href="#fleet" className="hover:text-foreground">Our Fleet</Link></li>
               <li><Link href="#services" className="hover:text-foreground">Services</Link></li>
               <li><Link href="#marketplace" className="hover:text-foreground">Marketplace</Link></li>

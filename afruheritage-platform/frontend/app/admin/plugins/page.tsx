@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plug, Loader2, ShieldCheck, Check, Package } from 'lucide-react'
+import { Plug, Loader2, ShieldCheck, Check, Package, Power, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
@@ -14,12 +14,14 @@ interface GlobalPlugin {
   description: string
   required_endpoints: string[]
   feature_flags: string[]
+  is_active: boolean
 }
 
 export default function AdminPluginsPage() {
   const [plugins, setPlugins] = useState<GlobalPlugin[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     loadPlugins()
@@ -35,6 +37,22 @@ export default function AdminPluginsPage() {
       setError(err?.message || 'Failed to load plugin catalog.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleToggleActive = async (plugin: GlobalPlugin) => {
+    setActionLoading('toggle-' + plugin.name)
+    try {
+      if (plugin.is_active) {
+        await pluginsAPI.deactivate(plugin.name)
+      } else {
+        await pluginsAPI.activate(plugin.name)
+      }
+      await loadPlugins()
+    } catch (err: any) {
+      setError(err?.message || 'Failed to toggle plugin.')
+    } finally {
+      setActionLoading(null)
     }
   }
 
@@ -64,7 +82,7 @@ export default function AdminPluginsPage() {
 
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 flex items-center gap-2">
         <ShieldCheck className="h-4 w-4" />
-        You are signed in as a Platform Super Admin. You can publish, version, and retire plugins globally.
+        You are signed in as a Platform Super Admin. You can activate, deactivate, and edit plugin metadata globally.
       </div>
 
       {error && (
@@ -75,7 +93,7 @@ export default function AdminPluginsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {plugins.map((plugin) => (
-          <Card key={plugin.name}>
+          <Card key={plugin.name} className={!plugin.is_active ? 'opacity-75' : ''}>
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
@@ -87,9 +105,12 @@ export default function AdminPluginsPage() {
                     <p className="text-xs text-muted-foreground font-mono mt-0.5">{plugin.name}</p>
                   </div>
                 </div>
-                <Badge variant="default" className="gap-1">
-                  <Check className="h-3 w-3" />
-                  Published
+                <Badge variant={plugin.is_active ? 'default' : 'outline'} className="gap-1">
+                  {plugin.is_active ? (
+                    <><Check className="h-3 w-3" /> Active</>
+                  ) : (
+                    'Inactive'
+                  )}
                 </Badge>
               </div>
             </CardHeader>
@@ -114,11 +135,27 @@ export default function AdminPluginsPage() {
                 </div>
               )}
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-2">
                 <Badge variant="secondary" className="text-xs">
                   <Package className="h-3 w-3 mr-1" />
                   Global
                 </Badge>
+                <Button
+                  size="sm"
+                  variant={plugin.is_active ? 'destructive' : 'default'}
+                  onClick={() => handleToggleActive(plugin)}
+                  disabled={actionLoading === 'toggle-' + plugin.name}
+                  className="ml-auto"
+                >
+                  {actionLoading === 'toggle-' + plugin.name ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <>
+                      <Power className="h-3 w-3 mr-1" />
+                      {plugin.is_active ? 'Deactivate' : 'Activate'}
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>

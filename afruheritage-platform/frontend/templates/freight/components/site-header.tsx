@@ -28,7 +28,14 @@ const defaultNavLinks = [
 export function SiteHeader({ theme }: { theme: TenantPublicTheme }) {
   const [open, setOpen] = useState(false)
   const cfg = theme.storefrontConfig
-  const navLinks = cfg?.nav_links?.length ? cfg.nav_links : defaultNavLinks
+  const caps = theme.capabilities
+  const allNavLinks = cfg?.nav_links?.length ? cfg.nav_links : defaultNavLinks
+  const navLinks = allNavLinks.filter((link) => {
+    if (link.href === '#track' && !caps.public_tracking_enabled) return false
+    if (link.href === '#warehouse' && !caps.storage_fees_enabled) return false
+    if (link.href === '#customs' && !caps.shipping_estimator_enabled) return false
+    return true
+  })
   const waTracking = cfg?.whatsapp?.tracking || cfg?.contacts?.tracking?.whatsapp || ""
   const trackingPhone = cfg?.contacts?.tracking?.phone || theme.supportPhone || ""
 

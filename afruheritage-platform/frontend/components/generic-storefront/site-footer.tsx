@@ -6,12 +6,14 @@ export function SiteFooter({
   supportPhone,
   legalFooterText,
   primaryColor,
+  trackingEnabled = true,
 }: {
   companyName: string
   supportEmail: string
   supportPhone: string
   legalFooterText: string
   primaryColor: string
+  trackingEnabled?: boolean
 }) {
   return (
     <footer className="border-t border-gray-200 bg-gray-50">
@@ -26,11 +28,13 @@ export function SiteFooter({
           <div>
             <h3 className="text-sm font-semibold text-gray-900">Quick Links</h3>
             <ul className="mt-2 space-y-2">
-              <li>
-                <Link href="/track" className="text-sm text-gray-500 hover:text-gray-900">
-                  Track Shipment
-                </Link>
-              </li>
+              {trackingEnabled && (
+                <li>
+                  <Link href="/track" className="text-sm text-gray-500 hover:text-gray-900">
+                    Track Shipment
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/customs" className="text-sm text-gray-500 hover:text-gray-900">
                   Customs Calculator

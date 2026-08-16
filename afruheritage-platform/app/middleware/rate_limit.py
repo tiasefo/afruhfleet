@@ -45,7 +45,7 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) 
 RATE_LIMITS = {
     # Public endpoints (no auth)
     "public": {
-        "login": "5/minute",      # Login attempts
+        "login": "5/minute" if getattr(settings, 'app_env', 'production') == 'production' else "30/minute",  # Login attempts — 5/min in production, 30/min in non-production for test compatibility
         "register": "3/hour",     # Tenant registration
         "track": "100/minute",    # Public tracking
         "vendor_register": "2/hour",  # Vendor registration
