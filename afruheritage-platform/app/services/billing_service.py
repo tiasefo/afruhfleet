@@ -35,6 +35,8 @@ from app.models.billing import (
     PaymentStatus,
     Plan,
     PlanCode,
+    Promotion,
+    PromotionType,
     Subscription,
     SubscriptionStatus,
     Wallet,
@@ -238,6 +240,68 @@ def feature_credit_cost(feature_usage_key: str) -> int:
 
 def get_feature_credit_costs() -> dict[str, int]:
     return dict(FEATURE_CREDIT_COSTS)
+
+
+def get_effective_price(db: Session, plan_code: str) -> dict:
+    """Calculate the effective price for a plan after applying active promotions.
+
+    Returns:
+        dict with: original_price, effective_price, discount_amount, currency,
+        applied_promotion (or None), promotion_id (or None)
+    """
+    resolved = normalize_plan_code(plan_code)
+    plan = db.query(Plan).filter(Plan.code == resolved).first()
+    if not plan:
+        return {
+            "original_price": 0,
+            "effective_price": 0,
+            "discount_amount": 0,
+            "currency": "GHS",
+            "applied_promotion": None,
+            "promotion_id": None,
+        }
+
+    original = float(plan.price_amount)
+    now = datetime.utcnow()
+
+    promotions = db.query(Promotion).filter(
+        Promotion.is_active == True,
+        Promotion.start_date <= now,
+        Promotion.end_date >= now,
+    ).all()
+
+    applicable = None
+    for promo in promotions:
+        codes_str = promo.applicable_plan_codes or "all"
+        if codes_str.lower() == "all" or resolved.value in [c.strip() for c in codes_str.split(",")]:
+            applicable = promo
+            break
+
+    if not applicable:
+        return {
+            "original_price": original,
+            "effective_price": original,
+            "discount_amount": 0,
+            "currency": plan.currency,
+            "applied_promotion": None,
+            "promotion_id": None,
+        }
+
+    if applicable.promotion_type == PromotionType.PERCENTAGE:
+        discount = round(original * float(applicable.value) / 100, 2)
+    else:
+        discount = min(float(applicable.value), original)
+
+    effective = max(0, round(original - discount, 2))
+
+    return {
+        "original_price": original,
+        "effective_price": effective,
+        "discount_amount": discount,
+        "currency": plan.currency,
+        "applied_promotion": applicable.name,
+        "promotion_id": str(applicable.id),
+    }
 
 
 def seed_default_plans(db: Session) -> None:

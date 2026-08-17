@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.schemas.tenant_context import TenantContextResponse
-from app.services.tenant_context_service import get_tenant_context, resolve_tenant
+from app.services.tenant_context_service import get_tenant_context, resolve_tenant, build_tenant_context
 
 router = APIRouter(prefix="/tenant-context", tags=["Tenant Context"])
 
@@ -54,6 +54,10 @@ def resolve_tenant_by_subdomain(
     if not tenant:
         raise HTTPException(status_code=404, detail=f"No tenant found for subdomain: {subdomain}")
     
+    from app.models.tenant import LaunchStatus
+    if tenant.launch_status == LaunchStatus.suspended:
+        raise HTTPException(status_code=403, detail="This account has been suspended. Please contact support.")
+    
     return build_tenant_context(db, tenant)
 
 
@@ -71,4 +75,9 @@ def get_public_tenant_context(
     context = get_tenant_context(db, identifier)
     if not context:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    # Check if tenant is suspended
+    from app.models.tenant import Tenant, LaunchStatus
+    tenant = resolve_tenant(db, identifier)
+    if tenant and tenant.launch_status == LaunchStatus.suspended:
+        raise HTTPException(status_code=403, detail="This account has been suspended. Please contact support.")
     return context

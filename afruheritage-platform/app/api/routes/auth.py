@@ -247,21 +247,7 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         notification_service = get_notification_service()
         base_url = settings.base_url.rstrip("/")
         reset_url = f"{base_url}/login?reset_token={token}"
-        subject = "Password Reset Request"
-        body = f"""
-        <html>
-            <body>
-                <p>Dear {user.full_name or user.email},</p>
-                <p>You have requested a password reset for your Afruheritage account.</p>
-                <p>Click the link below to reset your password:</p>
-                <p><a href="{reset_url}">Reset Password</a></p>
-                <p>This link will expire in 1 hour.</p>
-                <p>If you did not request this reset, please ignore this email.</p>
-                <p>Thank you,<br>The Afruheritage Team</p>
-            </body>
-        </html>
-        """
-        notification_service.send_email(to_email=user.email, subject=subject, html_content=body)
+        notification_service.send_password_reset_email(to=user.email, reset_url=reset_url)
     except Exception as e:
         import logging
         logger = logging.getLogger(__name__)

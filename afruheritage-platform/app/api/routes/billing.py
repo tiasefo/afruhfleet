@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.billing import Payment, PaymentStatus, Plan, Subscription, Wallet, WalletTransaction, WalletTransactionType
 from app.models.user import User
 from app.schemas.billing import BillingAdminAdjustCreditsRequest, BillingAdminAssignPlanRequest, BillingAdminSetReadOnlyRequest, CreditConsumeRequest, PaymentInitRequest, PaymentInitResponse, PaymentReinitRequest, PaymentVerifyResponse, PlanResponse, SubscriptionResponse, UsageCreditCostResponse, WalletResponse, WalletTransactionResponse
-from app.services.billing_service import activate_or_upgrade_subscription, add_wallet_credits_once, admin_adjust_credits, cancel_subscription, ensure_wallet, get_plans, grant_subscription_allowance, mark_payment_verified, pause_subscription, resume_subscription, set_payment_initialized, set_subscription_read_only, write_audit_log, consume_wallet_credits, create_payment, create_trial_subscription, evaluate_subscription_state, seed_default_plans, admin_assign_plan as admin_assign_plan_service, get_plan_features, normalize_plan_code, get_feature_credit_costs
+from app.services.billing_service import activate_or_upgrade_subscription, add_wallet_credits_once, admin_adjust_credits, cancel_subscription, ensure_wallet, get_plans, grant_subscription_allowance, mark_payment_verified, pause_subscription, resume_subscription, set_payment_initialized, set_subscription_read_only, write_audit_log, consume_wallet_credits, create_payment, create_trial_subscription, evaluate_subscription_state, seed_default_plans, admin_assign_plan as admin_assign_plan_service, get_plan_features, normalize_plan_code, get_feature_credit_costs, get_effective_price
 from app.services.paystack_client import initialize_transaction, verify_transaction
 import app.services.flutterwave_client as _flw
 from app.middleware.rate_limit import rate_limit
@@ -56,6 +56,14 @@ def list_plans(tenant_id: str | None = None, db: Session=Depends(get_db)):
         )
         for p in plans
     ]
+
+
+@router.get('/pricing/{plan_code}')
+def get_pricing(plan_code: str, db: Session = Depends(get_db)) -> dict:
+    """Get effective pricing for a plan, including any active promotions."""
+    seed_default_plans(db)
+    return get_effective_price(db, plan_code)
+
 
 @router.post('/subscriptions/trial/{tenant_id}', response_model=SubscriptionResponse)
 def start_trial(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
@@ -166,6 +174,13 @@ def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(
             )
     if not effective_tenant_id:
         raise HTTPException(status_code=400, detail='tenant_id is required')
+
+    # Apply promotion pricing if plan_code is provided
+    if request.plan_code and request.plan_code != 'free_trial':
+        pricing = get_effective_price(db, request.plan_code)
+        if pricing['effective_price'] != pricing['original_price']:
+            amount_minor = int(round(pricing['effective_price'] * 100))
+
     payment = create_payment(db=db, tenant_id=effective_tenant_id, purpose=request.purpose, currency=request.currency, amount_minor=amount_minor)
 
     # Free trial with amount=0 — skip payment gateway entirely
