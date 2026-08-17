@@ -29,8 +29,8 @@ const perks = [
 ]
 
 export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
-  const brand = theme?.name ?? "Verde Goods"
-  const footer = theme?.legalFooterText ?? "Demo storefront."
+  const brand = theme?.name ?? "Your Store"
+  const footer = theme?.legalFooterText ?? "All rights reserved."
   const caps = theme?.capabilities
   return (
     <div className="theme-ecommerce" data-capabilities={caps ? JSON.stringify(caps) : undefined} style={theme ? tenantThemeStyle(theme) : undefined}>
@@ -153,9 +153,9 @@ export function EcommerceStorefront({ theme }: { theme?: TenantPublicTheme }) {
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="grid items-center gap-8 rounded-3xl bg-primary p-8 text-primary-foreground sm:p-14 lg:grid-cols-2">
             <div>
-              <h2 className="text-balance text-3xl font-bold sm:text-4xl">Join the Verde Club</h2>
+              <h2 className="text-balance text-3xl font-bold sm:text-4xl">Join the {brand} Membership</h2>
               <p className="mt-3 max-w-md leading-relaxed text-primary-foreground/80">
-                Early access to drops, members-only pricing, and a tree planted with every order.
+                Early access to new arrivals, members-only pricing, and exclusive offers.
               </p>
             </div>
             <div className="flex gap-2">

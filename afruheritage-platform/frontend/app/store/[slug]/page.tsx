@@ -10,6 +10,8 @@ import { RealEstateStorefront } from "@/templates/realestate/components/realesta
 import { RestaurantStorefront } from "@/templates/restaurant/components/restaurant-storefront"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 export default async function StorePage({
   params,
 }: {

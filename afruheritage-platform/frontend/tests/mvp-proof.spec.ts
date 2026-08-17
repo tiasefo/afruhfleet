@@ -344,7 +344,7 @@ test.describe('MVP Browser-Level Proof', () => {
     await page.screenshot({ path: 'artifacts/mvp-3-admin-template-created.png', fullPage: true });
 
     // Find the newly created template card and edit it via UI
-    const templateCard = page.locator('.card, [class*="card"]').filter({ hasText: uniqueCode });
+    const templateCard = page.locator('[data-slot="card"]').filter({ hasText: uniqueCode });
     await expect(templateCard).toBeVisible({ timeout: SELECTOR_TIMEOUT });
 
     // Click the edit (pencil) button on the new template card
@@ -372,7 +372,7 @@ test.describe('MVP Browser-Level Proof', () => {
     await page.screenshot({ path: 'artifacts/mvp-3-admin-template-deactivated.png', fullPage: true });
 
     // Reactivate via the toggle (power) button on the card
-    const updatedCard = page.locator('.card, [class*="card"]').filter({ hasText: 'MVP Test Template (Updated)' });
+    const updatedCard = page.locator('[data-slot="card"]').filter({ hasText: 'MVP Test Template (Updated)' });
     const toggleBtn = updatedCard.getByRole('button').last(); // Power/toggle button
     const reactivateResponse = page.waitForResponse(
       (r) => r.url().includes('/api/v1/storefront-templates/admin/') && r.request().method() === 'PATCH',
@@ -391,7 +391,7 @@ test.describe('MVP Browser-Level Proof', () => {
     await page.screenshot({ path: 'artifacts/mvp-3-admin-plugins.png', fullPage: true });
 
     // Find customs_calculator plugin card and deactivate via UI button
-    const customsPluginCard = page.locator('.card, [class*="card"]').filter({ hasText: 'customs_calculator' });
+    const customsPluginCard = page.locator('[data-slot="card"]').filter({ hasText: 'customs_calculator' });
     await expect(customsPluginCard).toBeVisible({ timeout: SELECTOR_TIMEOUT });
 
     // Click Deactivate button
@@ -1123,8 +1123,8 @@ test.describe('MVP Browser-Level Proof', () => {
     const trackVisibleBefore = await cleanPage1.getByText(/Track Your Shipment|Enter Tracking Number/i).first().isVisible().catch(() => false);
     expect(trackVisibleBefore).toBeFalsy();
 
-    // Track nav link should NOT be visible
-    const trackNavLinkBefore = await cleanPage1.getByRole('link', { name: 'Track' }).first().isVisible().catch(() => false);
+    // Track nav link should NOT be visible (use exact match to avoid matching 'Track Shipment' in footer)
+    const trackNavLinkBefore = await cleanPage1.getByRole('link', { name: 'Track', exact: true }).first().isVisible().catch(() => false);
     expect(trackNavLinkBefore).toBeFalsy();
 
     await cleanPage1.screenshot({ path: 'artifacts/mvp-11-freight-no-tracking.png', fullPage: true });
@@ -1197,5 +1197,246 @@ test.describe('MVP Browser-Level Proof', () => {
     });
 
     await page.close();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 12: Golden Test — Full Fresh-Business Launch End-to-End
+// signup → tenant → Fleetbase org → template → plugin → publish → anonymous storefront
+// ═══════════════════════════════════════════════════════════════════════════
+test.describe('Golden Test: Fresh Business Launch', () => {
+  test('12 — signup → Fleetbase org → template → plugin → publish → anonymous storefront', async ({ browser }) => {
+    test.setTimeout(120_000);
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+
+    // Generate unique business name
+    const goldenId = `golden-${Date.now()}`;
+    const companyName = `Golden Test Co ${goldenId}`;
+    const adminEmail = `golden-${goldenId}@test.afruheritage.com`;
+    const adminPassword = 'GoldenTest123!';
+
+    // Navigate to the frontend so relative API paths resolve
+    await page.goto(`${FRONTEND_BASE_URL}/login`);
+    await page.waitForLoadState('networkidle');
+
+    // ── Step 1: Register a brand-new tenant via /auth/register ──
+    const regRes = await page.evaluate(async ({ email, password, fullName, company }) => {
+      const res = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          full_name: fullName,
+          company_name: company,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, { email: adminEmail, password: adminPassword, fullName: 'Golden Admin', company: companyName });
+
+    expect(regRes.status).toBe(200);
+    expect(regRes.body).toBeTruthy();
+    expect(regRes.body.tenant_id).toBeTruthy();
+    const tenantId = regRes.body.tenant_id;
+    const subdomain = regRes.body.subdomain;
+    expect(subdomain).toBeTruthy();
+
+    // Store the token for subsequent API calls
+    await page.evaluate((token: string) => {
+      localStorage.setItem('auth_token', token);
+    }, regRes.body.access_token);
+
+    // ── Step 2: Select free trial subscription → triggers Fleetbase org provisioning ──
+    const subRes = await page.evaluate(async ({ tid, email }) => {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/billing/payments/init', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tenant_id: tid,
+          amount_major: 0,
+          email,
+          purpose: 'subscription',
+          plan_code: 'free_trial',
+          currency: 'GHS',
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, { tid: tenantId, email: adminEmail });
+
+    expect(subRes.status).toBe(200);
+
+    // ── Step 3: Verify Fleetbase org was provisioned via admin API ──
+    // The public tenant-context endpoint doesn't expose fleetbase_org_id,
+    // so we use the super admin API to verify provisioning.
+    let fleetbaseOrgId: string | null = null;
+    let tenantActive = false;
+
+    // First login as super admin to get a token for verification
+    const adminLoginRes = await page.evaluate(async ({ email, password }) => {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, { email: SUPER_ADMIN_EMAIL, password: SUPER_ADMIN_PASSWORD });
+
+    expect(adminLoginRes.status).toBe(200);
+    const adminToken = adminLoginRes.body.access_token;
+
+    // Poll admin tenants endpoint until fleetbase_org_id appears
+    for (let i = 0; i < 15; i++) {
+      await page.waitForTimeout(2000);
+      const tenantCheck = await page.evaluate(async ({ token, tid }) => {
+        const res = await fetch(`/api/v1/tenants`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const body = await res.json().catch(() => null);
+        if (!body) return { status: res.status, body: null };
+        const tenant = body.find((t: any) => t.id === tid);
+        return { status: res.status, body: tenant };
+      }, { token: adminToken, tid: tenantId });
+
+      if (tenantCheck.status === 200 && tenantCheck.body) {
+        if (tenantCheck.body.fleetbase_org_id) {
+          fleetbaseOrgId = tenantCheck.body.fleetbase_org_id;
+        }
+        if (tenantCheck.body.launch_status === 'active') {
+          tenantActive = true;
+        }
+        if (fleetbaseOrgId && tenantActive) break;
+      }
+    }
+
+    expect(fleetbaseOrgId).toBeTruthy();
+    expect(tenantActive).toBe(true);
+
+    // Restore the tenant admin's token for subsequent operations
+    await page.evaluate((token: string) => {
+      localStorage.setItem('auth_token', token);
+    }, regRes.body.access_token);
+
+    // ── Step 4: Select a template (freight) ──
+    const templateRes = await page.evaluate(async () => {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/storefront-templates/select', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ template_code: 'freight' }),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, {});
+
+    expect(templateRes.status).toBe(200);
+
+    // ── Step 5: Install a plugin (tracking) ──
+    const pluginRes = await page.evaluate(async () => {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/plugins/install', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          plugin_name: 'tracking',
+          consent_ui_change: true,
+          consent_business_type_change: true,
+          consent_data_impact: true,
+        }),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, {});
+
+    expect(pluginRes.status).toBe(200);
+
+    // ── Step 6: Publish the storefront ──
+    const publishRes = await page.evaluate(async () => {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/v1/storefront-templates/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+      });
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, {});
+
+    expect(publishRes.status).toBe(200);
+
+    // ── Step 7: Visit the storefront as an anonymous customer ──
+    const cleanCtx = await browser.newContext();
+    const cleanPage = await cleanCtx.newPage();
+    await cleanPage.goto(`${FRONTEND_BASE_URL}/store/${subdomain}`);
+    await cleanPage.waitForLoadState('networkidle');
+    await cleanPage.waitForTimeout(2000);
+
+    // Verify storefront renders with the tenant's company name
+    const pageText = await cleanPage.textContent('body').catch(() => '');
+    expect(pageText).toContain(companyName);
+
+    // Verify capabilities data attribute is present
+    const capsAttr = await cleanPage.locator('[data-capabilities]').first().getAttribute('data-capabilities').catch(() => null);
+    expect(capsAttr).toBeTruthy();
+    const caps = JSON.parse(capsAttr!);
+    expect(caps.public_tracking_enabled).toBe(true);
+
+    // Verify tracking section is visible (plugin was installed)
+    const trackSection = await cleanPage.getByText(/Track Your Shipment|Enter Tracking Number/i).first().isVisible().catch(() => false);
+    expect(trackSection).toBeTruthy();
+
+    // Verify no demo-brand leakage
+    const hasVerdeClub = pageText?.includes('Verde Club') || false;
+    expect(hasVerdeClub).toBe(false);
+
+    await cleanPage.screenshot({ path: `artifacts/golden-test-storefront-${goldenId}.png`, fullPage: true });
+    await cleanPage.close();
+    await cleanCtx.close();
+
+    // ── Step 8: Verify tenant context has correct template and plugin state ──
+    // Use admin API for fleetbase_org_id (not exposed in public tenant-context)
+    const finalTenantCheck = await page.evaluate(async ({ token, tid }) => {
+      const res = await fetch(`/api/v1/tenants`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const body = await res.json().catch(() => null);
+      if (!body) return { status: res.status, body: null };
+      const tenant = body.find((t: any) => t.id === tid);
+      return { status: res.status, body: tenant };
+    }, { token: adminToken, tid: tenantId });
+
+    expect(finalTenantCheck.status).toBe(200);
+    expect(finalTenantCheck.body.launch_status).toBe('active');
+    expect(finalTenantCheck.body.fleetbase_org_id).toBe(fleetbaseOrgId);
+
+    // Also verify public tenant-context for feature flags
+    const finalCtx = await page.evaluate(async (slug: string) => {
+      const res = await fetch(`/api/v1/tenant-context/${slug}`);
+      const body = await res.json().catch(() => null);
+      return { status: res.status, body };
+    }, subdomain);
+
+    expect(finalCtx.status).toBe(200);
+    expect(finalCtx.body.features.public_tracking_enabled).toBe(true);
+
+    await page.screenshot({ path: `artifacts/golden-test-complete-${goldenId}.png`, fullPage: true });
+    await page.close();
+    await ctx.close();
   });
 });

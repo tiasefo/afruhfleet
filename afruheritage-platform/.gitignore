@@ -6,3 +6,9 @@ reports/
 *.pyc
 __pycache__/
 .venv/
+logs/
+*.log
+celerybeat-schedule
+celerybeat-schedule.db
+frontend/artifacts/
+frontend/test-results/

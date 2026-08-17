@@ -27,7 +27,7 @@ const hours = [
 
 export function RestaurantStorefront({ theme }: { theme?: TenantPublicTheme }) {
   const brand = theme?.name ?? "Ember & Oak"
-  const footer = theme?.legalFooterText ?? "Demo storefront."
+  const footer = theme?.legalFooterText ?? "All rights reserved."
   const caps = theme?.capabilities
   return (
     <div className="theme-restaurant" data-capabilities={caps ? JSON.stringify(caps) : undefined} style={theme ? tenantThemeStyle(theme) : undefined}>

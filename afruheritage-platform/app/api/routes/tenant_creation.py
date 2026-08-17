@@ -10,6 +10,7 @@ from app.models.tenant import LaunchStatus
 from app.models.tenant_request import TenantRequest
 from app.models.user import User
 from app.services.tenant_creation_service import TenantCreationService
+from app.services.tenant_lifecycle import advance_tenant_lifecycle
 from app.schemas.tenant import TenantCreationRequest, TenantCreationResponse
 logger = get_logger('afruheritage.tenant_creation_api')
 router = APIRouter(prefix='/tenants', tags=['Tenant Creation'])
@@ -37,24 +38,28 @@ def create_tenant(request: TenantCreationRequest, db: Session=Depends(get_db), c
 
 @router.post('/{tenant_id}/setup-infrastructure')
 def setup_tenant_infrastructure(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
-    """Queue infrastructure provisioning for a tenant."""
+    """Provision Fleetbase org for a tenant in the shared Fleetbase instance."""
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail='Only platform administrators can setup infrastructure')
-    try:
-        tenant_service = TenantCreationService(db)
-        from app.models.tenant import Tenant
-        tenant = db.get(Tenant, _resolve_uuid(tenant_id))
-        if not tenant:
-            raise HTTPException(status_code=404, detail='Tenant not found')
-        result = tenant_service.setup_tenant_infrastructure(tenant)
-        logger.info('Tenant infrastructure setup queued', extra={'tenant_id': tenant_id, 'subdomain': tenant.subdomain, 'setup_by': current_user.email})
-        return result
-    except ValueError as e:
-        logger.error('Tenant infrastructure setup blocked by business rule', extra={'tenant_id': tenant_id, 'error': str(e), 'setup_by': current_user.email})
-        raise HTTPException(status_code=409, detail=str(e))
-    except Exception as e:
-        logger.error('Failed to setup tenant infrastructure', extra={'tenant_id': tenant_id, 'error': str(e), 'setup_by': current_user.email})
-        raise HTTPException(status_code=500, detail=f'Failed to setup infrastructure: {str(e)}')
+    from app.models.tenant import Tenant
+    tenant = db.get(Tenant, _resolve_uuid(tenant_id))
+    if not tenant:
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    result = advance_tenant_lifecycle(db, str(tenant.id))
+    if not result.get('advanced') and result.get('error') == 'tenant_not_found':
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    if not result.get('advanced') and 'provisioning_failed' in str(result.get('actions', [])):
+        raise HTTPException(status_code=502, detail=f"Fleetbase provisioning failed: {result.get('error', 'unknown')}")
+    db.refresh(tenant)
+    logger.info('Tenant infrastructure provisioned', extra={'tenant_id': tenant_id, 'subdomain': tenant.subdomain, 'fleetbase_org_id': tenant.fleetbase_org_id, 'setup_by': current_user.email})
+    return {
+        'tenant_id': str(tenant.id),
+        'subdomain': tenant.subdomain,
+        'fleetbase_org_id': tenant.fleetbase_org_id,
+        'launch_status': tenant.launch_status.value,
+        'actions': result.get('actions', []),
+        'status': 'provisioned' if tenant.fleetbase_org_id else 'failed',
+    }
 
 @router.get('/{tenant_id}/status')
 def get_tenant_status(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
@@ -119,18 +124,21 @@ def auto_provision_tenant(request_id: str, db: Session=Depends(get_db), current_
         db.commit()
         db.refresh(tenant)
 
-        setup = tenant_service.setup_tenant_infrastructure(tenant)
+        setup_result = advance_tenant_lifecycle(db, str(tenant.id))
+        db.refresh(tenant)
 
-        row.status = 'provisioning'
+        row.status = 'completed' if tenant.fleetbase_org_id else 'provisioning'
         row.tenant_id = tenant.id
-        row.review_notes = row.review_notes or 'Auto-provision queued'
+        row.review_notes = row.review_notes or 'Auto-provisioned'
         db.commit()
 
         return {
             'request_id': str(row.id),
             'tenant_id': str(tenant.id),
             'status': row.status,
-            'provisioning': setup,
+            'fleetbase_org_id': tenant.fleetbase_org_id,
+            'launch_status': tenant.launch_status.value,
+            'actions': setup_result.get('actions', []),
         }
     except ValueError as exc:
         row.status = 'pending_review'

@@ -12,10 +12,9 @@ from app.models.user import User
 from app.models.rbac import Role, UserRole
 from app.schemas.tenant import ApprovalRequest, JobResponse, LaunchRequest, TenantCreate, TenantResponse, TenantRuntimeAuthUpdate, TenantUpdate
 from app.services.audit_service import record_audit_event
-from app.services.billing_service import assert_tenant_launch_ready, create_trial_subscription, ensure_wallet
+from app.services.billing_service import create_trial_subscription, ensure_wallet
 from app.services.notification_service import get_notification_service
-from app.services.tenant_creation_service import TenantCreationService
-from app.tasks.provisioning import provision_tenant
+from app.services.tenant_lifecycle import advance_tenant_lifecycle
 from app.middleware.rate_limit import rate_limit
 from pydantic import BaseModel
 router = APIRouter(prefix='/tenants', tags=['tenants'])
@@ -84,20 +83,25 @@ def approve_tenant(tenant_id: str, payload: ApprovalRequest, db: Session=Depends
         logging.getLogger('afruheritage.notifications').error('Failed to send approval email: %s', e)
     return tenant
 
-@router.post('/{tenant_id}/launch', response_model=JobResponse)
+@router.post('/{tenant_id}/launch', response_model=TenantResponse)
 @rate_limit(category='admin', rule='provision')
-async def launch_tenant(request: Request, tenant_id: str, payload: LaunchRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> ProvisioningJob:
+async def launch_tenant(request: Request, tenant_id: str, payload: LaunchRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    """Launch a tenant by provisioning a Fleetbase Organization in the shared Fleetbase instance.
+    No runner nodes required — uses org-level isolation."""
     tenant = db.get(Tenant, _resolve_uuid(tenant_id))
     if not tenant:
         raise HTTPException(status_code=404, detail='Tenant not found')
-    if tenant.launch_status != LaunchStatus.approved:
-        raise HTTPException(status_code=409, detail='Tenant must be approved before launch')
-    try:
-        job = TenantCreationService(db).queue_tenant_launch(tenant, runner_id=payload.runner_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    record_audit_event(db, current_user, 'tenant.launch.requested', 'tenant', str(tenant.id), {'runner_id': str(tenant.runner_id) if tenant.runner_id else None, 'job_id': str(job.id)})
-    return job
+    result = advance_tenant_lifecycle(db, str(tenant.id))
+    if not result.get('advanced') and result.get('error') == 'tenant_not_found':
+        raise HTTPException(status_code=404, detail='Tenant not found')
+    if not result.get('advanced') and 'provisioning_failed' in str(result.get('actions', [])):
+        raise HTTPException(status_code=502, detail=f"Fleetbase provisioning failed: {result.get('error', 'unknown')}")
+    db.refresh(tenant)
+    record_audit_event(db, current_user, 'tenant.launch.requested', 'tenant', str(tenant.id), {
+        'actions': result.get('actions', []),
+        'fleetbase_org_id': tenant.fleetbase_org_id,
+    })
+    return tenant
 
 
 @router.post('/{tenant_id}/runtime-auth', response_model=TenantResponse)
@@ -168,8 +172,9 @@ def get_job(job_id: str, db: Session=Depends(get_db), _: User=Depends(require_su
         raise HTTPException(status_code=404, detail='Job not found')
     return job
 
-@router.post('/jobs/{job_id}/retry', response_model=JobResponse)
-def retry_job(job_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> ProvisioningJob:
+@router.post('/jobs/{job_id}/retry', response_model=TenantResponse)
+def retry_job(job_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)) -> Tenant:
+    """Retry tenant provisioning via advance_tenant_lifecycle (shared Fleetbase instance)."""
     job = db.get(ProvisioningJob, job_id)
     if not job:
         raise HTTPException(status_code=404, detail='Job not found')
@@ -178,25 +183,12 @@ def retry_job(job_id: str, db: Session=Depends(get_db), current_user: User=Depen
         raise HTTPException(status_code=404, detail='Tenant not found')
     if job.status not in (LaunchStatus.failed,):
         raise HTTPException(status_code=409, detail='Only failed jobs can be retried')
-    if not tenant.runner_id:
-        raise HTTPException(status_code=409, detail='Tenant runner is not assigned')
-    try:
-        assert_tenant_launch_ready(db, str(tenant.id))
-    except ValueError as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-
-    job.status = LaunchStatus.queued
-    job.details = 'Retry requested by admin'
-    tenant.launch_status = LaunchStatus.queued
-    db.commit()
-    db.refresh(job)
-
-    async_result = provision_tenant.delay(str(job.id))
-    job.task_id = async_result.id
-    db.commit()
-    db.refresh(job)
-
-    record_audit_event(db, current_user, 'tenant.launch.retried', 'tenant', str(tenant.id), {'job_id': str(job.id)})
+    result = advance_tenant_lifecycle(db, str(tenant.id))
+    if not result.get('advanced') and 'provisioning_failed' in str(result.get('actions', [])):
+        raise HTTPException(status_code=502, detail=f"Fleetbase provisioning failed: {result.get('error', 'unknown')}")
+    db.refresh(tenant)
+    record_audit_event(db, current_user, 'tenant.launch.retried', 'tenant', str(tenant.id), {'job_id': str(job.id), 'actions': result.get('actions', [])})
+    return tenant
 
 
 # ── Support: lookup tenant + resend portal URL ────────────────────────────────

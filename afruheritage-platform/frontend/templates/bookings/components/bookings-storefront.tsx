@@ -40,7 +40,7 @@ const perks = [
 
 export function BookingsStorefront({ theme }: { theme?: TenantPublicTheme }) {
   const brand = theme?.name ?? "Skyline Travel"
-  const footer = theme?.legalFooterText ?? "Demo storefront."
+  const footer = theme?.legalFooterText ?? "All rights reserved."
   const caps = theme?.capabilities
   const [active, setActive] = useState<(typeof tabs)[number]["id"]>("flights")
 
