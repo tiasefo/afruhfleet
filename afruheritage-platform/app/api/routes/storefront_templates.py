@@ -294,9 +294,12 @@ def list_templates_catalog(db: Session = Depends(get_db)):
 
     seed_default_templates(db)
     templates = db.scalars(select(StorefrontTemplate).where(StorefrontTemplate.is_active.is_(True))).all()
+    # Filter out test templates that should not appear in the public catalog
+    templates = [t for t in templates if not t.template_code.startswith('test-')]
 
     result = [
         StorefrontTemplateCatalogResponse(
+            id=t.id,
             template_code=t.template_code,
             name=t.name,
             description=t.description,

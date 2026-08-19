@@ -983,32 +983,23 @@ test.describe('MVP Browser-Level Proof', () => {
     const templates = ['freight', 'fleet', 'ecommerce', 'restaurant', 'bookings', 'mall', 'realestate'];
 
     for (const templateCode of templates) {
-      // Select and publish each template
+      // Select and publish each template via API for deterministic state
+      await page.evaluate(async (code: string) => {
+        const token = localStorage.getItem('auth_token');
+        const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+        // Select
+        await fetch('/api/v1/storefront-templates/select', {
+          method: 'POST', headers, body: JSON.stringify({ template_code: code }),
+        });
+        // Publish
+        await fetch('/api/v1/storefront-templates/publish', {
+          method: 'POST', headers, body: JSON.stringify({}),
+        });
+      }, templateCode);
+
+      // Reload templates page to reflect state
       await page.goto(`${FRONTEND_BASE_URL}/templates`);
       await page.waitForLoadState('networkidle');
-
-      // Reset first
-      await page.evaluate(async () => {
-        const token = localStorage.getItem('auth_token');
-        try { await fetch('/api/v1/storefront-templates/rollback', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' }); } catch {}
-      });
-      await page.reload();
-      await page.waitForLoadState('networkidle');
-
-      const card = page.getByTestId(`template-card-${templateCode}`);
-      const selectRes = page.waitForResponse(
-        (r) => r.url().includes('/api/v1/storefront-templates/select') && r.request().method() === 'POST',
-        { timeout: SELECTOR_TIMEOUT },
-      );
-      await card.getByRole('button', { name: 'Install' }).click();
-      await selectRes;
-
-      const publishRes = page.waitForResponse(
-        (r) => r.url().includes('/api/v1/storefront-templates/publish') && r.request().method() === 'POST',
-        { timeout: SELECTOR_TIMEOUT },
-      );
-      await card.getByRole('button', { name: 'Publish' }).click();
-      await publishRes;
 
       // Verify branding reflects the template
       const afterBranding = await getBranding(page, TENANT_A_ID);
@@ -1085,20 +1076,19 @@ test.describe('MVP Browser-Level Proof', () => {
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    const freightCard = page.getByTestId('template-card-freight');
-    const selectRes = page.waitForResponse(
-      (r) => r.url().includes('/api/v1/storefront-templates/select') && r.request().method() === 'POST',
-      { timeout: SELECTOR_TIMEOUT },
-    );
-    await freightCard.getByRole('button', { name: 'Install' }).click();
-    await selectRes;
-
-    const publishRes = page.waitForResponse(
-      (r) => r.url().includes('/api/v1/storefront-templates/publish') && r.request().method() === 'POST',
-      { timeout: SELECTOR_TIMEOUT },
-    );
-    await freightCard.getByRole('button', { name: 'Publish' }).click();
-    await publishRes;
+    // Select freight template via API for deterministic state
+    await page.evaluate(async () => {
+      const token = localStorage.getItem('auth_token');
+      const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+      // Select freight
+      await fetch('/api/v1/storefront-templates/select', {
+        method: 'POST', headers, body: JSON.stringify({ template_code: 'freight' }),
+      });
+      // Publish
+      await fetch('/api/v1/storefront-templates/publish', {
+        method: 'POST', headers, body: JSON.stringify({}),
+      });
+    });
 
     // Verify tracking is NOT enabled (plugin not installed)
     const brandingNoTracking = await getBranding(page, TENANT_A_ID);

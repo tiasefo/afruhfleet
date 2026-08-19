@@ -19,6 +19,7 @@ class StorefrontTemplateResponse(BaseModel):
 
 
 class StorefrontTemplateCatalogResponse(BaseModel):
+    id: UUID | None = None
     template_code: str
     name: str
     description: str | None = None

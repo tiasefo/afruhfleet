@@ -7,7 +7,7 @@
 #   ./scripts/monitor.sh              # One-shot check
 #   ./scripts/monitor.sh --watch      # Continuous monitoring (60s interval)
 #
-set -euo pipefail
+set -uo pipefail
 
 API_URL="${API_URL:-http://localhost:8100}"
 FRONTEND_URL="${FRONTEND_URL:-http://localhost:3002}"
@@ -94,7 +94,7 @@ check_fleetbase() {
 
 check_detailed_health() {
     local result
-    result=$(curl -s --connect-timeout 5 --max-time 10 "${API_URL}/api/v1/health/detailed" 2>/dev/null || echo '{"status":"error"}')
+    result=$(curl -s --connect-timeout 5 --max-time 10 "${API_URL}/health" 2>/dev/null || echo '{"status":"error"}')
 
     local status
     status=$(echo "$result" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status','unknown'))" 2>/dev/null || echo "parse_error")
@@ -123,7 +123,7 @@ run_checks() {
     log "INFO" "=== Starting health check cycle ==="
     local failures=0
 
-    check_http "API" "${API_URL}/api/v1/health" "200" || ((failures++))
+    check_http "API" "${API_URL}/health" "200" || ((failures++))
     check_http "Frontend" "${FRONTEND_URL}" "200" || ((failures++))
     check_db || ((failures++))
     check_redis || ((failures++))
