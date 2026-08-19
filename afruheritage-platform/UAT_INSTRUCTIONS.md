@@ -32,9 +32,14 @@ For each test case, record:
 
 | Environment | URL |
 |---|---|
-| Customer App | https://app.afruheritage.com |
-| Admin Console | https://admin.afruheritage.com |
-| API Health | https://app.afruheritage.com/api/v1/health |
+| Customer App (Production) | https://app.afruheritage.com |
+| Admin Console (Production) | https://admin.afruheritage.com |
+| API Health (Production) | https://app.afruheritage.com/health |
+| Customer App (Local/UAT) | http://127.0.0.1:3002 |
+| Admin Console (Local/UAT) | http://127.0.0.1:3002 |
+| API Health (Local/UAT) | http://127.0.0.1:8100/health |
+
+> **Note for test coordinators:** The API health endpoint is at `/health` (not `/api/v1/health`). Verify the endpoint returns `{"status":"ok"}` before starting UAT.
 
 ---
 
