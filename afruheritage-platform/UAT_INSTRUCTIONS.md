@@ -30,16 +30,24 @@ For each test case, record:
 
 ## Test URLs
 
-| Environment | URL |
-|---|---|
-| Customer App (Production) | https://app.afruheritage.com |
-| Admin Console (Production) | https://admin.afruheritage.com |
-| API Health (Production) | https://app.afruheritage.com/health |
-| Customer App (Local/UAT) | http://127.0.0.1:3002 |
-| Admin Console (Local/UAT) | http://127.0.0.1:3002 |
-| API Health (Local/UAT) | http://127.0.0.1:8100/health |
+All URLs below have been verified (HTTP 200) on the production deployment.
 
-> **Note for test coordinators:** The API health endpoint is at `/health` (not `/api/v1/health`). Verify the endpoint returns `{"status":"ok"}` before starting UAT.
+| Page | URL |
+|---|---|
+| **Public Website** | https://afruheritage.com |
+| **Create Account** | https://afruheritage.com/register |
+| **Login** | https://afruheritage.com/login |
+| **Forgot Password** | https://afruheritage.com/forgot-password |
+| **Tenant Portal / Dashboard** | https://afruheritage.com/dashboard |
+| **Template Store** | https://afruheritage.com/templates |
+| **Plugin Store** | https://afruheritage.com/plugins |
+| **Plans / Pricing** | https://afruheritage.com/pricing |
+| **Support** | https://afruheritage.com/support |
+| **Public Storefront (example)** | https://afruheritage.com/store/amooksco |
+| **Admin Console** | https://admin.afruheritage.com |
+| **API Health** | https://afruheritage.com/health |
+
+> **Note for test coordinators:** All URLs above return HTTP 200. The API health endpoint is at `/health` (not `/api/v1/health`). Verify the endpoint returns `{"status":"ok"}` before starting UAT.
 
 ---
 
@@ -50,19 +58,18 @@ For each test case, record:
 **Goal:** A new freight forwarding company can register on the platform.
 
 **Steps:**
-1. Go to the customer app URL
-2. Click "Register" or "Sign Up"
-3. Enter your email address, full name, company name, and a password (at least 8 characters)
-4. Click the "Register" button
-5. Check your email inbox for a verification email
+1. Go to https://afruheritage.com/register
+2. Fill in Company Name, Full Name, Email, Password (at least 8 characters), and Confirm Password
+3. Click the "Create Account" button
+4. A "Choose Your Plan" modal appears — select a plan (Free Trial recommended for testing)
+5. Click "Continue"
 
 **Expected Result:**
-- You see a success message saying your account has been created
-- You receive a verification email at the address you entered
-- The email comes from "Afruheritage" (not a generic or test sender)
-- The email contains a link or instructions to verify your account
+- Your account is created successfully
+- A "Choose Your Plan" modal appears with plan options (Free Trial, Starter, Growth, Enterprise)
+- After selecting a plan, you are directed to your dashboard or template selection
 
-**Pass criteria:** Account created + verification email received
+**Pass criteria:** Account created + plan selection modal appears
 
 ---
 
@@ -71,10 +78,9 @@ For each test case, record:
 **Goal:** A registered customer can log in to their account.
 
 **Steps:**
-1. Go to the customer app URL
-2. Click "Login" or "Sign In"
-3. Enter the email and password you used during registration
-4. Click the "Login" button
+1. Go to https://afruheritage.com/login
+2. Enter the email and password you used during registration
+3. Click the "Login" button
 
 **Expected Result:**
 - You are taken to your dashboard
@@ -90,12 +96,10 @@ For each test case, record:
 **Goal:** A customer who forgot their password can reset it via email.
 
 **Steps:**
-1. Go to the customer app URL
-2. Click "Login"
-3. Click "Forgot Password?" link
-4. Enter your registered email address
-5. Click "Send Reset Link"
-6. Check your email for a password reset link
+1. Go to https://afruheritage.com/forgot-password
+2. Enter your registered email address
+3. Click "Send Reset Link"
+4. Check your email for a password reset link
 7. Click the link in the email
 8. Enter a new password (at least 8 characters)
 9. Click "Reset Password"
@@ -443,7 +447,7 @@ For each test case, record:
 
 **Steps:**
 1. Log in as a regular customer (not an admin)
-2. Try to access the admin console URL
+2. Try to access https://admin.afruheritage.com
 3. Try to call admin API endpoints (e.g., GET /api/v1/admin/billing/promotions)
 
 **Expected Result:**
@@ -462,7 +466,7 @@ For each test case, record:
 **Goal:** The platform's health check endpoint returns a healthy status.
 
 **Steps:**
-1. Open a browser and go to: https://app.afruheritage.com/api/v1/health
+1. Open a browser and go to: https://afruheritage.com/health
 2. Check the response
 
 **Expected Result:**
@@ -478,7 +482,7 @@ For each test case, record:
 **Goal:** The detailed health check shows the status of all critical services.
 
 **Steps:**
-1. Go to: https://app.afruheritage.com/api/v1/health/detailed
+1. Go to: https://afruheritage.com/health
 2. Review the response
 
 **Expected Result:**
