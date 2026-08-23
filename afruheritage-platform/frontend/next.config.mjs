@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://afruheritage-api:8000'
 // For local development, use localhost:8100; for Docker, use afruheritage-api:8000
-const rewriteApiOrigin = process.env.NODE_ENV === 'production' 
-  ? 'http://afruheritage-api:8000' 
-  : 'http://localhost:8100'
+const rewriteApiOrigin = process.env.API_ORIGIN || (process.env.NODE_ENV === 'production' 
+  ? 'http://localhost:8100' 
+  : 'http://localhost:8100')
 
 const nextConfig = {
   allowedDevOrigins: ['10.0.0.115', 'localhost', '127.0.0.1'],

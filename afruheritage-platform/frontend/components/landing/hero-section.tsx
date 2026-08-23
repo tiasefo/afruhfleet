@@ -20,39 +20,13 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden bg-background">
-      {/* AFRU_HOME_VIDEO_LAYER */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <video autoPlay muted loop playsInline preload="auto" className="h-full w-full object-cover opacity-35">
-          <source src="/assets/videos/airport-footage-panama-city-panama-ground-crew-unloading-cargo-shipment-from-airplane-on.webm" type="video/webm" />
-          <source src="/assets/videos/Truck20004964.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-white/70" />
+      {/* Background Pattern — clean CSS gradient, no external assets */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
+        <div className="absolute left-0 right-0 top-0 m-auto h-[310px] w-[310px] rounded-full bg-primary/5 blur-[100px]" />
+        <div className="absolute right-1/4 top-1/3 h-[200px] w-[200px] rounded-full bg-accent/10 blur-[80px]" />
+        <div className="absolute bottom-0 left-1/4 h-[250px] w-[250px] rounded-full bg-chart-3/5 blur-[100px]" />
       </div>
-
-      {/* Background Video/Image - Desktop Hero */}
-      {!isMobile && (
-        <div className="absolute inset-0 -z-10">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="h-full w-full object-cover opacity-20"
-          >
-            <source src="/assets/videos/istockphoto-945121252-640_adpp_is.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-background/30" />
-        </div>
-      )}
-
-      {/* Background Pattern - Fallback */}
-      {isMobile && (
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
-          <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-primary/5 blur-[100px]" />
-          <div className="absolute right-1/4 top-1/3 -z-10 h-[200px] w-[200px] rounded-full bg-accent/10 blur-[80px]" />
-        </div>
-      )}
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -101,7 +75,7 @@ export function HeroSection() {
                   {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium text-muted-foreground"
+                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/10 text-xs font-semibold text-primary"
                     >
                       {String.fromCharCode(64 + i)}
                     </div>
@@ -119,7 +93,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* Right Visual - Shipping Routes Animation or Video */}
+          {/* Right Visual - Shipping Routes Animation */}
           <div className="relative hidden lg:block">
             <div className="relative aspect-square rounded-2xl border bg-card/50 p-8 shadow-xl backdrop-blur overflow-hidden">
               {/* Desktop: Show animated globe */}

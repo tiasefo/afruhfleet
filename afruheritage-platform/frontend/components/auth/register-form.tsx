@@ -433,9 +433,8 @@ export function RegisterForm() {
       {showSubscriptionModal && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-          onClick={(e) => { if (e.target === e.currentTarget) e.stopPropagation() }}
         >
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <Card className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-2xl">Choose Your Plan</CardTitle>
               <CardDescription>
@@ -504,7 +503,7 @@ export function RegisterForm() {
       {/* Template Picker Modal */}
       {showTemplatePicker && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <Card className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-2xl">Choose Your Storefront Template</CardTitle>
               <CardDescription>Pick a design that fits your brand. You can customize colors later.</CardDescription>
