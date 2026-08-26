@@ -68,6 +68,7 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
         company_name=payload.company_name,
         plan_code=normalize_plan_code(payload.plan_code).value,
     )
+    db.flush()
     db.refresh(user)
     # Fetch the tenant's slug to build the portal URL
     subdomain: str | None = None
@@ -78,7 +79,10 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
         if tenant and tenant.slug:
             subdomain = tenant.slug
             portal_url = f"https://{tenant.slug}.afruheritage.com"
+    # Create JWT before committing — if this fails, user+tenant roll back together
     token = create_access_token(str(user.id), tenant_id=str(user.tenant_id) if user.tenant_id else None)
+    # Commit the entire registration transaction atomically (user + tenant + roles)
+    db.commit()
     _set_auth_cookie(response, token)
     return TokenResponse(
         access_token=token,

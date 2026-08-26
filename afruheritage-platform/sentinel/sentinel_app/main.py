@@ -29,6 +29,7 @@ from sentinel_app.api.routes.payments import router as payments_router
 from sentinel_app.api.routes.fleetbase_ops import router as fleetbase_ops_router
 from sentinel_app.api.routes.feature_flags import router as feature_flags_router
 from sentinel_app.api.routes.diagnostics import router as diagnostics_router
+from sentinel_app.api.routes.users import router as users_router
 from sentinel_app.core.config import admin_settings
 from sentinel_app.db.session import Base, engine
 
@@ -90,6 +91,7 @@ app.include_router(payments_router, prefix="/sentinel")
 app.include_router(fleetbase_ops_router, prefix="/sentinel")
 app.include_router(feature_flags_router, prefix="/sentinel")
 app.include_router(diagnostics_router, prefix="/sentinel")
+app.include_router(users_router, prefix="/sentinel")
 
 @app.get("/sentinel/health")
 def health():

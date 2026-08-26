@@ -91,7 +91,19 @@ export function RegisterForm() {
         router.push('/onboarding')
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed')
+      const status = err?.status
+      let msg = err?.message || ''
+      // Map known status codes to user-friendly messages
+      if (status === 409) {
+        msg = 'An account with this email already exists. Sign in or reset your password.'
+      } else if (status === 500 || status === 502 || status === 503 || status === 504) {
+        msg = 'We couldn\'t complete registration due to a server issue. Please try again in a moment.'
+      } else if (status === 429) {
+        msg = 'Too many attempts. Please wait a few minutes and try again.'
+      } else if (!msg || msg === 'Internal Server Error' || msg === 'Failed to fetch') {
+        msg = 'We couldn\'t complete registration. Please check your connection and try again.'
+      }
+      setError(msg)
     } finally {
       setIsLoading(false)
     }

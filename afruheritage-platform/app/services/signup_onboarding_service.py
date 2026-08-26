@@ -63,7 +63,11 @@ class SignupOnboardingService:
 
         user.tenant_id = tenant.id
         user.is_tenant_admin = True
-        self.db.commit()
+        # NOTE: Do NOT commit here. The caller (register endpoint) owns the
+        # transaction boundary so that a failure after this point (JWT creation,
+        # response serialization, etc.) rolls back both user and tenant together,
+        # preventing orphan records that would block retries with 409.
+        self.db.flush()
         self.db.refresh(tenant)
         self.db.refresh(user)
 
@@ -94,6 +98,7 @@ class SignupOnboardingService:
                 tenant_id=tenant_id,
                 tenant_slug=tenant.slug,
                 company_name=tenant.company_name,
+                commit=False,
             )
         except Exception as exc:
             logger.warning("tenant_ai_defaults_failed", extra={"tenant_id": tenant_id, "error": str(exc)})
@@ -104,6 +109,7 @@ class SignupOnboardingService:
                 tenant_id=tenant_id,
                 company_name=tenant.company_name,
                 contact_email=tenant.contact_email,
+                commit=False,
             )
         except Exception as exc:
             logger.warning("tenant_branding_defaults_failed", extra={"tenant_id": tenant_id, "error": str(exc)})

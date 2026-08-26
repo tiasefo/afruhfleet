@@ -19,7 +19,7 @@ def _as_uuid(value: str | uuid.UUID):
         return value
 
 
-def ensure_tenant_ai_settings(db: Session, tenant_id: str, tenant_slug: str, company_name: str) -> TenantAISettings:
+def ensure_tenant_ai_settings(db: Session, tenant_id: str, tenant_slug: str, company_name: str, *, commit: bool = True) -> TenantAISettings:
     tenant_pk = _as_uuid(tenant_id)
     existing = db.query(TenantAISettings).filter(TenantAISettings.tenant_id == tenant_pk).first()
     if existing:
@@ -36,7 +36,10 @@ def ensure_tenant_ai_settings(db: Session, tenant_id: str, tenant_slug: str, com
         allowed_hostnames=f"{tenant_slug}.afruheritage.com",
     )
     db.add(settings)
-    db.commit()
+    if commit:
+        db.commit()
+    else:
+        db.flush()
     db.refresh(settings)
     logger.info("Created AI settings for tenant %s", tenant_slug)
     return settings

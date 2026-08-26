@@ -51,7 +51,20 @@ export function LoginForm() {
       await login(email, password)
       // Login will handle redirect
     } catch (err: any) {
-      setError(err.message || t('auth.invalid_credentials'))
+      const status = err?.status
+      let msg = err?.message || ''
+      if (status === 401) {
+        msg = 'Incorrect email or password. Please try again or reset your password.'
+      } else if (status === 403) {
+        msg = 'Your account may be suspended or not yet activated. Contact support if this continues.'
+      } else if (status === 429) {
+        msg = 'Too many login attempts. Please wait a few minutes and try again.'
+      } else if (status === 500 || status === 502 || status === 503 || status === 504) {
+        msg = 'We couldn\'t sign you in due to a server issue. Please try again in a moment.'
+      } else if (!msg || msg === 'Failed to fetch') {
+        msg = 'We couldn\'t sign you in. Please check your connection and try again.'
+      }
+      setError(msg)
     } finally {
       setIsLoading(false)
     }

@@ -12,3 +12,4 @@ celerybeat-schedule
 celerybeat-schedule.db
 frontend/artifacts/
 frontend/test-results/
+sentinel/.env

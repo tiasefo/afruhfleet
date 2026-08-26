@@ -24,6 +24,8 @@ def ensure_tenant_branding(
     tenant_id: str,
     company_name: str,
     contact_email: str | None = None,
+    *,
+    commit: bool = True,
 ) -> TenantBranding:
     tenant_pk = _as_uuid(tenant_id)
     existing = db.query(TenantBranding).filter(TenantBranding.tenant_id == tenant_pk).first()
@@ -49,7 +51,10 @@ def ensure_tenant_branding(
         max_group_members=5000,
     )
     db.add(branding)
-    db.commit()
+    if commit:
+        db.commit()
+    else:
+        db.flush()
     db.refresh(branding)
     logger.info("Created branding for tenant %s", company_name)
     return branding
