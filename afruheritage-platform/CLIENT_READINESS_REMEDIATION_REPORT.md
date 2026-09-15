@@ -72,7 +72,7 @@
 `POST /api/v1/ai/chat` returns HTTP 200 with generated answers and knowledge sources.
 
 ### Priority 6 — Notifications
-The SMTP configuration is valid and a welcome email was physically received by a controlled external mail.tm inbox (afru1789431@uberip.com). Provider accepted the message and the external inbox confirmed delivery.
+The SMTP configuration is valid and a welcome email was physically received by a controlled external mail.tm inbox ([REDACTED_TEST_MAILBOX]). Provider accepted the message and the external inbox confirmed delivery.
 
 ### Priority 7 — Payment collection
 Paystack sandbox/test lifecycle was exercised end to end:
