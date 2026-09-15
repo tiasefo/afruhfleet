@@ -190,6 +190,11 @@ async def create_vehicle(
         body = await request.json()
     except Exception:
         pass
+    if isinstance(body, dict):
+        if "vehicle" in body and isinstance(body["vehicle"], dict):
+            body["vehicle"].setdefault("online", True)
+        else:
+            body.setdefault("online", True)
     return await _proxy("POST", "/int/v1/vehicles", tenant, json_body=body)
 
 
