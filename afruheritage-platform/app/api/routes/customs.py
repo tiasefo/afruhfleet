@@ -69,9 +69,17 @@ class CustomsCalcRequest(BaseModel):
     commodity_type: CommodityType
 
     currency: str | None = None
-    cif_value: float = Field(..., gt=0)
+    cif_value: float | None = Field(default=None, gt=0)
+
+    # Vehicle value components (used when cif_value is not supplied)
+    hdv_usd: float | None = None
+    freight_usd: float | None = None
+    insurance_usd: float | None = None
+    exchange_rate: float | None = None
 
     # Vehicle fields
+    make: str | None = None
+    model: str | None = None
     vehicle_year: int | None = None
     engine_cc: int | None = None
     fuel_type: str | None = None

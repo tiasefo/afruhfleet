@@ -14,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 from app.models.payment_hub import PaymentTransaction
 from app.models.saas_subscription import TenantSubscription
+from app.models.billing import Payment as BillingPayment, PaymentStatus as BillingPaymentStatus
 from app.services.platform_config_service import get_default_trial_days
 
 router = APIRouter(prefix="/payment-hub", tags=["Payment Hub"])
@@ -359,18 +360,45 @@ def verify_payment(reference: str):
 def list_transactions(tenant_id: str):
     db = SessionLocal()
     try:
-        rows = (
+        # Canonical source: billing_payments (where successful Paystack/PayPal
+        # payments are recorded by the platform payment service).
+        billing_rows = (
+            db.query(BillingPayment)
+            .filter(BillingPayment.tenant_id == tenant_id)
+            .order_by(BillingPayment.created_at.desc())
+            .limit(100)
+            .all()
+        )
+
+        transactions = [
+            {
+                "transaction_id": str(p.id),
+                "purpose": "subscription",
+                "provider": "paystack",
+                "amount": float(p.amount_minor) / 100.0,
+                "currency": p.currency,
+                "status": p.status.value if hasattr(p.status, 'value') else str(p.status),
+                "reference": p.reference,
+                "provider_reference": None,
+                "checkout_url": None,
+                "created_at": p.created_at.isoformat(),
+            }
+            for p in billing_rows
+        ]
+
+        # Supplementary: also include any payment_transactions rows that don't
+        # have a matching reference in billing_payments (legacy/credit topups).
+        existing_refs = {t["reference"] for t in transactions}
+        legacy_rows = (
             db.query(PaymentTransaction)
             .filter(PaymentTransaction.tenant_id == tenant_id)
             .order_by(PaymentTransaction.created_at.desc())
             .limit(100)
             .all()
         )
-
-        return {
-            "tenant_id": tenant_id,
-            "transactions": [
-                {
+        for x in legacy_rows:
+            if x.reference not in existing_refs:
+                transactions.append({
                     "transaction_id": str(x.id),
                     "purpose": x.purpose,
                     "provider": x.provider,
@@ -381,9 +409,14 @@ def list_transactions(tenant_id: str):
                     "provider_reference": x.provider_reference,
                     "checkout_url": x.checkout_url,
                     "created_at": x.created_at.isoformat(),
-                }
-                for x in rows
-            ],
+                })
+
+        # Sort combined list by created_at descending
+        transactions.sort(key=lambda t: t["created_at"], reverse=True)
+
+        return {
+            "tenant_id": tenant_id,
+            "transactions": transactions[:100],
         }
     finally:
         db.close()

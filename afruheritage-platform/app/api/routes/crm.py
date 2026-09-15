@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_superuser, require_active_subscription
+from app.api.deps import get_current_user, require_active_subscription
 from app.db.session import get_db
 from app.models.crm import CrmCustomer, CrmActivity, CustomerStage, ActivityType
 from app.models.user import User
@@ -51,7 +52,7 @@ class ActivityCreate(BaseModel):
 
 
 class CustomerResponse(BaseModel):
-    id: str
+    id: UUID
     name: str
     email: Optional[str]
     phone: Optional[str]
@@ -69,10 +70,14 @@ class CustomerResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_serializer('id')
+    def serialize_id(self, v: UUID) -> str:
+        return str(v)
+
 
 class ActivityResponse(BaseModel):
-    id: str
-    customer_id: str
+    id: UUID
+    customer_id: UUID
     activity_type: str
     summary: str
     details: Optional[str]
@@ -82,12 +87,16 @@ class ActivityResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_serializer('id', 'customer_id')
+    def serialize_uuid(self, v: UUID) -> str:
+        return str(v)
+
 
 # ----- Customer Endpoints -----
 @router.get("/customers", response_model=list[CustomerResponse])
 def list_customers(
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """List all CRM customers (admin only)."""
     customers = db.scalars(
@@ -100,7 +109,7 @@ def list_customers(
 def create_customer(
     data: CustomerCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Create a new CRM customer (admin only)."""
     customer = CrmCustomer(**data.model_dump())
@@ -114,7 +123,7 @@ def create_customer(
 def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Get a specific CRM customer (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
@@ -128,7 +137,7 @@ def update_customer_stage(
     customer_id: str,
     stage: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Update customer stage (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
@@ -150,7 +159,7 @@ def update_customer_owner(
     customer_id: str,
     owner: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Update customer owner (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
@@ -169,7 +178,7 @@ def convert_customer(
     customer_id: str,
     stage: str = CustomerStage.PROSPECT.value,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Convert a lead to prospect (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
@@ -190,7 +199,7 @@ def convert_customer(
 def delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """Delete a CRM customer (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
@@ -207,7 +216,7 @@ def delete_customer(
 def list_customer_activities(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_superuser),
+    _: User = Depends(require_active_subscription),
 ):
     """List activities for a customer (admin only)."""
     customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))

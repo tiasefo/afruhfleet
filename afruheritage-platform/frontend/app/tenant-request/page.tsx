@@ -41,10 +41,21 @@ export default function TenantRequestPage() {
     setMessage('')
 
     try {
-      const res = await fetch('/api/v1/tenant-requests', {
+      const res = await fetch('/api/v1/tenants/register-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          companyName: form.company_name,
+          businessType: form.business_type,
+          country: form.country,
+          city: form.city,
+          address: form.address,
+          contactName: form.contact_name,
+          contactEmail: form.contact_email,
+          phone: form.phone,
+          website: form.website || undefined,
+          message: form.message || undefined,
+        }),
       })
 
       if (!res.ok) {

@@ -20,6 +20,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    # Check if table already exists (baseline create_all may have created it
+    # from the ORM model).
+    conn = op.get_bind()
+    result = conn.execute(sa.text(
+        "SELECT table_name FROM information_schema.tables "
+        "WHERE table_name='billing_promotions'"
+    ))
+    if result.fetchone() is not None:
+        # Table already exists from baseline create_all — skip creation.
+        return
+
     op.create_table(
         'billing_promotions',
         sa.Column('id', sa.UUID(as_uuid=True), primary_key=True, server_default=sa.text('gen_random_uuid()')),

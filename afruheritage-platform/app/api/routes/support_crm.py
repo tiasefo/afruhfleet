@@ -23,7 +23,7 @@ def _resolve_tenant_uuid(db: Session, tenant_identifier: str) -> str:
         raise HTTPException(status_code=422, detail='Invalid tenant_id. Provide a valid tenant UUID or known tenant slug.')
 
 @router.post('/accounts', response_model=CRMAccountResponse)
-def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def create_account(request: CRMAccountCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -32,7 +32,7 @@ def create_account(tenant_id: str, request: CRMAccountCreateRequest, db: Session
     return CRMAccountResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), account_type=obj.account_type.value, company_name=obj.company_name, email=obj.email, phone=obj.phone)
 
 @router.get('/accounts', response_model=list[CRMAccountResponse])
-def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def list_accounts(tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     accounts = db.query(CRMAccount).filter(CRMAccount.tenant_id == str(current_user.tenant_id)).order_by(CRMAccount.created_at.desc()).all()
@@ -49,7 +49,7 @@ def list_accounts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
     ]
 
 @router.get('/contacts', response_model=list[CRMContactResponse])
-def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def list_contacts(tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     contacts = db.query(CRMContact).filter(CRMContact.tenant_id == str(current_user.tenant_id)).order_by(CRMContact.created_at.desc()).all()
@@ -67,7 +67,7 @@ def list_contacts(tenant_id: str, db: Session=Depends(get_db), current_user: Use
     ]
 
 @router.post('/contacts', response_model=CRMContactResponse)
-def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def create_contact(request: CRMContactCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -76,7 +76,7 @@ def create_contact(tenant_id: str, request: CRMContactCreateRequest, db: Session
     return CRMContactResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), account_id=str(obj.account_id), first_name=obj.first_name, last_name=obj.last_name, email=obj.email, phone=obj.phone)
 
 @router.get('/opportunities', response_model=list[OpportunityResponse])
-def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def list_opportunities(tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     opportunities = db.query(Opportunity).filter(Opportunity.tenant_id == str(current_user.tenant_id)).order_by(Opportunity.created_at.desc()).all()
@@ -93,7 +93,7 @@ def list_opportunities(tenant_id: str, db: Session=Depends(get_db), current_user
     ]
 
 @router.post('/opportunities', response_model=OpportunityResponse)
-def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def create_opportunity_route(request: OpportunityCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -102,7 +102,7 @@ def create_opportunity_route(tenant_id: str, request: OpportunityCreateRequest, 
     return OpportunityResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), title=obj.title, stage=obj.stage.value, currency=obj.currency, estimated_value=float(obj.estimated_value) if obj.estimated_value is not None else None)
 
 @router.get('/quotes', response_model=list[QuoteResponse])
-def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def list_quotes(tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     quotes = db.query(Quote).filter(Quote.tenant_id == str(current_user.tenant_id)).order_by(Quote.created_at.desc()).all()
@@ -119,7 +119,7 @@ def list_quotes(tenant_id: str, db: Session=Depends(get_db), current_user: User=
     ]
 
 @router.post('/quotes', response_model=QuoteResponse)
-def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+def create_quote_route(request: QuoteCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
@@ -128,7 +128,7 @@ def create_quote_route(tenant_id: str, request: QuoteCreateRequest, db: Session=
     return QuoteResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), quote_number=obj.quote_number, status=obj.status.value, currency=obj.currency, total_amount=float(obj.total_amount))
 
 @router.post('/public/tickets', response_model=SupportTicketResponse)
-def create_public_ticket_route(tenant_id: str, request: Request, payload: PublicTicketCreateRequest, db: Session=Depends(get_db)):
+def create_public_ticket_route(request: Request, payload: PublicTicketCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db)):
     data = payload.model_dump()
     data['tenant_id'] = _resolve_tenant_uuid(db, data.get('tenant_id') or tenant_id)
     obj = create_public_ticket(db, **data)
@@ -136,14 +136,14 @@ def create_public_ticket_route(tenant_id: str, request: Request, payload: Public
     return SupportTicketResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), public_token=obj.public_token, subject=obj.subject, description=obj.description, category=obj.category, priority=obj.priority.value, status=obj.status.value, shipment_reference=obj.shipment_reference, tracking_reference=obj.tracking_reference, glpi_ticket_id=obj.glpi_ticket_id)
 
 @router.get('/public/tickets/{public_token}', response_model=SupportTicketResponse)
-def get_public_ticket(tenant_id: str, public_token: str, db: Session=Depends(get_db)):
+def get_public_ticket(public_token: str, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db)):
     obj = db.query(SupportTicket).filter(SupportTicket.public_token == public_token).first()
     if not obj:
         raise HTTPException(status_code=404, detail='Ticket not found')
     return SupportTicketResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), public_token=obj.public_token, subject=obj.subject, description=obj.description, category=obj.category, priority=obj.priority.value, status=obj.status.value, shipment_reference=obj.shipment_reference, tracking_reference=obj.tracking_reference, glpi_ticket_id=obj.glpi_ticket_id)
 
 @router.get('/public/tickets/{public_token}/messages', response_model=list[SupportTicketMessageResponse])
-def get_public_ticket_messages(tenant_id: str, public_token: str, db: Session=Depends(get_db)):
+def get_public_ticket_messages(public_token: str, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db)):
     ticket = db.query(SupportTicket).filter(SupportTicket.public_token == public_token).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')
@@ -151,7 +151,7 @@ def get_public_ticket_messages(tenant_id: str, public_token: str, db: Session=De
     return [SupportTicketMessageResponse(id=str(x.id), ticket_id=str(x.ticket_id), author_type=x.author_type, author_name=x.author_name, body=x.body, visible_to_public=x.visible_to_public) for x in rows]
 
 @router.post('/public/tickets/{public_token}/reply', response_model=SupportTicketMessageResponse)
-def reply_public_ticket(tenant_id: str, public_token: str, request: TicketReplyRequest, db: Session=Depends(get_db)):
+def reply_public_ticket(public_token: str, request: TicketReplyRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db)):
     ticket = db.query(SupportTicket).filter(SupportTicket.public_token == public_token).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')

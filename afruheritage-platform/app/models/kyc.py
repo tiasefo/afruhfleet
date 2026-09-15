@@ -22,7 +22,7 @@ class KYCSubmission(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
 
     # Document details
-    id_type: Mapped[str | None] = mapped_column(String(50), nullable=True)         # ghana_card, passport, voter_id, drivers_license
+    id_type: Mapped[str | None] = mapped_column(Enum('ghana_card','passport','voter_id','drivers_license', name='kycidtype', create_type=False), nullable=True)
     id_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)      # As on the ID
 

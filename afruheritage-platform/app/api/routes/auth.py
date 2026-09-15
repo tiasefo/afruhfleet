@@ -15,6 +15,7 @@ from app.models.user import User, UserRole
 from app.schemas.auth import BootstrapAdminRequest, LoginRequest, PasswordResetConfirmRequest, RegisterRequest, TokenResponse
 from app.services.signup_onboarding_service import ensure_user_tenant_context
 from app.services.billing_service import normalize_plan_code
+from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -84,6 +85,42 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
     # Commit the entire registration transaction atomically (user + tenant + roles)
     db.commit()
     _set_auth_cookie(response, token)
+
+    # Send welcome email to the newly registered user
+    try:
+        notification_service = NotificationService()
+        welcome_html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 16px;">Welcome to Afruheritage!</h1>
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+                Hi {payload.full_name}, your freight forwarding platform <strong>{payload.company_name}</strong> has been created successfully!
+            </p>
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0;">
+                <p style="margin: 0; color: #64748b;"><strong>Your Portal:</strong> {portal_url or 'https://afruheritage.com'}</p>
+                <p style="margin: 8px 0 0; color: #64748b;"><strong>Login Email:</strong> {payload.email}</p>
+            </div>
+            <div style="margin: 32px 0;">
+                <a href="{portal_url or 'https://afruheritage.com'}/login"
+                   style="background: #0ea5e9; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                    Login to Your Portal
+                </a>
+            </div>
+            <p style="color: #94a3b8; font-size: 14px;">
+                If you did not create this account, please contact support immediately.
+            </p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;" />
+            <p style="color: #cbd5e1; font-size: 12px;">Afruheritage — The African TransUnion Freight Forwarding Platform</p>
+        </div>
+        """
+        notification_service.send_generic_email(
+            to=payload.email.lower(),
+            subject=f"Welcome to Afruheritage — {payload.company_name} is Ready!",
+            html_body=welcome_html,
+            plain_body=f"Welcome to Afruheritage!\n\nHi {payload.full_name}, your freight forwarding platform {payload.company_name} has been created successfully.\n\nYour Portal: {portal_url or 'https://afruheritage.com'}\nLogin Email: {payload.email}\n\nLogin at: {portal_url or 'https://afruheritage.com'}/login",
+        )
+    except Exception as e:
+        import logging
+        logging.getLogger("afruheritage.auth").error(f"Failed to send registration welcome email: {e}")
     return TokenResponse(
         access_token=token,
         tenant_id=str(user.tenant_id) if user.tenant_id else None,

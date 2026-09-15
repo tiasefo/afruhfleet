@@ -141,7 +141,11 @@ async function hasValidSession(req: NextRequest): Promise<boolean> {
 }
 
 function redirectToLogin(req: NextRequest, pathname: string) {
-  const target = pathname.startsWith('/admin') ? '/admin/login' : '/login'
+  // Admin pages use the same login as tenants (is_superuser flag on User model).
+  // There is no separate /admin/login page, so redirect to /login to avoid
+  // an infinite redirect loop (/admin/login is not public → auth gate → redirect
+  // to /admin/login?next=/admin/login?next=...).
+  const target = '/login'
   const url = new URL(target, req.url)
   url.searchParams.set('next', pathname + req.nextUrl.search)
   return NextResponse.redirect(url)
@@ -212,9 +216,26 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  // 3. *.afruheritage.com subdomains — inject slug header
+  // 3. *.afruheritage.com subdomains — verify tenant exists, inject slug header
   const tenantSubdomain = isPlatformSubdomain(host)
   if (tenantSubdomain) {
+    // Verify the subdomain resolves to an actual tenant before serving content.
+    // If it doesn't exist, return 404 instead of falling through to the platform
+    // homepage (which would be a security concern — serving platform content
+    // for a non-existent tenant subdomain).
+    try {
+      const verifyUrl = `${API_BASE}/tenant-context/subdomain/${encodeURIComponent(tenantSubdomain)}`
+      const verifyRes = await fetch(verifyUrl, {
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(3000),
+      })
+      if (!verifyRes.ok) {
+        // Tenant not found — return 404
+        return new NextResponse('Tenant not found', { status: 404 })
+      }
+    } catch {
+      // API unreachable — let the page handle it (graceful degradation)
+    }
     const res = NextResponse.next()
     res.headers.set('x-tenant-slug', tenantSubdomain)
     return res

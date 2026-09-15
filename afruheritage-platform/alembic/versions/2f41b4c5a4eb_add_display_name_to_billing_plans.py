@@ -20,7 +20,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column('billing_plans', sa.Column('display_name', sa.String(120), nullable=False, server_default=''))
+    # Check if column already exists (baseline create_all may have created it
+    # from the ORM model which includes display_name).
+    conn = op.get_bind()
+    result = conn.execute(sa.text(
+        "SELECT column_name FROM information_schema.columns "
+        "WHERE table_name='billing_plans' AND column_name='display_name'"
+    ))
+    if result.fetchone() is None:
+        op.add_column('billing_plans', sa.Column('display_name', sa.String(120), nullable=False, server_default=''))
     op.execute("UPDATE billing_plans SET display_name = name WHERE display_name = ''")
 
 
