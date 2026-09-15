@@ -9,13 +9,13 @@ import httpx
 _raw_ollama_url = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
 # Remap localhost to host.docker.internal so the API container can reach the host
 OLLAMA_BASE_URL = _raw_ollama_url.replace("localhost", "host.docker.internal")
-DEFAULT_CHAT_MODEL = "afruheritage-copilot:latest"
+
+# Models currently available on the Ollama host reachable from the API container.
+# These are the only models the platform should advertise/allow.
+DEFAULT_CHAT_MODEL = "llama3.2:latest"
 ALLOWED_CHAT_MODELS = {
-    "afruheritage-copilot:latest",
-    "llama3:latest",
-    "deepseek-coder:latest",
-    "tinyllama",
-    "tinyllama:latest",
+    "llama3.2:latest",
+    "qwen2.5-coder:7b",
 }
 
 
@@ -43,15 +43,9 @@ def _try_model(messages: list[dict], model: str) -> str | None:
         return None
 
 
-def resolve_chat_model(requested_model: str | None) -> str:
-    if requested_model and requested_model in ALLOWED_CHAT_MODELS:
-        return requested_model
-    return DEFAULT_CHAT_MODEL
-
-
 def chat_with_ollama(messages: list[dict[str, str]], model: str | None = None) -> str:
     primary_model = resolve_chat_model(model)
-    fallback_models = ["tinyllama:latest", "tinyllama"]
+    fallback_models = list(ALLOWED_CHAT_MODELS)
 
     # Try primary model first
     result = _try_model(messages, primary_model)
