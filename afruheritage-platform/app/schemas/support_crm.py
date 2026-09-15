@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class CRMAccountCreateRequest(BaseModel):
-    tenant_id: str
+    tenant_id: str | None = None
     account_type: str = "customer"
     company_name: str
     email: str | None = None
@@ -17,7 +17,7 @@ class CRMAccountCreateRequest(BaseModel):
 
 
 class CRMContactCreateRequest(BaseModel):
-    tenant_id: str
+    tenant_id: str | None = None
     account_id: str
     first_name: str
     last_name: str | None = None
@@ -29,7 +29,7 @@ class CRMContactCreateRequest(BaseModel):
 
 
 class OpportunityCreateRequest(BaseModel):
-    tenant_id: str
+    tenant_id: str | None = None
     account_id: str | None = None
     title: str
     stage: str = "new"
@@ -39,7 +39,7 @@ class OpportunityCreateRequest(BaseModel):
 
 
 class QuoteCreateRequest(BaseModel):
-    tenant_id: str
+    tenant_id: str | None = None
     account_id: str | None = None
     opportunity_id: str | None = None
     quote_number: str

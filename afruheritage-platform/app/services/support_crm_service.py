@@ -60,11 +60,15 @@ def create_crm_contact(db: Session, **kwargs) -> CRMContact:
 
 
 def create_opportunity(db: Session, **kwargs) -> Opportunity:
+    try:
+        stage = OpportunityStage(kwargs.get("stage", "new"))
+    except (ValueError, KeyError):
+        stage = OpportunityStage.NEW
     obj = Opportunity(
         tenant_id=kwargs["tenant_id"],
         account_id=kwargs.get("account_id"),
         title=kwargs["title"],
-        stage=OpportunityStage(kwargs.get("stage", "new")),
+        stage=stage,
         currency=kwargs.get("currency", "GHS"),
         estimated_value=kwargs.get("estimated_value"),
         notes=kwargs.get("notes"),
