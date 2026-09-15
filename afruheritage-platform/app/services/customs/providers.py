@@ -75,6 +75,7 @@ class EstimateProvider(CustomsProvider):
                 "currency": currency,
             })
 
+        total = round(charges_total, 2)
         return {
             "provider": self.name,
             "mode": "estimate",
@@ -82,8 +83,9 @@ class EstimateProvider(CustomsProvider):
             "commodity_type": commodity_type,
             "currency": currency,
             "cif_value": round(cif_value, 2),
-            "charges_total": round(charges_total, 2),
-            "estimated_total_landed_cost": round(cif_value + charges_total, 2),
+            "total_duty": total,
+            "charges_total": total,
+            "estimated_total_landed_cost": round(cif_value + total, 2),
             "breakdown": breakdown,
             "confidence": "estimate",
             "official": False,

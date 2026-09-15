@@ -85,6 +85,7 @@ def try_icums_used_vehicle(payload: dict[str, Any], timeout: int = 3) -> dict[st
             "hdv": hdv,
             "cif": cif,
             "total_tax": total_tax,
+            "total_duty": total_tax,
             "raw_parse_confidence": "partial",
             "notes": [
                 "Result parsed from ICUMS public used vehicle calculator page.",
@@ -134,6 +135,7 @@ def try_icums_general_goods(payload: dict[str, Any], timeout: int = 3) -> dict[s
             "country": "GH",
             "commodity_type": "cargo",
             "total_tax": total_tax,
+            "total_duty": total_tax,
             "raw_parse_confidence": "partial",
             "notes": [
                 "Result parsed from ICUMS public general goods calculator page.",

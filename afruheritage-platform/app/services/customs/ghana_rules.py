@@ -130,6 +130,7 @@ def ghana_vehicle_fallback(payload: dict[str, Any]) -> dict[str, Any]:
         if calibration.get("vin") and str(payload.get("vin") or "").strip().upper() == str(calibration.get("vin")).upper():
             total_tax = float(calibration.get("total_tax_ghs") or total_tax)
 
+        total_tax = round(total_tax, 2)
         return {
             "provider": "afruheritage_ghana_engine",
             "mode": "boe_calibrated_fallback",
@@ -144,8 +145,9 @@ def ghana_vehicle_fallback(payload: dict[str, Any]) -> dict[str, Any]:
             "freight_ghs": calibration.get("freight_ghs"),
             "insurance_ghs": calibration.get("insurance_ghs"),
             "customs_value_ghs": round(customs_value_ghs, 2),
-            "charges_total": round(total_tax, 2),
-            "estimated_total_landed_cost": round(total_tax, 2),
+            "total_duty": total_tax,
+            "charges_total": total_tax,
+            "estimated_total_landed_cost": total_tax,
             "breakdown": breakdown,
             "confidence": "boe_calibrated",
             "calibration_source": calibration.get("source"),
@@ -203,6 +205,7 @@ def ghana_vehicle_fallback(payload: dict[str, Any]) -> dict[str, Any]:
         "currency": "GHS",
     })
 
+    total_tax = round(total_tax, 2)
     return {
         "provider": "afruheritage_ghana_engine",
         "mode": "fallback",
@@ -219,8 +222,9 @@ def ghana_vehicle_fallback(payload: dict[str, Any]) -> dict[str, Any]:
         "cif_usd": cif_usd,
         "exchange_rate": exchange_rate,
         "customs_value_ghs": customs_value_ghs,
-        "charges_total": round(total_tax, 2),
-        "estimated_total_landed_cost": round(total_tax, 2),
+        "total_duty": total_tax,
+        "charges_total": total_tax,
+        "estimated_total_landed_cost": total_tax,
         "breakdown": breakdown,
         "confidence": "ghana_fallback_estimate",
         "notes": [
@@ -259,6 +263,7 @@ def ghana_goods_fallback(payload: dict[str, Any]) -> dict[str, Any]:
             "currency": currency,
         })
 
+    total = round(total, 2)
     return {
         "provider": "afruheritage_ghana_engine",
         "mode": "fallback",
@@ -267,8 +272,9 @@ def ghana_goods_fallback(payload: dict[str, Any]) -> dict[str, Any]:
         "commodity_type": "cargo",
         "currency": currency,
         "cif_value": round(cif_value, 2),
-        "charges_total": round(total, 2),
-        "estimated_total_landed_cost": round(total, 2),
+        "total_duty": total,
+        "charges_total": total,
+        "estimated_total_landed_cost": total,
         "breakdown": breakdown,
         "confidence": "ghana_goods_fallback_estimate",
         "notes": [
