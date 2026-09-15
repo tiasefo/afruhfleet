@@ -55,6 +55,7 @@ from app.api.routes.whatsapp import router as whatsapp_router
 from app.api.routes.whatsapp_csv import router as whatsapp_csv_router
 from app.api.routes.vendors import router as vendors_router
 from app.api.routes.users import router as users_router
+from app.api.routes.team import router as team_router
 from app.api.routes.company_registration import router as company_registration_router
 from app.api.routes.storefront_templates import router as storefront_templates_router
 from app.api.routes.plugins import router as plugins_router
@@ -100,6 +101,7 @@ import app.models.new_arrivals  # noqa: F401
 import app.models.payment  # noqa: F401
 import app.models.cargo  # noqa: F401
 import app.models.platform_config  # noqa: F401
+import app.models.tenant_invitation  # noqa: F401
 from app.api.routes import fleetbase_proxy
 from app.api.routes import customs
 from app.api.routes.fleetbase_tenant_proxy import router as fleetbase_tenant_proxy_router
@@ -213,6 +215,7 @@ app.include_router(customs.router, prefix=settings.api_v1_prefix)
 
 app.include_router(vendors_router, prefix=settings.api_v1_prefix)
 app.include_router(users_router, prefix=settings.api_v1_prefix)
+app.include_router(team_router, prefix=settings.api_v1_prefix)
 app.include_router(company_registration_router, prefix=settings.api_v1_prefix)
 app.include_router(storefront_templates_router, prefix=settings.api_v1_prefix)
 app.include_router(plugins_router, prefix=settings.api_v1_prefix)

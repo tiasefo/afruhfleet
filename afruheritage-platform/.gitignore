@@ -13,3 +13,11 @@ celerybeat-schedule.db
 frontend/artifacts/
 frontend/test-results/
 sentinel/.env
+uat-evidence-baseline/
+uat-remediation/
+CLIENT_READINESS_CERTIFICATION_INVESTIGATION.json
+UAT_REPRODUCTION_MAP.json
+CLIENT_READINESS_E2E_SMOKE_REPORT.md
+CLIENT_READINESS_E2E_SMOKE_REPORT.csv
+!CLIENT_READINESS_REMEDIATION_REPORT.md
+!CLIENT_READINESS_REMEDIATION_REPORT.csv
