@@ -20,4 +20,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .mypy_cache
-frontend/Afruheritage_UAT_Technical_Report.pdf/
+frontend/Afruheritage_UAT_Technical_Report.pdf

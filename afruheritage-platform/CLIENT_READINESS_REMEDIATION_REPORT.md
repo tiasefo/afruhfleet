@@ -131,6 +131,29 @@ Safe to demo:
 Exclude from demo:
 - None
 
+## Final client candidate summary
+
+| Item | Result |
+|------|--------|
+| **TOTAL TESTS** | 81 |
+| **GREEN** | 81 |
+| **YELLOW** | 0 |
+| **RED** | 0 |
+| **BLACK** | 0 |
+| **GRAY** | 0 |
+| **FS-038 Team Invitation** | PASS |
+| **FS-044 Welcome Email** | PASS |
+| **Golden Path** | PASS |
+| **Tenant Isolation** | PASS |
+| **GREEN → RED Regressions** | 0 |
+| **CLIENT_READINESS_RELEASE_SHA** | 1531a874ba128043f1f6b0a78b1f6721ab08017b |
+| **DEPLOYED_SHA** | 1531a874ba128043f1f6b0a78b1f6721ab08017b |
+| **SHA MATCH** | YES |
+| **GIT STATUS** | CLEAN |
+| **SECRETS COMMITTED** | NO |
+| **CLIENT DEMO** | GO |
+| **REMAINING EXCLUSIONS** | None |
+
 ## Final note
 
 The original `CLIENT_READINESS_E2E_SMOKE_REPORT.md` and `CLIENT_READINESS_E2E_SMOKE_REPORT.csv` are preserved as the BEFORE baseline. This report and its CSV are the AFTER remediation record.
