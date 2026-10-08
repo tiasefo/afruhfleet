@@ -16,6 +16,7 @@ def request_fleetbase_api(
     json_body: dict | list | None = None,
     *,
     suppress_errors: bool = False,
+    timeout: float = 10,
 ):
     url = f"{api_url.rstrip('/')}/{endpoint.lstrip('/')}"
     headers = {"Accept": "application/json"}
@@ -26,7 +27,7 @@ def request_fleetbase_api(
         else:
             headers["Authorization"] = token
     try:
-        response = requests.request(method.upper(), url, headers=headers, params=params, json=json_body, timeout=10)
+        response = requests.request(method.upper(), url, headers=headers, params=params, json=json_body, timeout=timeout)
         response.raise_for_status()
         if not response.content:
             return {}
@@ -45,6 +46,7 @@ def proxy_fleetbase_api(
     params: dict = None,
     *,
     suppress_errors: bool = False,
+    timeout: float = 10,
 ):
     return request_fleetbase_api(
         api_url,
@@ -54,4 +56,5 @@ def proxy_fleetbase_api(
         auth_scheme=auth_scheme,
         params=params,
         suppress_errors=suppress_errors,
+        timeout=timeout,
     )

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { TenantContext } from '@/lib/tenant-context'
 import { getDefaultTenantContext, applyTenantTheme, fetchTenantContextClient } from '@/lib/tenant-context'
-import { resolvePublicTenantId, persistTenantId } from '@/lib/tenant'
+import { resolvePublicTenantId, persistTenantId, resolveTenantId, getTenantFromPath } from '@/lib/tenant'
 
 interface TenantContextType {
   tenant: TenantContext
@@ -27,17 +27,25 @@ export function TenantContextProvider({ children, initialTenant }: { children: R
     setError(null)
 
     try {
-      const tenantId = resolvePublicTenantId()
-      
+      // Authenticated sessions must never let a URL ?tenant_id= switch the
+      // displayed/stored tenant context — the session tenant is authoritative.
+      // Unauthenticated public pages keep the full public resolution order.
+      const isAuthed = typeof window !== 'undefined' && !!window.localStorage.getItem('auth_token')
+      const tenantId = isAuthed
+        ? (getTenantFromPath() || resolveTenantId())
+        : resolvePublicTenantId()
+
       // Fetch the real tenant context from the control plane. No hardcodes.
       if (tenantId) {
         const fetched = await fetchTenantContextClient(tenantId)
         if (fetched) {
           setTenant(fetched)
           applyTenantTheme(fetched)
-          // Persist slug so it survives navigations to /sign-in, /dashboard, etc.
-          if (fetched.slug && fetched.slug !== 'platform') {
-            persistTenantId(fetched.slug)
+          // Persist the canonical tenant UUID for API scoping (NOT the slug —
+          // backend tenant_id path params authorize against the user's UUID;
+          // a slug here caused 403s/500s across members, shipments, billing).
+          if (fetched.id && fetched.id !== 'platform' && !isAuthed) {
+            persistTenantId(fetched.id)
           }
           return
         }

@@ -61,25 +61,29 @@ def run_runtime_migrations(engine: Engine) -> None:
                 # Update users.is_tenant_admin to match group_members.role
                 # Users with GroupMember role 'admin' should have is_tenant_admin=True
                 # Users with GroupMember role 'customer' should have is_tenant_admin=False
+                # Savepoint: concurrent API workers can deadlock on this UPDATE;
+                # without a nested transaction the aborted outer transaction
+                # would fail every subsequent migration and crash startup.
                 try:
-                    conn.execute(text("""
-                        UPDATE users 
-                        SET is_tenant_admin = TRUE 
-                        WHERE id IN (
-                            SELECT DISTINCT user_id 
-                            FROM group_members 
-                            WHERE role = 'admin'
-                        )
-                    """))
-                    conn.execute(text("""
-                        UPDATE users 
-                        SET is_tenant_admin = FALSE 
-                        WHERE id IN (
-                            SELECT DISTINCT user_id 
-                            FROM group_members 
-                            WHERE role = 'customer'
-                        )
-                    """))
+                    with conn.begin_nested():
+                        conn.execute(text("""
+                            UPDATE users
+                            SET is_tenant_admin = TRUE
+                            WHERE id IN (
+                                SELECT DISTINCT user_id
+                                FROM group_members
+                                WHERE role = 'admin'
+                            )
+                        """))
+                        conn.execute(text("""
+                            UPDATE users
+                            SET is_tenant_admin = FALSE
+                            WHERE id IN (
+                                SELECT DISTINCT user_id
+                                FROM group_members
+                                WHERE role = 'customer'
+                            )
+                        """))
                     logger.info("runtime_migration_fixed_is_tenant_admin_from_group_members")
                 except Exception as e:
                     logger.warning(f"runtime_migration_fix_is_tenant_admin_failed: {e}")
@@ -222,6 +226,18 @@ def run_runtime_migrations(engine: Engine) -> None:
             if "role" not in member_columns:
                 conn.execute(text("ALTER TABLE group_members ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'"))
                 logger.info("runtime_migration_added_group_members_role")
+
+        if inspector.has_table("shipments"):
+            shipment_columns = {col["name"] for col in inspector.get_columns("shipments")}
+            for col_name, col_type in (
+                ("driver_public_id", "VARCHAR(100)"),
+                ("driver_name", "VARCHAR(255)"),
+                ("vehicle_public_id", "VARCHAR(100)"),
+                ("vehicle_name", "VARCHAR(255)"),
+            ):
+                if col_name not in shipment_columns:
+                    conn.execute(text(f"ALTER TABLE shipments ADD COLUMN {col_name} {col_type} NULL"))
+                    logger.info(f"runtime_migration_added_shipments_{col_name}")
 
         # Storefront templates table migration
         if inspector.has_table("storefront_templates"):

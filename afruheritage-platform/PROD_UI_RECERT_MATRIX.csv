@@ -1,0 +1,463 @@
+ID,Domain,Capability,Persona,Starting URL,UI Test Performed,Expected,Actual,Status,Classification,Core Dependency,Release Disposition,Evidence Paths,Defect Reference,Notes
+PUB-01,PUBLIC,Homepage loads with branding and entry paths,ANONYMOUS,https://afruheritage.com,Loaded https://afruheritage.com,"Afruheritage homepage with branding, navigation, Register/Sign In path","Homepage renders with Afruheritage branding, nav, Sign In and Get Started paths",PASS,,YES,,playwright-evidence/screenshots/PUB-01-homepage.png;playwright-evidence/console/PUB-01.log;playwright-evidence/network/PUB-01.log,,"Homepage displays hardcoded marketing statistics (500+ forwarders, 12,847 shipments, 4.9/5 rating, 98% on-time, 45+ countries) — unverifiable marketing claims on a pre-launch product; AGENT.md forbids invented stats"
+PUB-LEGAL-PRIVACYPOLICY,LEGAL,Privacy page,ANONYMOUS,https://afruheritage.com/privacy-policy,Opened /privacy-policy,Privacy page loads with readable legal text,Privacy page loads (2544 chars of content),PASS,,NO,,playwright-evidence/screenshots/PUB-LEGAL-PRIVACYPOLICY-page.png;playwright-evidence/console/PUB-LEGAL-PRIVACYPOLICY.log;playwright-evidence/network/PUB-LEGAL-PRIVACYPOLICY.log,,
+PUB-LEGAL-TERMSOFSERVICE,LEGAL,Terms page,ANONYMOUS,https://afruheritage.com/terms-of-service,Opened /terms-of-service,Terms page loads with readable legal text,Terms page loads (2318 chars of content),PASS,,NO,,playwright-evidence/screenshots/PUB-LEGAL-TERMSOFSERVICE-page.png;playwright-evidence/console/PUB-LEGAL-TERMSOFSERVICE.log;playwright-evidence/network/PUB-LEGAL-TERMSOFSERVICE.log,,
+PUB-LEGAL-COOKIEPOLICY,LEGAL,Cookie page,ANONYMOUS,https://afruheritage.com/cookie-policy,Opened /cookie-policy,Cookie page loads with readable legal text,Cookie page loads (1512 chars of content),PASS,,NO,,playwright-evidence/screenshots/PUB-LEGAL-COOKIEPOLICY-page.png;playwright-evidence/console/PUB-LEGAL-COOKIEPOLICY.log;playwright-evidence/network/PUB-LEGAL-COOKIEPOLICY.log,,
+PUB-LEGAL-GDPR,LEGAL,GDPR page,ANONYMOUS,https://afruheritage.com/gdpr,Opened /gdpr,GDPR page loads with readable legal text,GDPR page loads (1693 chars of content),PASS,,NO,,playwright-evidence/screenshots/PUB-LEGAL-GDPR-page.png;playwright-evidence/console/PUB-LEGAL-GDPR.log;playwright-evidence/network/PUB-LEGAL-GDPR.log,,
+PUB-02,PUBLIC,Pricing page shows plans,ANONYMOUS,https://afruheritage.com/pricing,Opened /pricing,"Plan names, prices and a way to subscribe",Pricing page shows plans with pricing. cta=true,PASS,,YES,,playwright-evidence/screenshots/PUB-02-pricing-full.png;playwright-evidence/console/PUB-02.log;playwright-evidence/network/PUB-02.log,,"A Afruheritage Solutions Locations Platform For Vendors Support Pricing EN Sign In Get Started Back to Home Pricing for Every Logistics Scale From startups to enterprises, choose a plan that grows with your freight forwarding business. No hidden fees, no surprises. Simple, Transparent Pricing Choose the plan that fits your freight forwarding needs. All plans include core platform features. Free Tr"
+PUB-03,PUBLIC,Public tracking page renders,ANONYMOUS,https://afruheritage.com/track,Opened /track anonymously,Tracking input and Track control visible without login,Public tracking form visible without login,PASS,,YES,,playwright-evidence/screenshots/PUB-03-track.png;playwright-evidence/console/PUB-03.log;playwright-evidence/network/PUB-03.log,,
+PUB-04,PUBLIC,Public tracking of unknown number,ANONYMOUS,https://afruheritage.com/track,Entered bogus tracking number ZZZ-NOTREAL-000,"Graceful not-found result, no login required, no leaked data",Unknown tracking number produces graceful not-found message,PASS,,NO,,playwright-evidence/screenshots/PUB-04-result.png;playwright-evidence/console/PUB-04.log;playwright-evidence/network/PUB-04.log,,
+PUB-05,SUPPORT,Public support page renders with ticket form,ANONYMOUS,https://afruheritage.com/support,Opened /support,Support ticket form with name/email/subject/category and submit,Support page shows ticket creation form and FAQ,PASS,,YES,,playwright-evidence/screenshots/PUB-05-support.png;playwright-evidence/console/PUB-05.log;playwright-evidence/network/PUB-05.log,,
+PUB-06,VENDOR,Marketplace anonymous access,ANONYMOUS,https://afruheritage.com/marketplace,Opened /marketplace anonymously,Public marketplace listing OR intentional login requirement,Marketplace requires login — redirected to /login. Public anonymous marketplace listing is not available.,BLOCKED,NOT_PRODUCTIZED,NO,,playwright-evidence/screenshots/PUB-06-marketplace.png;playwright-evidence/console/PUB-06.log;playwright-evidence/network/PUB-06.log;playwright-evidence/traces/PUB-06.zip,,Guide 36 requires browsing marketplace as signed-in owner; anonymous listing not exposed
+PUB-07,VENDOR,Vendor public page / application entry,ANONYMOUS,https://afruheritage.com/vendors,Opened /vendors,Vendor-facing page with registration/application path,Vendor page requires login,BLOCKED,NOT_PRODUCTIZED,NO,,playwright-evidence/screenshots/PUB-07-vendors-full.png;playwright-evidence/console/PUB-07.log;playwright-evidence/network/PUB-07.log;playwright-evidence/traces/PUB-07.zip,,
+PUB-08,PUBLIC,Locations page,ANONYMOUS,https://afruheritage.com/locations,Opened /locations,Locations/coverage information loads,Locations page renders content,PASS,,NO,,playwright-evidence/screenshots/PUB-08-locations-full.png;playwright-evidence/console/PUB-08.log;playwright-evidence/network/PUB-08.log,,
+PUB-09,PUBLIC,Documentation entry,ANONYMOUS,https://afruheritage.com/docs,Opened /docs,Documentation page loads,Docs renders at https://afruheritage.com/docs?flow=company-tenant&step=1,PASS,,NO,,playwright-evidence/screenshots/PUB-09-docs.png;playwright-evidence/console/PUB-09.log;playwright-evidence/network/PUB-09.log,,redirected to https://afruheritage.com/docs?flow=company-tenant&step=1
+PUB-10,IDENTITY,Registration page renders with required fields,ANONYMOUS,https://afruheritage.com/register,Opened /register,"Form with company, name, email, password, confirm + submit",All registration fields present,PASS,,YES,,playwright-evidence/screenshots/PUB-10-register.png;playwright-evidence/console/PUB-10.log;playwright-evidence/network/PUB-10.log,,
+GJ-01,IDENTITY,Registration: fresh business account via public site,ANONYMOUS CUSTOMER,https://afruheritage.com,"Opened afruheritage.com as anonymous visitor | Clicked a:has-text(""Get Started"") -> https://afruheritage.com/ | Navigated to /register | Filled company/name/email/password, clicked Create Account",Account created; customer proceeds to onboarding/plan/workspace,"Registration submitted; landed at https://afruheritage.com/register: ""A Afruheritage Create Account Get started with your freight forwarding journey Continue with Google Continue with Instagram Continue with TikTok OR REGISTER WITH EMAIL Company Name Full Name Email Password Confirm Passwo""",PASS,,YES,,playwright-evidence/screenshots/GJ-01-filled.png;playwright-evidence/screenshots/GJ-01-result.png,,
+GJ-02,IDENTITY,Welcome email received at real external mailbox,BUSINESS OWNER,external mailbox,"Polled controlled external mailbox (mail.tm) for welcome email | Email received: ""Welcome to Afruheritage — UATCERT Meridian Freight is Ready!"" from advisory@emidentity.com | Following email link: https://uatcert-meridian-freight-1.afruheritage.com/login",Welcome email from Afruheritage naming the business,"Welcome email received: ""Welcome to Afruheritage — UATCERT Meridian Freight is Ready!"". links=2 followed https://uatcert-meridian-freight-1.afruheritage.com/login -> https://uatcert-meridian-freight-1.afruheritage.com/login",PASS,,YES,,playwright-evidence/screenshots/GJ-02-email-link.png,,links: https://uatcert-meridian-freight-1.afruheritage.com/login | https://uatcert-meridian-freight-1.afruheritage.com
+GJ-03,IDENTITY,Login reaches business workspace,BUSINESS OWNER,https://afruheritage.com/login,"Entered credentials on /login, clicked Sign In",Valid credentials reach workspace/onboarding,Logged in -> https://afruheritage.com/onboarding,PASS,,YES,,playwright-evidence/screenshots/GJ-03-after-login.png,,
+GJ-04,TENANT,Onboarding / post-login business setup,BUSINESS OWNER,https://afruheritage.com/onboarding,Onboarding: clicked /get started/i,Onboarding completes; business workspace reachable,Post-login state reachable: https://afruheritage.com/onboarding,PASS,,YES,,playwright-evidence/screenshots/GJ-04-start.png;playwright-evidence/screenshots/GJ-04-end.png,,A Afruheritage Welcome 2 Your Role 3 Profile 4 Done What brings you to Afruheritage? Choose the option that best describes you. Free Personal Shipper I want to send packages and track deliveries. Free tier included. KYC Required Delivery Driver I pick up and deliver shipments. KYC verification requi
+GJ-05,TENANT,Trial / subscription activation,BUSINESS OWNER,https://afruheritage.com/billing,plan=true status=true,Subscription shows trialing/active; workspace enabled,"Subscription activation state visible: ""TRIALING Features Current period ends: 2026-10-19T02:17:31.574415 Trial ends: 2026-10-19T02:17:31.574415 Upgrade Plan Wallet Balance GHS 0 Available Credits Add Funds Transaction History Available Pla""",PASS,,YES,,playwright-evidence/screenshots/GJ-05-billing-state.png;playwright-evidence/screenshots/GJ-05-billing-full-full.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Billing Manage your subscription 
+GJ-06,TENANT,Tenant workspace dashboard & navigation,BUSINESS OWNER,https://afruheritage.com/dashboard,,"Dashboard with business-scoped menus (Shipments, Team, Customers/CRM, Warehouse, Customs, Billing, Settings)",Dashboard reachable at https://afruheritage.com/dashboard; nav areas present. missing-ish: warehouse,PASS,,YES,,playwright-evidence/screenshots/GJ-06-dashboard-full.png,,"subdomain-URL=false. text: U UATCERT Meridian Freight 1 rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Personal Shipper Sign out Back Dashboard Welcome back, UAT Cert Owner Alpha My Shipments Track & manage "
+GJ-07,TENANT,Business profile & settings update,BUSINESS OWNER,https://afruheritage.com/settings,Filled field Enter company name | Clicked /save/i,Business contact info editable and persisted,Settings updated and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/GJ-07-settings.png,,
+ONB-01,TENANT,Onboarding: select Freight Company role and complete wizard,BUSINESS OWNER,https://afruheritage.com/login,Logged in -> https://afruheritage.com/dashboard,"Role selected, profile completed, wizard finishes to workspace or plan step",Onboarding completed -> https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/ONB-01-after-login.png;playwright-evidence/screenshots/ONB-01-final.png,,"Afruheritage rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Back Dashboard Welcome back, UAT Cert Owner Alp"
+SUB-01,BILLING,Subscription/billing shows plan and status,BUSINESS OWNER,https://afruheritage.com/billing,Billing page: https://afruheritage.com/billing,"Plan, status and renewal visible; workspace enabled","Billing shows plan/status: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Billing Manage your subscription """,PASS,,YES,,playwright-evidence/screenshots/SUB-01-billing-full.png,,
+DOM-01,TENANT,Tenant subdomain resolves to business workspace,BUSINESS OWNER,https://uatcert-meridian-freight-1.afruheritage.com,Visited tenant subdomain -> https://uatcert-meridian-freight-1.afruheritage.com/ (HTTP 200),Tenant subdomain serves the business workspace/identity,Tenant subdomain resolves: https://uatcert-meridian-freight-1.afruheritage.com/. Business context: true,PASS,,YES,,playwright-evidence/screenshots/DOM-01-subdomain.png,,"U UATCERT Meridian Freight Solutions Locations Platform For Vendors Support Pricing EN Sign In Get Started Now serving Ghana, Kenya, and China trade routes The Future of African Freight is Here AI-powered logistics platform built for Africa. Track sh"
+CRM-01,CRM,Create customer account,BUSINESS OWNER (TENANT B),https://afruheritage.com/crm/contacts,"Contacts page: ""U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out Contacts Management Manage cus"" | Clicked button:has-text(""New Contact"") | Submit: div[role=""dialog""] button:has-text(""Create Contact"")",Customer created and listed,"Customer contact ""Goldline Imports-UAT"" + auto account created and visible",PASS,,YES,,playwright-evidence/screenshots/CRM-01-crm.png;playwright-evidence/screenshots/CRM-01-add-form.png;playwright-evidence/screenshots/CRM-01-form-filled.png;playwright-evidence/screenshots/CRM-01-after.png,,
+CRM-02,CRM,Add contact to customer,BUSINESS OWNER (TENANT B),https://afruheritage.com/crm/contacts,"Account selected: Goldline | Submit: div[role=""dialog""] button:has-text(""Create Contact"")",Contact added under existing customer account,Contact added under Goldline account,PASS,,NO,,playwright-evidence/screenshots/CRM-02-after.png,,U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Com
+CRM-03,CRM,Create opportunity for customer,BUSINESS OWNER (TENANT B),https://afruheritage.com/crm,Filled: title=UAT Q4 Ocean Contract | Submit: /create|save|add|submit|confirm|book|new/i,Opportunity saved and linked,Opportunity created,PASS,,NO,,playwright-evidence/screenshots/CRM-03-after.png,,U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Com
+CRM-04,CRM,Log activity/note on customer,BUSINESS OWNER (TENANT B),customer detail,,Activity appears in timeline,"No activity control. text=""U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Com""",FAIL,UI_DEFECT,NO,,,DEF-CRM-10,
+CRM-05,CRM,Create quote,BUSINESS OWNER (TENANT B),https://afruheritage.com/crm/quotes,"Clicked button:has-text(""New Quote"") | Submit: null",Quote created and listed,Quote created/visible,PASS,,NO,,playwright-evidence/screenshots/CRM-05-quotes.png;playwright-evidence/screenshots/CRM-05-after.png,,U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Com
+SHP-01,SHIPMENTS,Create shipment with tracking number,BUSINESS OWNER (TENANT B),https://afruheritage.com/shipments,"Shipments page: ""U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out Track Every Mile in Real-Time "" | Clicked button:has-text(""Create Shipment"") -> https://afruheritage.com/shipments | text fields filled | origin/destination selected | numeric required filled: 3 | Submit: button:has-text(""Create Shipment"") | Tracking: AFR-E2C382-20261006-FC5CD6","Shipment created, appears in list with tracking number",Shipment created tracking=AFR-E2C382-20261006-FC5CD6. url=https://afruheritage.com/shipments,PASS,,YES,,playwright-evidence/screenshots/SHP-01-shipments.png;playwright-evidence/screenshots/SHP-01-create-form.png;playwright-evidence/screenshots/SHP-01-form-filled.png;playwright-evidence/screenshots/SHP-01-after.png,,U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out Track Every Mile in Real-Time 
+SHP-02,SHIPMENTS,Shipment list shows created shipment after reload,BUSINESS OWNER (TENANT B),https://afruheritage.com/shipments,,Created shipment visible in list,Shipment AFR-E2C382-20261006-FC5CD6 in list after reload,PASS,,YES,,playwright-evidence/screenshots/SHP-02-list.png,,
+SHP-03,SHIPMENTS,Shipment details accuracy,BUSINESS OWNER (TENANT B),shipment list,Opened shipment row,Detail view shows entered data,Shipment detail shows data at https://afruheritage.com/shipments/1cb40a71-530e-4ec3-9d8d-3cd43372bcda. missing-ish: status,PASS,,YES,,playwright-evidence/screenshots/SHP-03-detail-full.png,,U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out AFR-E2C382-20261006-FC5CD6 Shipment Details Add Event Edit DRAFT UNPAID Mark as 
+SHP-04,SHIPMENTS,Shipment status transition,BUSINESS OWNER (TENANT B),shipment detail,"Clicked button:has-text(""Mark as"")","Status can transition (e.g., draft->booked->in transit) and persist","Status transitioned: ""U UATCERT Kestrel Logistics 1 rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Com""",PASS,,YES,,playwright-evidence/screenshots/SHP-04-after-status.png,,
+SHP-05,TRACKING,Public tracking (signed-out) shows real shipment,ANONYMOUS CUSTOMER,https://afruheritage.com/track,Tracked AFR-E2C382-20261006-FC5CD6 anonymously (post-fix rerun),Tracking number returns status/location/ETA without login or private data,"Public tracking returns real shipment: Booked, Accra GH -> Kumasi GH, tracking history + sender/receiver rendered; empty dates show —",PASS,,YES,,playwright-evidence/screenshots/SHP-05-result.png,,Supersedes prior FAIL: tenant-less public track endpoint added (GET /public/track/{tracking_number}); Invalid Date rendering fixed
+CRM-02E,CRM,Create contact,BUSINESS OWNER (TENANT B),https://afruheritage.com/crm/contacts,"Filled: first,last,email | Submit: button:has-text(""Create Contact"") [modal]",Contact created and listed,Contact created and listed,PASS,,YES,,playwright-evidence/screenshots/CRM-02E-after.png,,
+CRM-05E,CRM,Create quote (verify real),BUSINESS OWNER (TENANT B),https://afruheritage.com/crm/quotes,Quote fields filled | Submit: dialog Create Quote,Quote created and listed,Quote created/visible,PASS,,NO,,playwright-evidence/screenshots/CRM-05E-quotes-page.png;playwright-evidence/screenshots/CRM-05E-form.png;playwright-evidence/screenshots/CRM-05E-after.png,,U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT 
+SHP-01E,SHIPMENTS,Create shipment (complete form) -> tracking number,BUSINESS OWNER (TENANT B),https://afruheritage.com/shipments/new,"Filled: reference,notes,name,phone,address,city,country | Filled 7 numeric fields | origin/destination comboboxes selected | Submit: button:has-text(""Create Shipment"") | Tracking: AFR-E2C382-20261006-A9C7AD","Shipment created, tracking shown","Shipment created, tracking=AFR-E2C382-20261006-A9C7AD -> https://afruheritage.com/shipments",PASS,,YES,,playwright-evidence/screenshots/SHP-01E-filled.png;playwright-evidence/screenshots/SHP-01E-after-full.png,,
+SHP-02E,SHIPMENTS,Shipment list,BUSINESS OWNER (TENANT B),https://afruheritage.com/shipments,,Shipments listed (owner),AFR-E2C382-20261006-A9C7AD listed,PASS,,YES,,playwright-evidence/screenshots/SHP-02E-list.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard/fleetops/drivers,,Driver mgmt works,"No driver create control. text=""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT """,FAIL,UI_DEFECT,NO,,playwright-evidence/screenshots/FLT-01-drivers.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard/fleetops/vehicles,,Vehicle mgmt works,"No vehicle create control. text=""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT """,FAIL,UI_DEFECT,NO,,playwright-evidence/screenshots/FLT-02-vehicles.png,DEF-FLT-05,
+FLT-03,FLEET,Fleet operations + live tracking surface,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard/fleetops,,Fleet ops + live map reachable,Fleet ops + live map render,PASS,,NO,,playwright-evidence/screenshots/FLT-03-fleetops.png;playwright-evidence/screenshots/FLT-03-livemap.png,,"fleetops=""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty T"""
+VND-01,VENDOR/MARKETPLACE,Vendor management surface (owner),BUSINESS OWNER (TENANT B),https://afruheritage.com/vendors,,Vendor mgmt reachable,"Vendors surface renders: ""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Sto""",PASS,,NO,,playwright-evidence/screenshots/VND-01-vendors.png,,
+VND-02,VENDOR/MARKETPLACE,Marketplace surface (owner),BUSINESS OWNER (TENANT B),https://afruheritage.com/marketplace,,"Marketplace reachable, booking path exists","Marketplace renders: ""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Sto""",PASS,,NO,,playwright-evidence/screenshots/VND-02-marketplace.png,,
+WHS-01,WAREHOUSE,Warehouse surface,BUSINESS OWNER (TENANT B),https://afruheritage.com/warehouse,,Warehouse reachable if productized,"No warehouse surface reachable — not in nav, all guessed paths 404",FAIL,NOT_PRODUCTIZED,NO,,playwright-evidence/screenshots/WHS-01-warehouse-miss.png,DEF-WHS-01,
+CUS-01,CUSTOMS,Duty calculator (Ghana) + itemized math,BUSINESS OWNER (TENANT B),https://afruheritage.com/customs/duty-calculator,Calc control: null,Calculator produces itemized credible total,Duty result rendered itemized,PASS,,NO,,playwright-evidence/screenshots/CUS-01-calc.png;playwright-evidence/screenshots/CUS-01-result.png,,U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out U UATCERT Kestrel Logistics 1-
+KYC-01,KYC,KYC upload + status,BUSINESS OWNER (TENANT B),https://afruheritage.com/kyc,,KYC doc upload + status visible,KYC surface + status,PASS,,NO,,playwright-evidence/screenshots/KYC-01-kyc.png,,U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner
+SUP-01,SUPPORT,Owner sees/responds to support tickets,BUSINESS OWNER (TENANT B),https://afruheritage.com/support,,Ticket inbox + reply,"Support surface: ""U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Ve""",PASS,,NO,,playwright-evidence/screenshots/SUP-01-support.png,,
+BIL-01,BILLING,Plan/wallet/payment/history/receipt,BUSINESS OWNER (TENANT B),https://afruheritage.com/billing,plan=true wallet=true pay=true hist=true,Plan + wallet + payment initiation visible,Billing renders,PASS,,YES,,playwright-evidence/screenshots/BIL-01-billing-full.png,,plan=true wallet=true pay=true hist=true | U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner
+ANA-01,ANALYTICS,Tenant analytics on dashboard,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard,,Dashboard metrics render for tenant,Dashboard analytics render,PASS,,NO,,playwright-evidence/screenshots/ANA-01-dashboard-full.png,,U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin
+AI-01,AI,"AI assistant widget: open, prompt, response",BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard,Widget control: last-button | Sent prompt,Widget opens; real prompt gets response,AI responded to prompt,PASS,,NO,,playwright-evidence/screenshots/AI-01-widget.png;playwright-evidence/screenshots/AI-01-response.png,, Shipment Create booking Team Members Manage team Billing Subscription Track Shipment Public tracking Support Get help Settings Configure Storefront Templates Browse & select Vendors Partners Open chat Help Typing... Welcome to Afruheritage Assistant. How can I help you today? 02:50 AM What is a freight forwarder? 02:50 AM Thinking... Powered by AI
+ISO-01,TENANT ISOLATION,Tenant A session shows A identity/data only,BUSINESS OWNER (TENANT A),https://afruheritage.com/login,,"A company name, A email, no B artifacts",A workspace shows only A identity,PASS,,YES,,playwright-evidence/screenshots/ISO-01-a-dashboard.png,,
+ISO-02,TENANT ISOLATION,A session on B subdomain gets no B workspace data,BUSINESS OWNER (TENANT A),https://uatcert-kestrel-logistics-1.afruheritage.com,,Public storefront only or login — never B private data,B subdomain denies A private access (url=https://uatcert-kestrel-logistics-1.afruheritage.com/login?next=%2Fdashboard),PASS,,YES,,playwright-evidence/screenshots/ISO-02-b-sub-as-a.png;playwright-evidence/screenshots/ISO-02-b-sub-dash.png,,UATCERT Kestrel Logistics 1-UATX-UATX-UATX Sign in to UATCERT Kestrel Logistics 1-UATX-UATX-UATX Access your tenant dashboard Continue with Google Continue with Instagram Continue with TikTok OR CONTI
+ISO-03,TENANT ISOLATION,A cannot view B data via tenant_id URL parameter,BUSINESS OWNER (TENANT A),https://afruheritage.com/shipments?tenant_id=e2c382b8-fd02-418d-8bd5-ad3634a56795,,Only A data rendered,No cross-tenant CRM data visible,PASS,,YES,,playwright-evidence/screenshots/ISO-03-a-views-b-crm.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storef
+ISO-04,TENANT ISOLATION,Anonymous visitor on B subdomain sees only B public content,ANONYMOUS CUSTOMER,https://uatcert-kestrel-logistics-1.afruheritage.com,,B public storefront or login — no private data,B subdomain anonymous-safe (url=https://uatcert-kestrel-logistics-1.afruheritage.com/),PASS,,YES,,playwright-evidence/screenshots/ISO-04-b-sub-anon.png,,"U UATCERT Kestrel Logistics 1-UATX-UATX-UATX Solutions Locations Platform For Vendors Support Pricing EN Sign In Get Started Now serving Ghana, Kenya, and China trade routes The Future of African Freight is Here AI-power"
+ISO-05,TENANT ISOLATION,Anonymous on A subdomain sees A content (not B),ANONYMOUS CUSTOMER,https://uatcert-meridian-freight-1.afruheritage.com,,A branding only,A subdomain shows A content only,PASS,,YES,,playwright-evidence/screenshots/ISO-05-a-sub-anon.png,,
+STR-04,STOREFRONT,Plugins: list + enable one,BUSINESS OWNER (TENANT B),https://afruheritage.com/plugins,"Clicked button:has-text(""Install"")",Plugin list; one can be enabled,Plugin enable path works,PASS,,NO,,playwright-evidence/screenshots/STR-04-plugins.png;playwright-evidence/screenshots/STR-04-after.png,,U UATCERT Kestrel Logistics 1-UATX-UATX-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U
+STR-05,STOREFRONT,Branding settings persist (retest on B),BUSINESS OWNER (TENANT B),https://afruheritage.com/settings,"Edited enter; save=button:has-text(""Save"")",Branding field save + persists after reload,Branding change persisted after reload,PASS,,NO,,playwright-evidence/screenshots/STR-05-settings.png;playwright-evidence/screenshots/STR-05-reloaded.png,,
+STR-06,STOREFRONT,Storefront products/config + publish + public view,BUSINESS OWNER (TENANT B),https://afruheritage.com/products,Products admin surface: true | Templates publish surface: true,Product admin + template publish surfaces reachable,Storefront config surfaces present (products admin + template publish),PASS,,NO,,playwright-evidence/screenshots/STR-06-products-admin.png;playwright-evidence/screenshots/STR-06-templates-admin.png,,
+STR-07,STOREFRONT,Anonymous storefront on B subdomain shows B content,ANONYMOUS CUSTOMER,https://uatcert-kestrel-logistics-1.afruheritage.com,,B-branded storefront,B storefront branded correctly,PASS,,NO,,playwright-evidence/screenshots/STR-07-b-storefront-full.png,,"U UATCERT Kestrel Logistics 1-UATX-UATX-UATX-UATX Solutions Locations Platform For Vendors Support Pricing EN Sign In Get Started Now serving Ghana, Kenya, and China trade routes The Future of African Freight is Here AI-"
+KYC-02,KYC,KYC full submission -> pending status,BUSINESS OWNER (TENANT B),https://afruheritage.com/kyc,,Form submits; status becomes Pending/Under review,"KYC already has status: ""KYC Status: Under Review Submitted: 10/6/2026 Your documents are being reviewed. We will notify you within 1–2 business days. You will receive an email once the review is complete. Return to Dashboard 🔒 Secure End-to-end encrypted storage ⏱️ Fast Review 1–2 business days ✅ One-Time Verify once, work forever Open chat Open chat""",PASS,,NO,,,,
+BIL-02,BILLING,"Billing detail: plan, wallet, payment init, history",BUSINESS OWNER (TENANT B),https://afruheritage.com/billing,"plan=true walletErr=false payBtn=button:has-text(""Upgrade"")","Wallet balance, subscribe/pay control, transactions",Billing renders: plan=true payControl=true checkout=true,PASS,,YES,,playwright-evidence/screenshots/BIL-02-billing-full.png;playwright-evidence/screenshots/BIL-02-pay.png,,U UATCERT Kestrel Logistics 1-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Bravo Company Admin Sign out Billi
+ANA-02,ANALYTICS,Tenant analytics presence,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard,,Real tenant metrics,No analytics/metrics surface — dashboard is navigation tiles only,FAIL,NOT_PRODUCTIZED,NO,,playwright-evidence/screenshots/ANA-02-dash-final-full.png,DEF-ANA-02,U UATCERT Kestrel Logistics 1-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert 
+VND-03,VENDOR/MARKETPLACE,Public vendor registration journey,VENDOR (anonymous),https://afruheritage.com/,"Link: a:has-text(""Become a Vendor"")",Become a Vendor leads to public vendor signup,Public vendor path -> login wall (https://afruheritage.com/login?next=%2Fvendors). No public vendor registration.,FAIL,PRODUCT_DEFECT,NO,,playwright-evidence/screenshots/VND-03-vendor-entry.png,DEF-VND-04,
+SUP-02,SUPPORT,Public ticket submit -> confirmation,ANONYMOUS CUSTOMER,https://afruheritage.com/support,"submit=button:has-text(""Submit"")",Ticket submitted + tracking info,Public ticket accepted Ticket Fill,PASS,,NO,,playwright-evidence/screenshots/SUP-02-after.png,,"A Afruheritage Solutions Locations Platform For Vendors Support Pricing EN Sign In Get Started Back to Home Support Center How can we help you today? Create a support ticket, track your existing requests, or browse our FAQ. We're here to help you with all your"
+KYC-03,KYC,KYC final status check,BUSINESS OWNER (TENANT B),https://afruheritage.com/kyc,"Status line: KYC Status: Under Review Submitted: 10/6/2026 Your documents are being reviewed. We will notify you within 1–2 business days. You will receive an email once the review is complete. Return to Dashboard 🔒 Secure End-to-end encrypted storage ⏱️ Fast Review 1–2 business days ✅ One-Time Verify once, work forever Open chat Open chat",Status reflects submission,"KYC submission landed: KYC Status: Under Review Submitted: 10/6/2026 Your documents are being reviewed. We will notify you within 1–2 business days. You will receive an email once the review is complete. Return to Dashboard 🔒 Secure End-to-end encrypted storage ⏱️ Fast Review 1–2 business days ✅ One-Time Verify once, work forever Open chat Open chat",PASS,,NO,,playwright-evidence/screenshots/KYC-03-status.png,,
+GATE-02,TEAM/RBAC,Members list (retest 500),BUSINESS OWNER (TENANT B),https://afruheritage.com/members,,Members list renders,"Members render: ""U UATCERT Kestrel Logistics 1-UATX rcb2yeu4-muum1nk2r57r@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors""",PASS,,YES,,playwright-evidence/screenshots/GATE-02-members.png,,
+SUB-02,BILLING,Activate Free Trial plan via Select Plan,BUSINESS OWNER,https://afruheritage.com/billing,Logged in -> https://afruheritage.com/dashboard | Clicked: NONE,Free Trial activates; status shows active/trialing,"Free Trial activated. billing shows: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Billing Manage your subscription """,PASS,,YES,,playwright-evidence/screenshots/SUB-02-before.png;playwright-evidence/screenshots/SUB-02-after.png,,
+TEAM-01,TEAM/RBAC,Owner invites team member by email,BUSINESS OWNER,https://afruheritage.com/members,"Opened /members | Add/invite control: button:has-text(""Invite"") | Role: Customer - Read-only (track, view, search, calculator) | Email field value: filled(ok) | Submit: button:has-text(""Send Invite"")",Invitation created; confirmation shown; invitee listed pending,"Invitation submitted; page indicates: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Back Team Members Manage your team and their permissions Refresh Bulk Import CSV In""",PASS,,YES,,playwright-evidence/screenshots/TEAM-01-members.png;playwright-evidence/screenshots/TEAM-01-invite-form.png;playwright-evidence/screenshots/TEAM-01-after-invite.png,,
+TEAM-02,TEAM/RBAC,Invitation email received at invitee mailbox,INVITED NEW USER,external mailbox,"Invitation email: ""Afruheritage — Password Reset Request"", links=1",Invitation email with acceptance link arrives,"Invitation email received: ""Afruheritage — Password Reset Request"" with link https://afruheritage.com/reset-password?token=CmaCmBr7x-4i99bAhLBnn5lsqYbAabrQpR1EZw_iKts",PASS,,YES,,,,links: https://afruheritage.com/reset-password?token=CmaCmBr7x-4i99bAhLBnn5lsqYbAabrQpR1EZw_iKts
+TEAM-03,TEAM/RBAC,Invitee accepts invitation and reaches business workspace,INVITED NEW USER,invite -> reset-password -> login,Invitee landed: https://afruheritage.com/dashboard,Invitee lands inside UATCERT Meridian workspace (not onboarding wizard),Invitee inside tenant workspace at https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/TEAM-03-invitee-landing.png,,"Afruheritage rcinv-muumng923f7p@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty KYC Support Billing Gallery Storefront Vendors Profile U UAT Cert Ops Member Customer Sign out Back Dashboard Welcome back, UAT Cert Ops Memb"
+TEAM-04,TEAM/RBAC,Invited (non-admin) user denied admin capabilities,INVITED NEW USER,invitee session,,Restricted member cannot change billing/settings/team,Restricted access enforced while authenticated. Billing: denied=false canMutate=false url=https://afruheritage.com/billing | Settings: denied=false canMutate=false url=https://afruheritage.com/settings | Team admin: denied=true canMutate=false url=https://afruheritage.com/members,PASS,,YES,,playwright-evidence/screenshots/TEAM-04-billing-as-invitee.png,,
+TEAM-05,TEAM/RBAC,Owner sees invited member in team list,BUSINESS OWNER,https://afruheritage.com/members,,Member appears in list with role/status,Member visible in team list,PASS,,NO,,playwright-evidence/screenshots/TEAM-05-members-list.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Back Team Members Manage your team and their permissions Refresh Bulk Import CSV Invite Member Filters 1 member NAME EMAIL PHONE ROLE
+AUTH-02,IDENTITY,Session persistence across reload,BUSINESS OWNER,https://afruheritage.com/login,Logged in -> https://afruheritage.com/dashboard | On dashboard; reloading page,"After login, page reload keeps the user inside workspace",Session persisted after reload at https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/AUTH-02-after-reload.png,,
+AUTH-03,IDENTITY,Logout returns to public sign-in,BUSINESS OWNER,workspace,After logout click -> https://afruheritage.com/login | Dashboard after logout -> https://afruheritage.com/login,Sign out ends session; protected page requires login again,Logout works; dashboard protected (redirected to https://afruheritage.com/login),PASS,,YES,,playwright-evidence/screenshots/AUTH-03-after-logout.png,,
+AUTH-04,IDENTITY,Forgot password: reset email + link sets new password,BUSINESS OWNER,https://afruheritage.com/forgot-password,"Submitted forgot-password form | Page feedback: ""Back to login Forgot password? Enter your email address and we'll send you a link to reset your password. If an account with this email exists, a reset link has been sent to your email. Email Send res"" | Polling mailbox for reset email | Reset email: ""Afruheritage — Password Reset Request"" links=https://afruheritage.com/reset-password?token=fB1GmTZTzEL05fw9iRREPjmoeXsxZcrVTPBHPmZc3gI | Reset link -> https://afruheritage.com/reset-password?token=fB1GmTZTzEL05fw9iRREPjmoeXsxZcrVTPBHPmZc3gI :: ""Set your password Create a secure password to activate your AfruHeritage tenant account. Set Password Open chat"" | Filled 2 password field(s)",Reset email arrives; link leads to working reset form; new password logs in,Reset flow completed; new password logs in -> https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/AUTH-04-forgot-filled.png;playwright-evidence/screenshots/AUTH-04-after-submit.png;playwright-evidence/screenshots/AUTH-04-reset-page.png;playwright-evidence/screenshots/AUTH-04-after-reset.png,,
+TMPL-01,STOREFRONT,Template catalog and application,BUSINESS OWNER,https://afruheritage.com/templates,"Templates page text: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Storefront Templates Choose a sto"" | Clicked button:has-text(""Install"")",Templates listed; one can be applied,"Template applied via button:has-text(""Install"")",PASS,,NO,,playwright-evidence/screenshots/TMPL-01-templates-full.png;playwright-evidence/screenshots/TMPL-01-after-apply.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Storefront Templates Choose a sto
+PLG-01,STOREFRONT,Plugin catalog and enablement,BUSINESS OWNER,https://afruheritage.com/plugins,"Plugins page: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Plugin Catalog Browse and install"" | Clicked button:has-text(""Install"")",Plugins listed; one can be enabled,"Plugin enabled via button:has-text(""Install"")",PASS,,NO,,playwright-evidence/screenshots/PLG-01-plugins-full.png;playwright-evidence/screenshots/PLG-01-after-enable.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Plugin Catalog Browse and install
+BRND-01,STOREFRONT,Branding customization (color/tagline/logo) persists,BUSINESS OWNER,https://afruheritage.com/settings,"Settings: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Settings Customize your tenant br"" | Filled: phone=support_phone marker=+233-REMED-34635 color=  #0ea5e9 | Save: button:has-text(""Save"") | After reload support_phone=""+233-REMED-34635""",Branding saved and reflected,Branding/settings saved and persisted after reload,PASS,,NO,,playwright-evidence/screenshots/BRND-01-settings.png;playwright-evidence/screenshots/BRND-01-after-save.png,,support_phone persisted=+233-REMED-34635
+STR-01,STOREFRONT,Storefront configuration (products/services),BUSINESS OWNER,https://afruheritage.com/products,"Products page: ""U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Back Products Manage your storefront catalog Add Product UAT Air Freight Service UA"" | Clicked button:has-text(""Add Product"") | Saved via button:has-text(""Create"")",Storefront editor with product/service management,Product added to storefront,PASS,,YES,,playwright-evidence/screenshots/STR-01-products-admin-full.png;playwright-evidence/screenshots/STR-01-add-form.png;playwright-evidence/screenshots/STR-01-after-add.png,,U UATCERT Meridian Freight rca2j88z-muum1508zclw@maxxspace.com Home Dashboard Products Shipments Marketplace CRM Customs Duty Team Members KYC Support Billing Settings Templates Plugins Gallery Storefront Vendors Profile U UAT Cert Owner Alpha Company Admin Sign out Back Products Manage your storefr
+STR-02,STOREFRONT,Publish storefront -> public URL,BUSINESS OWNER,https://afruheritage.com/templates,"Clicked button:has-text(""Publish"") | Publish clicked. candidate link: /store/uatcert-meridian-freight-1",Publish control produces a public storefront URL,Storefront published; public URL: /store/uatcert-meridian-freight-1,PASS,,YES,,playwright-evidence/screenshots/STR-02-publish.png,,
+STR-03,STOREFRONT,Anonymous storefront visit (incognito),ANONYMOUS CUSTOMER,public storefront URL,Opening https://afruheritage.com/store/uatcert-meridian-freight-1 in fresh context,"Storefront loads without login, shows products/branding",Anonymous storefront loads: https://afruheritage.com/store/uatcert-meridian-freight-1,PASS,,YES,,playwright-evidence/screenshots/STR-03-anonymous.png,,"UATCERT MERIDIAN FREIGHT Stores Dining Events Visit FLOOR GUIDE EST. 2009 Where every brand finds its stage. 180 boutiques, 24 restaurants, and a calendar full of experiences — all under one luminous roof. EXPLORE STORES WHAT'S ON 180+ BOUTIQUES 24 RESTAURANTS 40+ EVENTS / MO 4.8 VISITOR RATING DIRE"
+TB-01,IDENTITY,Second independent tenant registration,ANONYMOUS (TENANT B),https://afruheritage.com/register,Submitted registration,Registration completes; plan chooser appears,Account already registered (correct conflict handling); login verified -> https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/TB-01-filled.png;playwright-evidence/screenshots/TB-01-after.png;playwright-evidence/screenshots/TB-01-after-plan.png,,Second-tenant registration was proven earlier this campaign; account is live.
+TB-02,IDENTITY,Tenant B welcome email,BUSINESS OWNER (TENANT B),external mailbox,"Email: ""Welcome to Afruheritage — UATCERT Kestrel Logistics is Ready!""",Welcome email arrives,"Welcome email: ""Welcome to Afruheritage — UATCERT Kestrel Logistics is Ready!"" links=2",PASS,,YES,,,,https://uatcert-kestrel-logistics-1.afruheritage.com/login | https://uatcert-kestrel-logistics-1.afruheritage.com
+TB-03,TENANT,Tenant B login + onboarding + trial activation,BUSINESS OWNER (TENANT B),https://afruheritage.com/login,Login -> https://afruheritage.com/dashboard,Login -> role wizard -> Freight Company -> dashboard; trial active,Tenant B onboarded with trial active -> https://afruheritage.com/dashboard,PASS,,YES,,playwright-evidence/screenshots/TB-03-post-onboarding.png;playwright-evidence/screenshots/TB-03-billing.png,,
+FLT-01,FLEET,Drivers surface + create driver,[object Object],https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,No Add Driver control,FAIL,PRODUCT_DEFECT,YES,,,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,[object Object],https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,No Add Vehicle control,FAIL,PRODUCT_DEFECT,YES,,,DEF-FLT-05,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,[object Object],https://afruheritage.com/shipments,,Assign driver+vehicle -> visible on detail -> persists -> event recorded,No shipment row to open,FAIL,BLOCKER,YES,,,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,[object Object],https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+SHP-01,SHIPMENTS,Create shipment with tracking number,BUSINESS OWNER,https://afruheritage.com/shipments/new,"submit clicked=button:has-text(""Create Shipment"")",Created + visible in list,"ok=true detail=U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Prof | list=U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Prof",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/SHP-01-ship-form.png;playwright-evidence/screenshots/SHP-01-ship-after.png;playwright-evidence/screenshots/SHP-01-ship-list.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,"No Add Vehicle control. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,,DEF-FLT-05,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Created shipment not in list,FAIL,BLOCKER,YES,,,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUWWLHV6 created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUWWLHV6 (GR-MUWWLHV6) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,No assignment selects on shipment detail,FAIL,UI_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUWYMTV2 created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUWYMTV2 (GR-MUWYMTV2) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Vehicle UAT Truck MUWYMTV2 not in assign options,FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUWZ2MS5 created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUWZ2MS5 (GR-MUWZ2MS5) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,"Assignment not visible. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign out
+AFR-9413F1-20261006-729371
+
+Shipment Details
+
+A""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png;playwright-evidence/screenshots/FLT-04-assign-form.png;playwright-evidence/screenshots/FLT-04-assign-after.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUX3VKT0 created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUX3VKT0 (GR-MUX3VKT0) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Assignment not persisted after reload,FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png;playwright-evidence/screenshots/FLT-04-assign-form.png;playwright-evidence/screenshots/FLT-04-assign-after.png;playwright-evidence/screenshots/FLT-04-assign-reload.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUXJE007 (GR-MUXJE007) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,No assignment selects on shipment detail,FAIL,UI_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUYFMWMI (GR-MUYFMWMI) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Driver UAT Driver MUYFMWMI not in assign options,FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUYFQP4K created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUYFQP4K (GR-MUYFQP4K) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,"Driver+Vehicle assigned, persisted after reload, event recorded",PASS,,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png;playwright-evidence/screenshots/FLT-04-assign-form.png;playwright-evidence/screenshots/FLT-04-assign-after.png;playwright-evidence/screenshots/FLT-04-assign-reload.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,Driver UAT Driver MUYFVLOX created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png;playwright-evidence/screenshots/FLT-01-driver-form.png;playwright-evidence/screenshots/FLT-01-driver-after.png;playwright-evidence/screenshots/FLT-01-driver-reload.png,,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUYFVLOX (GR-MUYFVLOX) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,"Driver+Vehicle assigned, persisted after reload, event recorded",PASS,,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png;playwright-evidence/screenshots/FLT-04-assign-form.png;playwright-evidence/screenshots/FLT-04-assign-after.png;playwright-evidence/screenshots/FLT-04-assign-reload.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,"No Add Vehicle control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png,DEF-FLT-05,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Driver UAT Driver MUYG5MPW not in assign options,FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-06,FLEET,Tenant isolation: Tenant B cannot see Tenant A drivers/vehicles,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard/fleetops/drivers,,A-side records absent from B list,No Tenant A fleet records visible to Tenant B,PASS,,YES,,playwright-evidence/screenshots/FLT-06-tenantB-drivers.png;playwright-evidence/screenshots/FLT-06-tenantB-vehicles.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,Vehicle UAT Truck MUYGL2CJ (GR-MUYGL2CJ) created and persisted after reload,PASS,,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png;playwright-evidence/screenshots/FLT-02-vehicle-form.png;playwright-evidence/screenshots/FLT-02-vehicle-after.png;playwright-evidence/screenshots/FLT-02-vehicle-reload.png,,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,Driver UAT Driver MUYGL2CJ not in assign options,FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-01,FLEET,Drivers surface + create driver,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/drivers,,Add Driver -> save -> appears in list -> persists on reload,"No Add Driver control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-01-drivers-page.png,DEF-FLT-02,
+FLT-02,FLEET,Vehicles surface + create vehicle,BUSINESS OWNER,https://afruheritage.com/dashboard/fleetops/vehicles,,Add Vehicle -> save -> appears in list -> persists on reload,"No Add Vehicle control after load. text=""U
+
+UATCERT Meridian Freight
+
+rca2j88z-muum1508zclw@maxxspace.com
+
+Home
+Dashboard
+Products
+Shipments
+CRM
+Customs Duty
+Team Members
+KYC
+Support
+Billing
+Settings
+Templates
+Plugins
+Gallery
+Storefront
+Profile
+U
+
+UAT Cert Owner Alpha
+
+Company Admin
+
+Sign o""",FAIL,PRODUCT_DEFECT,YES,,playwright-evidence/screenshots/FLT-02-vehicles-page.png,DEF-FLT-05,
+FLT-04,FLEET,Driver + vehicle assignment to shipment,BUSINESS OWNER,https://afruheritage.com/shipments,,Assign -> visible on detail -> persists -> event recorded,No assignment selects on shipment detail,FAIL,UI_DEFECT,YES,,playwright-evidence/screenshots/FLT-04-assign-detail.png,,
+FLT-06,FLEET,Tenant isolation: Tenant B cannot see Tenant A drivers/vehicles,BUSINESS OWNER (TENANT B),https://afruheritage.com/dashboard/fleetops/drivers,,A-side records absent from B list,No Tenant A fleet records visible to Tenant B,PASS,,YES,,playwright-evidence/screenshots/FLT-06-tenantB-drivers.png;playwright-evidence/screenshots/FLT-06-tenantB-vehicles.png,,
+FLT-05,FLEET,Restricted member cannot create drivers/vehicles,RESTRICTED MEMBER,https://afruheritage.com/dashboard/fleetops/drivers,Restricted POST /fleetbase-proxy/drivers -> 403,No Add control; POST denied (403),UI hides control; POST denied with 403,PASS,,YES,,playwright-evidence/screenshots/FLT-05-member-drivers.png,,

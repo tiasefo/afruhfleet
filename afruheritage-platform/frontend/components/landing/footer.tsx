@@ -17,9 +17,6 @@ const footerLinks = {
   partners: {
     title: 'Partners',
     links: [
-      { label: 'Become a Vendor', href: '/vendors' },
-      { label: 'Delivery Services', href: '/vendors' },
-      { label: 'Fleet Owners', href: '/vendors' },
       { label: 'Partner Login', href: '/login' },
     ],
   },

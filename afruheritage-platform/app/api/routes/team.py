@@ -80,8 +80,8 @@ def _now() -> datetime:
 
 
 def _build_accept_url(token: str) -> str:
-    base = settings.base_url.rstrip('/')
-    return f'{base}{settings.api_v1_prefix}/team/invitations/{token}/accept'
+    base = settings.web_url.rstrip('/')
+    return f'{base}/invite/accept?token={token}'
 
 
 @router.post('/invitations', response_model=TeamInvitationResponse, status_code=status.HTTP_201_CREATED)

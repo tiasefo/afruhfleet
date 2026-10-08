@@ -70,25 +70,12 @@ export function HeroSection() {
 
             {/* Trust Indicators */}
             <div className="mt-12 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-primary/10 text-xs font-semibold text-primary"
-                    >
-                      {String.fromCharCode(64 + i)}
-                    </div>
-                  ))}
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">500+</strong> freight forwarders trust us
-                </span>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <span><strong className="text-foreground">Your brand</strong> — launch on your own subdomain or domain</span>
               </div>
               <div className="h-4 w-px bg-border hidden sm:block" />
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <span className="text-accent">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-                <span><strong className="text-foreground">4.9/5</strong> customer rating</span>
+                <span><strong className="text-foreground">Real-time</strong> tracking for every shipment</span>
               </div>
             </div>
           </div>
@@ -133,22 +120,22 @@ export function HeroSection() {
 
               {/* Stats Cards */}
               <div className="absolute -left-4 top-8 rounded-lg border bg-card p-3 shadow-lg">
-                <div className="text-xs text-muted-foreground">Active Shipments</div>
-                <div className="text-2xl font-bold text-primary">12,847</div>
+                <div className="text-xs text-muted-foreground">Tracking</div>
+                <div className="text-2xl font-bold text-primary">Real-time</div>
               </div>
-              
+
               <div className="absolute -right-4 top-1/3 rounded-lg border bg-card p-3 shadow-lg">
-                <div className="text-xs text-muted-foreground">Countries</div>
-                <div className="text-2xl font-bold text-foreground">45+</div>
+                <div className="text-xs text-muted-foreground">Fleet</div>
+                <div className="text-2xl font-bold text-foreground">Managed</div>
               </div>
-              
+
               <div className="absolute -left-4 bottom-12 rounded-lg border bg-card p-3 shadow-lg">
-                <div className="text-xs text-muted-foreground">On-time Rate</div>
-                <div className="text-2xl font-bold text-chart-4">98.5%</div>
+                <div className="text-xs text-muted-foreground">Customs</div>
+                <div className="text-2xl font-bold text-chart-4">Estimated</div>
               </div>
-              
+
               <div className="absolute -right-4 bottom-8 rounded-lg border bg-card p-3 shadow-lg">
-                <div className="text-xs text-muted-foreground">AI Responses</div>
+                <div className="text-xs text-muted-foreground">AI Assistant</div>
                 <div className="text-2xl font-bold text-accent">24/7</div>
               </div>
             </div>

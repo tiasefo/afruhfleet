@@ -20,7 +20,6 @@ import {
   ExternalLink,
   Activity,
   Package,
-  BarChart3,
   AlertCircle,
 } from 'lucide-react'
 
@@ -80,7 +79,7 @@ export default function ProfilePage() {
         fleets: [],
         orders: [],
         loading: false,
-        error: e?.message || 'Failed to load Fleetbase data',
+        error: e?.message || 'Failed to load operations data',
       })
     }
   }
@@ -113,7 +112,7 @@ export default function ProfilePage() {
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="mt-2 text-sm text-gray-600">Your account and Fleetbase integration overview</p>
+          <p className="mt-2 text-sm text-gray-600">Your account and operations overview</p>
         </div>
       </div>
 
@@ -174,16 +173,16 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Fleetbase Stats */}
+          {/* Operations Stats */}
           <div className="lg:col-span-2 space-y-6">
             {stats.error && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-800">Fleetbase not fully provisioned</p>
+                  <p className="text-sm font-medium text-yellow-800">Workspace not fully provisioned</p>
                   <p className="text-sm text-yellow-700">{stats.error}</p>
                   <p className="text-sm text-yellow-700 mt-1">
-                    Your Fleetbase runtime may still be initializing. Check back shortly or contact support.
+                    Your operations workspace may still be initializing. Check back shortly or contact support.
                   </p>
                 </div>
               </div>
@@ -250,39 +249,33 @@ export default function ProfilePage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="w-5 h-5" />
-                  Fleetbase Quick Actions
+                  Fleet Operations
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button variant="outline" className="justify-start" asChild>
-                    <Link href="/fleetbase/drivers">
+                    <Link href="/dashboard/fleetops/drivers">
                       <Truck className="w-4 h-4 mr-2" />
                       Manage Drivers
                     </Link>
                   </Button>
                   <Button variant="outline" className="justify-start" asChild>
-                    <Link href="/fleetbase/vehicles">
+                    <Link href="/dashboard/fleetops/vehicles">
                       <Car className="w-4 h-4 mr-2" />
                       Manage Vehicles
                     </Link>
                   </Button>
                   <Button variant="outline" className="justify-start" asChild>
-                    <Link href="/fleetbase/fleets">
+                    <Link href="/dashboard/fleetops/fleets">
                       <MapPin className="w-4 h-4 mr-2" />
                       Manage Fleets
                     </Link>
                   </Button>
                   <Button variant="outline" className="justify-start" asChild>
-                    <Link href="/fleetbase/live-map">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Live Map
-                    </Link>
-                  </Button>
-                  <Button variant="outline" className="justify-start" asChild>
-                    <Link href="/fleetbase/vehicles">
-                      <Car className="w-4 h-4 mr-2" />
-                      Manage Vehicles
+                    <Link href="/dashboard/fleetops/orders">
+                      <Package className="w-4 h-4 mr-2" />
+                      View Orders
                     </Link>
                   </Button>
                   <Button variant="outline" className="justify-start" asChild>

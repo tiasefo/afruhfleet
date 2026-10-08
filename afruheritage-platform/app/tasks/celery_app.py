@@ -19,6 +19,7 @@ celery_app.conf.imports = (
     'app.tasks.tracking_monitor',
     'app.tasks.booking_reassignment',
     'app.tasks.subscription_checks',
+    'app.tasks.shipment_sync',
 )
 celery_app.conf.beat_schedule = {
     'tracking-stale-monitor': {

@@ -67,12 +67,19 @@ def handle_subscription_payment_success(
         logger.error("Tenant %s not found after payment", tenant_id)
         return {"actions": actions, "launched": False, "error": "tenant_not_found"}
 
-    if tenant.launch_status in (LaunchStatus.active, LaunchStatus.provisioning, LaunchStatus.queued):
+    # Only skip when the tenant is genuinely provisioned (active + org bound)
+    # or mid-provisioning. An "active" tenant missing fleetbase_org_id still
+    # needs the org created — trial activation historically marked tenants
+    # active without provisioning.
+    if tenant.launch_status in (LaunchStatus.provisioning, LaunchStatus.queued):
         actions.append(f"already_{tenant.launch_status.value}")
         return {"actions": actions, "launched": False, "reason": "already_in_progress_or_active"}
+    if tenant.launch_status == LaunchStatus.active and tenant.fleetbase_org_id:
+        actions.append("already_active")
+        return {"actions": actions, "launched": False, "reason": "already_in_progress_or_active"}
 
-    # Auto-approve if still pending or draft
-    if tenant.launch_status in (LaunchStatus.pending_verification, LaunchStatus.draft):
+    # Auto-approve if still pending, draft, or active-without-org
+    if tenant.launch_status in (LaunchStatus.pending_verification, LaunchStatus.draft, LaunchStatus.active, LaunchStatus.failed):
         tenant.launch_status = LaunchStatus.approved
         tenant.verification_notes = "Auto-approved after subscription selection"
         db.commit()

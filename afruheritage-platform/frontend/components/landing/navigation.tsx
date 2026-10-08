@@ -21,7 +21,7 @@ const navLinks = [
     href: '/customs',
     submenu: [
       { label: 'Shipment Tracking', href: '/track' },
-      { label: 'Freight Management', href: '/fleetbase/console' },
+      { label: 'Freight Management', href: '/freight-management' },
       { label: 'Customs Clearance', href: '/customs' },
       { label: 'Duty Calculator', href: '/customs/duty-calculator' },
       { label: 'Storefront Templates', href: '/templates' },
@@ -46,10 +46,9 @@ const navLinks = [
       { label: 'Dashboard', href: '/dashboard' },
       { label: 'Real-time Tracking', href: '/track' },
       { label: 'Documentation', href: '/docs' },
-      { label: 'Fleet Console', href: '/fleetbase/console' },
+      { label: 'Fleet Console', href: '/freight-management' },
     ]
   },
-  { label: 'For Vendors', href: '/vendors' },
   { label: 'Support', href: '/support' },
   { label: 'Pricing', href: '/pricing' },
 ]

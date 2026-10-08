@@ -210,19 +210,6 @@ export default function DashboardPage() {
           {/* Delivery Driver cards */}
           {user?.role === 'delivery_driver' && (
             <>
-              <Link href="/vendors">
-                <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-                  <CardContent className="flex items-center gap-4 p-6">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                      <Ship className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">Available Jobs</p>
-                      <p className="text-sm text-muted-foreground">Browse shipments</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
               <Link href="/shipments">
                 <Card className="cursor-pointer transition-colors hover:bg-muted/50">
                   <CardContent className="flex items-center gap-4 p-6">
@@ -379,19 +366,6 @@ export default function DashboardPage() {
                   <div>
                     <p className="font-semibold">Storefront Templates</p>
                     <p className="text-sm text-muted-foreground">Browse &amp; select</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-            <Link href="/vendors">
-              <Card className="cursor-pointer transition-colors hover:bg-muted/50">
-                <CardContent className="flex items-center gap-4 p-6">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
-                    <Ship className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Vendors</p>
-                    <p className="text-sm text-muted-foreground">Partners</p>
                   </div>
                 </CardContent>
               </Card>

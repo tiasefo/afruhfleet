@@ -48,6 +48,10 @@ const PUBLIC_ROUTES = new Set([
   '/store',
   '/storefront',
   '/templates',
+  '/freight-management',
+  '/live-map',
+  // Legacy paths — these pages exist only as redirects to the renamed
+  // routes above; they must stay public so the redirect can run.
   '/fleetbase/console',
   '/fleetbase/live-map',
 ])

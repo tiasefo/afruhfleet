@@ -58,8 +58,13 @@ export default function ShipmentsPage() {
   const loadShipments = async () => {
     setIsLoading(true)
     try {
-      // Get tenant ID from context or user
-      const tenantId = user?.tenant_id || 'default'
+      // Tenant ID must come from the authenticated user — 'default' is not a
+      // resolvable tenant and the backend correctly rejects it with 403.
+      if (!user?.tenant_id) {
+        setIsLoading(false)
+        return
+      }
+      const tenantId = user.tenant_id
       const params: any = {
         status: statusFilter || undefined,
         page: currentPage,
@@ -78,18 +83,18 @@ export default function ShipmentsPage() {
     }
   }
 
-  // Load shipments on mount and when filters change
+  // Load shipments once auth resolves (user.tenant_id) and when filters change
   React.useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1)
     } else {
       loadShipments()
     }
-  }, [searchQuery, statusFilter, paymentStatusFilter])
+  }, [searchQuery, statusFilter, paymentStatusFilter, user?.tenant_id])
 
   React.useEffect(() => {
     loadShipments()
-  }, [currentPage])
+  }, [currentPage, user?.tenant_id])
 
   const getStatusBadgeClass = (status: string) => {
     const statusMap: Record<string, string> = {

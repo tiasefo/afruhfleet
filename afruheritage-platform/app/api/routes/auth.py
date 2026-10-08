@@ -286,8 +286,8 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     try:
         from app.services.notification_service import get_notification_service
         notification_service = get_notification_service()
-        base_url = settings.base_url.rstrip("/")
-        reset_url = f"{base_url}/login?reset_token={token}"
+        web_base = settings.web_url.rstrip("/")
+        reset_url = f"{web_base}/reset-password?token={token}"
         notification_service.send_password_reset_email(to=user.email, reset_url=reset_url)
     except Exception as e:
         import logging

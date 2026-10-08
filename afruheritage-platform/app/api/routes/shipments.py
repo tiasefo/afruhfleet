@@ -17,6 +17,7 @@ from app.schemas.shipment import (
     GroupMemberCreate,
     GroupMemberResponse,
     GroupMemberUpdate,
+    ShipmentAssign,
     ShipmentCreate,
     ShipmentEventCreate,
     ShipmentEventResponse,
@@ -46,7 +47,7 @@ from app.services.shipment_service import (
     list_group_members,
     public_track_shipment,
     search_shipments,
-    sync_shipment_to_live_runtime,
+    enqueue_shipment_runtime_sync,
     update_shipment_location,
     update_group_member,
     update_shipment,
@@ -115,7 +116,7 @@ def transition_shipment_status_route(
         shipment.status = ShipmentStatus(status)
         db.commit()
         db.refresh(shipment)
-        sync_shipment_to_live_runtime(db, shipment)
+        enqueue_shipment_runtime_sync(shipment)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
 
@@ -472,6 +473,35 @@ def update_shipment_route(
     return _to_response(shipment)
 
 
+@router.post("/{tenant_id}/{shipment_id}/assign", response_model=ShipmentResponse)
+def assign_shipment_route(
+    tenant_id: str,
+    shipment_id: str,
+    payload: ShipmentAssign,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_active_subscription),
+    admin: User = Depends(require_tenant_admin),
+):
+    """Assign a driver and/or vehicle to a shipment (tenant admin only)."""
+    _ensure_tenant_writable(tenant_id)
+    updates = payload.model_dump()
+    shipment = update_shipment(db, shipment_id, tenant_id, **updates)
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+
+    if payload.driver_public_id:
+        add_shipment_event(
+            db, str(shipment.id), "driver_assigned",
+            description=f"Driver {payload.driver_name or payload.driver_public_id} assigned to shipment",
+        )
+    if payload.vehicle_public_id:
+        add_shipment_event(
+            db, str(shipment.id), "vehicle_assigned",
+            description=f"Vehicle {payload.vehicle_name or payload.vehicle_public_id} assigned to shipment",
+        )
+    return _to_response(shipment)
+
+
 # ── Shipment Events (timeline) ─────────────────────────────────
 
 @router.post("/{tenant_id}/{shipment_id}/events", response_model=ShipmentEventResponse)
@@ -670,22 +700,7 @@ def get_events_route(
 
 # ── Public Tracking (no auth — customer facing) ────────────────
 
-@router.get("/public/track/{tenant_id}/{tracking_number}", response_model=ShipmentPublicTrackResponse)
-@rate_limit(category="public", rule="track")
-def public_track_route(
-    request: Request,
-    tenant_id: str,
-    tracking_number: str,
-    db: Session = Depends(get_db),
-):
-    resolved_tenant_id = _resolve_public_tenant_id(db, tenant_id)
-    if not resolved_tenant_id:
-        # Keep public behavior opaque: unknown tenant should look like missing shipment.
-        raise HTTPException(status_code=404, detail="Shipment not found")
-
-    shipment = public_track_shipment(db, resolved_tenant_id, tracking_number)
-    if not shipment:
-        raise HTTPException(status_code=404, detail="Shipment not found")
+def _public_track_payload(db: Session, shipment: Shipment) -> ShipmentPublicTrackResponse:
     live_snapshot = get_live_tracking_snapshot(db, shipment)
     events = merge_tracking_events(get_shipment_events(db, str(shipment.id)), live_snapshot)
     return ShipmentPublicTrackResponse(
@@ -718,6 +733,41 @@ def public_track_route(
             for e in events
         ],
     )
+
+
+@router.get("/public/track/{tenant_id}/{tracking_number}", response_model=ShipmentPublicTrackResponse)
+@rate_limit(category="public", rule="track")
+def public_track_route(
+    request: Request,
+    tenant_id: str,
+    tracking_number: str,
+    db: Session = Depends(get_db),
+):
+    resolved_tenant_id = _resolve_public_tenant_id(db, tenant_id)
+    if not resolved_tenant_id:
+        # Keep public behavior opaque: unknown tenant should look like missing shipment.
+        raise HTTPException(status_code=404, detail="Shipment not found")
+
+    shipment = public_track_shipment(db, resolved_tenant_id, tracking_number)
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+    return _public_track_payload(db, shipment)
+
+
+@router.get("/public/track/{tracking_number}", response_model=ShipmentPublicTrackResponse)
+@rate_limit(category="public", rule="track")
+def public_track_global_route(
+    request: Request,
+    tracking_number: str,
+    db: Session = Depends(get_db),
+):
+    # Tenant-less lookup: tracking numbers are globally unique and act as the
+    # bearer credential. Response stays limited to public-safe fields and a
+    # miss is indistinguishable from a wrong number.
+    shipment = db.query(Shipment).filter(Shipment.tracking_number == tracking_number).first()
+    if not shipment:
+        raise HTTPException(status_code=404, detail="Shipment not found")
+    return _public_track_payload(db, shipment)
 
 
 # ── CSV Import ──────────────────────────────────────────────────
@@ -844,6 +894,10 @@ def _to_response(s, live_snapshot: dict | None = None) -> ShipmentResponse:
         status=_live_value(live_snapshot, "status", s.status.value),
         group_member_id=str(s.group_member_id) if s.group_member_id else None,
         group_member_name=s.group_member.full_name if s.group_member else None,
+        driver_public_id=s.driver_public_id,
+        driver_name=s.driver_name,
+        vehicle_public_id=s.vehicle_public_id,
+        vehicle_name=s.vehicle_name,
         notes=s.notes,
         cargo_image_url=s.cargo_image_url,
         created_at=s.created_at,

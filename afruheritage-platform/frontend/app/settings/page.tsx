@@ -386,19 +386,23 @@ export default function SettingsPage() {
               <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
               <p className="mt-2 text-sm text-gray-600">Customize your tenant branding and preferences</p>
             </div>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+            {isAdmin ? (
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            ) : (
+              <span className="text-sm text-gray-500">Read-only — contact your administrator to change settings</span>
+            )}
           </div>
         </div>
       </div>
@@ -1017,7 +1021,7 @@ export default function SettingsPage() {
                 />
               </div>
               <div className="flex items-center gap-3">
-                <Button size="sm" onClick={handleSaveImportSettings} disabled={importSaving}>
+                <Button size="sm" onClick={handleSaveImportSettings} disabled={importSaving || !isAdmin}>
                   {importSaving ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (

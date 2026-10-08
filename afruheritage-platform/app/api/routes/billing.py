@@ -3,7 +3,7 @@ from app.core.config import settings
 from datetime import datetime
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser, require_tenant_admin
+from app.api.deps import get_current_user, require_superuser, require_tenant_admin, _resolve_tenant_identifier
 from app.db.session import get_db
 from app.models.billing import Payment, PaymentStatus, Plan, Subscription, Wallet, WalletTransaction, WalletTransactionType
 from app.models.user import User
@@ -16,11 +16,18 @@ import logging
 router = APIRouter(prefix='/billing', tags=['Billing'])
 
 
-def _assert_tenant_access(current_user: User, tenant_id: str) -> None:
+def _assert_tenant_access(db: Session, current_user: User, tenant_id: str) -> None:
+    """Authorize a {tenant_id} path param against the authenticated user.
+
+    The browser may send the tenant UUID, slug, or subdomain — resolve to the
+    canonical UUID before comparing, otherwise slug requests always 403.
+    """
     if current_user.is_superuser:
         return
-    if str(current_user.tenant_id) != str(tenant_id):
+    resolved = _resolve_tenant_identifier(db, tenant_id)
+    if not resolved or resolved != str(current_user.tenant_id):
         raise HTTPException(status_code=403, detail='Tenant access denied')
+    return resolved
 
 @router.get('/plans', response_model=list[PlanResponse])
 def list_plans(tenant_id: str | None = None, db: Session=Depends(get_db)):
@@ -67,24 +74,25 @@ def get_pricing(plan_code: str, db: Session = Depends(get_db)) -> dict:
 
 @router.post('/subscriptions/trial/{tenant_id}', response_model=SubscriptionResponse)
 def start_trial(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     seed_default_plans(db)
     sub = create_trial_subscription(db, tenant_id)
     ensure_wallet(db, tenant_id, sub.currency)
 
-    # Advance launch_status from draft to active.
-    # Fleetbase org was already provisioned at signup — no need to re-provision.
-    from app.models.tenant import Tenant, LaunchStatus
-    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
-    if tenant and tenant.launch_status == LaunchStatus.draft:
-        tenant.launch_status = LaunchStatus.active
-        db.commit()
+    # Advance lifecycle: approve, provision the tenant's Fleetbase org
+    # (if missing), then mark active. Idempotent — safe on retries.
+    from app.services.tenant_lifecycle import advance_tenant_lifecycle
+    try:
+        advance_tenant_lifecycle(db, str(tenant_id))
+    except Exception as exc:
+        import logging
+        logging.getLogger('afruheritage.billing').warning('Lifecycle advance after trial failed: %s', exc)
 
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 
 @router.get('/subscriptions/{tenant_id}', response_model=SubscriptionResponse | None)
 def get_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     sub = evaluate_subscription_state(db, tenant_id)
     if not sub:
         return None
@@ -92,7 +100,7 @@ def get_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: 
 
 @router.post('/subscriptions/{tenant_id}/cancel', response_model=SubscriptionResponse | None)
 def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer requested cancellation"), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     sub = cancel_subscription(db, tenant_id, reason)
     if not sub:
         raise HTTPException(status_code=404, detail='Subscription not found')
@@ -100,7 +108,7 @@ def post_cancel_subscription(tenant_id: str, reason: str = Body("Customer reques
 
 @router.post('/subscriptions/{tenant_id}/pause', response_model=SubscriptionResponse | None)
 def post_pause_subscription(tenant_id: str, reason: str = Body("Customer requested pause"), db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     sub = pause_subscription(db, tenant_id, reason)
     if not sub:
         raise HTTPException(status_code=404, detail='Subscription not found')
@@ -108,7 +116,7 @@ def post_pause_subscription(tenant_id: str, reason: str = Body("Customer request
 
 @router.post('/subscriptions/{tenant_id}/resume', response_model=SubscriptionResponse | None)
 def post_resume_subscription(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_tenant_admin)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     sub = resume_subscription(db, tenant_id)
     if not sub:
         raise HTTPException(status_code=404, detail='Subscription not found')
@@ -116,7 +124,7 @@ def post_resume_subscription(tenant_id: str, db: Session=Depends(get_db), curren
 
 @router.get('/wallets/{tenant_id}', response_model=WalletResponse)
 def get_wallet(tenant_id: str, db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     wallet = ensure_wallet(db, tenant_id)
     return WalletResponse(tenant_id=str(wallet.tenant_id), currency=wallet.currency, balance_credits=wallet.balance_credits)
 
@@ -128,7 +136,7 @@ def list_wallet_transactions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    _assert_tenant_access(current_user, tenant_id)
+    tenant_id = _assert_tenant_access(db, current_user, tenant_id)
     rows = (
         db.query(WalletTransaction)
         .filter(WalletTransaction.tenant_id == tenant_id)

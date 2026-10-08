@@ -83,6 +83,22 @@ def _coerce_uuid(value: Any) -> Any:
     return value
 
 
+def _resolve_tenant_uuid(db: Session, tenant_id: Any) -> Any:
+    """Resolve a tenant identifier to its canonical UUID.
+
+    The frontend may send a tenant UUID, slug, or subdomain in the {tenant_id}
+    path/query slot. UUID columns must never be compared to a slug string —
+    that produces Postgres 'invalid input syntax for uuid' (HTTP 500).
+    """
+    coerced = _coerce_uuid(tenant_id)
+    if isinstance(coerced, uuid.UUID) or coerced is None:
+        return coerced
+    tenant = db.query(Tenant).filter(
+        (Tenant.slug == str(tenant_id)) | (Tenant.subdomain == str(tenant_id))
+    ).first()
+    return tenant.id if tenant else coerced
+
+
 def _to_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
@@ -112,7 +128,7 @@ def _generate_tracking_number(db: Session, tenant_id: str) -> str:
     for _ in range(10):
         candidate = f"AFR-{tenant_key}-{datetime.utcnow():%Y%m%d}-{uuid.uuid4().hex[:6].upper()}"
         exists = db.query(Shipment.id).filter(
-            Shipment.tenant_id == _coerce_uuid(tenant_id),
+            Shipment.tenant_id == _resolve_tenant_uuid(db, tenant_id),
             Shipment.tracking_number == candidate,
         ).first()
         if not exists:
@@ -286,8 +302,25 @@ def _collect_live_shipment_records(payload: Any) -> list[dict[str, Any]]:
     return records
 
 
+# Negative-result cache: when a tenant's live runtime consistently returns no
+# usable data (slow 4xx chains were adding 15-30s to every read), skip further
+# live fetches for a short cooldown rather than paying the latency on each call.
+_LIVE_FETCH_COOLDOWN_S = 60
+_live_fetch_cooldown: dict[str, datetime] = {}
+_LIVE_FETCH_TIMEOUT_S = 4
+
+
+def _live_fetch_blocked(tenant: Tenant) -> bool:
+    until = _live_fetch_cooldown.get(str(tenant.id))
+    return until is not None and until > datetime.utcnow()
+
+
+def _live_fetch_failed(tenant: Tenant) -> None:
+    _live_fetch_cooldown[str(tenant.id)] = datetime.utcnow() + timedelta(seconds=_LIVE_FETCH_COOLDOWN_S)
+
+
 def _fetch_live_payload(tenant: Tenant, endpoint: str, params: dict[str, Any] | None = None) -> Any:
-    if not tenant.live_api_url:
+    if not tenant.live_api_url or _live_fetch_blocked(tenant):
         return None
     return proxy_fleetbase_api(
         tenant.live_api_url,
@@ -296,6 +329,7 @@ def _fetch_live_payload(tenant: Tenant, endpoint: str, params: dict[str, Any] | 
         auth_scheme=tenant.live_api_auth_scheme,
         params=params,
         suppress_errors=True,
+        timeout=_LIVE_FETCH_TIMEOUT_S,
     )
 
 
@@ -329,6 +363,46 @@ def _serialize_live_shipment_payload(shipment: Shipment) -> dict[str, Any]:
         "status": shipment.status.value,
         "notes": shipment.notes,
     }
+
+
+def enqueue_shipment_runtime_sync(shipment: Shipment, *, operation: str = "update") -> None:
+    """Enqueue best-effort live-runtime sync off the request path.
+
+    The runtime call chain can take 10s+ per attempt; doing it synchronously
+    blocked every create/update/transition response. Falls back to inline
+    execution only if the broker is unavailable.
+    """
+    try:
+        from app.tasks.shipment_sync import sync_shipment_runtime
+        sync_shipment_runtime.delay(str(shipment.id), operation)
+    except Exception:
+        # Sync is best-effort; a broker outage must not fail the request.
+        logger.exception("Failed to enqueue runtime sync for %s", shipment.tracking_number)
+
+
+def enqueue_shipment_event_runtime_sync(
+    shipment: Shipment,
+    *,
+    event_type: str,
+    location: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    description: str | None = None,
+    occurred_at: datetime | None = None,
+) -> None:
+    try:
+        from app.tasks.shipment_sync import sync_shipment_event_runtime
+        sync_shipment_event_runtime.delay(
+            str(shipment.id),
+            event_type,
+            location=location,
+            latitude=latitude,
+            longitude=longitude,
+            description=description,
+            occurred_at=occurred_at.isoformat() if occurred_at else None,
+        )
+    except Exception:
+        logger.exception("Failed to enqueue runtime event sync for %s", shipment.tracking_number)
 
 
 def sync_shipment_to_live_runtime(
@@ -417,7 +491,7 @@ def sync_shipment_event_to_live_runtime(
 
 def get_live_tracking_snapshot(db: Session, shipment: Shipment) -> dict[str, Any] | None:
     tenant = db.query(Tenant).filter(Tenant.id == shipment.tenant_id).first()
-    if not tenant or not tenant.live_api_url:
+    if not tenant or not tenant.live_api_url or _live_fetch_blocked(tenant):
         return None
 
     tracking_attempts = [
@@ -447,6 +521,7 @@ def get_live_tracking_snapshot(db: Session, shipment: Shipment) -> dict[str, Any
             break
 
     if not live_tracking and not live_shipment:
+        _live_fetch_failed(tenant)
         return None
 
     merged: dict[str, Any] = {}
@@ -470,8 +545,8 @@ def get_live_shipment_index(
     if not tracking_numbers:
         return {}
 
-    tenant = db.query(Tenant).filter(Tenant.id == _coerce_uuid(tenant_id)).first()
-    if not tenant or not tenant.live_api_url:
+    tenant = db.query(Tenant).filter(Tenant.id == _resolve_tenant_uuid(db, tenant_id)).first()
+    if not tenant or not tenant.live_api_url or _live_fetch_blocked(tenant):
         return {}
 
     wanted = {tracking_number for tracking_number in tracking_numbers if tracking_number}
@@ -481,12 +556,14 @@ def get_live_shipment_index(
         None,
     ]
 
+    saw_records = False
     for params in attempts:
         filtered_params = None if params is None else {key: value for key, value in params.items() if value not in (None, "")}
         payload = _fetch_live_payload(tenant, "shipments", filtered_params)
         records = _collect_live_shipment_records(payload)
         if not records:
             continue
+        saw_records = True
 
         index = {
             record["tracking_number"]: record
@@ -496,6 +573,8 @@ def get_live_shipment_index(
         if index:
             return index
 
+    if not saw_records:
+        _live_fetch_failed(tenant)
     return {}
 
 
@@ -538,7 +617,7 @@ def create_shipment(db: Session, tenant_id: str, **kw: Any) -> Shipment:
     tracking_number = str(kw.get("tracking_number") or "").strip() or _generate_tracking_number(db, tenant_id)
 
     shipment = Shipment(
-        tenant_id=_coerce_uuid(tenant_id),
+        tenant_id=_resolve_tenant_uuid(db, tenant_id),
         tracking_number=tracking_number,
         reference_number=kw.get("reference_number"),
         sender_name=kw["sender_name"],
@@ -572,13 +651,13 @@ def create_shipment(db: Session, tenant_id: str, **kw: Any) -> Shipment:
     db.commit()
     db.refresh(shipment)
     add_shipment_event(db, str(shipment.id), "created", description="Shipment created")
-    sync_shipment_to_live_runtime(db, shipment, operation="create")
+    enqueue_shipment_runtime_sync(shipment, operation="create")
     return shipment
 
 
 def update_shipment(db: Session, shipment_id: str, tenant_id: str, **kw: Any) -> Shipment | None:
     shipment = db.query(Shipment).filter(
-        Shipment.id == _coerce_uuid(shipment_id), Shipment.tenant_id == _coerce_uuid(tenant_id),
+        Shipment.id == _coerce_uuid(shipment_id), Shipment.tenant_id == _resolve_tenant_uuid(db, tenant_id),
     ).first()
     if not shipment:
         return None
@@ -599,7 +678,7 @@ def update_shipment(db: Session, shipment_id: str, tenant_id: str, **kw: Any) ->
 
     db.commit()
     db.refresh(shipment)
-    sync_shipment_to_live_runtime(db, shipment)
+    enqueue_shipment_runtime_sync(shipment)
     return shipment
 
 
@@ -645,7 +724,7 @@ def update_shipment_location(
         occurred_at=occurred_at,
     )
     db.refresh(shipment)
-    sync_shipment_to_live_runtime(db, shipment)
+    enqueue_shipment_runtime_sync(shipment)
     return shipment
 
 
@@ -678,7 +757,7 @@ def ingest_tracking_point(
         db.query(ShipmentTrackingPoint)
         .filter(
             ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
-            ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+            ShipmentTrackingPoint.tenant_id == _resolve_tenant_uuid(db, tenant_id),
         )
         .order_by(ShipmentTrackingPoint.captured_at.desc())
         .first()
@@ -701,7 +780,7 @@ def ingest_tracking_point(
 
     point = ShipmentTrackingPoint(
         shipment_id=_coerce_uuid(shipment_id),
-        tenant_id=_coerce_uuid(tenant_id),
+        tenant_id=_resolve_tenant_uuid(db, tenant_id),
         latitude=latitude,
         longitude=longitude,
         speed_kph=speed_kph,
@@ -734,7 +813,7 @@ def get_latest_tracking_point(db: Session, shipment_id: str, tenant_id: str) -> 
         db.query(ShipmentTrackingPoint)
         .filter(
             ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
-            ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+            ShipmentTrackingPoint.tenant_id == _resolve_tenant_uuid(db, tenant_id),
         )
         .order_by(ShipmentTrackingPoint.captured_at.desc())
         .first()
@@ -752,7 +831,7 @@ def get_tracking_history(
 ) -> list[ShipmentTrackingPoint]:
     query = db.query(ShipmentTrackingPoint).filter(
         ShipmentTrackingPoint.shipment_id == _coerce_uuid(shipment_id),
-        ShipmentTrackingPoint.tenant_id == _coerce_uuid(tenant_id),
+        ShipmentTrackingPoint.tenant_id == _resolve_tenant_uuid(db, tenant_id),
     )
     if from_ts:
         query = query.filter(ShipmentTrackingPoint.captured_at >= _to_utc(from_ts))
@@ -771,7 +850,7 @@ def search_shipments(
     page: int = 1,
     page_size: int = 20,
 ) -> tuple[list[Shipment], int]:
-    q = db.query(Shipment).filter(Shipment.tenant_id == _coerce_uuid(tenant_id))
+    q = db.query(Shipment).filter(Shipment.tenant_id == _resolve_tenant_uuid(db, tenant_id))
     if query:
         pattern = f"%{query}%"
         q = q.filter(
@@ -800,13 +879,13 @@ def search_shipments(
 
 def get_shipment(db: Session, shipment_id: str, tenant_id: str) -> Shipment | None:
     return db.query(Shipment).filter(
-        Shipment.id == _coerce_uuid(shipment_id), Shipment.tenant_id == _coerce_uuid(tenant_id),
+        Shipment.id == _coerce_uuid(shipment_id), Shipment.tenant_id == _resolve_tenant_uuid(db, tenant_id),
     ).first()
 
 
 def public_track_shipment(db: Session, tenant_id: str, tracking_number: str) -> Shipment | None:
     return db.query(Shipment).filter(
-        Shipment.tenant_id == _coerce_uuid(tenant_id),
+        Shipment.tenant_id == _resolve_tenant_uuid(db, tenant_id),
         Shipment.tracking_number == tracking_number,
     ).first()
 
@@ -883,8 +962,7 @@ def add_shipment_event(
             except Exception as e:
                 logger.error("Failed to send status update notification: %s", e)
 
-        sync_shipment_event_to_live_runtime(
-            db,
+        enqueue_shipment_event_runtime_sync(
             shipment,
             event_type=event_type,
             location=location,
@@ -906,7 +984,7 @@ def get_shipment_events(db: Session, shipment_id: str) -> list[ShipmentEvent]:
 # ── Group Members ───────────────────────────────────────────────
 
 def create_group_member(db: Session, tenant_id: str, **kw: Any) -> GroupMember:
-    member = GroupMember(tenant_id=_coerce_uuid(tenant_id), **kw)
+    member = GroupMember(tenant_id=_resolve_tenant_uuid(db, tenant_id), **kw)
     db.add(member)
     db.commit()
     db.refresh(member)
@@ -915,7 +993,7 @@ def create_group_member(db: Session, tenant_id: str, **kw: Any) -> GroupMember:
 
 def update_group_member(db: Session, member_id: str, tenant_id: str, **kw: Any) -> GroupMember | None:
     member = db.query(GroupMember).filter(
-        GroupMember.id == _coerce_uuid(member_id), GroupMember.tenant_id == _coerce_uuid(tenant_id),
+        GroupMember.id == _coerce_uuid(member_id), GroupMember.tenant_id == _resolve_tenant_uuid(db, tenant_id),
     ).first()
     if not member:
         return None
@@ -935,7 +1013,7 @@ def list_group_members(
     page: int = 1,
     page_size: int = 50,
 ) -> tuple[list[GroupMember], int]:
-    q = db.query(GroupMember).filter(GroupMember.tenant_id == _coerce_uuid(tenant_id))
+    q = db.query(GroupMember).filter(GroupMember.tenant_id == _resolve_tenant_uuid(db, tenant_id))
     if query:
         pattern = f"%{query}%"
         q = q.filter(
@@ -953,7 +1031,7 @@ def list_group_members(
 
 def get_group_member(db: Session, member_id: str, tenant_id: str) -> GroupMember | None:
     return db.query(GroupMember).filter(
-        GroupMember.id == _coerce_uuid(member_id), GroupMember.tenant_id == _coerce_uuid(tenant_id),
+        GroupMember.id == _coerce_uuid(member_id), GroupMember.tenant_id == _resolve_tenant_uuid(db, tenant_id),
     ).first()
 
 
@@ -1063,7 +1141,7 @@ def import_shipments_csv(
     created_by: str | None = None,
     filename: str | None = None,
 ) -> dict[str, Any]:
-    tenant_uuid = _coerce_uuid(tenant_id)
+    tenant_uuid = _resolve_tenant_uuid(db, tenant_id)
     is_xlsx = filename and filename.endswith(".xlsx") if filename else False
 
     if is_xlsx:

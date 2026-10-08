@@ -73,6 +73,8 @@ export default function MembersPage() {
   const [updatingRole, setUpdatingRole] = useState<string | null>(null)
 
   const tenantId = user?.tenant_id || (typeof window !== 'undefined' ? localStorage.getItem('tenant_id') : null)
+  // Member administration is admin-only; backend enforces via _resolve_tenant_scope.
+  const canManageMembers = !!(user?.is_tenant_admin || user?.is_superuser)
 
   useEffect(() => {
     if (user?.tenant_id) {
@@ -184,19 +186,23 @@ export default function MembersPage() {
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
+              {canManageMembers && (
               <Link href="/members/import">
                 <Button variant="outline">
                   <Upload className="h-4 w-4 mr-2" />
                   Bulk Import CSV
                 </Button>
               </Link>
+              )}
               <Dialog open={inviteOpen} onOpenChange={(open) => { setInviteOpen(open); if (!open) { setInviteError(null); setInviteSuccess(null) } }}>
+                {canManageMembers && (
                 <DialogTrigger asChild>
                   <Button>
                     <UserPlus className="h-4 w-4 mr-2" />
                     Invite Member
                   </Button>
                 </DialogTrigger>
+                )}
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
@@ -408,7 +414,7 @@ export default function MembersPage() {
                 <p className="text-sm text-gray-500 mb-5">
                   {search ? 'Try a different search term' : 'Import members via CSV or invite them individually'}
                 </p>
-                {!search && (
+                {!search && canManageMembers && (
                   <div className="flex gap-2 justify-center">
                     <Button onClick={() => setInviteOpen(true)}>
                       <UserPlus className="h-4 w-4 mr-2" />
@@ -478,7 +484,7 @@ export default function MembersPage() {
                           <Select
                             value={member.role || 'customer'}
                             onValueChange={(value) => handleUpdateRole(member.id, value)}
-                            disabled={updatingRole === member.id}
+                            disabled={!canManageMembers || updatingRole === member.id}
                           >
                             <SelectTrigger className="h-7 w-24 text-xs">
                               {updatingRole === member.id ? (

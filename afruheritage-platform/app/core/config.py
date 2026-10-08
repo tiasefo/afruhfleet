@@ -98,8 +98,12 @@ class Settings(BaseSettings):
     whatsapp_access_token: str = Field(default='', alias='WHATSAPP_ACCESS_TOKEN')
     whatsapp_phone_number_id: str = Field(default='', alias='WHATSAPP_PHONE_NUMBER_ID')
 
-    # Public base URL
+    # Public base URL (API)
     base_url: str = Field(default='http://localhost:8100', alias='BASE_URL')
+    # Public web/frontend URL used for customer-facing email links
+    # (password reset, invitations). BASE_URL points at the API host and
+    # must never be used for browser journeys.
+    web_url: str = Field(default='https://afruheritage.com', alias='WEB_URL')
 
     # Payments
     paystack_public_key: str = Field(default='', alias='PAYSTACK_PUBLIC_KEY')

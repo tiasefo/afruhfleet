@@ -48,15 +48,15 @@ const planFeatures: Record<string, string[]> = {
     'Custom domain support',
     'Priority phone and email support',
     'Dedicated account management',
-    'Advanced analytics',
+    'Custom reports',
     'API access',
   ],
   delivery_services: [
-    'Vendor marketplace access',
-    'Vehicle fleet management',
-    'Service booking workflow',
-    'Earnings dashboard',
-    'Automated payouts',
+    'Driver and vehicle fleet management',
+    'Dispatch and route planning',
+    'Proof of delivery',
+    'Webhooks and API access',
+    'Custom domain support',
   ],
 }
 
@@ -64,6 +64,10 @@ export default function BillingPage() {
   const { user } = useAuth()
   const { branding } = useBranding()
   const { t } = useTranslation()
+  // Billing mutations (plan select, top-up, pause, cancel) are admin-only; the
+  // backend enforces via require_tenant_admin — mirror that in the UI so
+  // restricted members never see controls they cannot use.
+  const canManageBilling = !!(user?.is_tenant_admin || user?.is_superuser)
   
   const [subscription, setSubscription] = useState<any>(null)
   const [wallet, setWallet] = useState<any>(null)
@@ -311,12 +315,14 @@ export default function BillingPage() {
                     
                     <div className="flex space-x-3">
                       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+                        {canManageBilling && (
                         <DialogTrigger asChild>
                           <Button>
                             <TrendingUp className="w-4 h-4 mr-2" />
                             {t('billing.upgrade')}
                           </Button>
                         </DialogTrigger>
+                        )}
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Complete Subscription</DialogTitle>
@@ -386,12 +392,14 @@ export default function BillingPage() {
                     </p>
                     <div className="mt-4">
                       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+                        {canManageBilling && (
                         <DialogTrigger asChild>
                           <Button>
                             <Plus className="w-4 h-4 mr-2" />
                             Choose Plan
                           </Button>
                         </DialogTrigger>
+                        )}
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Select Subscription Plan</DialogTitle>
@@ -464,12 +472,14 @@ export default function BillingPage() {
                     
                     <div className="flex space-x-3">
                       <Dialog open={showTopupModal} onOpenChange={setShowTopupModal}>
+                        {canManageBilling && (
                         <DialogTrigger asChild>
                           <Button className="flex-1">
                             <DollarSign className="w-4 h-4 mr-2" />
                             Add Funds
                           </Button>
                         </DialogTrigger>
+                        )}
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Add Funds to Wallet</DialogTitle>
@@ -550,6 +560,7 @@ export default function BillingPage() {
                         </ul>
                       </div>
                       
+                      {canManageBilling && (
                       <Button 
                         className="mt-4 w-full" 
                         variant={subscription?.plan_code === plan.code ? "outline" : "default"}
@@ -561,6 +572,7 @@ export default function BillingPage() {
                       >
                         {subscription?.plan_code === plan.code ? 'Current Plan' : 'Select Plan'}
                       </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -569,7 +581,8 @@ export default function BillingPage() {
           </Card>
         </div>
       
-        {/* Danger Zone */}
+        {/* Danger Zone — admin only */}
+        {canManageBilling && (
         <div className="mt-8">
           <Card className="border-red-200">
             <CardHeader>
@@ -602,6 +615,7 @@ export default function BillingPage() {
             </CardContent>
           </Card>
         </div>
+        )}
       
       {/* Transaction History Modal */}
       <Dialog open={showTransactionsModal} onOpenChange={setShowTransactionsModal}>

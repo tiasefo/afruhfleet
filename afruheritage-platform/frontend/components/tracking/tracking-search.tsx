@@ -27,84 +27,6 @@ import {
 import { cn } from '@/lib/utils'
 import { resolvePublicTenantId } from '@/lib/tenant'
 
-// Default shipment structure
-const defaultShipment = {
-  trackingNumber: 'AFR-2024-12847',
-  status: 'in_transit',
-  paymentStatus: 'partially_paid',
-  cargoType: 'Electronics',
-  packageCount: 5,
-  weight: 125,
-  sender: {
-    name: 'Guangzhou Electronics Ltd.',
-    phone: '+86 138 0000 0000',
-    city: 'Guangzhou',
-    country: 'China',
-  },
-  receiver: {
-    name: 'Accra Tech Imports',
-    phone: '+233 24 000 0000',
-    city: 'Accra',
-    country: 'Ghana',
-  },
-  origin: {
-    city: 'Guangzhou',
-    country: 'China',
-    date: '2024-03-10',
-  },
-  destination: {
-    city: 'Accra',
-    country: 'Ghana',
-    date: '2024-04-05',
-  },
-  payment: {
-    total: 2500,
-    paid: 1500,
-    balance: 1000,
-    currency: 'GHS',
-  },
-  liveTracking: null,
-  events: [
-    {
-      id: '1',
-      type: 'created',
-      title: 'Shipment Created',
-      description: 'Shipment booked and documents received',
-      location: 'Guangzhou, China',
-      timestamp: '2024-03-10T09:00:00Z',
-      icon: Package,
-    },
-    {
-      id: '2',
-      type: 'picked_up',
-      title: 'Picked Up',
-      description: 'Cargo collected from sender warehouse',
-      location: 'Guangzhou, China',
-      timestamp: '2024-03-11T14:30:00Z',
-      icon: Truck,
-    },
-    {
-      id: '3',
-      type: 'departed',
-      title: 'Departed Origin',
-      description: 'Vessel departed Guangzhou Port',
-      location: 'Guangzhou Port, China',
-      timestamp: '2024-03-15T08:00:00Z',
-      icon: Ship,
-    },
-    {
-      id: '4',
-      type: 'in_transit',
-      title: 'In Transit',
-      description: 'Cargo on board vessel heading to destination',
-      location: 'At Sea',
-      timestamp: '2024-03-20T12:00:00Z',
-      icon: Ship,
-      current: true,
-    },
-  ],
-}
-
 const statusConfig = {
   draft: { label: 'Draft', color: 'bg-muted text-muted-foreground', labelZh: '草稿' },
   booked: { label: 'Booked', color: 'bg-primary text-primary-foreground', labelZh: '已预订' },
@@ -134,33 +56,64 @@ function TrackingSearchInner() {
   const [isSearching, setIsSearching] = useState(false)
   const [showResult, setShowResult] = useState(false)
   const [notFound, setNotFound] = useState(false)
-  const [shipment, setShipment] = useState<any>(defaultShipment)
+  const [shipment, setShipment] = useState<any>(null)
+
+  const mapTrackData = (data: any) => ({
+    trackingNumber: data.tracking_number,
+    status: data.status,
+    paymentStatus: data.payment_status || 'pending',
+    cargoType: 'Freight',
+    packageCount: 1,
+    weight: 0,
+    sender: { name: data.sender_name || 'N/A', phone: '', city: data.origin_city || '', country: data.origin_country || '' },
+    receiver: { name: data.receiver_name || 'N/A', phone: '', city: data.destination_city || '', country: data.destination_country || '' },
+    origin: { city: data.origin_city || '', country: data.origin_country || '', date: data.shipped_date || '' },
+    destination: { city: data.destination_city || '', country: data.destination_country || '', date: data.estimated_arrival || '' },
+    payment: { total: data.total_cost || 0, paid: data.amount_paid || 0, balance: data.balance_due || 0, currency: data.currency || 'GHS' },
+    liveTracking: data.current_latitude != null && data.current_longitude != null ? {
+      location: data.current_location || '',
+      latitude: data.current_latitude,
+      longitude: data.current_longitude,
+      lastUpdated: data.last_location_at || '',
+      provider: data.live_tracking_provider || 'gps',
+    } : null,
+    events: (data.events || []).map((ev: any, i: number) => ({
+      id: ev.id || String(i),
+      type: ev.event_type,
+      title: ev.event_type?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+      description: ev.description || '',
+      location: ev.location || '',
+      timestamp: ev.occurred_at || ev.created_at || '',
+      icon: Package,
+    })),
+  })
+
+  const trackUrl = (num: string) => {
+    const tid = tenantId.trim() || resolvePublicTenantId()
+    const enc = encodeURIComponent(num)
+    // Tenant-less fallback: the tracking number itself is the bearer credential.
+    return tid
+      ? `/api/v1/shipments/public/track/${tid}/${enc}`
+      : `/api/v1/shipments/public/track/${enc}`
+  }
 
   useEffect(() => {
     const qTracking = searchParams?.get('tracking_number')
     if (qTracking) {
       setSearchValue(qTracking)
-      const tid = resolvePublicTenantId()
-      if (tid) {
-        setIsSearching(true)
-        fetch(`/api/v1/shipments/public/track/${tid}/${encodeURIComponent(qTracking)}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data) {
-              setShipment({
-                trackingNumber: data.tracking_number,
-                status: data.status,
-                paymentStatus: data.payment_status || 'pending',
-                cargoType: 'Freight',
-              })
-              setShowResult(true)
-            } else {
-              setNotFound(true)
-            }
-          })
-          .catch(() => setNotFound(true))
-          .finally(() => setIsSearching(false))
-      }
+      setIsSearching(true)
+      fetch(trackUrl(qTracking))
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) {
+            setShipment(mapTrackData(data))
+            setShowResult(true)
+          } else {
+            setNotFound(true)
+          }
+        })
+        .catch(() => setNotFound(true))
+        .finally(() => setIsSearching(false))
     }
   }, [searchParams])
 
@@ -172,48 +125,12 @@ function TrackingSearchInner() {
     setNotFound(false)
     setShowResult(false)
 
-    const tid = tenantId.trim() || resolvePublicTenantId()
-    if (!tid) {
-      setNotFound(true)
-      setIsSearching(false)
-      return
-    }
     try {
-      const res = await fetch(`/api/v1/shipments/public/track/${tid}/${encodeURIComponent(searchValue.trim())}`)
+      const res = await fetch(trackUrl(searchValue.trim()))
       if (res.ok) {
         const data = await res.json()
-        setShipment({
-          trackingNumber: data.tracking_number,
-          status: data.status,
-          paymentStatus: data.payment_status || 'pending',
-          cargoType: 'Freight',
-          packageCount: 1,
-          weight: 0,
-          sender: { name: data.sender_name || 'N/A', phone: '', city: data.origin_city || '', country: data.origin_country || '' },
-          receiver: { name: data.receiver_name || 'N/A', phone: '', city: data.destination_city || '', country: data.destination_country || '' },
-          origin: { city: data.origin_city || '', country: data.origin_country || '', date: data.shipped_date || '' },
-          destination: { city: data.destination_city || '', country: data.destination_country || '', date: data.estimated_arrival || '' },
-          payment: { total: data.total_cost || 0, paid: data.amount_paid || 0, balance: data.balance_due || 0, currency: data.currency || 'GHS' },
-          liveTracking: data.current_latitude != null && data.current_longitude != null ? {
-            location: data.current_location || '',
-            latitude: data.current_latitude,
-            longitude: data.current_longitude,
-            lastUpdated: data.last_location_at || '',
-            provider: data.live_tracking_provider || 'gps',
-          } : null,
-          events: (data.events || []).map((ev: any, i: number) => ({
-            id: ev.id || String(i),
-            type: ev.event_type,
-            title: ev.event_type?.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-            description: ev.description || '',
-            location: ev.location || '',
-            timestamp: ev.occurred_at || ev.created_at || '',
-            icon: Package,
-          })),
-        })
+        setShipment(mapTrackData(data))
         setShowResult(true)
-      } else if (res.status === 404) {
-        setNotFound(true)
       } else {
         setNotFound(true)
       }
@@ -225,7 +142,10 @@ function TrackingSearchInner() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return '—'
+    const d = new Date(dateString)
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -233,14 +153,17 @@ function TrackingSearchInner() {
   }
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
+    if (!dateString) return '—'
+    const d = new Date(dateString)
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     })
   }
 
-  const status = statusConfig[shipment.status as keyof typeof statusConfig] || statusConfig.in_transit
-  const paymentStatus = paymentStatusConfig[shipment.paymentStatus as keyof typeof paymentStatusConfig] || paymentStatusConfig.pending
+  const status = statusConfig[shipment?.status as keyof typeof statusConfig] || statusConfig.in_transit
+  const paymentStatus = paymentStatusConfig[shipment?.paymentStatus as keyof typeof paymentStatusConfig] || paymentStatusConfig.pending
 
   return (
     <div className="min-h-[80vh] bg-background">
@@ -271,7 +194,7 @@ function TrackingSearchInner() {
                 <Input
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  placeholder="Enter tracking number (try: AFR-2024-12847)"
+                  placeholder="Enter tracking number"
                   className="h-14 bg-background pl-12 text-base"
                 />
               </div>
@@ -334,7 +257,7 @@ function TrackingSearchInner() {
         )}
 
         {/* Shipment Result */}
-        {showResult && (
+        {showResult && shipment && (
           <div className="space-y-6">
             {/* Status Header */}
             <Card>

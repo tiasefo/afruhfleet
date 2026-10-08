@@ -17,7 +17,13 @@ def _resolve_database_url(url: str) -> str:
         return url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 
-engine = create_engine(_resolve_database_url(settings.database_url), pool_pre_ping=True)
+engine = create_engine(
+    _resolve_database_url(settings.database_url),
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    pool_timeout=10,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 

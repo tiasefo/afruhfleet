@@ -111,6 +111,16 @@ export default function TemplatesPage() {
       if (active) {
         setActiveTemplateCode(active.template_code)
       }
+      // A staged (configuring) installation survives navigation — restore the
+      // pending state so the Publish action remains available after reload.
+      const staged = (data.installations || [])
+        .filter((i: InstallationRecord) => i.status === 'configuring')
+        .sort((a: InstallationRecord, b: InstallationRecord) =>
+          new Date(b.requested_at || 0).getTime() - new Date(a.requested_at || 0).getTime())[0]
+      if (staged) {
+        setSelectedTemplate(staged.template_code)
+        setStagedInstallationId(staged.id)
+      }
     } catch (err) {
       // installations endpoint may not exist yet — non-fatal
     }

@@ -1,18 +1,12 @@
 'use client'
 
-import { 
-  MapPin, 
-  Bot, 
-  FileText, 
-  Users, 
-  BarChart3, 
+import {
+  MapPin,
+  Bot,
+  Users,
+  BarChart3,
   Shield,
   Truck,
-  Clock,
-  Globe,
-  Zap,
-  MessageSquare,
-  Package
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,36 +25,29 @@ const features = [
     badge: 'AI Powered',
   },
   {
-    icon: FileText,
-    title: 'Document Management',
-    description: 'Digitize bills of lading, customs declarations, and invoices. Never lose a document again.',
+    icon: Truck,
+    title: 'Fleet Management',
+    description: 'Register drivers and vehicles, then assign them to shipments for dispatch and delivery.',
     badge: null,
   },
   {
     icon: Users,
-    title: 'Group Management',
-    description: 'Manage thousands of customers and their shipments efficiently with our bulk tools.',
+    title: 'Team & Contact Management',
+    description: 'Invite team members with role-based access and manage customer contacts and quotes.',
     badge: null,
   },
   {
     icon: BarChart3,
-    title: 'Analytics Dashboard',
-    description: 'Gain insights into your operations with comprehensive reports and performance metrics.',
+    title: 'Operational Dashboard',
+    description: 'See shipment status, wallet balance, and fleet activity from a single dashboard.',
     badge: null,
   },
   {
     icon: Shield,
-    title: 'Customs Clearance',
-    description: 'Streamlined customs processing with automated document verification and status tracking.',
+    title: 'Customs Duty Estimation',
+    description: 'Estimate import duties upfront with the built-in customs duty calculator.',
     badge: null,
   },
-]
-
-const stats = [
-  { value: '10K+', label: 'Shipments Tracked Monthly', icon: Package },
-  { value: '45+', label: 'Countries Served', icon: Globe },
-  { value: '98.5%', label: 'On-time Delivery', icon: Clock },
-  { value: '< 2s', label: 'AI Response Time', icon: Zap },
 ]
 
 export function FeaturesSection() {
@@ -78,20 +65,6 @@ export function FeaturesSection() {
           <p className="mt-4 text-pretty text-lg text-muted-foreground">
             From tracking to customs, our platform handles the complexity so you can focus on growing your business.
           </p>
-        </div>
-
-        {/* Stats Row */}
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:gap-8">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="flex flex-col items-center rounded-xl border bg-card p-6 text-center shadow-sm"
-            >
-              <stat.icon className="mb-2 h-6 w-6 text-primary" />
-              <div className="text-3xl font-bold text-foreground">{stat.value}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{stat.label}</div>
-            </div>
-          ))}
         </div>
 
         {/* Features Grid */}

@@ -9,10 +9,10 @@ async def submit_id_document(user: User, file_url: str, db: Session) -> KYCSubmi
     # Create or update KYCSubmission
     kyc = db.query(KYCSubmission).filter_by(user_id=user.id).first()
     if not kyc:
-        kyc = KYCSubmission(user_id=user.id, status=KYCStatus.pending, id_document_url=file_url)
+        kyc = KYCSubmission(user_id=user.id, status=KYCStatus.pending, id_front_url=file_url)
         db.add(kyc)
     else:
-        kyc.id_document_url = file_url
+        kyc.id_front_url = file_url
         kyc.status = KYCStatus.pending
     db.commit()
     db.refresh(kyc)
@@ -352,7 +352,7 @@ class KYCService:
             return {
                 "user_id": user_id,
                 "status": row.status.value,
-                "id_document_url": row.id_document_url,
+                "id_front_url": row.id_front_url,
                 "liveness_video_url": row.liveness_video_url,
                 "liveness_photo_url": payload.get("liveness_photo_url"),
                 "id_back_url": payload.get("id_back_url"),

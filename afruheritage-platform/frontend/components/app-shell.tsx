@@ -22,11 +22,12 @@ import {
   Home,
   Globe,
   Shield,
-  Truck,
+
   Calculator,
   UserCircle,
   Puzzle,
   Palette,
+  Truck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -70,7 +71,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Products', href: '/products', icon: ShoppingBag },
   { label: 'Shipments', href: '/shipments', icon: Package },
-  { label: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
+  { label: 'Fleet', href: '/dashboard/fleetops', icon: Truck },
+
   { label: 'CRM', href: '/crm', icon: BarChart3 },
   { label: 'Customs Duty', href: '/customs/duty-calculator', icon: Calculator },
   { label: 'Team Members', href: '/members', icon: Users, adminOnly: true },
@@ -82,7 +84,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Plugins', href: '/plugins', icon: Puzzle, adminOnly: true },
   { label: 'Gallery', href: '/portal/gallery', icon: Globe },
   { label: 'Storefront', href: '/store', icon: ShoppingBag, tenantAware: true },
-  { label: 'Vendors', href: '/vendors', icon: Truck },
   { label: 'Profile', href: '/profile', icon: UserCircle },
 ]
 

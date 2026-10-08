@@ -23,20 +23,10 @@ export default function FleetOpsDashboardPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-white/70">
             Authenticated FleetOps
           </p>
-          <h1 className="mt-3 text-4xl font-bold">FleetOps Dashboard</h1>
+          <h1 className="mt-3 text-4xl font-bold">Fleet Operations</h1>
           <p className="mt-4 max-w-2xl text-white/80">
-            Review live Fleetbase operations from AfruHeritage. Full dispatch, route,
-            driver, vehicle, and fleet management remains inside Fleetbase.
+            Live view of your drivers, vehicles, fleets, and orders.
           </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/api/v1/fleetbase/sso-launch" className="rounded-lg bg-white px-5 py-3 font-semibold text-[#063f4f]">
-              Open Fleetbase Console
-            </Link>
-            <Link href="/fleetbase/console" className="rounded-lg border border-white/30 px-5 py-3 font-semibold text-white">
-              Learn About FleetOps
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -53,7 +43,7 @@ export default function FleetOpsDashboardPage() {
                 <Icon className="h-8 w-8 text-[#063f4f]" />
                 <h2 className="mt-5 text-xl font-bold">{item.title}</h2>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  View live {item.title.toLowerCase()} from Fleetbase.
+                  View live {item.title.toLowerCase()}.
                 </p>
               </Link>
             )

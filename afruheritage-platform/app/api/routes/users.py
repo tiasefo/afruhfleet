@@ -17,7 +17,7 @@ from app.core.security import get_password_hash
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.audit import AuditEvent
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.notification_service import notification_service
 from app.schemas.user_directory import (
     TenantUserAuditResponse,
@@ -92,8 +92,8 @@ def _issue_password_reset_token(user: User) -> str:
 
 def _send_password_setup_email(user: User, tenant_id: str) -> None:
     token = _issue_password_reset_token(user)
-    base_url = settings.base_url.rstrip("/")
-    reset_url = f"{base_url}/login?tenant_id={tenant_id}&reset_token={token}"
+    web_base = settings.web_url.rstrip("/")
+    reset_url = f"{web_base}/reset-password?token={token}"
     notification_service.send_password_reset_email(
         to=user.email,
         reset_url=reset_url,
@@ -149,6 +149,7 @@ def create_user(
     
     # Map role to is_tenant_admin for backward compatibility
     is_tenant_admin = payload.role == 'admin'
+    user_role = UserRole.company_admin if is_tenant_admin else UserRole.customer
     
     user = User(
         email=payload.email.lower(),
@@ -159,6 +160,8 @@ def create_user(
         is_superuser=False,
         is_active=True,
         must_reset_password=should_send_invite,
+        onboarding_complete=True,
+        role=user_role,
     )
     db.add(user)
     if should_send_invite:

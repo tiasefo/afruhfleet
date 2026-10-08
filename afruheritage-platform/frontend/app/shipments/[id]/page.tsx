@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
 import { useTranslation } from '@/hooks/useTranslation'
-import { shipmentsAPI } from '@/lib/api'
+import { shipmentsAPI, fleetAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -69,6 +69,14 @@ export default function ShipmentDetailPage() {
   const [locationError, setLocationError] = useState<string | null>(null)
   const [locationSuccess, setLocationSuccess] = useState<string | null>(null)
 
+  const canManage = !!(user?.is_tenant_admin || user?.is_superuser)
+  const [drivers, setDrivers] = useState<any[]>([])
+  const [vehicles, setVehicles] = useState<any[]>([])
+  const [assignDriverId, setAssignDriverId] = useState('')
+  const [assignVehicleId, setAssignVehicleId] = useState('')
+  const [isAssigning, setIsAssigning] = useState(false)
+  const [assignError, setAssignError] = useState<string | null>(null)
+
   // Fetch shipment details
   const loadShipment = async () => {
     setIsLoading(true)
@@ -94,10 +102,43 @@ export default function ShipmentDetailPage() {
     }
   }
 
+  const loadFleet = async () => {
+    try {
+      const [d, v] = await Promise.all([fleetAPI.listDrivers(), fleetAPI.listVehicles()])
+      setDrivers(Array.isArray(d?.drivers) ? d.drivers : [])
+      setVehicles(Array.isArray(v?.vehicles) ? v.vehicles : [])
+    } catch (err) {
+      console.error('Failed to load fleet records:', err)
+    }
+  }
+
   useEffect(() => {
     loadShipment()
     loadEvents()
+    loadFleet()
   }, [shipmentId])
+
+  const handleAssign = async () => {
+    if (!assignDriverId && !assignVehicleId) return
+    setIsAssigning(true)
+    setAssignError(null)
+    try {
+      const driver = drivers.find((d) => (d?.public_id || d?.uuid) === assignDriverId)
+      const vehicle = vehicles.find((v) => (v?.public_id || v?.uuid) === assignVehicleId)
+      await shipmentsAPI.assign(shipmentId, {
+        ...(driver ? { driver_public_id: driver.public_id || driver.uuid, driver_name: driver.name } : {}),
+        ...(vehicle ? { vehicle_public_id: vehicle.public_id || vehicle.uuid, vehicle_name: vehicle.display_name || vehicle.name || vehicle.plate_number } : {}),
+      })
+      setAssignDriverId('')
+      setAssignVehicleId('')
+      await loadShipment()
+      await loadEvents()
+    } catch (err: any) {
+      setAssignError(err?.message || 'Failed to assign fleet')
+    } finally {
+      setIsAssigning(false)
+    }
+  }
 
   const getStatusBadgeClass = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -486,6 +527,72 @@ export default function ShipmentDetailPage() {
                   <div className="mt-4">
                     <p className="text-sm text-gray-600">Notes</p>
                     <p className="font-medium">{shipment.notes}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Fleet Assignment */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <User className="w-5 h-5 mr-2" />
+                  Fleet Assignment
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Assigned Driver</p>
+                    <p className="font-medium">{shipment.driver_name || 'Unassigned'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Assigned Vehicle</p>
+                    <p className="font-medium">{shipment.vehicle_name || 'Unassigned'}</p>
+                  </div>
+                </div>
+                {canManage && (
+                  <div className="mt-4 space-y-3 border-t pt-4">
+                    <div>
+                      <label className="text-sm font-medium">Driver</label>
+                      <Select value={assignDriverId} onValueChange={setAssignDriverId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select driver" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {drivers.map((d) => (
+                            <SelectItem key={d?.public_id || d?.uuid} value={d?.public_id || d?.uuid}>
+                              {d?.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Vehicle</label>
+                      <Select value={assignVehicleId} onValueChange={setAssignVehicleId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vehicle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicles.map((v) => (
+                            <SelectItem key={v?.public_id || v?.uuid} value={v?.public_id || v?.uuid}>
+                              {v?.display_name || v?.name || v?.plate_number}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {assignError && (
+                      <p className="text-sm text-red-600">{assignError}</p>
+                    )}
+                    <Button
+                      size="sm"
+                      disabled={isAssigning || (!assignDriverId && !assignVehicleId)}
+                      onClick={handleAssign}
+                    >
+                      {isAssigning ? 'Assigning...' : 'Assign to Shipment'}
+                    </Button>
                   </div>
                 )}
               </CardContent>

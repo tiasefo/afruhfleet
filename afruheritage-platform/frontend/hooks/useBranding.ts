@@ -81,9 +81,10 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
     setError(null)
 
     try {
-      const token = getToken()
-
-      if (token) {
+      // Authenticated sessions resolve branding from the session tenant only
+      // (localStorage tenant_id set at login) — never from URL query params,
+      // which would let one tenant's branding bleed into another workspace.
+      if (getToken()) {
         const response = await brandingAPI.get()
         setBranding(response)
         return

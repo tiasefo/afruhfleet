@@ -84,6 +84,7 @@ export default function ProductsPage() {
     const payload = {
       ...form,
       price: parseFloat(form.price) || 0,
+      category_id: form.category_id || null,
       images: form.images.filter(Boolean),
       videos: form.videos.filter(Boolean),
     }

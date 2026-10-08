@@ -18,6 +18,17 @@ function requireTenantId(): string {
   return tenantId
 }
 
+// URLSearchParams serializes undefined as the literal string "undefined" —
+// strip empty values so backends never receive q=undefined style filters.
+function buildQuery(params: Record<string, any>): string {
+  const clean: Record<string, string> = {}
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === '') continue
+    clean[k] = String(v)
+  }
+  return new URLSearchParams(clean).toString()
+}
+
 function encodeBody(body: any): BodyInit | undefined {
   if (body === undefined || body === null) return undefined
   if (typeof FormData !== 'undefined' && body instanceof FormData) return body
@@ -111,8 +122,9 @@ export function clearToken() {
 }
 
 export function getToken(): string | null {
-  // No-op: JWT is in HttpOnly cookie, not accessible to JavaScript
-  return null
+  // The request pipeline above already sends localStorage.auth_token as a
+  // Bearer header, so the token is readable here for auth-state checks.
+  return typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
 }
 
 // Tenant-specific API endpoints
@@ -125,7 +137,7 @@ export const shipmentsAPI = {
     page_size?: number
   }) => {
     const tenantId = requireTenantId()
-    return api.get(`/shipments/${tenantId}${params ? '?' + new URLSearchParams(params as any).toString() : ''}`)
+    return api.get(`/shipments/${tenantId}${params ? '?' + buildQuery(params) : ''}`)
   },
   
   get: (id: string) => {
@@ -175,13 +187,43 @@ export const shipmentsAPI = {
     return api.post(`/shipments/${tenantId}/${id}/transition?status=${status}`)
   },
 
+  assign: (id: string, data: {
+    driver_public_id?: string
+    driver_name?: string
+    vehicle_public_id?: string
+    vehicle_name?: string
+  }) => {
+    const tenantId = requireTenantId()
+    return api.post(`/shipments/${tenantId}/${id}/assign`, data)
+  },
+
   myShipments: () => api.get('/shipments/my-shipments'),
+}
+
+export const fleetAPI = {
+  listDrivers: () => api.get('/fleetbase-proxy/drivers'),
+  createDriver: (data: {
+    name: string
+    phone: string
+    email: string
+    city?: string
+    country?: string
+  }) => api.post('/fleetbase-proxy/drivers', data),
+
+  listVehicles: () => api.get('/fleetbase-proxy/vehicles'),
+  createVehicle: (data: {
+    name: string
+    plate_number: string
+    make?: string
+    model?: string
+    year?: string
+  }) => api.post('/fleetbase-proxy/vehicles', data),
 }
 
 export const membersAPI = {
   list: (params?: { q?: string; page?: number; page_size?: number }) => {
     const tenantId = requireTenantId()
-    return api.get(`/shipments/${tenantId}/members${params ? '?' + new URLSearchParams(params as any).toString() : ''}`)
+    return api.get(`/shipments/${tenantId}/members${params ? '?' + buildQuery(params) : ''}`)
   },
   
   get: (id: string) => {
@@ -458,7 +500,7 @@ export const supportAPI = {
   // Tenant-scoped ticket management
   listTickets: (params?: { status?: string; q?: string; page?: number; page_size?: number }) => {
     const tenantId = requireTenantId()
-    const qs = params ? '?' + new URLSearchParams({ tenant_id: tenantId, ...params as any }).toString() : `?tenant_id=${tenantId}`
+    const qs = params ? '?' + buildQuery({ tenant_id: tenantId, ...params }) : `?tenant_id=${tenantId}`
     return api.get(`/support-crm/tickets${qs}`)
   },
 

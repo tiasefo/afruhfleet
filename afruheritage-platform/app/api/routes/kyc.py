@@ -108,7 +108,7 @@ async def submit_manual_kyc(
     row.id_type = id_type
     row.id_number = id_number
     row.full_name = full_name
-    row.id_document_url = id_front_url
+    row.id_front_url = id_front_url
     row.id_front_url = id_front_url
     row.id_back_url = id_back_url
     row.liveness_photo_url = liveness_photo_url
@@ -180,7 +180,7 @@ async def upload_id_document(
     payload['submitted_at'] = datetime.utcnow().isoformat()
 
     if side_normalized == 'front':
-        row.id_document_url = file_url
+        row.id_front_url = file_url
     row.status = KYCStatus.pending
     row.result = json.dumps(payload)
     db.commit()
@@ -270,7 +270,7 @@ def list_pending_kyc(
             'id_type': row.id_type,
             'id_number': row.id_number,
             'full_name': row.full_name,
-            'id_front_url': row.id_front_url or row.id_document_url,
+            'id_front_url': row.id_front_url,
             'id_back_url': row.id_back_url,
             'liveness_photo_url': row.liveness_photo_url,
             'liveness_video_url': row.liveness_video_url,
@@ -296,7 +296,7 @@ def list_kyc_submissions(
                 'id_type': row.id_type,
                 'id_number': row.id_number,
                 'full_name': row.full_name,
-                'id_front_url': row.id_front_url or row.id_document_url,
+                'id_front_url': row.id_front_url,
                 'id_back_url': row.id_back_url,
                 'liveness_photo_url': row.liveness_photo_url,
                 'liveness_video_url': row.liveness_video_url,

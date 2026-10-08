@@ -80,6 +80,16 @@ export default function ContactsPage() {
       
       if (formData.account_id) {
         payload.account_id = formData.account_id
+      } else {
+        // Backend requires an account link — auto-create one for this contact
+        // so the modal's "Account (Optional)" promise is honoured.
+        const account = await crmAPI.createAccount({
+          account_type: 'customer',
+          company_name: `${formData.first_name} ${formData.last_name}`,
+          email: formData.email,
+          phone: formData.phone || undefined,
+        })
+        payload.account_id = account.id
       }
       
       if (formData.phone) {

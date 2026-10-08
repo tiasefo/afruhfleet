@@ -20,7 +20,7 @@ export function CTASection() {
             Ready to transform your freight operations?
           </h2>
           <p className="mt-6 text-pretty text-lg text-primary-foreground/80">
-            Join 500+ freight forwarders who have modernized their business with Afruheritage. 
+            Launch your own branded freight-forwarding platform with Afruheritage.
             Start your free trial today - no credit card required.
           </p>
 
@@ -63,7 +63,7 @@ export function CTASection() {
               className="flex items-center gap-2 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
             >
               <Phone className="h-4 w-4" />
-              <a href="https://wa.me/233506608337" target="_blank" rel="noopener noreferrer" className="hover:text-primary">WhatsApp +233 50 660 8337</a>
+              WhatsApp +233 50 660 8337
             </a>
           </div>
         </div>

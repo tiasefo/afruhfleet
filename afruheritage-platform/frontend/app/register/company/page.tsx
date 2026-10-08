@@ -164,7 +164,7 @@ export default function RegisterCompanyPage() {
             <p className="font-semibold text-gray-800">What happens next?</p>
             <ul className="text-sm text-gray-600 mt-1 space-y-1">
               <li>• Your company portal is provisioned instantly</li>
-              <li>• A dedicated Fleetbase organisation is created for your fleet</li>
+              <li>• A dedicated operations workspace is created for your fleet</li>
               <li>• A 14-day free trial starts automatically</li>
             </ul>
           </div>

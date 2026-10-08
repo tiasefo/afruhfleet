@@ -21,3 +21,8 @@ CLIENT_READINESS_E2E_SMOKE_REPORT.md
 CLIENT_READINESS_E2E_SMOKE_REPORT.csv
 !CLIENT_READINESS_REMEDIATION_REPORT.md
 !CLIENT_READINESS_REMEDIATION_REPORT.csv
+
+# prod-ui-cert campaign secrets (mailbox tokens, tenant creds)
+prod-ui-cert/state.json
+prod-ui-cert/recon.json
+prod-ui-cert/.pw-browsers/

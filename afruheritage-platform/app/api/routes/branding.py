@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import io
 import uuid
 
-from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription, _resolve_tenant_identifier
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.branding import BrandingResponse, BrandingUpdate
@@ -15,13 +15,21 @@ from app.services.tenant_branding_service import get_tenant_branding, update_ten
 router = APIRouter(prefix="/branding", tags=["Tenant Branding"])
 
 
+def _is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(str(value))
+        return True
+    except (ValueError, AttributeError, TypeError):
+        return False
+
+
 @router.get("/{tenant_id}", response_model=BrandingResponse)
 def get_branding_route(
     tenant_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
-    branding = get_tenant_branding(db, tenant_id)
+    branding = get_tenant_branding(db, _resolve_tenant_identifier(db, tenant_id) or tenant_id)
     if not branding:
         raise HTTPException(status_code=404, detail="Branding not found for this tenant")
     return _to_response(branding)
@@ -60,8 +68,9 @@ def create_branding_route(
     """Create branding for a tenant (admin only)."""
     from app.models.tenant import Tenant
     from app.services.tenant_branding_service import ensure_tenant_branding
-    
-    tenant = db.get(Tenant, tenant_id)
+
+    tenant_id = _resolve_tenant_identifier(db, tenant_id) or tenant_id
+    tenant = db.get(Tenant, uuid.UUID(tenant_id)) if _is_uuid(tenant_id) else db.query(Tenant).filter((Tenant.slug == tenant_id) | (Tenant.subdomain == tenant_id)).first()
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
@@ -85,7 +94,7 @@ def update_branding_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_tenant_admin),
 ):
-    branding = update_tenant_branding(db, tenant_id, **payload.model_dump(exclude_unset=True))
+    branding = update_tenant_branding(db, _resolve_tenant_identifier(db, tenant_id) or tenant_id, **payload.model_dump(exclude_unset=True))
     if not branding:
         raise HTTPException(status_code=404, detail="Branding not found for this tenant")
     return _to_response(branding)
@@ -115,7 +124,7 @@ def upload_branding_logo(
         filename=object_key,
         content_type=file.content_type,
     )
-    branding = update_tenant_branding(db, tenant_id, logo_url=logo_url)
+    branding = update_tenant_branding(db, _resolve_tenant_identifier(db, tenant_id) or tenant_id, logo_url=logo_url)
     if not branding:
         raise HTTPException(status_code=404, detail="Branding not found for this tenant")
     return _to_response(branding)

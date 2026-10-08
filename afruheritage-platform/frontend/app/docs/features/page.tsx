@@ -189,8 +189,8 @@ const STOREFRONT_PROVISIONING = [
   },
   {
     step: 2,
-    title: 'Fleetbase Runtime Provisioned',
-    detail: 'Admin clicks "Launch" in Sentinel. A Celery task queues the provisioning job. The system SSHs into an available runner node and runs flb install-fleetbase to create an isolated Fleetbase instance.',
+    title: 'Operations Workspace Provisioned',
+    detail: 'The platform automatically provisions the tenant\'s isolated operations workspace when the subscription or trial is activated — no manual steps required.',
   },
   {
     step: 3,

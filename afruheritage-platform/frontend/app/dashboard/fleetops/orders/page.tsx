@@ -26,13 +26,13 @@ export default function FleetbaseSummaryPage() {
         const data = await res.json()
 
         if (!res.ok) {
-          throw new Error(data?.detail || data?.message || 'Fleetbase request failed')
+          throw new Error(data?.detail || data?.message || 'Orders request failed')
         }
 
         setRows(Array.isArray(data?.orders) ? data.orders : [])
         setMeta(data?.meta || null)
       } catch (err: any) {
-        setError(err?.message || 'Failed to load Fleetbase data')
+        setError(err?.message || 'Failed to load orders data')
       } finally {
         setLoading(false)
       }
@@ -52,26 +52,16 @@ export default function FleetbaseSummaryPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-white/70">
             Authenticated FleetOps Data
           </p>
-          <h1 className="mt-3 text-4xl font-bold">Fleetbase Orders</h1>
-          <p className="mt-4 max-w-2xl text-white/80">Live order and dispatch records from Fleetbase FleetOps.</p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/api/v1/fleetbase/sso-launch"  className="rounded-lg bg-white px-5 py-3 font-semibold text-[#063f4f]">
-              Open Fleetbase Console via SSO
-            </Link>
-            <Link href="/fleetbase/console" className="rounded-lg border border-white/30 px-5 py-3 font-semibold text-white">
-              Learn About FleetOps
-            </Link>
-          </div>
-        </div>
+          <h1 className="mt-3 text-4xl font-bold">Orders</h1>
+          <p className="mt-4 max-w-2xl text-white/80">Live order and dispatch records for your operation.</p></div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12">
-        {loading && <p className="text-muted-foreground">Loading live Fleetbase data...</p>}
+        {loading && <p className="text-muted-foreground">Loading live orders data...</p>}
 
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-700">
-            <p className="font-semibold">Unable to load Fleetbase data</p>
+            <p className="font-semibold">Unable to load orders data</p>
             <p className="mt-1 text-sm">{error}</p>
           </div>
         )}
@@ -87,7 +77,7 @@ export default function FleetbaseSummaryPage() {
 
             {rows.length === 0 ? (
               <div className="p-8 text-muted-foreground">
-                No records returned from Fleetbase.
+                No orders records yet.
               </div>
             ) : (
               <div className="overflow-x-auto">

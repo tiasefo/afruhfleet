@@ -78,12 +78,23 @@ class ShipmentUpdate(BaseModel):
     payment_status: str | None = None
     status: str | None = None
     group_member_id: str | None = None
+    driver_public_id: str | None = None
+    driver_name: str | None = None
+    vehicle_public_id: str | None = None
+    vehicle_name: str | None = None
     notes: str | None = None
     cargo_image_url: str | None = None
     loading_date: datetime | None = None
     storage_days: int | None = None
     storage_rate: float | None = None
     storage_fee: float | None = None
+
+
+class ShipmentAssign(BaseModel):
+    driver_public_id: str | None = None
+    driver_name: str | None = None
+    vehicle_public_id: str | None = None
+    vehicle_name: str | None = None
 
 
 class ShipmentEventCreate(BaseModel):
@@ -183,6 +194,10 @@ class ShipmentResponse(BaseModel):
     status: str
     group_member_id: str | None = None
     group_member_name: str | None = None
+    driver_public_id: str | None = None
+    driver_name: str | None = None
+    vehicle_public_id: str | None = None
+    vehicle_name: str | None = None
     notes: str | None = None
     cargo_image_url: str | None = None
     loading_date: datetime | None = None

@@ -93,6 +93,10 @@ class Shipment(Base):
     group_member_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("group_members.id"), nullable=True, index=True,
     )
+    driver_public_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    driver_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    vehicle_public_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    vehicle_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     cargo_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)

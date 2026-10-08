@@ -45,14 +45,14 @@ const planFeatures: Record<string, string[]> = {
     'Dedicated account manager',
     'Group members (up to 5,000)',
     'API access',
-    'Advanced analytics',
+    'Custom reports',
   ],
   delivery_services: [
-    'Vendor marketplace access',
-    'Vehicle fleet management',
-    'Service booking system',
-    'Earnings dashboard',
-    'Automated payouts',
+    'Driver and vehicle fleet management',
+    'Dispatch and route planning',
+    'Proof of delivery',
+    'Webhooks and API access',
+    'Custom domain support',
   ],
 }
 
