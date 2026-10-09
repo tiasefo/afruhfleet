@@ -46,14 +46,23 @@ async function fillBy(page, patterns, value) {
     }
     h.step(`Clicked: ${clicked || 'NONE'}`);
     await sleep(4000);
-    // possible confirmation dialog
-    const conf = await clickFirst(page, ['button:has-text("Confirm")', 'button:has-text("Activate")', 'button:has-text("Yes")', 'button:has-text("Subscribe")'], 2500);
-    if (conf) { h.step(`Confirmed: ${conf}`); await sleep(4000); }
+    // possible confirmation dialog — Free Trial modal shows "Start Free Trial"
+    const subWait = page.waitForResponse(r => /afruheritage\.com\/api.*(subscription|billing|trial)/i.test(r.url()) && r.request().method() === 'POST', { timeout: 60000 }).catch(() => null);
+    const t0 = Date.now();
+    const conf = await clickFirst(page, ['button:has-text("Start Free Trial")', 'button:has-text("Confirm")', 'button:has-text("Activate")', 'button:has-text("Yes")', 'button:has-text("Subscribe")'], 2500);
+    let subMs = null;
+    if (conf) {
+      h.step(`Confirmed: ${conf}`);
+      const subResp = await subWait;
+      subMs = Date.now() - t0;
+      if (subResp) h.step(`Trial POST -> ${subResp.status()} in ${subMs}ms`);
+      await sleep(4000);
+    }
     const t = await S.text(); const u = page.url();
     await h.shot('after');
     const active = /(active|trialing|current plan.*(free|trial)|free trial.*active|renews|days remaining|expires)/i.test(t);
     const stillNone = /no active subscription/i.test(t);
-    if (active && !stillNone) return h.pass(`Free Trial activated. billing shows: "${t.slice(0, 300)}"`);
+    if (active && !stillNone) return h.pass(`Free Trial activated${subMs != null ? ` (activation POST ${subMs}ms)` : ''}. billing shows: "${t.slice(0, 300)}"`);
     if (stillNone) return h.fail(`Plan selection did not activate subscription. text="${t.slice(0, 300)}"`, { classification: 'PRODUCT_DEFECT', defectRef: 'DEF-SUB-02' });
     return h.fail(`Subscription state ambiguous after selection. url=${u} text="${t.slice(0, 300)}"`, { classification: 'UNCLASSIFIED', defectRef: 'DEF-SUB-03' });
   });

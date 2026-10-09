@@ -40,12 +40,20 @@ async function fillByNames(page, patterns, value) {
   return null;
 }
 
-async function clickButtonText(page, res, timeout = 2500) {
+async function clickButtonText(page, res, timeout = 2500, exclude = null) {
   for (const re of res) {
-    const loc = page.getByRole('button', { name: re }).first();
-    try { if (await loc.isVisible({ timeout })) { await loc.click(); return re.toString(); } } catch {}
-    const link = page.getByRole('link', { name: re }).first();
-    try { if (await link.isVisible({ timeout: 800 })) { await link.click(); return re.toString() + '(link)'; } } catch {}
+    for (const role of ['button', 'link']) {
+      const locs = page.getByRole(role, { name: re });
+      const n = Math.min(await locs.count().catch(() => 0), 6);
+      for (let i = 0; i < n; i++) {
+        const loc = locs.nth(i);
+        try {
+          if (!(await loc.isVisible({ timeout }))) continue;
+          if (exclude) { const txt = await loc.innerText().catch(() => ''); if (exclude.test(txt)) continue; }
+          await loc.click(); return `${re.toString()}(${role})`;
+        } catch {}
+      }
+    }
   }
   return null;
 }
@@ -123,7 +131,7 @@ async function clickButtonText(page, res, timeout = 2500) {
     await h.shot('start');
     // attempt to progress through any onboarding wizard like a user would
     for (let i = 0; i < 6; i++) {
-      const clicked = await clickButtonText(page, [/continue/i, /next/i, /get started/i, /finish/i, /complete/i, /skip/i, /go to dashboard/i, /start trial/i, /choose/i], 1500);
+      const clicked = await clickButtonText(page, [/continue/i, /next/i, /get started/i, /finish/i, /complete/i, /skip/i, /go to dashboard/i, /start trial/i, /choose/i], 1500, /google|oauth|sign in with/i);
       if (!clicked) break;
       h.step(`Onboarding: clicked ${clicked}`);
       await sleep(1800);
@@ -150,11 +158,21 @@ async function clickButtonText(page, res, timeout = 2500) {
     await h.shot('billing');
     if (/login/.test(u)) return h.blocked('Lost session — redirected to login', { classification: 'UNCLASSIFIED' });
     const already = /(active|trialing|trial).*(plan|subscription)|current plan|subscription.*active/i.test(t);
-    const chooseClicked = await clickButtonText(page, [/start.*trial/i, /activate/i, /choose.*plan/i, /select plan/i, /subscribe/i, /start free/i, /trial/i], 2000);
-    if (chooseClicked) { h.step(`Clicked ${chooseClicked}`); await sleep(3000); ({ t, u } = await dump(S, 'after-choose', h)); await h.shot('after-choose'); }
+    // STABILITY: measure trial/subscription activation API response time (PO gate: was ~40s synchronous)
+    const subWait = page.waitForResponse(r => /afruheritage\.com\/api.*(subscription|billing|trial|plan)/i.test(r.url()) && r.request().method() === 'POST', { timeout: 45000 }).catch(() => null);
+    const t0 = Date.now();
+    const chooseClicked = await clickButtonText(page, [/start.*trial/i, /activate/i, /choose.*plan/i, /select plan/i, /subscribe/i, /start free/i, /trial/i], 2000, /google|oauth/i);
+    let subMs = null;
+    if (chooseClicked) {
+      h.step(`Clicked ${chooseClicked}`);
+      const subResp = await subWait;
+      subMs = Date.now() - t0;
+      if (subResp) h.step(`Subscription POST ${subResp.url().slice(-80)} -> ${subResp.status()} in ${subMs}ms`);
+      await sleep(3000); ({ t, u } = await dump(S, 'after-choose', h)); await h.shot('after-choose');
+    }
     const ok = /(active|trialing)/i.test(t) || chooseClicked;
-    saveState({ tenantA: { ...loadState().tenantA, billingText: t.slice(0, 400) } });
-    if (ok) return h.pass(`Subscription state visible${already ? ' (already active/trialing)' : ''}${chooseClicked ? ' after clicking ' + chooseClicked : ''}: "${t.slice(0, 250)}"`);
+    saveState({ tenantA: { ...loadState().tenantA, billingText: t.slice(0, 400), trialActivationMs: subMs } });
+    if (ok) return h.pass(`Subscription state visible${already ? ' (already active/trialing)' : ''}${chooseClicked ? ' after clicking ' + chooseClicked : ''}: "${t.slice(0, 250)}"`, { notes: `trial_activation_api_ms=${subMs}` });
     return h.fail(`No subscription activation possible/visible on /billing. text="${t.slice(0, 300)}"`, { classification: 'PRODUCT_DEFECT', defectRef: 'DEF-SUB-01' });
   });
 

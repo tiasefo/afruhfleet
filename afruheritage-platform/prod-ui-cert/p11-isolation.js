@@ -3,7 +3,8 @@ const { BASE, Session, loadState, clickFirst, uiLogin } = require('./harness');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const A_UUID = '9413f169-98b8-4da0-86f2-97e36b2ae2bd';
 const B_UUID = 'e2c382b8-fd02-418d-8bd5-ad3634a56795';
-const A_SUB = 'https://uatcert-meridian-freight-1.afruheritage.com';
+const st0 = loadState();
+const A_SUB = (st0.tenantA && (st0.tenantA.storefrontUrl || (st0.tenantA.welcomeLinks || [])[0])) || 'https://uatcert-meridian-freight-1.afruheritage.com';
 const B_SUB = 'https://uatcert-kestrel-logistics-1.afruheritage.com';
 
 async function waitReady(page, re, t = 25000) {
@@ -54,6 +55,7 @@ async function waitReady(page, re, t = 25000) {
     if (seesB) return h.fail(`Tenant A sees Tenant B CRM data. text="${t.slice(0, 250)}"`, { classification: 'BACKEND_DEFECT', defectRef: 'DEF-ISO-03' });
     return h.pass('No cross-tenant CRM data visible', { notes: t.slice(0, 200) });
   });
+  await S.finish();
 
   // ---- Anonymous on B subdomain: public storefront correctness ----
   const S2 = await new Session('ISOANON', { video: true }).start();
