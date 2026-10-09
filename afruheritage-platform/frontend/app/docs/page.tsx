@@ -293,14 +293,7 @@ const categories: FlowCategory[] = [
 ]
 
 const sideNav = [
-  'Overview',
-  'Getting Started',
   'Process Flows',
-  'GPS Tracking',
-  'Tenant Onboarding',
-  'Vendor Operations',
-  'Billing & Credits',
-  'FAQ',
 ]
 
 function DocumentationPageContent() {
@@ -433,7 +426,7 @@ function DocumentationPageContent() {
                   Getting Started - Process Flows
                 </CardTitle>
                 <p className="text-sm text-slate-600">
-                  Pick your use case and follow a step-by-step flow simulation for GPS tracking, tenant creation, vendor onboarding, and day-to-day operations.
+                  Pick your use case and follow a step-by-step flow simulation for shipment tracking, tenant onboarding, and day-to-day operations.
                 </p>
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                   This documentation workspace runs in read-only simulation mode. It does not perform create, update, or delete operations on production systems.

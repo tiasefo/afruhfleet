@@ -25,7 +25,7 @@ def resolve_chat_model(requested_model: str | None) -> str:
     return DEFAULT_CHAT_MODEL
 
 
-def _try_model(messages: list[dict], model: str) -> str | None:
+def _try_model(messages: list[dict], model: str, timeout_s: float = 120.0) -> str | None:
     """Attempt to chat with a specific model. Returns None on failure."""
     import httpx
     payload: dict = {
@@ -35,7 +35,7 @@ def _try_model(messages: list[dict], model: str) -> str | None:
         "options": {"temperature": 0.3},
     }
     try:
-        r = httpx.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload, timeout=120.0)
+        r = httpx.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload, timeout=timeout_s)
         r.raise_for_status()
         data = r.json()
         return data.get("message", {}).get("content", "").strip()
@@ -43,19 +43,23 @@ def _try_model(messages: list[dict], model: str) -> str | None:
         return None
 
 
-def chat_with_ollama(messages: list[dict[str, str]], model: str | None = None) -> str:
+def chat_with_ollama(messages: list[dict[str, str]], model: str | None = None, timeout_s: float = 120.0, deadline_s: float | None = None) -> str:
+    import time
+    started = time.monotonic()
     primary_model = resolve_chat_model(model)
     fallback_models = list(ALLOWED_CHAT_MODELS)
 
     # Try primary model first
-    result = _try_model(messages, primary_model)
+    result = _try_model(messages, primary_model, timeout_s=timeout_s)
     if result:
         return result
 
-    # Primary failed (likely OOM) - try fallbacks
+    # Primary failed (likely OOM) - try fallbacks within the deadline
     for fallback in fallback_models:
         if fallback != primary_model:
-            result = _try_model(messages, fallback)
+            if deadline_s is not None and time.monotonic() - started >= deadline_s:
+                break
+            result = _try_model(messages, fallback, timeout_s=timeout_s)
             if result:
                 return result
 

@@ -1,0 +1,15 @@
+{
+  "timings": {
+    "login_ms": 5653,
+    "shipments_page_ms": 538,
+    "shipments_list_api_ms": 538,
+    "crm_page_ms": 4245,
+    "billing_page_ms": 4186,
+    "shipment_create_ms": 364
+  },
+  "stats": {
+    "ollamaBefore": "loadavg=0.32 0.56 2.30 ollama_cpu=0.8% containers: afruheritage-api 0.54% 678.6MiB / 11.58GiB | afruheritage-frontend 0.01% 92.36MiB / 11.58GiB | afruheritage-postgres 0.00% 91.47MiB / 11.58GiB",
+    "ollamaDuring": "loadavg=0.40 0.54 2.19 ollama_cpu=0.8% containers: afruheritage-api 0.49% 682.5MiB / 11.58GiB | afruheritage-frontend 0.00% 120.3MiB / 11.58GiB | afruheritage-postgres 0.01% 91.6MiB / 11.58GiB",
+    "ollamaAfter": "loadavg=9.25 3.68 3.16 ollama_cpu=0.8% containers: afruheritage-api 0.56% 684.2MiB / 11.58GiB | afruheritage-frontend 0.00% 149.6MiB / 11.58GiB | afruheritage-postgres 0.00% 94.17MiB / 11.58GiB"
+  }
+}

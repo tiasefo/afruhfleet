@@ -26,7 +26,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
 
 def _embed(text: str) -> list[float]:
-    with httpx.Client(timeout=120.0) as client:
+    with httpx.Client(timeout=15.0) as client:
         resp = client.post(
             f"{OLLAMA_BASE_URL}/api/embed",
             json={"model": EMBED_MODEL, "input": text},

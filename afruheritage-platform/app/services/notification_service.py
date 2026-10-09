@@ -236,6 +236,29 @@ class NotificationService:
         """
         return self._provider.send_email(to, subject, html)
 
+    def send_team_invitation_email(self, to: str, setup_url: str, company_name: str, inviter_name: str | None = None) -> bool:
+        subject = f"You've been invited to join {company_name} on Afruheritage"
+        inviter_line = f"{inviter_name} has invited you" if inviter_name else "You have been invited"
+        html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 16px;">You're invited to join {company_name}</h1>
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+                {inviter_line} to collaborate on <strong>{company_name}</strong> on the Afruheritage platform.
+                Click the button below to set your password and activate your account.
+            </p>
+            <div style="margin: 32px 0;">
+                <a href="{setup_url}"
+                   style="background: #0ea5e9; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                    Accept Invitation
+                </a>
+            </div>
+            <p style="color: #94a3b8; font-size: 14px;">
+                This link expires in 1 hour. If you were not expecting this invitation, please ignore this email.
+            </p>
+        </div>
+        """
+        return self._provider.send_email(to, subject, html)
+
     def send_generic_email(
         self,
         to: str,

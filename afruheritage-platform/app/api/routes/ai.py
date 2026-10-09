@@ -69,10 +69,16 @@ def ai_chat_public(payload: AIChatRequest) -> AIChatResponse:
     if payload.tenant_scope and payload.tenant_scope.startswith('tenant:'):
         scopes.insert(0, payload.tenant_scope)
 
-    docs = search_knowledge(payload.message, scopes=scopes, top_k=8)
+    try:
+        docs = search_knowledge(payload.message, scopes=scopes, top_k=8)
+    except Exception:
+        # Embedding/retrieval backend unavailable — degrade to no-context answer.
+        docs = []
     messages = build_messages(payload.message, docs, tenant_slug=payload.tenant_slug)
     try:
-        answer = chat_with_ollama(messages, model=resolve_chat_model(payload.model))
+        # Public path must answer inside the ~30s upstream proxy limit —
+        # fail fast to the local fallback rather than surfacing a gateway 500.
+        answer = chat_with_ollama(messages, model=resolve_chat_model(payload.model), timeout_s=10.0, deadline_s=20.0)
     except RuntimeError as exc:
         # Keep public assistant available even when model runtime is unavailable.
         answer = generate_platform_fallback_answer(payload.message, docs, payload.tenant_slug)

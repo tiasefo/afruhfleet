@@ -90,15 +90,32 @@ def _issue_password_reset_token(user: User) -> str:
     return token
 
 
-def _send_password_setup_email(user: User, tenant_id: str) -> None:
+def _send_password_setup_email(user: User, tenant_id: str, db: Session | None = None, inviter: User | None = None, is_invite: bool = True) -> None:
     token = _issue_password_reset_token(user)
     web_base = settings.web_url.rstrip("/")
-    reset_url = f"{web_base}/reset-password?token={token}"
-    notification_service.send_password_reset_email(
-        to=user.email,
-        reset_url=reset_url,
-        company_name='Afruheritage',
-    )
+    setup_url = f"{web_base}/reset-password?token={token}"
+    company_name = 'Afruheritage'
+    if db is not None:
+        from app.models.tenant import Tenant
+        try:
+            tenant = db.get(Tenant, uuid.UUID(str(tenant_id)))
+            if tenant and tenant.company_name:
+                company_name = tenant.company_name
+        except Exception:
+            pass
+    if is_invite:
+        notification_service.send_team_invitation_email(
+            to=user.email,
+            setup_url=setup_url,
+            company_name=company_name,
+            inviter_name=getattr(inviter, 'full_name', None) or getattr(inviter, 'email', None),
+        )
+    else:
+        notification_service.send_password_reset_email(
+            to=user.email,
+            reset_url=setup_url,
+            company_name=company_name,
+        )
 
 
 def _ensure_not_last_tenant_admin(db: Session, target_user: User) -> None:
@@ -165,7 +182,7 @@ def create_user(
     )
     db.add(user)
     if should_send_invite:
-        _send_password_setup_email(user, scope_tenant_id)
+        _send_password_setup_email(user, scope_tenant_id, db, inviter=current_user)
     _write_audit_event(
         db,
         actor_email=current_user.email,
@@ -362,7 +379,7 @@ def send_user_reset_link(
     if not user or str(user.tenant_id) != str(scope_tenant_id):
         raise HTTPException(status_code=404, detail='User not found')
 
-    _send_password_setup_email(user, scope_tenant_id)
+    _send_password_setup_email(user, scope_tenant_id, db, inviter=current_user, is_invite=False)
     db.add(user)
     _write_audit_event(
         db,

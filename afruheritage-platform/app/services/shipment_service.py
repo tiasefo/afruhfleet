@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+from fastapi import HTTPException
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -96,7 +97,11 @@ def _resolve_tenant_uuid(db: Session, tenant_id: Any) -> Any:
     tenant = db.query(Tenant).filter(
         (Tenant.slug == str(tenant_id)) | (Tenant.subdomain == str(tenant_id))
     ).first()
-    return tenant.id if tenant else coerced
+    if not tenant:
+        # Unresolvable identifier — returning the raw string would produce a
+        # Postgres 'invalid input syntax for uuid' (HTTP 500). Controlled 404.
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    return tenant.id
 
 
 def _to_utc(dt: datetime) -> datetime:
