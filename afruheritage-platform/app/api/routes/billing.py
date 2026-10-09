@@ -79,14 +79,16 @@ def start_trial(tenant_id: str, db: Session=Depends(get_db), current_user: User=
     sub = create_trial_subscription(db, tenant_id)
     ensure_wallet(db, tenant_id, sub.currency)
 
-    # Advance lifecycle: approve, provision the tenant's Fleetbase org
-    # (if missing), then mark active. Idempotent — safe on retries.
-    from app.services.tenant_lifecycle import advance_tenant_lifecycle
+    # Advance lifecycle off the request path: approve, provision the
+    # tenant's Fleetbase org (if missing), then mark active. The task is
+    # idempotent and retries — keeps trial activation fast (~40s of
+    # synchronous Fleetbase calls was blocking this endpoint).
     try:
-        advance_tenant_lifecycle(db, str(tenant_id))
+        from app.tasks.provisioning import advance_tenant_lifecycle_task
+        advance_tenant_lifecycle_task.delay(str(tenant_id))
     except Exception as exc:
         import logging
-        logging.getLogger('afruheritage.billing').warning('Lifecycle advance after trial failed: %s', exc)
+        logging.getLogger('afruheritage.billing').warning('Lifecycle task enqueue after trial failed: %s', exc)
 
     return SubscriptionResponse(tenant_id=str(sub.tenant_id), plan_code=sub.plan_code.value, status=sub.status.value, currency=sub.currency, started_at=sub.started_at.isoformat(), current_period_end=sub.current_period_end.isoformat(), trial_ends_at=sub.trial_ends_at.isoformat() if sub.trial_ends_at else None, read_only_reason=sub.read_only_reason)
 

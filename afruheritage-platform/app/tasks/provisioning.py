@@ -112,3 +112,26 @@ def provision_tenant(job_id: str) -> None:
         raise
     finally:
         db.close()
+
+
+@celery_app.task(
+    name='app.tasks.provisioning.advance_tenant_lifecycle',
+    soft_time_limit=180,
+    time_limit=240,
+    acks_late=True,
+    max_retries=3,
+    retry_backoff=True,
+)
+def advance_tenant_lifecycle_task(tenant_id: str) -> None:
+    """Org-level lifecycle advance (Fleetbase org provisioning) off the
+    request path. Idempotent — safe to call repeatedly."""
+    from app.services.tenant_lifecycle import advance_tenant_lifecycle
+
+    db: Session = SessionLocal()
+    try:
+        advance_tenant_lifecycle(db, tenant_id)
+    except Exception as exc:
+        logger.exception('Lifecycle advance failed for tenant %s', tenant_id)
+        raise advance_tenant_lifecycle_task.retry(exc=exc)
+    finally:
+        db.close()

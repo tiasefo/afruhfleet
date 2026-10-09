@@ -278,3 +278,18 @@ def run_runtime_migrations(engine: Engine) -> None:
             if dialect_name == "postgresql":
                 conn.execute(text("ALTER TABLE gallery_posts ADD CONSTRAINT fk_gallery_posts_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE"))
             logger.info("runtime_migration_created_gallery_posts_table")
+
+        # CRM quotes: scope quote_number uniqueness per tenant (was global —
+        # cross-tenant collisions returned 500 and violated isolation).
+        if inspector.has_table("crm_quotes") and dialect_name == "postgresql":
+            has_global_unique = conn.execute(text("""
+                SELECT 1 FROM information_schema.table_constraints
+                WHERE table_name = 'crm_quotes' AND constraint_name = 'crm_quotes_quote_number_key'
+            """)).fetchone()
+            if has_global_unique:
+                conn.execute(text("ALTER TABLE crm_quotes DROP CONSTRAINT crm_quotes_quote_number_key"))
+                logger.info("runtime_migration_dropped_crm_quotes_global_unique")
+            conn.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS uq_crm_quotes_tenant_number
+                ON crm_quotes (tenant_id, quote_number)
+            """))

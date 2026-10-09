@@ -2,6 +2,7 @@ from __future__ import annotations
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from uuid import UUID
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
@@ -124,7 +125,11 @@ def create_quote_route(request: QuoteCreateRequest, tenant_id: str | None = Quer
         raise HTTPException(status_code=403, detail='No tenant context. Please complete onboarding.')
     data = request.model_dump()
     data['tenant_id'] = str(current_user.tenant_id)
-    obj = create_quote(db, **data)
+    try:
+        obj = create_quote(db, **data)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=409, detail='A quote with this number already exists. Please use a different quote number.')
     return QuoteResponse(id=str(obj.id), tenant_id=str(obj.tenant_id), quote_number=obj.quote_number, status=obj.status.value, currency=obj.currency, total_amount=float(obj.total_amount))
 
 @router.post('/public/tickets', response_model=SupportTicketResponse)

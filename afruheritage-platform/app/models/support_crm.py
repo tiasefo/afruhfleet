@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -111,7 +111,7 @@ class Quote(Base):
     tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     account_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("crm_accounts.id"), nullable=True, index=True)
     opportunity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("crm_opportunities.id"), nullable=True, index=True)
-    quote_number: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    quote_number: Mapped[str] = mapped_column(String(100), nullable=False)
     status: Mapped[QuoteStatus] = mapped_column(Enum(QuoteStatus), nullable=False, default=QuoteStatus.DRAFT)
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="GHS")
     total_amount: Mapped[float] = mapped_column(Numeric(18, 2), nullable=False, default=0)
@@ -119,6 +119,10 @@ class Quote(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint('tenant_id', 'quote_number', name='uq_crm_quotes_tenant_number'),
+    )
 
 
 class SupportTicket(Base):
