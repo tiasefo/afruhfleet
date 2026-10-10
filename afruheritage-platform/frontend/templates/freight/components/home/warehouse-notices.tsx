@@ -3,36 +3,14 @@ import { Warehouse, AlertTriangle, Package, Clock, Bell } from "lucide-react"
 import type { TenantPublicTheme } from "@/lib/tenant-theme-registry"
 import { VideoBackdrop } from "../video-backdrop"
 
-const defaultNotices: Array<{
-  title?: string
-  tag?: string
-  image?: string
-  desc?: string
-  priority?: 'normal' | 'warning' | 'info'
-}> = [
-  {
-    title: "Consolidation Window Open",
-    desc: "Current consolidation period for ocean freight is active. Submit cargo by Friday for next sailing.",
-    priority: "normal",
-  },
-  {
-    title: "Storage Fee Reminder",
-    desc: "Free storage period is 7 days after arrival. Storage fees apply thereafter. Plan your pickup accordingly.",
-    priority: "warning",
-  },
-  {
-    title: "New Tracking Feature",
-    desc: "Real-time GPS tracking is now available for all road freight shipments. Check your tracking page.",
-    priority: "info",
-  },
-]
-
 const reminderIconMap: Record<string, any> = { Clock, Package, Bell, AlertTriangle }
 
 export function WarehouseNotices({ theme }: { theme: TenantPublicTheme }) {
   const cfg = theme.storefrontConfig
-  const notices = cfg?.notices?.length ? cfg.notices : defaultNotices
+  const notices = Array.isArray(cfg?.notices) ? cfg.notices : []
   const reminders = cfg?.reminders || []
+
+  if (notices.length === 0 && reminders.length === 0) return null
 
   return (
     <section id="warehouse" className="relative scroll-mt-20 overflow-hidden">

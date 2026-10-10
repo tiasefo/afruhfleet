@@ -102,7 +102,7 @@ export function BrandingProvider({ children }: { children: React.ReactNode }) {
       const response = await brandingAPI.getPublic()
       setBranding(response)
     } catch (error) {
-      if (!(error instanceof ApiError && (error.status === 401 || error.status === 404))) {
+      if (!(error instanceof ApiError && (error.status === 400 || error.status === 401 || error.status === 404))) {
         console.error('Failed to load branding:', error)
         setError('Failed to load branding')
       }

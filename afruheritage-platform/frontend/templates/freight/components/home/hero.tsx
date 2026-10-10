@@ -5,11 +5,11 @@ import { VideoBackdrop } from "../video-backdrop"
 
 const iconMap: Record<string, any> = { Ship, Plane, Truck, Search, ArrowRight, MessageCircle, ShieldCheck }
 
-const defaultStats = [
-  { value: "2,900+", label: "Cargo records tracked" },
-  { value: "1,000+", label: "Trusted customers" },
+const defaultStats: Array<{ value: string; label: string }> = [
   { value: "Sea & Air", label: "Freight options" },
   { value: "China \u2192 GH", label: "Dedicated corridor" },
+  { value: "End-to-End", label: "Shipment tracking" },
+  { value: "Digital", label: "Documentation" },
 ]
 
 const defaultButtons = [

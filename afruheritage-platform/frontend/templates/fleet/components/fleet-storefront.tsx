@@ -2,7 +2,6 @@ import type { TenantPublicTheme } from "@/lib/tenant-theme-registry"
 import { SiteHeader } from "./site-header"
 import { SiteFooter } from "./site-footer"
 import { Hero } from "./home/hero"
-import { Stats } from "./home/stats"
 import { TrackVehicle } from "./home/track-vehicle"
 import { Routes } from "./home/routes"
 import { Fleet } from "./home/fleet"
@@ -16,7 +15,6 @@ export function FleetStorefront({ theme }: { theme: TenantPublicTheme }) {
       <SiteHeader theme={theme} />
       <main className="flex-1">
         <Hero theme={theme} />
-        <Stats theme={theme} />
         {caps.public_tracking_enabled && <TrackVehicle theme={theme} />}
         <Routes theme={theme} />
         <Fleet theme={theme} />

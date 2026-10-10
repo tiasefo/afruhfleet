@@ -84,7 +84,7 @@ export default function OnboardingPage() {
       await refreshUser()
       if (selectedRole === 'delivery_driver') {
         router.push('/kyc')
-      } else if (selectedRole === 'company_admin') {
+      } else if (selectedRole === 'company_admin' && !user?.tenant_id) {
         router.push('/register/company')
       } else {
         router.push('/dashboard')

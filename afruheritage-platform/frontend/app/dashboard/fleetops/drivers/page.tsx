@@ -134,12 +134,12 @@ export default function FleetbaseSummaryPage() {
                   <tbody>
                     {rows.map((row, idx) => (
                       <tr key={row?.uuid || row?.id || idx} className="border-t">
-                        <td className="px-4 py-3">{formatValue(row?.name)}</td>
-                        <td className="px-4 py-3">{formatValue(row?.email)}</td>
-                        <td className="px-4 py-3">{formatValue(row?.phone)}</td>
-                        <td className="px-4 py-3">{formatValue(row?.city)}</td>
-                        <td className="px-4 py-3">{formatValue(row?.country)}</td>
-                        <td className="px-4 py-3">{formatValue(row?.online)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.name ?? row?.user?.name)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.email ?? row?.user?.email)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.phone ?? row?.user?.phone)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.city ?? row?.user?.city)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.country ?? row?.user?.country)}</td>
+                        <td className="px-4 py-3">{formatValue(row?.online ?? row?.user?.online)}</td>
                       </tr>
                     ))}
                   </tbody>

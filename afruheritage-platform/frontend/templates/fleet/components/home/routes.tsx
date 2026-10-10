@@ -1,40 +1,5 @@
-import { Bus, Clock, MapPin } from "lucide-react"
+import { Bus } from "lucide-react"
 import type { TenantPublicTheme } from "@/lib/tenant-theme-registry"
-
-const routes = [
-  {
-    name: "Accra - Kumasi Express",
-    departure: "06:00",
-    arrival: "10:30",
-    duration: "4h 30m",
-    stops: ["Accra Terminal", "Nsawam", "Kumasi Terminal"],
-    status: "On Schedule",
-  },
-  {
-    name: "Accra - Takoradi Route",
-    departure: "07:30",
-    arrival: "11:00",
-    duration: "3h 30m",
-    stops: ["Accra Terminal", "Cape Coast", "Takoradi Terminal"],
-    status: "On Schedule",
-  },
-  {
-    name: "Kumasi - Tamale Service",
-    departure: "05:00",
-    arrival: "13:00",
-    duration: "8h 00m",
-    stops: ["Kumasi Terminal", "Techiman", "Tamale Terminal"],
-    status: "Delayed 15min",
-  },
-  {
-    name: "Accra - Ho Line",
-    departure: "08:00",
-    arrival: "12:00",
-    duration: "4h 00m",
-    stops: ["Accra Terminal", "Koforidua", "Ho Terminal"],
-    status: "On Schedule",
-  },
-]
 
 export function Routes({ theme }: { theme: TenantPublicTheme }) {
   return (
@@ -49,61 +14,19 @@ export function Routes({ theme }: { theme: TenantPublicTheme }) {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        {routes.map((route) => (
-          <div
-            key={route.name}
-            className="rounded-xl border border-border bg-card p-6 transition-shadow hover:shadow-lg"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <span
-                  className="flex size-10 items-center justify-center rounded-lg text-white"
-                  style={{ background: theme.primaryColor }}
-                >
-                  <Bus className="size-5" />
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold">{route.name}</h3>
-                  <p className="text-xs text-muted-foreground">{route.duration}</p>
-                </div>
-              </div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  route.status === "On Schedule"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-orange-100 text-orange-700"
-                }`}
-              >
-                {route.status}
-              </span>
-            </div>
-
-            <div className="mt-4 flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <Clock className="size-4 text-muted-foreground" />
-                <span className="font-medium">{route.departure}</span>
-                <span className="text-muted-foreground">to</span>
-                <span className="font-medium">{route.arrival}</span>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <p className="text-xs font-medium text-muted-foreground">Stops</p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {route.stops.map((stop, i) => (
-                  <span key={stop} className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="size-3" style={{ color: theme.primaryColor }} />
-                      {stop}
-                    </span>
-                    {i < route.stops.length - 1 && <span className="text-muted-foreground/40">-</span>}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))}
+      <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-16 text-center">
+        <span
+          className="flex size-14 items-center justify-center rounded-full text-white"
+          style={{ background: theme.primaryColor }}
+        >
+          <Bus className="size-7" />
+        </span>
+        <h3 className="mt-5 text-xl font-semibold">Coming Soon</h3>
+        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+          Published routes and schedules are not available yet. When this feature
+          launches, active routes, departure times, and stop sequences will be
+          listed here by the operator.
+        </p>
       </div>
     </section>
   )

@@ -5,15 +5,15 @@ from app.core.i18n import SUPPORTED_LANGUAGES, _translations, detect_language, t
 router = APIRouter(prefix='/i18n', tags=['Internationalization'])
 
 @router.get('/translations/{lang}')
-def get_translations(tenant_id: str, lang: str):
+def get_translations(lang: str, tenant_id: str | None = Query(default=None)):
     if lang not in SUPPORTED_LANGUAGES:
         lang = 'en'
     return _translations.get(lang, {})
 
 @router.get('/languages')
-def get_supported_languages(tenant_id: str):
+def get_supported_languages(tenant_id: str | None = Query(default=None)):
     return {'supported': sorted(SUPPORTED_LANGUAGES), 'default': 'en'}
 
 @router.get('/detect')
-def detect_user_language(tenant_id: str, accept_language: str | None=Header(None, alias='Accept-Language')):
+def detect_user_language(tenant_id: str | None = Query(default=None), accept_language: str | None=Header(None, alias='Accept-Language')):
     return {'detected': detect_language(accept_language)}

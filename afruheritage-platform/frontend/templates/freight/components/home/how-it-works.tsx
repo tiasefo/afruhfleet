@@ -8,17 +8,11 @@ const defaultSteps = [
   { n: "04", title: "Receive & Confirm", desc: "Last-mile delivery with proof of delivery and digital confirmation." },
 ]
 
-const stats = [
-  ["600+", "Ports served"],
-  ["120", "Countries"],
-  ["35k", "Shipments / yr"],
-  ["98%", "On-schedule"],
-  ["24/7", "Visibility"],
-  ["15+", "Carrier partners"],
-]
-
 export function HowItWorks({ theme }: { theme: TenantPublicTheme }) {
   const cfg = theme.storefrontConfig
+  const stats: Array<[string, string]> = Array.isArray(cfg?.network?.stats)
+    ? cfg.network.stats.map((s: any) => [String(s?.value ?? ""), String(s?.label ?? "")] as [string, string]).filter(([v, l]) => v && l)
+    : []
   const steps = cfg?.workflow?.length
     ? cfg.workflow.map((w, i) => ({
         n: w.step || String(i + 1).padStart(2, "0"),
@@ -59,14 +53,16 @@ export function HowItWorks({ theme }: { theme: TenantPublicTheme }) {
               resilient and your cargo moving — no matter the lane.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {stats.map(([v, l]) => (
-              <div key={l} className="rounded-xl border border-border bg-card p-5 text-center">
-                <p className="text-2xl font-bold" style={{ color: theme.primaryColor }}>{v}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{l}</p>
-              </div>
-            ))}
-          </div>
+          {stats.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {stats.map(([v, l]) => (
+                <div key={l} className="rounded-xl border border-border bg-card p-5 text-center">
+                  <p className="text-2xl font-bold" style={{ color: theme.primaryColor }}>{v}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{l}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </>

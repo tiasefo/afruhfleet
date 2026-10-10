@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Afruheritage UAT Dashboard</title>
+<style>
+:root{--teal:#063f4f;--teal2:#0a5568;--bg:#f6f9fa;--card:#ffffff;--line:#e2e8f0;--txt:#1e293b;--mut:#64748b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+header{background:var(--teal);color:#fff;padding:28px 32px}
+header h1{margin:0;font-size:24px}header p{margin:6px 0 0;opacity:.85;font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:24px}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 24px}
+.toc-link{background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--teal2);text-decoration:none}
+.toc-link:hover{background:var(--teal2);color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card-head{display:flex;justify-content:space-between;align-items:center}
+.tid{font-weight:700;color:var(--teal);font-size:14px}
+.badge{background:#e8f4f7;color:var(--teal2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.card h3{margin:8px 0 4px;font-size:17px}
+.who{font-size:12px;color:var(--mut)}
+.who code{background:#eef2f5;padding:1px 6px;border-radius:4px}
+details{margin-top:10px}summary{cursor:pointer;font-weight:600;color:var(--teal2);font-size:13px}
+ol{font-size:13px;line-height:1.7;padding-left:22px}
+.exp{font-size:13px;background:#f0f9f4;border-left:3px solid #2e9e63;padding:8px 12px;border-radius:0 6px 6px 0}
+.result-row{display:flex;gap:18px;margin:10px 0;font-size:13px;font-weight:600}
+.result-row label{display:flex;gap:6px;align-items:center;cursor:pointer}
+textarea{width:100%;min-height:56px;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13px;font-family:inherit}
+h2{color:var(--teal);margin-top:36px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;font-size:13px}
+th{background:var(--teal);color:#fff;text-align:left;padding:10px;font-size:12px}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+.soon{color:#b45309;font-weight:600}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:24px}
+</style></head><body>
+<header><h1>Afruheritage — Customer UAT Dashboard</h1>
+<p>Test site: https://afruheritage.com · 25 tests · Use with the UAT Guide (Word/PDF) and Checklist (Excel)</p></header>
+<div class="wrap">
+<h2>Test index</h2><div class="toc"><a href="#REG-01" class="toc-link">REG-01</a><a href="#REG-02" class="toc-link">REG-02</a><a href="#REG-03" class="toc-link">REG-03</a><a href="#REG-04" class="toc-link">REG-04</a><a href="#ONB-01" class="toc-link">ONB-01</a><a href="#TEAM-01" class="toc-link">TEAM-01</a><a href="#TEAM-02" class="toc-link">TEAM-02</a><a href="#TEAM-03" class="toc-link">TEAM-03</a><a href="#SHIP-01" class="toc-link">SHIP-01</a><a href="#SHIP-02" class="toc-link">SHIP-02</a><a href="#SHIP-03" class="toc-link">SHIP-03</a><a href="#SHIP-04" class="toc-link">SHIP-04</a><a href="#SHIP-05" class="toc-link">SHIP-05</a><a href="#FLT-01" class="toc-link">FLT-01</a><a href="#FLT-02" class="toc-link">FLT-02</a><a href="#ACCT-01" class="toc-link">ACCT-01</a><a href="#ACCT-02" class="toc-link">ACCT-02</a><a href="#SUP-01" class="toc-link">SUP-01</a><a href="#SUP-02" class="toc-link">SUP-02</a><a href="#STO-01" class="toc-link">STO-01</a><a href="#STO-02" class="toc-link">STO-02</a><a href="#BIL-01" class="toc-link">BIL-01</a><a href="#CUS-01" class="toc-link">CUS-01</a><a href="#ISO-01" class="toc-link">ISO-01</a><a href="#AI-01" class="toc-link">AI-01</a></div>
+<h2>Tests</h2>
+      <div class="card" id="REG-01">
+        <div class="card-head">
+          <span class="tid">REG-01</span>
+          <span class="badge">Registration</span>
+        </div>
+        <h3>Create a new business account</h3>
+        <p class="who"><b>Who:</b> Public Visitor → New Business Owner &nbsp; <b>Start:</b> <code>https://afruheritage.com</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open https://afruheritage.com in your browser.</li><li>Click &#x27;Get Started&#x27; in the top-right corner.</li><li>Fill in the form: your company name, your full name, your email address, and a password (at least 8 characters, entered twice).</li><li>Click &#x27;Create Account&#x27;.</li><li>A &#x27;Choose Your Plan&#x27; screen appears — select &#x27;Free Trial&#x27; and click &#x27;Continue&#x27;. (Activating the trial can take up to a minute; wait for the next screen.)</li><li>A &#x27;Choose Your Storefront Template&#x27; screen appears — pick a template and click &#x27;Launch Storefront&#x27; (or &#x27;Skip&#x27; to decide later).</li><li>You are taken to the Sign In page — that means registration worked.</li></ol>
+          <p class="exp"><b>Expected:</b> Your company account is created, you picked a plan and a storefront template, and you land on the Sign In page.</p>
+          <div class="result-row">
+            <label><input type="radio" name="REG-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="REG-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="REG-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="REG-02">
+        <div class="card-head">
+          <span class="tid">REG-02</span>
+          <span class="badge">Registration</span>
+        </div>
+        <h3>Receive the welcome email</h3>
+        <p class="who"><b>Who:</b> New Business Owner &nbsp; <b>Start:</b> <code>Your email inbox</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open the inbox of the email address you registered with.</li><li>Look for an email titled &#x27;Welcome to Afruheritage — &lt;your company&gt; is Ready!&#x27;.</li><li>Open the email and check that it contains your company portal link (https://&lt;your-company&gt;.afruheritage.com).</li><li>Note: during this pilot, platform emails are sent from &#x27;advisory@emidentity.com&#x27; on behalf of Afruheritage — that is expected, not a fake email.</li></ol>
+          <p class="exp"><b>Expected:</b> A welcome email arrives within a few minutes, addressed to your company, with a working portal link. (On the free trial you should NOT receive a payment email — no payment was made.)</p>
+          <div class="result-row">
+            <label><input type="radio" name="REG-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="REG-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="REG-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="REG-03">
+        <div class="card-head">
+          <span class="tid">REG-03</span>
+          <span class="badge">Registration</span>
+        </div>
+        <h3>First sign-in and onboarding</h3>
+        <p class="who"><b>Who:</b> New Business Owner &nbsp; <b>Start:</b> <code>https://afruheritage.com/login</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Go to https://afruheritage.com and click &#x27;Sign In&#x27; (or continue from REG-01).</li><li>Enter the email and password you registered with and click &#x27;Sign In&#x27;.</li><li>On the welcome screen, click &#x27;Get Started&#x27;.</li><li>Choose &#x27;Freight Company&#x27; and click &#x27;Continue&#x27;.</li><li>Confirm your full name and click &#x27;Finish Setup&#x27;.</li></ol>
+          <p class="exp"><b>Expected:</b> You land on your company dashboard showing your business name in the top bar. (Choosing &#x27;Freight Company&#x27; takes you straight to the workspace — you do NOT need to fill in a second company form.)</p>
+          <div class="result-row">
+            <label><input type="radio" name="REG-03" value="PASS"> PASS</label>
+            <label><input type="radio" name="REG-03" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="REG-03" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="REG-04">
+        <div class="card-head">
+          <span class="tid">REG-04</span>
+          <span class="badge">Registration</span>
+        </div>
+        <h3>Create a personal account</h3>
+        <p class="who"><b>Who:</b> Individual Customer &nbsp; <b>Start:</b> <code>https://afruheritage.com</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open https://afruheritage.com and click &#x27;Get Started&#x27;.</li><li>Fill in the form: a name for your account, your full name, email and password, then click &#x27;Create Account&#x27;.</li><li>Sign in with your email and password.</li><li>On the welcome screen, click &#x27;Get Started&#x27;.</li><li>Choose &#x27;Personal Shipper&#x27;, click &#x27;Continue&#x27;, confirm your name and click &#x27;Finish Setup&#x27;.</li></ol>
+          <p class="exp"><b>Expected:</b> Your personal account is created and you reach your dashboard. From there you can create a shipment via &#x27;New Shipment&#x27;.</p>
+          <div class="result-row">
+            <label><input type="radio" name="REG-04" value="PASS"> PASS</label>
+            <label><input type="radio" name="REG-04" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="REG-04" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="ONB-01">
+        <div class="card-head">
+          <span class="tid">ONB-01</span>
+          <span class="badge">Onboarding</span>
+        </div>
+        <h3>Confirm your free trial is active</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>You chose your plan during registration (REG-01). To review it, click &#x27;Billing&#x27; in the left menu.</li><li>Check that &#x27;Free Trial&#x27; shows as your active plan with its end date.</li></ol>
+          <p class="exp"><b>Expected:</b> Your trial shows as active on the Billing page and your workspace features are unlocked.</p>
+          <div class="result-row">
+            <label><input type="radio" name="ONB-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="ONB-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="ONB-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="TEAM-01">
+        <div class="card-head">
+          <span class="tid">TEAM-01</span>
+          <span class="badge">Team Management</span>
+        </div>
+        <h3>Invite a team member</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Team Members&#x27; in the left menu.</li><li>Click &#x27;+ Invite Member&#x27; (or &#x27;Invite&#x27;).</li><li>Enter the person&#x27;s full name and email address, and click &#x27;Send Invite&#x27;.</li><li>Confirm the success message appears.</li></ol>
+          <p class="exp"><b>Expected:</b> A confirmation message appears and the invitation is sent.</p>
+          <div class="result-row">
+            <label><input type="radio" name="TEAM-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="TEAM-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="TEAM-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="TEAM-02">
+        <div class="card-head">
+          <span class="tid">TEAM-02</span>
+          <span class="badge">Team Management</span>
+        </div>
+        <h3>Accept the invitation email</h3>
+        <p class="who"><b>Who:</b> Invited Employee &nbsp; <b>Start:</b> <code>Employee&#x27;s email inbox</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open the invitation email — its subject reads &#x27;You&#x27;ve been invited to join &lt;your company&gt; on Afruheritage&#x27;.</li><li>Click the invitation link inside the email.</li><li>Create your password on the page that opens and submit.</li><li>Sign in with your email and new password.</li></ol>
+          <p class="exp"><b>Expected:</b> You can sign in and you see the company workspace (not your own business).</p>
+          <div class="result-row">
+            <label><input type="radio" name="TEAM-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="TEAM-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="TEAM-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="TEAM-03">
+        <div class="card-head">
+          <span class="tid">TEAM-03</span>
+          <span class="badge">Team Management</span>
+        </div>
+        <h3>Check role restrictions</h3>
+        <p class="who"><b>Who:</b> Invited Employee (read-only role) &nbsp; <b>Start:</b> <code>Company dashboard (as the invited member)</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Sign in as the invited member.</li><li>Open &#x27;Billing&#x27; and &#x27;Settings&#x27; if visible.</li><li>Try to change a setting or invite another member.</li></ol>
+          <p class="exp"><b>Expected:</b> Read-only members can view permitted pages but cannot change billing, settings, or membership.</p>
+          <div class="result-row">
+            <label><input type="radio" name="TEAM-03" value="PASS"> PASS</label>
+            <label><input type="radio" name="TEAM-03" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="TEAM-03" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SHIP-01">
+        <div class="card-head">
+          <span class="tid">SHIP-01</span>
+          <span class="badge">Shipments</span>
+        </div>
+        <h3>Create a shipment</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Shipments&#x27; in the left menu, then &#x27;New Shipment&#x27; (or &#x27;Create Shipment&#x27;).</li><li>Fill in the sender name, phone, city and country.</li><li>Fill in the receiver name, phone, city and country.</li><li>Describe the cargo, enter weight and number of packages, and the cost.</li><li>Click &#x27;Create Shipment&#x27;.</li></ol>
+          <p class="exp"><b>Expected:</b> The shipment is created and a tracking number starting with &#x27;AFR-&#x27; is shown.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SHIP-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="SHIP-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SHIP-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SHIP-02">
+        <div class="card-head">
+          <span class="tid">SHIP-02</span>
+          <span class="badge">Shipments</span>
+        </div>
+        <h3>Move a shipment through its full lifecycle</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard → Shipments</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open your shipment from the Shipments list.</li><li>Click each status button as it appears: &#x27;Mark as Booked&#x27;, &#x27;Mark as Picked Up&#x27;, &#x27;Mark as In Transit&#x27;, &#x27;Mark as At Customs&#x27;, &#x27;Mark as Customs Cleared&#x27;, &#x27;Mark as Out for Delivery&#x27;, &#x27;Mark as Delivered&#x27;.</li><li>After each click, confirm the status shown on the page updates.</li></ol>
+          <p class="exp"><b>Expected:</b> The shipment moves through every stage and finishes as &#x27;Delivered&#x27;.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SHIP-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="SHIP-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SHIP-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SHIP-03">
+        <div class="card-head">
+          <span class="tid">SHIP-03</span>
+          <span class="badge">Shipments</span>
+        </div>
+        <h3>View the shipment list and history</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard → Shipments</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Shipments&#x27; in the left menu.</li><li>Confirm your new shipment appears with its tracking number and current status.</li><li>Open the shipment and review its status history.</li></ol>
+          <p class="exp"><b>Expected:</b> The list shows your shipments with correct tracking numbers and statuses.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SHIP-03" value="PASS"> PASS</label>
+            <label><input type="radio" name="SHIP-03" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SHIP-03" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SHIP-04">
+        <div class="card-head">
+          <span class="tid">SHIP-04</span>
+          <span class="badge">Shipments</span>
+        </div>
+        <h3>Track a shipment without signing in</h3>
+        <p class="who"><b>Who:</b> Public Visitor &nbsp; <b>Start:</b> <code>https://afruheritage.com/track</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Go to https://afruheritage.com and click &#x27;Shipment Tracking&#x27; (or open /track).</li><li>Type the tracking number (for example AFR-XXXX-...) and click &#x27;Track&#x27;.</li></ol>
+          <p class="exp"><b>Expected:</b> The page shows the shipment&#x27;s current status and route without requiring sign-in.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SHIP-04" value="PASS"> PASS</label>
+            <label><input type="radio" name="SHIP-04" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SHIP-04" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SHIP-05">
+        <div class="card-head">
+          <span class="tid">SHIP-05</span>
+          <span class="badge">Shipments</span>
+        </div>
+        <h3>Assign a driver and vehicle to a shipment</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard → shipment detail</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open a shipment that is not yet delivered.</li><li>Look for the driver/vehicle assignment controls.</li><li>Choose the driver and vehicle you created and save.</li></ol>
+          <p class="exp"><b>Expected:</b> The shipment shows the assigned driver and vehicle. (If no assignment control is visible for a delivered shipment, create a new shipment first.)</p>
+          <div class="result-row">
+            <label><input type="radio" name="SHIP-05" value="PASS"> PASS</label>
+            <label><input type="radio" name="SHIP-05" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SHIP-05" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="FLT-01">
+        <div class="card-head">
+          <span class="tid">FLT-01</span>
+          <span class="badge">Fleet</span>
+        </div>
+        <h3>Register a driver</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Fleet&#x27; in the left menu, then open &#x27;Drivers&#x27;.</li><li>Click &#x27;+ Add Driver&#x27;.</li><li>Enter the driver&#x27;s full name, phone number and email; optionally a city and 2-letter country code.</li><li>Click &#x27;Create Driver&#x27;.</li><li>Note: use a phone number that belongs to this driver — if the phone number is already known to the platform, the driver may be linked to that existing record instead of creating a new one.</li></ol>
+          <p class="exp"><b>Expected:</b> The driver appears in the drivers list with the name you entered.</p>
+          <div class="result-row">
+            <label><input type="radio" name="FLT-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="FLT-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="FLT-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="FLT-02">
+        <div class="card-head">
+          <span class="tid">FLT-02</span>
+          <span class="badge">Fleet</span>
+        </div>
+        <h3>Register a vehicle</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Fleet&#x27; in the left menu, then open &#x27;Vehicles&#x27;.</li><li>Click &#x27;+ Add Vehicle&#x27;.</li><li>Enter the registration number, make/model and year.</li><li>Click &#x27;Save&#x27; (or &#x27;Create&#x27;).</li></ol>
+          <p class="exp"><b>Expected:</b> The vehicle appears in the vehicles list.</p>
+          <div class="result-row">
+            <label><input type="radio" name="FLT-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="FLT-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="FLT-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="ACCT-01">
+        <div class="card-head">
+          <span class="tid">ACCT-01</span>
+          <span class="badge">Account</span>
+        </div>
+        <h3>Reset a forgotten password</h3>
+        <p class="who"><b>Who:</b> Any signed-in user &nbsp; <b>Start:</b> <code>https://afruheritage.com/login</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>On the Sign In page, click &#x27;Forgot Password&#x27;.</li><li>Enter your account email and submit.</li><li>Open the reset email (subject: &#x27;Afruheritage — Password Reset Request&#x27;).</li><li>Click the reset link, type a new password twice and click &#x27;Set Password&#x27;.</li><li>Sign in with the new password; confirm the old password no longer works.</li></ol>
+          <p class="exp"><b>Expected:</b> The reset email arrives, the link works, and only the new password signs you in.</p>
+          <div class="result-row">
+            <label><input type="radio" name="ACCT-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="ACCT-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="ACCT-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="ACCT-02">
+        <div class="card-head">
+          <span class="tid">ACCT-02</span>
+          <span class="badge">Account</span>
+        </div>
+        <h3>Sign out and return — data persists</h3>
+        <p class="who"><b>Who:</b> Any signed-in user &nbsp; <b>Start:</b> <code>Company dashboard</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click your name/avatar and choose &#x27;Sign out&#x27;.</li><li>Close the browser tab, reopen https://afruheritage.com and sign in again.</li><li>Check your shipments, drivers and settings.</li></ol>
+          <p class="exp"><b>Expected:</b> All previously saved records are still there.</p>
+          <div class="result-row">
+            <label><input type="radio" name="ACCT-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="ACCT-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="ACCT-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SUP-01">
+        <div class="card-head">
+          <span class="tid">SUP-01</span>
+          <span class="badge">Support</span>
+        </div>
+        <h3>Submit a support ticket</h3>
+        <p class="who"><b>Who:</b> Public Visitor (on a company portal) &nbsp; <b>Start:</b> <code>&lt;company&gt;.afruheritage.com/support</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open the support page on the company&#x27;s portal (for example https://&lt;company&gt;.afruheritage.com/support).</li><li>Fill in your name, email, subject and description.</li><li>Click &#x27;Submit Ticket&#x27; and note the ticket reference shown.</li></ol>
+          <p class="exp"><b>Expected:</b> A ticket is created and you receive a confirmation email titled &#x27;&lt;Company&gt; — Support Ticket Created&#x27;. Note: the main afruheritage.com support page explains that tickets are submitted on the company&#x27;s own portal.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SUP-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="SUP-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SUP-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="SUP-02">
+        <div class="card-head">
+          <span class="tid">SUP-02</span>
+          <span class="badge">Support</span>
+        </div>
+        <h3>Track a support ticket</h3>
+        <p class="who"><b>Who:</b> Public Visitor &nbsp; <b>Start:</b> <code>&lt;company&gt;.afruheritage.com/support</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>On the support page, paste your ticket reference into &#x27;Track Ticket&#x27;.</li><li>Submit and review the ticket status and replies.</li></ol>
+          <p class="exp"><b>Expected:</b> The ticket status and any replies are shown.</p>
+          <div class="result-row">
+            <label><input type="radio" name="SUP-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="SUP-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="SUP-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="STO-01">
+        <div class="card-head">
+          <span class="tid">STO-01</span>
+          <span class="badge">Storefront</span>
+        </div>
+        <h3>View the company storefront</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>https://&lt;company&gt;.afruheritage.com</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open your company portal address (from the welcome email).</li><li>Review the public storefront — branding, tracking box and services.</li><li>Try the public tracking box with a real tracking number.</li></ol>
+          <p class="exp"><b>Expected:</b> The storefront shows your company branding and working tracking.</p>
+          <div class="result-row">
+            <label><input type="radio" name="STO-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="STO-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="STO-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="STO-02">
+        <div class="card-head">
+          <span class="tid">STO-02</span>
+          <span class="badge">Storefront</span>
+        </div>
+        <h3>Choose a storefront template</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard → Templates</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Templates&#x27; in the left menu.</li><li>Review available templates. Templates marked &#x27;Preview only&#x27; are not yet publishable.</li><li>Select a &#x27;Ready&#x27; template, click to stage it, then click &#x27;Publish&#x27;.</li><li>Open your company portal and confirm the new look.</li></ol>
+          <p class="exp"><b>Expected:</b> The published template applies to your company portal; preview-only templates cannot be published.</p>
+          <div class="result-row">
+            <label><input type="radio" name="STO-02" value="PASS"> PASS</label>
+            <label><input type="radio" name="STO-02" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="STO-02" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="BIL-01">
+        <div class="card-head">
+          <span class="tid">BIL-01</span>
+          <span class="badge">Billing</span>
+        </div>
+        <h3>Review plan and wallet</h3>
+        <p class="who"><b>Who:</b> Business Owner &nbsp; <b>Start:</b> <code>Company dashboard → Billing</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click &#x27;Billing&#x27; in the left menu.</li><li>Review your current plan, trial dates and wallet balance.</li></ol>
+          <p class="exp"><b>Expected:</b> Your plan status and wallet balance are shown accurately.</p>
+          <div class="result-row">
+            <label><input type="radio" name="BIL-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="BIL-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="BIL-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="CUS-01">
+        <div class="card-head">
+          <span class="tid">CUS-01</span>
+          <span class="badge">Customs</span>
+        </div>
+        <h3>Use the duty calculator</h3>
+        <p class="who"><b>Who:</b> Public Visitor &nbsp; <b>Start:</b> <code>https://afruheritage.com/customs/duty-calculator</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Open the customs duty calculator from the Solutions menu or directly.</li><li>Enter a product value, category and destination country (for example Ghana).</li><li>Click calculate and review the estimated duty.</li></ol>
+          <p class="exp"><b>Expected:</b> An estimated duty breakdown is shown.</p>
+          <div class="result-row">
+            <label><input type="radio" name="CUS-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="CUS-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="CUS-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="ISO-01">
+        <div class="card-head">
+          <span class="tid">ISO-01</span>
+          <span class="badge">Security</span>
+        </div>
+        <h3>Confirm businesses cannot see each other&#x27;s data</h3>
+        <p class="who"><b>Who:</b> Two Business Owners &nbsp; <b>Start:</b> <code>Two separate company accounts</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Sign in to Company A and note its shipments, drivers and members.</li><li>Sign out, then sign in to Company B.</li><li>Confirm none of Company A&#x27;s records are visible.</li></ol>
+          <p class="exp"><b>Expected:</b> Each company sees only its own data.</p>
+          <div class="result-row">
+            <label><input type="radio" name="ISO-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="ISO-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="ISO-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+      <div class="card" id="AI-01">
+        <div class="card-head">
+          <span class="tid">AI-01</span>
+          <span class="badge">Help Assistant</span>
+        </div>
+        <h3>Ask the help assistant a question</h3>
+        <p class="who"><b>Who:</b> Public Visitor &nbsp; <b>Start:</b> <code>https://afruheritage.com</code></p>
+        <details><summary>Steps &amp; expected result</summary>
+          <ol><li>Click the chat bubble in the bottom-right corner of the homepage.</li><li>Ask &#x27;How do I track a shipment?&#x27; and read the answer.</li><li>Ask about the vendor marketplace and check the answer is honest.</li></ol>
+          <p class="exp"><b>Expected:</b> The assistant gives a helpful answer, and honestly says the marketplace is not available yet.</p>
+          <div class="result-row">
+            <label><input type="radio" name="AI-01" value="PASS"> PASS</label>
+            <label><input type="radio" name="AI-01" value="FAIL"> FAIL</label>
+            <label><input type="radio" name="AI-01" value="BLOCKED"> BLOCKED</label>
+          </div>
+          <textarea placeholder="What actually happened / comments"></textarea>
+        </details>
+      </div>
+<h2>Coming Soon register — do not test these</h2>
+<table><tr><th>Feature</th><th>Where it appears</th><th>Status</th><th>Notes</th></tr><tr><td>Vendor marketplace &amp; vendor registration</td><td>Public site, help assistant, storefront marketplace section</td><td><span class='soon'>Coming Soon — under development, not available yet</span></td><td>Public vendor signup, vendor dashboard and marketplace trading are not available. Do not attempt to test them.</td></tr><tr><td>Driver portal (driver sign-in)</td><td>Fleet management</td><td><span class='soon'>Coming Soon</span></td><td>Drivers are managed records today; they cannot sign in.</td></tr><tr><td>Shipment status email notifications</td><td>Shipment lifecycle</td><td><span class='soon'>Coming Soon</span></td><td>Status changes are tracked on the platform but notification emails are not yet sent to customers.</td></tr><tr><td>Warehouse operations module</td><td>Not in customer navigation</td><td><span class='soon'>Coming Soon — hidden until ready</span></td><td></td></tr><tr><td>Dedicated analytics dashboards</td><td>Not in customer navigation</td><td><span class='soon'>Coming Soon — hidden until ready</span></td><td></td></tr><tr><td>CRM activity logging / advanced CRM</td><td>CRM section — basic contacts/quotes available</td><td><span class='soon'>Limited — advanced activity workflows deferred</span></td><td></td></tr><tr><td>Central support tickets on afruheritage.com</td><td>/support on the main site</td><td><span class='soon'>Limited — support tickets are submitted on each company&#x27;s portal page</span></td><td></td></tr><tr><td>Additional storefront templates (mall, ecommerce, restaurant, bookings, real estate)</td><td>Templates page</td><td><span class='soon'>Preview only — not publishable until tenant-configurable content is complete</span></td><td></td></tr><tr><td>Mobile app (iOS/Android)</td><td>—</td><td><span class='soon'>On the roadmap — web app works on mobile browsers today</span></td><td></td></tr><tr><td>Payment collection (live billing charges)</td><td>Billing</td><td><span class='soon'>Limited — plan/trial selection works; do not attempt real-money payments during UAT</span></td><td></td></tr></table>
+</div>
+<footer>Afruheritage UAT Dashboard · generated October 2026 · statuses selected here are not saved — record them in the Excel checklist</footer>
+</body></html>

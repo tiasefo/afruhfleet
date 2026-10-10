@@ -450,7 +450,7 @@ def mark_payment_verified(db: Session, payment: Payment, provider_payload: dict 
         plan = None
         if plan_code and plan_code in [e.value for e in PlanCode]:
             plan = db.query(Plan).filter(Plan.code == plan_code).first()
-        if tenant and plan:
+        if tenant and plan and payment.amount_minor > 0:
             notification_service.send_payment_success_email(
                 to=tenant.contact_email,
                 amount=payment.amount_minor / 100,  # Convert from minor units

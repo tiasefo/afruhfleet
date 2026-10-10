@@ -23,6 +23,7 @@ export type StorefrontConfig = {
   services?: Array<{ title?: string; desc?: string; icon?: string }>
   marketplaces?: string[]
   workflow?: Array<{ step?: string; title?: string; desc?: string }>
+  network?: { stats?: Array<{ value?: string; label?: string }> }
 
   hero?: {
     type?: 'video' | 'image' | 'static'

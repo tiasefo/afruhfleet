@@ -356,7 +356,7 @@ export default function FeaturesDocumentationPage() {
                 <p>1. Log into the tenant dashboard with approved credentials.</p>
                 <p>2. Manage shipments: create, assign drivers, track live GPS, and mark deliveries with POD.</p>
                 <p>3. Configure branding, team members, pricing rules, and notification preferences in Settings.</p>
-                <p>4. Monitor vendor performance, billing wallet, and support tickets from a unified dashboard.</p>
+                <p>4. Monitor billing wallet and support tickets from a unified dashboard.</p>
               </CardContent>
             </Card>
           </div>

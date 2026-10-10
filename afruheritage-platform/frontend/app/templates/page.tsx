@@ -56,13 +56,8 @@ interface CompatibilityResult {
 }
 
 const IMPLEMENTED_ENGINES = new Set([
-  'bookings',
-  'ecommerce',
   'fleet',
   'freight',
-  'mall',
-  'realestate',
-  'restaurant',
 ])
 
 export default function TemplatesPage() {

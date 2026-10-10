@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -48,6 +48,11 @@ export function CreateTicketForm() {
   const [error, setError] = useState('')
   const [category, setCategory] = useState('')
   const [priority, setPriority] = useState('medium')
+  const [hasTenant, setHasTenant] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    setHasTenant(!!resolvePublicTenantId())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -178,6 +183,29 @@ export function CreateTicketForm() {
               Create Another Ticket
             </Button>
           </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (hasTenant === null) return null
+
+  if (!hasTenant) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Create a Support Ticket</CardTitle>
+          <CardDescription>
+            Support tickets are handled by the business you are working with.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            To open a support ticket, please use the support page of the business that is
+            handling your shipment — it is linked from their website or tracking page.
+            For general questions about the Afruheritage platform itself, email
+            {' '}<a className="text-primary underline" href="mailto:support@afruheritage.com">support@afruheritage.com</a>.
+          </p>
         </CardContent>
       </Card>
     )

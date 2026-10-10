@@ -23,14 +23,8 @@ export function TrackTicketSection() {
     setError('')
     const tenantId = resolvePublicTenantId()
 
-    if (!tenantId) {
-      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
-      setIsSearching(false)
-      return
-    }
-
     try {
-      const res = await fetch(`/api/v1/support-crm/public/tickets/${searchValue.trim()}?tenant_id=${encodeURIComponent(tenantId)}`)
+      const res = await fetch(`/api/v1/support-crm/public/tickets/${searchValue.trim()}${tenantId ? `?tenant_id=${encodeURIComponent(tenantId)}` : ''}`)
       if (res.status === 404) {
         setError('Ticket not found. Please check your tracking token.')
         return

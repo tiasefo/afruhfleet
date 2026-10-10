@@ -1,0 +1,163 @@
+[
+  {
+    "p": "/dashboard",
+    "status": "200",
+    "flags": "",
+    "url": "/dashboard",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/products",
+    "status": "200",
+    "flags": "",
+    "url": "/products",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/shipments",
+    "status": "200",
+    "flags": "",
+    "url": "/shipments",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/dashboard/fleetops",
+    "status": "200",
+    "flags": "EMPTY-STATE",
+    "url": "/dashboard/fleetops",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/crm",
+    "status": "200",
+    "flags": "",
+    "url": "/crm",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/customs/duty-calculator",
+    "status": "200",
+    "flags": "EMPTY-STATE",
+    "url": "/customs/duty-calculator",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/members",
+    "status": "200",
+    "flags": "",
+    "url": "/members",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/kyc",
+    "status": "200",
+    "flags": "",
+    "url": "/kyc",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/support/dashboard",
+    "status": "200",
+    "flags": "",
+    "url": "/support/dashboard",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/billing",
+    "status": "200",
+    "flags": "",
+    "url": "/billing",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/settings",
+    "status": "200",
+    "flags": "",
+    "url": "/settings",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/templates",
+    "status": "200",
+    "flags": "",
+    "url": "/templates",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/plugins",
+    "status": "200",
+    "flags": "",
+    "url": "/plugins",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/portal/gallery",
+    "status": "200",
+    "flags": "EMPTY-STATE",
+    "url": "/portal/gallery",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/profile",
+    "status": "200",
+    "flags": "",
+    "url": "/profile",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/marketplace",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/marketplace",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/vendors",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/vendors",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/analytics",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/analytics",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/warehouse",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/warehouse",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/activities",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/activities",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/live-map",
+    "status": "200",
+    "flags": "EMPTY-STATE",
+    "url": "/live-map",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/crm/activities",
+    "status": "404",
+    "flags": "NOT-FOUND",
+    "url": "/crm/activities",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  },
+  {
+    "p": "/shipments/map",
+    "status": "200",
+    "flags": "",
+    "url": "/shipments/map",
+    "snippet": "UATCERT Meridian Freight 3 stab-mv0j6arnsi4h@maxxspace.com Home Dashboard Products Shipments Fleet CRM Customs Duty Team Members KYC Support Billing Settings Te"
+  }
+]
