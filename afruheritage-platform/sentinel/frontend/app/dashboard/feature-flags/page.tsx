@@ -15,15 +15,23 @@ import {
   ToggleRight,
 } from 'lucide-react'
 
+interface FeatureFlag {
+  id: string
+  key: string
+  label: string
+  description?: string
+  enabled: boolean
+}
+
 export default function FeatureFlagsPage() {
-  const [flags, setFlags] = useState<any>({})
+  const [flags, setFlags] = useState<FeatureFlag[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = async () => {
     setLoading(true)
     try {
       const data = await api.get('/sentinel/feature-flags/global')
-      setFlags(data || {})
+      setFlags(Array.isArray(data) ? data : (data.flags || []))
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -33,9 +41,9 @@ export default function FeatureFlagsPage() {
 
   useEffect(() => { load() }, [])
 
-  const handleToggle = async (key: string, value: boolean) => {
+  const handleToggle = async (flag: FeatureFlag) => {
     try {
-      await api.patch('/sentinel/feature-flags/global', { flags: { ...flags, [key]: !value } })
+      await api.patch(`/sentinel/feature-flags/global/${flag.key}`, { enabled: !flag.enabled })
       toast.success('Feature flag updated')
       load()
     } catch (e: any) {
@@ -57,31 +65,29 @@ export default function FeatureFlagsPage() {
         <div className="flex justify-center py-20">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         </div>
-      ) : Object.keys(flags).length === 0 ? (
+      ) : flags.length === 0 ? (
         <Card><CardContent className="py-12 text-center text-muted-foreground">No feature flags configured</CardContent></Card>
       ) : (
         <div className="space-y-3">
-          {Object.entries(flags).map(([key, value]: [string, any]) => (
-            <Card key={key}>
+          {flags.map((flag) => (
+            <Card key={flag.id || flag.key}>
               <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    {value ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
+                    {flag.enabled ? <ToggleRight className="h-5 w-5" /> : <ToggleLeft className="h-5 w-5" />}
                   </div>
                   <div>
-                    <div className="font-semibold">{key}</div>
-                    <div className="text-sm text-muted-foreground">{typeof value === 'boolean' ? (value ? 'Enabled' : 'Disabled') : String(value)}</div>
+                    <div className="font-semibold">{flag.label || flag.key}</div>
+                    <div className="text-sm text-muted-foreground">{flag.description || flag.key}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className={value ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'}>
-                    {value ? 'Active' : 'Inactive'}
+                  <Badge className={flag.enabled ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'}>
+                    {flag.enabled ? 'Active' : 'Inactive'}
                   </Badge>
-                  {typeof value === 'boolean' && (
-                    <Button size="sm" variant="outline" onClick={() => handleToggle(key, value)}>
-                      {value ? 'Disable' : 'Enable'}
-                    </Button>
-                  )}
+                  <Button size="sm" variant="outline" onClick={() => handleToggle(flag)}>
+                    {flag.enabled ? 'Disable' : 'Enable'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -22,50 +22,83 @@ def list_plans(
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    cp_token = _get_cp_token(request)
     try:
-        if cp_token:
-            return cp.list_plans(cp_token)
-    except Exception as exc:
-        # If control plane call fails, return default plans
-        pass
-    
-    # Return default plans
-    return [
-        {
-            "code": "free_trial", 
-            "name": "Free Trial", 
-            "description": "14-day free trial with 100 credits",
-            "price": 0, 
-            "currency": "GHS",
-            "billing_cycle": "trial",
-            "credits": 100,
-            "features": ["Basic freight forwarding", "5 shipments/month", "Email support"],
-            "paystack_plan_code": "PLN_0000000001"
-        },
-        {
-            "code": "professional", 
-            "name": "Professional", 
-            "description": "Professional tier with credit-based billing",
-            "price": 1000, 
-            "currency": "GHS",
-            "billing_cycle": "credits",
-            "credits": 1000,
-            "features": ["Advanced freight forwarding", "Unlimited shipments", "Priority support", "API access"],
-            "paystack_plan_code": "PLN_0000000002"
-        },
-        {
-            "code": "business", 
-            "name": "Business", 
-            "description": "Business tier with maximum credits",
-            "price": 2500, 
-            "currency": "GHS",
-            "billing_cycle": "credits", 
-            "credits": 2500,
-            "features": ["Enterprise features", "White-label options", "Dedicated support", "Custom integrations"],
-            "paystack_plan_code": "PLN_0000000003"
-        }
-    ]
+        return cp.list_plans(_get_cp_token(request))
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.patch("/plans/{plan_id}")
+def update_plan(
+    plan_id: str,
+    payload: dict,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_update_plan(_get_cp_token(request), plan_id, payload)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.delete("/plans/{plan_id}")
+def delete_plan(
+    plan_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_delete_plan(_get_cp_token(request), plan_id)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.get("/promotions")
+def list_promotions(
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_list_promotions(_get_cp_token(request))
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.post("/promotions")
+def create_promotion(
+    payload: dict,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_create_promotion(_get_cp_token(request), payload)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.patch("/promotions/{promotion_id}")
+def update_promotion(
+    promotion_id: str,
+    payload: dict,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_update_promotion(_get_cp_token(request), promotion_id, payload)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.delete("/promotions/{promotion_id}")
+def delete_promotion(
+    promotion_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.admin_delete_promotion(_get_cp_token(request), promotion_id)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
 @router.get("/subscriptions/{tenant_id}")

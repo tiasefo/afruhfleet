@@ -68,8 +68,8 @@ export default function UsersPage() {
   const loadUsers = async () => {
     setLoading(true)
     try {
-      const data = await api.get<User[]>('/sentinel/users/')
-      setUsers(Array.isArray(data) ? data : [])
+      const data = await api.get<User[] | { items: User[] }>('/sentinel/users/')
+      setUsers(Array.isArray(data) ? data : (data.items || []))
     } catch (e: any) {
       toast.error(e.message || 'Failed to load admin users')
       setUsers([])

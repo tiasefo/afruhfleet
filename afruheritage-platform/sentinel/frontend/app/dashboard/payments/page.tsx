@@ -23,7 +23,7 @@ export default function PaymentsPage() {
     setLoading(true)
     try {
       const data = await api.get('/sentinel/payments')
-      setPayments(Array.isArray(data) ? data : (data.items || []))
+      setPayments(Array.isArray(data) ? data : (data.payments || data.items || []))
     } catch (e: any) {
       toast.error(e.message)
     } finally {
@@ -44,9 +44,13 @@ export default function PaymentsPage() {
 
   const statusColor = (s: string) => {
     switch (s) {
-      case 'completed': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-      case 'pending': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-      case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+      case 'completed':
+      case 'paid': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      case 'pending':
+      case 'unpaid':
+      case 'partially_paid': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+      case 'failed':
+      case 'overdue': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
       case 'refunded': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
       default: return ''
     }
@@ -86,7 +90,7 @@ export default function PaymentsPage() {
                   </div>
                   <div>
                     <div className="font-semibold">{p.currency} {p.amount}</div>
-                    <div className="text-sm text-muted-foreground">{p.reference} · {p.method}</div>
+                    <div className="text-sm text-muted-foreground">{p.reference} · {p.provider || p.method || ''}{p.purpose ? ` · ${p.purpose}` : ''}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">

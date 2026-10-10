@@ -138,7 +138,7 @@ export default function RunnersPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {runners.map((r: any) => {
-            const online = r.status === 'online' || r.is_active
+            const online = r.status === 'online' || r.status === 'active' || r.is_active
             return (
               <Card key={r.id}>
                 <CardContent className="p-6">

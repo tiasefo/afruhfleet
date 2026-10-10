@@ -25,7 +25,7 @@ export default function ShipmentsPage() {
     setLoading(true)
     try {
       const data = await api.get('/sentinel/shipments')
-      setShipments(Array.isArray(data) ? data : (data.items || []))
+      setShipments(Array.isArray(data) ? data : (data.shipments || data.items || []))
     } catch (e: any) {
       toast.error(e.message)
     } finally {

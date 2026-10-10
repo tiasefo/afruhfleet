@@ -127,13 +127,13 @@ def auto_provision_tenant_request(cp_token: str, request_id: str) -> dict:
 
 def list_runners(cp_token: str) -> list[dict]:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.get(_url("/runners"), headers=_headers(cp_token))
+        resp = c.get(_url("/fleetbase-runtime/runners"), headers=_headers(cp_token))
         return _handle(resp)
 
 
 def create_runner(cp_token: str, payload: dict) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.post(_url("/runners"), json=payload, headers=_headers(cp_token))
+        resp = c.post(_url("/fleetbase-runtime/runners"), json=payload, headers=_headers(cp_token))
         return _handle(resp)
 
 
@@ -155,25 +155,80 @@ def get_subscription(cp_token: str, tenant_id: str) -> dict | None:
 
 def assign_plan(cp_token: str, payload: dict) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.post(_url("/billing/admin/subscriptions/assign"), json=payload, headers=_headers(cp_token))
+        resp = c.post(
+            _url("/billing/admin/subscriptions/assign"),
+            json=payload,
+            params={"tenant_id": payload.get("tenant_id")},
+            headers=_headers(cp_token),
+        )
         return _handle(resp)
 
 
 def adjust_credits(cp_token: str, payload: dict) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.post(_url("/billing/admin/credits/adjust"), json=payload, headers=_headers(cp_token))
+        resp = c.post(
+            _url("/billing/admin/credits/adjust"),
+            json=payload,
+            params={"tenant_id": payload.get("tenant_id")},
+            headers=_headers(cp_token),
+        )
         return _handle(resp)
 
 
 def set_read_only(cp_token: str, payload: dict) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.post(_url("/billing/admin/read-only"), json=payload, headers=_headers(cp_token))
+        resp = c.post(
+            _url("/billing/admin/read-only"),
+            json=payload,
+            params={"tenant_id": payload.get("tenant_id")},
+            headers=_headers(cp_token),
+        )
         return _handle(resp)
 
 
 def get_wallet(cp_token: str, tenant_id: str) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.get(_url(f"/billing/wallets/{tenant_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def admin_update_plan(cp_token: str, plan_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/admin/billing/plans/{plan_id}"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def admin_delete_plan(cp_token: str, plan_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.delete(_url(f"/admin/billing/plans/{plan_id}"), headers=_headers(cp_token))
+        if resp.status_code == 204:
+            return {"deleted": True}
+        return _handle(resp)
+
+
+def admin_list_promotions(cp_token: str) -> list[dict]:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url("/admin/billing/promotions"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def admin_create_promotion(cp_token: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url("/admin/billing/promotions"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def admin_update_promotion(cp_token: str, promotion_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/admin/billing/promotions/{promotion_id}"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def admin_delete_promotion(cp_token: str, promotion_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.delete(_url(f"/admin/billing/promotions/{promotion_id}"), headers=_headers(cp_token))
+        if resp.status_code == 204:
+            return {"deleted": True}
         return _handle(resp)
 
 
@@ -443,17 +498,17 @@ def add_shipment_notes(cp_token: str, shipment_id: str, payload: dict) -> dict:
 def list_admin_payments(cp_token: str, params: dict) -> dict:
     try:
         with httpx.Client(timeout=_TIMEOUT) as c:
-            resp = c.get(_url("/payments/statistics"), params=params, headers=_headers(cp_token))
+            resp = c.get(_url("/payments/admin"), params=params, headers=_headers(cp_token))
             if resp.status_code in (404, 500, 502):
-                return {"total_payments": 0, "completed_payments": 0, "total_revenue": 0, "total_platform_fees": 0, "total_tenant_earnings": 0, "success_rate": 0}
+                return {"payments": [], "total": 0, "page": params.get("page", 1), "page_size": params.get("page_size", 20)}
             return _handle(resp)
     except httpx.RequestError:
-        return {"total_payments": 0, "completed_payments": 0, "total_revenue": 0, "total_platform_fees": 0, "total_tenant_earnings": 0, "success_rate": 0}
+        return {"payments": [], "total": 0, "page": params.get("page", 1), "page_size": params.get("page_size", 20)}
 
 
 def get_admin_payment(cp_token: str, payment_id: str) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
-        resp = c.get(_url(f"/payments/status/{payment_id}"), headers=_headers(cp_token))
+        resp = c.get(_url(f"/payments/admin/{payment_id}"), headers=_headers(cp_token))
         return _handle(resp)
 
 
@@ -541,6 +596,12 @@ def get_global_feature_flags(cp_token: str) -> dict:
 def update_global_feature_flags(cp_token: str, payload: dict) -> dict:
     with httpx.Client(timeout=_TIMEOUT) as c:
         resp = c.patch(_url("/admin/features"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def update_global_feature_flag(cp_token: str, flag_key: str, enabled: bool) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.patch(_url(f"/admin/features/{flag_key}"), json={"enabled": enabled}, headers=_headers(cp_token))
         return _handle(resp)
 
 

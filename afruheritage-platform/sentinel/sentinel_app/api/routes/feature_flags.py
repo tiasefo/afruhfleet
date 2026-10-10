@@ -17,6 +17,10 @@ def _get_cp_token(request: Request) -> str:
     return token
 
 
+class FeatureFlagToggle(BaseModel):
+    enabled: bool
+
+
 @router.get("/tenant/{tenant_id}")
 def get_tenant_flags(
     tenant_id: str,
@@ -65,5 +69,18 @@ def update_global_flags(
 ):
     try:
         return cp.update_global_feature_flags(_get_cp_token(request), payload.model_dump())
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.patch("/global/{flag_key}")
+def update_global_flag(
+    flag_key: str,
+    payload: FeatureFlagToggle,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    try:
+        return cp.update_global_feature_flag(_get_cp_token(request), flag_key, payload.enabled)
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)

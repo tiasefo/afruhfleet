@@ -1,34 +1,41 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
 
 export default function KycDashboardPage() {
   const [kycList, setKycList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const load = async () => {
+    setLoading(true);
+    try {
+      const data = await api.get("/sentinel/kyc/list");
+      setKycList(Array.isArray(data) ? data : (data.submissions || data.items || []));
+      setError("");
+    } catch (e: any) {
+      setError(e.message || "Failed to load KYC submissions");
+      setKycList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("/sentinel/kyc/list")
-      .then((res) => res.json())
-      .then((data) => {
-        setKycList(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError("Failed to load KYC submissions");
-        setLoading(false);
-      });
+    load();
   }, []);
 
   const handleAction = async (kycId, action) => {
-    const url = `/sentinel/kyc/${action}/${kycId}`;
-    const res = await fetch(url, { method: "POST" });
-    if (res.ok) {
+    try {
+      await api.post(`/sentinel/kyc/${action}/${kycId}`);
       setKycList((prev) =>
         prev.map((k) =>
-          k.id === kycId ? { ...k, status: action === "approve" ? "approved" : "rejected" } : k
+          k.id === kycId ? { ...k, status: action === "approve" ? "approved" : "revoked" } : k
         )
       );
+    } catch (e: any) {
+      setError(e.message || `Failed to ${action} submission`);
     }
   };
 

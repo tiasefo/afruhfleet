@@ -93,17 +93,39 @@ def get_dashboard_stats(
     try:
         # Get system metrics
         system_metrics = get_system_metrics()
-        
-        # Mock business metrics (in production, these would come from actual database queries)
+
+        # Real business metrics from the shared control-plane database.
+        # (The sentinel container does not mount the `app` package, so raw SQL is used.)
+        total_shipments = db.execute(text("SELECT COUNT(*) FROM shipments")).scalar() or 0
+        active_shipments = db.execute(
+            text("SELECT COUNT(*) FROM shipments WHERE status NOT IN ('DELIVERED','RETURNED','CANCELLED')")
+        ).scalar() or 0
+        pending_orders = db.execute(
+            text("SELECT COUNT(*) FROM shipments WHERE status IN ('DRAFT','BOOKED')")
+        ).scalar() or 0
+        completed_orders = db.execute(
+            text("SELECT COUNT(*) FROM shipments WHERE status = 'DELIVERED'")
+        ).scalar() or 0
+        total_revenue = db.execute(
+            text("SELECT COALESCE(SUM(amount_minor), 0) FROM billing_payments WHERE status = 'PAID'")
+        ).scalar() or 0
+        monthly_revenue = db.execute(
+            text("SELECT COALESCE(SUM(amount_minor), 0) FROM billing_payments WHERE status = 'PAID' AND created_at >= now() - interval '30 days'")
+        ).scalar() or 0
         business_metrics = {
-            "total_users": 156,
-            "total_tenants": 23,
-            "total_vendors": 45,
-            "total_shipments": 1284,
-            "total_revenue": 45670.50,
-            "active_shipments": 89,
-            "pending_orders": 12,
-            "completed_orders": 1183,
+            "total_users": db.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0,
+            "active_users": db.execute(text("SELECT COUNT(*) FROM users WHERE is_active IS TRUE")).scalar() or 0,
+            "total_tenants": db.execute(text("SELECT COUNT(*) FROM tenants")).scalar() or 0,
+            "active_tenants": db.execute(text("SELECT COUNT(*) FROM tenants WHERE launch_status = 'active'")).scalar() or 0,
+            "total_vendors": db.execute(text("SELECT COUNT(*) FROM delivery_vendors")).scalar() or 0,
+            "pending_vendors": db.execute(text("SELECT COUNT(*) FROM delivery_vendors WHERE status = 'pending'")).scalar() or 0,
+            "total_shipments": total_shipments,
+            "total_revenue": round(float(total_revenue) / 100.0, 2),
+            "monthly_revenue": round(float(monthly_revenue) / 100.0, 2),
+            "total_payments": db.execute(text("SELECT COUNT(*) FROM billing_payments")).scalar() or 0,
+            "active_shipments": active_shipments,
+            "pending_orders": pending_orders,
+            "completed_orders": completed_orders,
             "system_health": "healthy",
             "last_updated": datetime.utcnow().isoformat()
         }
@@ -156,6 +178,13 @@ def get_system_health(
         
         return {
             "overall_status": overall_health,
+            "status": "ok" if overall_health == "healthy" else "degraded",
+            "database_status": services["database"],
+            "redis_status": services["redis"],
+            "api_status": services["control_plane"],
+            "cpu_usage": metrics.get("cpu_usage", 0),
+            "memory_usage": metrics.get("memory_usage", 0),
+            "disk_usage": metrics.get("disk_usage", 0),
             "system_metrics": metrics,
             "services": services,
             "issues": issues,
@@ -177,8 +206,8 @@ def get_performance_metrics(
         # Calculate performance score (0-100)
         performance_score = calculate_performance_score(metrics)
         
-        # Get historical data (mock for now)
-        historical_data = generate_historical_data()
+        # Historical metrics are not persisted; return current metrics only.
+        historical_data = []
         
         return {
             "current_metrics": metrics,
@@ -216,45 +245,39 @@ def calculate_performance_score(metrics):
     return max(0, score)
 
 def check_database_health():
-    """Check database connectivity"""
+    """Check database connectivity with a real query"""
     try:
-        # Simple health check - in production, this would be an actual DB query
+        from sentinel_app.db.session import engine
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
         return "healthy"
-    except:
+    except Exception:
         return "unhealthy"
 
 def check_redis_health():
-    """Check Redis connectivity"""
+    """Check Redis connectivity via a real ping"""
     try:
-        # Simple health check - in production, this would be an actual Redis ping
-        return "healthy"
-    except:
+        import os
+        import socket
+        from urllib.parse import urlparse
+        redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+        parsed = urlparse(redis_url)
+        with socket.create_connection((parsed.hostname or "redis", parsed.port or 6379), timeout=3) as sock:
+            sock.sendall(b"PING\r\n")
+            reply = sock.recv(64)
+        return "healthy" if reply.startswith(b"+PONG") else "unhealthy"
+    except Exception:
         return "unhealthy"
 
 def check_control_plane_health():
     """Check control plane connectivity"""
     try:
         import httpx
-        response = httpx.get("http://localhost:8100/health", timeout=5)
+        from sentinel_app.core.config import admin_settings
+        response = httpx.get(f"{admin_settings.control_plane_base_url}/health", timeout=5)
         return "healthy" if response.status_code == 200 else "unhealthy"
-    except:
+    except Exception:
         return "unhealthy"
-
-def generate_historical_data():
-    """Generate mock historical performance data"""
-    now = datetime.utcnow()
-    data = []
-    
-    for i in range(24):  # Last 24 hours
-        timestamp = now - timedelta(hours=i)
-        data.append({
-            "timestamp": timestamp.isoformat(),
-            "cpu_usage": 20 + (i % 40),  # Mock varying CPU
-            "memory_usage": 30 + (i % 50),  # Mock varying memory
-            "disk_usage": 45 + (i % 20),  # Mock varying disk
-        })
-    
-    return data
 
 def generate_recommendations(metrics):
     """Generate performance recommendations"""

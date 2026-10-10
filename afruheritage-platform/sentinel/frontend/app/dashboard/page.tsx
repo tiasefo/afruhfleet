@@ -62,7 +62,7 @@ export default function DashboardPage() {
         // Load real-time dashboard data
         const [statsRes, healthRes, tenantsRes, vendorsRes] = await Promise.allSettled([
           api.get('/sentinel/dashboard/stats'),
-          api.get('/sentinel/health'),
+          api.get('/sentinel/dashboard/health'),
           api.get('/sentinel/tenants'),
           api.get('/sentinel/vendors'),
         ])
@@ -78,8 +78,10 @@ export default function DashboardPage() {
         const t = tenantsRes.status === 'fulfilled' ? tenantsRes.value : []
         const v = vendorsRes.status === 'fulfilled' ? vendorsRes.value : []
 
-        setTenants(Array.isArray(t) ? t.slice(0, 5) : [])
-        setVendors(Array.isArray(v) ? v.slice(0, 5) : [])
+        const tList = Array.isArray(t) ? t : (t?.items || t?.tenants || [])
+        const vList = Array.isArray(v) ? v : (v?.items || v?.vendors || [])
+        setTenants(tList.slice(0, 5))
+        setVendors(vList.slice(0, 5))
       } catch (error) {
         console.error('Dashboard load failed:', error)
       } finally {

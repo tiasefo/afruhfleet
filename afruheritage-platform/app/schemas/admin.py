@@ -127,6 +127,9 @@ class DashboardStats(BaseModel):
     monthly_revenue: float
     total_shipments: int
     active_shipments: int
+    total_payments: int = 0
+    kyc_total: int = 0
+    kyc_approved: int = 0
 
 
 class SystemHealth(BaseModel):

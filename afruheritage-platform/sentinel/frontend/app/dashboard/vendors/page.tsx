@@ -56,8 +56,8 @@ export default function VendorsPage() {
       const params = new URLSearchParams()
       if (statusFilter) params.set('status', statusFilter)
       if (search) params.set('q', search)
-      const data = await api.get(`/api/v1/vendors/admin?${params.toString()}`)
-      setVendors(Array.isArray(data) ? data : (data.items || []))
+      const data = await api.get(`/sentinel/vendors?${params.toString()}`)
+      setVendors(Array.isArray(data) ? data : (data.items || data.vendors || []))
     } catch (e: any) {
       toast.error('Failed to load vendors: ' + (e.message || 'Unknown error'))
     } finally {
@@ -69,7 +69,7 @@ export default function VendorsPage() {
 
   const handleApprove = async (id: string) => {
     try {
-      await api.post(`/api/v1/vendors/sentinel/${id}/review`, { action: 'approve' })
+      await api.post(`/sentinel/vendors/${id}/review`, { action: 'approve' })
       toast.success('Vendor approved successfully')
       load()
       setDetailOpen(false)
@@ -81,7 +81,7 @@ export default function VendorsPage() {
   const handleReject = async () => {
     if (!rejectTarget) return
     try {
-      await api.post(`/api/v1/vendors/sentinel/${rejectTarget}/review`, { action: 'reject', rejection_reason: rejectReason })
+      await api.post(`/sentinel/vendors/${rejectTarget}/review`, { action: 'reject', rejection_reason: rejectReason })
       toast.success('Vendor rejected successfully')
       setRejectOpen(false)
       setRejectReason('')
@@ -95,7 +95,7 @@ export default function VendorsPage() {
 
   const handleSuspend = async (id: string) => {
     try {
-      await api.post(`/api/v1/vendors/sentinel/${id}/suspend`)
+      await api.post(`/sentinel/vendors/${id}/suspend`)
       toast.success('Vendor suspended successfully')
       load()
       setDetailOpen(false)
@@ -106,7 +106,7 @@ export default function VendorsPage() {
 
   const openDetail = async (id: string) => {
     try {
-      const data = await api.get(`/api/v1/vendors/sentinel/${id}`)
+      const data = await api.get(`/sentinel/vendors/${id}`)
       setSelectedVendor(data)
       setDetailOpen(true)
     } catch (e: any) {

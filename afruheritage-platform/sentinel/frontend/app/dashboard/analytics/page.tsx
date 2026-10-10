@@ -8,13 +8,13 @@ import { toast } from "sonner"
 import { Building2, DollarSign, Loader2, Package, RefreshCw, ShieldCheck, Users } from "lucide-react"
 
 type AnalyticsSummary = {
-  tenants: number
-  users: number
+  total_tenants: number
+  total_users: number
   kyc_total: number
   kyc_approved: number
-  shipments: number
-  payments: number
-  revenue: number
+  total_shipments: number
+  total_payments: number
+  total_revenue: number
 }
 
 export default function AnalyticsDashboardPage() {
@@ -56,11 +56,11 @@ export default function AnalyticsDashboardPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard title="Tenants" value={summary?.tenants ?? 0} icon={Building2} />
-          <MetricCard title="Users" value={summary?.users ?? 0} icon={Users} />
-          <MetricCard title="Shipments" value={summary?.shipments ?? 0} icon={Package} />
-          <MetricCard title="Payments" value={summary?.payments ?? 0} icon={DollarSign} />
-          <MetricCard title="Revenue" value={`GHS ${summary?.revenue ?? 0}`} icon={DollarSign} />
+          <MetricCard title="Tenants" value={summary?.total_tenants ?? 0} icon={Building2} />
+          <MetricCard title="Users" value={summary?.total_users ?? 0} icon={Users} />
+          <MetricCard title="Shipments" value={summary?.total_shipments ?? 0} icon={Package} />
+          <MetricCard title="Payments" value={summary?.total_payments ?? 0} icon={DollarSign} />
+          <MetricCard title="Revenue" value={`GHS ${summary?.total_revenue ?? 0}`} icon={DollarSign} />
           <MetricCard title="KYC Total" value={summary?.kyc_total ?? 0} icon={ShieldCheck} />
           <MetricCard title="KYC Approved" value={summary?.kyc_approved ?? 0} icon={ShieldCheck} />
         </div>

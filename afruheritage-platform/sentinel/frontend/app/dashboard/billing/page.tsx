@@ -171,25 +171,26 @@ export default function BillingPage() {
   const [editPlanActive, setEditPlanActive] = useState(true)
   const [savingPlan, setSavingPlan] = useState(false)
 
-  useEffect(() => {
-    async function loadPlans() {
-      try {
-        // Load plans from control plane API
-        const data = await api.get('/api/v1/billing/plans')
-        setPlans(Array.isArray(data) ? data : [])
-      } catch (e: any) {
-        toast.error('Failed to load plans: ' + (e.message || 'Unknown error'))
-      } finally {
-        setLoading(false)
-      }
+  const loadPlans = async () => {
+    try {
+      // Load plans via Sentinel billing proxy
+      const data = await api.get('/sentinel/billing/plans')
+      setPlans(Array.isArray(data) ? data : [])
+    } catch (e: any) {
+      toast.error('Failed to load plans: ' + (e.message || 'Unknown error'))
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     loadPlans()
     loadPromotions()
   }, [])
 
   const loadPromotions = async () => {
     try {
-      const data = await api.get('/api/v1/admin/billing/promotions')
+      const data = await api.get('/sentinel/billing/promotions')
       setPromotions(Array.isArray(data) ? data : [])
     } catch (e: any) {
       toast.error('Failed to load promotions: ' + (e.message || 'Unknown error'))
@@ -199,7 +200,7 @@ export default function BillingPage() {
   const handleCreatePromotion = async () => {
     setSavingPromotion(true)
     try {
-      await api.post('/api/v1/admin/billing/promotions', {
+      await api.post('/sentinel/billing/promotions', {
         name: promotionName,
         description: promotionDescription,
         promotion_type: promotionType,
@@ -227,8 +228,7 @@ export default function BillingPage() {
 
   const handleTogglePromotion = async (promotion: Promotion) => {
     try {
-      const endpoint = promotion.is_active ? 'deactivate' : 'activate'
-      await api.post(`/api/v1/admin/billing/promotions/${promotion.id}/${endpoint}`)
+      await api.patch(`/sentinel/billing/promotions/${promotion.id}`, { is_active: !promotion.is_active })
       toast.success(`Promotion ${promotion.is_active ? 'deactivated' : 'activated'} successfully`)
       loadPromotions()
     } catch (e: any) {
@@ -239,7 +239,7 @@ export default function BillingPage() {
   const handleDeletePromotion = async (promotionId: string) => {
     if (!confirm('Are you sure you want to delete this promotion?')) return
     try {
-      await api.delete(`/api/v1/admin/billing/promotions/${promotionId}`)
+      await api.delete(`/sentinel/billing/promotions/${promotionId}`)
       toast.success('Promotion deleted successfully')
       loadPromotions()
     } catch (e: any) {
@@ -271,7 +271,7 @@ export default function BillingPage() {
     if (!editingPlan) return
     setSavingPlan(true)
     try {
-      await api.patch(`/api/v1/admin/billing/plans/${editingPlan.id}`, {
+      await api.patch(`/sentinel/billing/plans/${editingPlan.id}`, {
         display_name: editPlanDisplayName,
         monthly_price: parseFloat(editPlanPrice),
         included_credits: parseInt(editPlanCredits),
@@ -294,8 +294,8 @@ export default function BillingPage() {
     setSubscription(null)
     try {
       const [w, s] = await Promise.allSettled([
-        api.get(`/api/v1/billing/wallets/${walletTenantId}`),
-        api.get(`/api/v1/billing/subscriptions/${walletTenantId}`),
+        api.get(`/sentinel/billing/wallets/${walletTenantId}`),
+        api.get(`/sentinel/billing/subscriptions/${walletTenantId}`),
       ])
       if (w.status === 'fulfilled') setWallet(w.value)
       else toast.error('Wallet not found')
@@ -310,10 +310,10 @@ export default function BillingPage() {
   const handleAdjust = async () => {
     setAdjusting(true)
     try {
-      await api.post('/api/v1/billing/sentinel/adjust-credits', {
+      await api.post('/sentinel/billing/adjust-credits', {
         tenant_id: walletTenantId,
-        amount: parseFloat(adjustAmount),
-        reason: adjustReason,
+        credits_delta: parseInt(adjustAmount),
+        memo: adjustReason,
       })
       toast.success('Credits adjusted successfully')
       setAdjustOpen(false)
@@ -330,7 +330,7 @@ export default function BillingPage() {
   const handleAssignPlan = async () => {
     setAssigning(true)
     try {
-      await api.post('/api/v1/billing/sentinel/assign-plan', {
+      await api.post('/sentinel/billing/assign-plan', {
         tenant_id: assignTenantId,
         plan_code: assignPlanId,
       })

@@ -11,9 +11,11 @@ from sqlalchemy import func, desc
 from sentinel_app.api.deps import get_current_admin, get_db
 from app.models.user import User
 from app.models.tenant import Tenant, TenantStatus
-from app.models.billing import WalletTransaction, Subscription, SubscriptionStatus
+from app.models.billing import WalletTransaction, Subscription, SubscriptionStatus, Payment
 from app.models.vendor import DeliveryVendor, VendorStatus
 from app.models.rbac import UserActivityLog
+from app.models.shipment import Shipment, ShipmentStatus
+from app.models.kyc import KYCSubmission, KYCStatus
 from app.schemas.admin import DashboardResponse, DashboardStats, SystemHealth, AlertItem, UserActivityLogResponse
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -53,10 +55,26 @@ def get_dashboard_stats(
         WalletTransaction.created_at >= datetime.utcnow() - timedelta(days=30)
     ).scalar() or 0.0
     
-    # Shipment statistics (placeholder - would connect to real shipment data)
-    total_shipments = 0  # TODO: Connect to shipment model
-    active_shipments = 0  # TODO: Connect to shipment model
-    
+    # Shipment statistics
+    terminal_statuses = {
+        ShipmentStatus.DELIVERED,
+        ShipmentStatus.RETURNED,
+        ShipmentStatus.CANCELLED,
+    }
+    total_shipments = db.query(Shipment).count()
+    active_shipments = db.query(Shipment).filter(
+        Shipment.status.notin_(terminal_statuses)
+    ).count()
+
+    # Payment statistics
+    total_payments = db.query(Payment).count()
+
+    # KYC statistics
+    kyc_total = db.query(KYCSubmission).count()
+    kyc_approved = db.query(KYCSubmission).filter(
+        KYCSubmission.status == KYCStatus.approved
+    ).count()
+
     return DashboardStats(
         total_users=total_users,
         active_users=active_users,
@@ -68,6 +86,9 @@ def get_dashboard_stats(
         monthly_revenue=float(monthly_revenue),
         total_shipments=total_shipments,
         active_shipments=active_shipments,
+        total_payments=total_payments,
+        kyc_total=kyc_total,
+        kyc_approved=kyc_approved,
     )
 
 

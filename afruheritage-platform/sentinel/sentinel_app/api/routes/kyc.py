@@ -10,8 +10,7 @@ def kyc_list(request: Request, cp_token: str = Depends(get_cp_token)):
     try:
         return list_kyc_submissions(cp_token)
     except Exception as exc:
-        # If the control plane API is not available, return empty list
-        return []
+        raise HTTPException(status_code=502, detail=f"Control plane KYC request failed: {exc}") from exc
 
 @router.post("/approve/{kyc_id}")
 def kyc_approve(kyc_id: str, cp_token: str = Depends(get_cp_token)):

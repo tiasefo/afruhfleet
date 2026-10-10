@@ -1,71 +1,60 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
-from datetime import datetime
 
 from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyRunnerCreate
 from sentinel_app.services.audit_service import record_admin_audit
+from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/runners", tags=["Admin – Runners"])
 
-# Mock runner data for now - in production this would connect to actual runner infrastructure
-MOCK_RUNNERS = [
-    {
-        "id": "runner-001",
-        "name": "Ghana Runner 1",
-        "status": "online",
-        "ip_address": "10.0.0.100",
-        "region": "gh-accra",
-        "capacity": 50,
-        "active_tenants": 12,
-        "last_heartbeat": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "cpu_usage": 25.5,
-        "memory_usage": 60.2,
-        "disk_usage": 45.8
-    },
-    {
-        "id": "runner-002", 
-        "name": "Ghana Runner 2",
-        "status": "offline",
-        "ip_address": "10.0.0.101",
-        "region": "gh-kumasi",
-        "capacity": 30,
-        "active_tenants": 0,
-        "last_heartbeat": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "cpu_usage": 0.0,
-        "memory_usage": 0.0,
-        "disk_usage": 0.0
-    }
-]
+
+def _get_cp_token(request: Request) -> str:
+    token = request.headers.get("X-CP-Token")
+    if not token:
+        raise HTTPException(status_code=400, detail="X-CP-Token header required")
+    return token
+
+
+def _find_runner(cp_token: str, runner_id: str) -> dict:
+    for runner in cp.list_runners(cp_token):
+        if str(runner.get("id")) == runner_id:
+            return runner
+    raise HTTPException(status_code=404, detail="Runner not found")
+
 
 @router.get("")
 def list_runners(
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ) -> List[Dict[str, Any]]:
-    """List all runner nodes with their status and metrics."""
+    """List all runner nodes registered in the control plane."""
     record_admin_audit(
         db,
         admin_email=current_admin.email,
         action="runners.listed",
         entity_type="runner",
     )
-    return MOCK_RUNNERS
+    try:
+        return cp.list_runners(_get_cp_token(request))
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
 
 @router.post("")
 def create_runner(
     payload: ProxyRunnerCreate,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Create a new runner node."""
+    """Register a new runner node in the control plane."""
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -73,36 +62,32 @@ def create_runner(
         entity_type="runner",
         details=f"Created runner: {payload.name}",
     )
-    
-    new_runner = {
-        "id": f"runner-{len(MOCK_RUNNERS) + 1:03d}",
-        "name": payload.name,
-        "status": "initializing",
-        "ip_address": payload.ip_address,
-        "region": payload.region or "default",
-        "capacity": payload.capacity or 25,
-        "active_tenants": 0,
-        "last_heartbeat": datetime.utcnow().isoformat(),
-        "version": "1.0.0",
-        "cpu_usage": 0.0,
-        "memory_usage": 0.0,
-        "disk_usage": 0.0
-    }
-    
-    MOCK_RUNNERS.append(new_runner)
-    return new_runner
+    try:
+        return cp.create_runner(
+            _get_cp_token(request),
+            {
+                "name": payload.name,
+                "hostname": payload.host,
+                "ssh_port": payload.ssh_port,
+                "ssh_user": payload.ssh_user,
+                "root_runtime_path": payload.fleetbase_root,
+                "supports_reference_install": payload.reserved_for_single_tenant,
+            },
+        )
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
 
 @router.get("/{runner_id}")
 def get_runner(
     runner_id: str,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """Get detailed information about a specific runner."""
-    runner = next((r for r in MOCK_RUNNERS if r["id"] == runner_id), None)
-    if not runner:
-        raise HTTPException(status_code=404, detail="Runner not found")
-    
+    runner = _find_runner(_get_cp_token(request), runner_id)
+
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -110,101 +95,61 @@ def get_runner(
         entity_type="runner",
         entity_id=runner_id,
     )
-    
+
     return runner
+
 
 @router.post("/{runner_id}/restart")
 def restart_runner(
     runner_id: str,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
-    db: Session = Depends(get_db),
 ) -> Dict[str, str]:
-    """Restart a runner node."""
-    runner = next((r for r in MOCK_RUNNERS if r["id"] == runner_id), None)
-    if not runner:
-        raise HTTPException(status_code=404, detail="Runner not found")
-    
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="runner.restarted",
-        entity_type="runner",
-        entity_id=runner_id,
+    """Restart a runner node — not yet supported by the control plane."""
+    _find_runner(_get_cp_token(request), runner_id)
+    raise HTTPException(
+        status_code=501,
+        detail="Runner restart is not supported by the control plane API",
     )
-    
-    # In a real implementation, this would send a restart command to the runner
-    runner["status"] = "restarting"
-    return {"message": f"Runner {runner_id} restart initiated"}
+
 
 @router.post("/{runner_id}/shutdown")
 def shutdown_runner(
     runner_id: str,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
-    db: Session = Depends(get_db),
 ) -> Dict[str, str]:
-    """Shutdown a runner node."""
-    runner = next((r for r in MOCK_RUNNERS if r["id"] == runner_id), None)
-    if not runner:
-        raise HTTPException(status_code=404, detail="Runner not found")
-    
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="runner.shutdown",
-        entity_type="runner",
-        entity_id=runner_id,
+    """Shutdown a runner node — not yet supported by the control plane."""
+    _find_runner(_get_cp_token(request), runner_id)
+    raise HTTPException(
+        status_code=501,
+        detail="Runner shutdown is not supported by the control plane API",
     )
-    
-    # In a real implementation, this would send a shutdown command to the runner
-    runner["status"] = "offline"
-    return {"message": f"Runner {runner_id} shutdown initiated"}
+
 
 @router.delete("/{runner_id}")
 def delete_runner(
     runner_id: str,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
-    db: Session = Depends(get_db),
 ) -> Dict[str, str]:
-    """Delete a runner node."""
-    global MOCK_RUNNERS
-    runner_index = next((i for i, r in enumerate(MOCK_RUNNERS) if r["id"] == runner_id), None)
-    if runner_index is None:
-        raise HTTPException(status_code=404, detail="Runner not found")
-    
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="runner.deleted",
-        entity_type="runner",
-        entity_id=runner_id,
+    """Delete a runner node — not yet supported by the control plane."""
+    _find_runner(_get_cp_token(request), runner_id)
+    raise HTTPException(
+        status_code=501,
+        detail="Runner deletion is not supported by the control plane API",
     )
-    
-    del MOCK_RUNNERS[runner_index]
-    return {"message": f"Runner {runner_id} deleted"}
+
 
 @router.get("/{runner_id}/metrics")
 def get_runner_metrics(
     runner_id: str,
+    request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
-    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
-    """Get detailed metrics for a specific runner."""
-    runner = next((r for r in MOCK_RUNNERS if r["id"] == runner_id), None)
-    if not runner:
-        raise HTTPException(status_code=404, detail="Runner not found")
-    
-    # Return detailed metrics
-    return {
-        "runner_id": runner_id,
-        "timestamp": datetime.utcnow().isoformat(),
-        "cpu_usage": runner["cpu_usage"],
-        "memory_usage": runner["memory_usage"],
-        "disk_usage": runner["disk_usage"],
-        "network_io": {
-            "bytes_in": 1024000,
-            "bytes_out": 512000
-        },
-        "tenant_count": runner["active_tenants"],
-        "uptime": "5d 12h 30m",
-        "load_average": [1.2, 1.5, 1.8]
-    }
+    """Runner-level metrics — not yet exposed by the control plane."""
+    _find_runner(_get_cp_token(request), runner_id)
+    raise HTTPException(
+        status_code=501,
+        detail="Runner metrics are not exposed by the control plane API",
+    )

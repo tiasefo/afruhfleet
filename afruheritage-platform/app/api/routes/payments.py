@@ -1,10 +1,11 @@
 from __future__ import annotations
+import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription
+from app.api.deps import get_current_user, require_tenant_admin, require_active_subscription, require_superuser
 from app.core.structured_logging import get_logger
 from app.db.session import get_db
 from app.models.billing import Payment as BillingPayment
@@ -391,6 +392,84 @@ async def get_payment_statistics(
             status_code=500,
             detail=f"Failed to get payment statistics: {str(e)}"
         )
+
+
+@router.get("/admin")
+def admin_list_payments(
+    tenant_id: str | None = None,
+    status: str | None = None,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """List all platform payments (superuser only)."""
+    q = db.query(BillingPayment)
+    if tenant_id:
+        q = q.filter(BillingPayment.tenant_id == tenant_id)
+    if status:
+        try:
+            q = q.filter(BillingPayment.status == BillingPaymentStatus(status))
+        except ValueError:
+            pass
+    total = q.count()
+    items = (
+        q.order_by(BillingPayment.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
+    return {
+        "payments": [
+            {
+                "id": str(p.id),
+                "reference": p.reference,
+                "tenant_id": str(p.tenant_id),
+                "purpose": p.purpose,
+                "status": p.status.value if p.status else None,
+                "currency": p.currency,
+                "amount": float(p.amount_minor) / 100.0,
+                "provider": p.provider,
+                "created_at": p.created_at.isoformat() if p.created_at else None,
+                "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+            }
+            for p in items
+        ],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+    }
+
+
+@router.get("/admin/{payment_id}")
+def admin_get_payment(
+    payment_id: str,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_superuser),
+):
+    """Get a single payment by id or reference (superuser only)."""
+    q = db.query(BillingPayment).filter(BillingPayment.reference == payment_id)
+    try:
+        q = q.union(
+            db.query(BillingPayment).filter(BillingPayment.id == uuid.UUID(payment_id))
+        )
+    except ValueError:
+        pass
+    p = q.first()
+    if not p:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    return {
+        "id": str(p.id),
+        "reference": p.reference,
+        "tenant_id": str(p.tenant_id),
+        "purpose": p.purpose,
+        "status": p.status.value if p.status else None,
+        "currency": p.currency,
+        "amount": float(p.amount_minor) / 100.0,
+        "provider": p.provider,
+        "created_at": p.created_at.isoformat() if p.created_at else None,
+        "updated_at": p.updated_at.isoformat() if p.updated_at else None,
+    }
 
 
 @router.post("/credits/purchase", response_model=CreditPurchaseResponse)

@@ -134,6 +134,11 @@ if os.path.isdir(static_dir):
         file_path = os.path.join(static_dir, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
+        # Next static export emits route/directory/index.html — resolve it
+        if os.path.isdir(file_path):
+            index_in_dir = os.path.join(file_path, "index.html")
+            if os.path.isfile(index_in_dir):
+                return FileResponse(index_in_dir)
         # Fallback to index.html for client-side routing
         index_path = os.path.join(static_dir, "index.html")
         if os.path.isfile(index_path):
