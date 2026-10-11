@@ -44,6 +44,22 @@ safely during certification. Recommended actions before public pilot:
 The customer UAT guide tells testers to expect mail from this address during the pilot
 so they are not confused.
 
+## Email authentication state — live DNS check (2026-10-10)
+
+| Record | Current value | Assessment |
+|---|---|---|
+| SPF (`afruheritage.com` TXT) | `v=spf1 a mx -all` | Present, strict `-all`. Only the A/MX hosts may send as this domain — the current relay is not covered, which is acceptable while the sender remains `emidentity.com`. Must be revisited when `@afruheritage.com` sending is enabled. |
+| DKIM | No record on standard Zoho selectors (`zoho`, `zmail`, `1522905537106._domainkey`) | Not published. Must be added when the sender domain is provisioned — required for branded delivery and deliverability. |
+| DMARC (`_dmarc.afruheritage.com`) | `v=DMARC1; p=none` | Monitoring-only policy. After DKIM/SPF are in place, move to `p=quarantine` then `p=reject`. |
+| MX | `10 _dc-mx.6ed8126786cc.afruheritage.com` | Zoho domain-control MX — the domain is registered with the provider but outbound sending as `@afruheritage.com` is not authorized. |
+| Actual From address today | `advisory@emidentity.com` (display name "Afruheritage") | Delivers and passes that domain's own authentication. Branding incomplete per PO requirement. |
+
+**Verdict on PO item 1:** delivery of every supported customer email is verified end-to-end,
+and no SPF/DKIM/DMARC record currently *blocks* today's sender. Branded `@afruheritage.com`
+sending is **not operational** — it requires provider-side domain authorization plus DKIM
+publication, tracked as an ops action above. Do not describe branded SMTP as complete
+until those steps land.
+
 ## Not currently sent (registered as Coming Soon)
 
 | Email class | Status |

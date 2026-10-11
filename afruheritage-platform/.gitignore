@@ -30,3 +30,5 @@ prod-ui-cert/.pw-browsers/
 # Huge generated browser artifacts — keep evidence text/screenshots, not binaries
 playwright-evidence/videos/
 playwright-evidence/traces/
+sentinel/static/.uat-handover-key
+sentinel/uat-handover/
