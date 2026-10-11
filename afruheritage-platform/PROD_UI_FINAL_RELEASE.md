@@ -8,13 +8,13 @@ Target: https://afruheritage.com / https://api.afruheritage.com
 
 | Item | Value |
 |---|---|
-| Certified source version | `c65afd18` (release fixes `4e0062ef` + freeze marker) |
+| Certified source version | `7f1cf674` (release fixes `b03fc933` + freeze marker; identical content to original `c65afd18`/`4e0062ef` — SHAs rewritten to drop an oversized evidence video exceeding GitHub's 100 MB limit) |
 | Prior stability certification | `3f94bc25` (`prod-ui-cert/STAB_FREEZE_HEAD.txt`) — 58/63 PASS, all non-PASS intentionally deferred |
 | Final freeze marker | `prod-ui-cert/FINAL_FREEZE_HEAD.txt` |
 | Deployed API/worker source | Bind-mounted working tree — md5-verified identical to committed source (`users.py`, `shipment_service.py` checksums match) |
 | Deployed frontend | `afruheritage-platform-frontend` image rebuilt from certified tree after docs fix; container recreated on `afruheritage-platform_default`; landing + /docs verified live |
 
-No uncommitted application changes remain after `c65afd18`.
+No uncommitted application changes remain after `7f1cf674`.
 
 ## 2. Final targeted Playwright verification (prod-ui-cert/p17-final.js)
 
@@ -56,7 +56,7 @@ Browser errors/timeouts in final run: **0 HTTP 5xx**, 0 case timeouts, 0 navigat
 
 ## 5. Rollback plan
 
-1. `git revert` release commits (`c65afd18`, `4e0062ef`) or `git checkout 3f94bc25 -- afruheritage-platform/app afruheritage-platform/frontend`
+1. `git revert` release commits (`7f1cf674`, `b03fc933`) or `git checkout 3f94bc25 -- afruheritage-platform/app afruheritage-platform/frontend`
 2. `docker restart afruheritage-api afruheritage-worker afruheritage-beat` (source is bind-mounted — restart picks up reverted code)
 3. Rebuild + recreate frontend container as in §4 if frontend reverted
 4. DB: migrations are additive — no rollback needed; `uq_crm_quotes_tenant_number` may be retained safely (strict superset constraint)
