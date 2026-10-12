@@ -369,6 +369,7 @@ Testing website: **{DOMAIN}** · Version 1.0 · {TODAY}
 | `COMING_SOON_REGISTER.md` | Launch exclusions + under-implementation (do not test) |
 | `PO_DECISIONS_REQUIRED.md` | The 12 decisions the Product Owner must rule on |
 | `DELIVERY_GAPS_AND_DEFECTS.md` | Known defects/gaps — these SHOULD be reported |
+| `PHASE1_EVIDENCE.md` | Phase 1 (G-01/G-05/G-08) remediation evidence — verified live 2026-10-12 |
 | `AVAILABLE_FEATURES_REGISTER.md` | 4-tier feature classification |
 | `PRODUCT_CAPABILITY_MATRIX.md` / `.xlsx` | Full capability reconciliation (evidence + PO decisions) |
 | `CUSTOMER_JOURNEY_VERIFICATION_REPORT.md` | Playwright verification record (14/14 PASS) |

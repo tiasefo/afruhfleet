@@ -1,0 +1,48 @@
+{
+  "ts": "2026-10-12T05:12:38.770Z",
+  "ship": "AFR-E2C382-20261012-3DFCC6",
+  "recvBox": "g01recv-mv4spg5yc65e@maxxspace.com",
+  "results": [
+    {
+      "step": "receiver mailbox",
+      "ok": true
+    },
+    {
+      "step": "create shipment w/ receiver_email",
+      "ok": false,
+      "tracking": "AFR-E2C382-20261012-3DFCC6"
+    },
+    {
+      "step": "cross-tenant transition blocked",
+      "ok": true,
+      "got": 403
+    },
+    {
+      "step": "owner transition",
+      "ok": true,
+      "got": 200
+    },
+    {
+      "step": "receiver email delivered",
+      "ok": true,
+      "subject": "UATCERT Kestrel Logistics 1 — Shipment Update: AFR-E2C382-20261012-3DFCC6"
+    },
+    {
+      "step": "tenant email delivered",
+      "ok": true,
+      "subject": "UATCERT Kestrel Logistics 1 — Shipment Update: AFR-E2C382-20261012-3DFCC6"
+    },
+    {
+      "step": "email contains public track link",
+      "ok": true,
+      "links": [
+        "https://afruheritage.com/track?tracking_number=AFR-E2C382-20261012-3DFCC6"
+      ]
+    },
+    {
+      "step": "malformed shipment id controlled",
+      "ok": true,
+      "got": 400
+    }
+  ]
+}

@@ -340,7 +340,7 @@ class NotificationService:
                 Your shipment <strong>{tracking_number}</strong> has been updated to: <strong>{status}</strong>
             </p>
             <div style="margin: 32px 0;">
-                <a href="https://app.afruheritage.com/track/{tracking_number}"
+                <a href="https://afruheritage.com/track?tracking_number={tracking_number}"
                    style="background: #0ea5e9; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
                     Track Shipment
                 </a>
@@ -358,7 +358,7 @@ class NotificationService:
                 Great news! Your shipment <strong>{tracking_number}</strong> has been successfully delivered.
             </p>
             <div style="margin: 32px 0;">
-                <a href="https://app.afruheritage.com/track/{tracking_number}"
+                <a href="https://afruheritage.com/track?tracking_number={tracking_number}"
                    style="background: #16a34a; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: 600;">
                     View Details
                 </a>
@@ -479,7 +479,7 @@ class NotificationService:
 
     # SMS notifications (for critical updates)
     def send_shipment_status_sms(self, to_phone: str, tracking_number: str, status: str) -> bool:
-        message = f"Afruheritage: Shipment {tracking_number} updated to {status}. Track: app.afruheritage.com/track/{tracking_number}"
+        message = f"Afruheritage: Shipment {tracking_number} updated to {status}. Track: https://afruheritage.com/track?tracking_number={tracking_number}"
         try:
             send_sms(to_phone, message)
             return True

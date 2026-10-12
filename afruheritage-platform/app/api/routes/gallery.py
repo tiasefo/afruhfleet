@@ -16,6 +16,7 @@ from app.db.session import get_db
 from app.models.gallery import GalleryPost, MediaType
 from app.models.shipment import GroupMember, GroupMemberRole
 from app.models.user import User
+from app.api.params import uuid_or_400
 
 router = APIRouter(prefix="/gallery", tags=["Gallery"])
 
@@ -120,7 +121,7 @@ async def get_gallery_post(
     current_user: User = Depends(require_active_subscription),
 ):
     """Get a specific gallery post. Superusers can access any post, tenant admins only their tenant's posts."""
-    query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
+    query = select(GalleryPost).where(GalleryPost.id == uuid_or_400(post_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only access their tenant's posts
@@ -141,7 +142,7 @@ async def update_gallery_post(
     current_user: User = Depends(require_active_subscription),
 ):
     """Update a gallery post. Superusers can update any post, tenant admins only their tenant's posts."""
-    query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
+    query = select(GalleryPost).where(GalleryPost.id == uuid_or_400(post_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only update their tenant's posts
@@ -174,7 +175,7 @@ async def delete_gallery_post(
     current_user: User = Depends(require_active_subscription),
 ):
     """Delete a gallery post. Superusers can delete any post, tenant admins only their tenant's posts."""
-    query = select(GalleryPost).where(GalleryPost.id == uuid.UUID(post_id))
+    query = select(GalleryPost).where(GalleryPost.id == uuid_or_400(post_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only delete their tenant's posts

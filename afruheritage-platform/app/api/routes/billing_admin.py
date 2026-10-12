@@ -15,6 +15,7 @@ from app.models.billing import Subscription, Plan, PlanCode, SubscriptionStatus,
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.user import User
 from app.models.saas_subscription import SaaSPlan, SaaSAddon, TenantSubscription
+from app.api.params import uuid_or_400
 
 router = APIRouter(prefix="/admin/billing", tags=["Billing Admin"])
 
@@ -307,7 +308,7 @@ def update_plan(
     _: User = Depends(require_superuser),
 ):
     """Update a billing plan (admin only)."""
-    plan = db.scalar(select(Plan).where(Plan.id == uuid.UUID(plan_id)))
+    plan = db.scalar(select(Plan).where(Plan.id == uuid_or_400(plan_id)))
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
@@ -335,7 +336,7 @@ def delete_plan(
     _: User = Depends(require_superuser),
 ):
     """Delete a SaaS plan (admin only)."""
-    plan = db.scalar(select(SaaSPlan).where(SaaSPlan.id == uuid.UUID(plan_id)))
+    plan = db.scalar(select(SaaSPlan).where(SaaSPlan.id == uuid_or_400(plan_id)))
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
@@ -383,7 +384,7 @@ def update_addon(
     _: User = Depends(require_superuser),
 ):
     """Update a SaaS addon (admin only)."""
-    addon = db.scalar(select(SaaSAddon).where(SaaSAddon.id == uuid.UUID(addon_id)))
+    addon = db.scalar(select(SaaSAddon).where(SaaSAddon.id == uuid_or_400(addon_id)))
     if not addon:
         raise HTTPException(status_code=404, detail="Addon not found")
     
@@ -403,7 +404,7 @@ def delete_addon(
     _: User = Depends(require_superuser),
 ):
     """Delete a SaaS addon (admin only)."""
-    addon = db.scalar(select(SaaSAddon).where(SaaSAddon.id == uuid.UUID(addon_id)))
+    addon = db.scalar(select(SaaSAddon).where(SaaSAddon.id == uuid_or_400(addon_id)))
     if not addon:
         raise HTTPException(status_code=404, detail="Addon not found")
     
@@ -594,11 +595,11 @@ def change_subscription_plan(
     _: User = Depends(require_superuser),
 ):
     """Change subscription plan (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid_or_400(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
-    plan = db.scalar(select(Plan).where(Plan.id == uuid.UUID(data.plan_id)))
+    plan = db.scalar(select(Plan).where(Plan.id == uuid_or_400(data.plan_id)))
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     
@@ -616,7 +617,7 @@ def pause_subscription(
     _: User = Depends(require_superuser),
 ):
     """Pause subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid_or_400(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
@@ -635,7 +636,7 @@ def resume_subscription(
     _: User = Depends(require_superuser),
 ):
     """Resume subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid_or_400(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
@@ -655,7 +656,7 @@ def cancel_subscription(
     _: User = Depends(require_superuser),
 ):
     """Cancel subscription (admin only)."""
-    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid.UUID(subscription_id)))
+    subscription = db.scalar(select(Subscription).where(Subscription.id == uuid_or_400(subscription_id)))
     if not subscription:
         raise HTTPException(status_code=404, detail="Subscription not found")
     
@@ -811,7 +812,7 @@ def get_promotion(
     _: User = Depends(require_superuser),
 ):
     """Get a promotion by ID (admin only)."""
-    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid_or_400(promotion_id)))
     if not promotion:
         raise HTTPException(status_code=404, detail="Promotion not found")
     return promotion
@@ -825,7 +826,7 @@ def update_promotion(
     _: User = Depends(require_superuser),
 ):
     """Update a promotion (admin only)."""
-    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid_or_400(promotion_id)))
     if not promotion:
         raise HTTPException(status_code=404, detail="Promotion not found")
     
@@ -863,7 +864,7 @@ def activate_promotion(
     _: User = Depends(require_superuser),
 ):
     """Activate a promotion (admin only)."""
-    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid_or_400(promotion_id)))
     if not promotion:
         raise HTTPException(status_code=404, detail="Promotion not found")
     
@@ -881,7 +882,7 @@ def deactivate_promotion(
     _: User = Depends(require_superuser),
 ):
     """Deactivate a promotion (admin only)."""
-    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid_or_400(promotion_id)))
     if not promotion:
         raise HTTPException(status_code=404, detail="Promotion not found")
     
@@ -899,7 +900,7 @@ def delete_promotion(
     _: User = Depends(require_superuser),
 ):
     """Delete a promotion (admin only)."""
-    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid.UUID(promotion_id)))
+    promotion = db.scalar(select(Promotion).where(Promotion.id == uuid_or_400(promotion_id)))
     if not promotion:
         raise HTTPException(status_code=404, detail="Promotion not found")
     

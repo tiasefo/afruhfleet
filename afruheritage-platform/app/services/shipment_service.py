@@ -261,6 +261,7 @@ def _extract_live_shipment_payload(payload: Any, tracking_number: str) -> dict[s
         "sender_phone": _pick_first(payload, "sender_phone", "shipper_phone", "senderPhone", "shipperPhone"),
         "receiver_name": receiver_name,
         "receiver_phone": _pick_first(payload, "receiver_phone", "consignee_phone", "receiverPhone", "consigneePhone"),
+        "receiver_email": _pick_first(payload, "receiver_email", "consignee_email", "receiverEmail", "consigneeEmail"),
         "origin_country": origin_country,
         "origin_city": origin_city,
         "destination_country": destination_country,
@@ -350,6 +351,7 @@ def _serialize_live_shipment_payload(shipment: Shipment) -> dict[str, Any]:
         "sender_phone": shipment.sender_phone,
         "receiver_name": shipment.receiver_name,
         "receiver_phone": shipment.receiver_phone,
+        "receiver_email": shipment.receiver_email,
         "origin_country": shipment.origin_country,
         "origin_city": shipment.origin_city,
         "destination_country": shipment.destination_country,
@@ -630,6 +632,7 @@ def create_shipment(db: Session, tenant_id: str, **kw: Any) -> Shipment:
         sender_address=kw.get("sender_address"),
         receiver_name=kw["receiver_name"],
         receiver_phone=kw.get("receiver_phone"),
+        receiver_email=kw.get("receiver_email"),
         receiver_address=kw.get("receiver_address"),
         origin_country=kw.get("origin_country"),
         origin_city=kw.get("origin_city"),
@@ -895,6 +898,40 @@ def public_track_shipment(db: Session, tenant_id: str, tracking_number: str) -> 
     ).first()
 
 
+def notify_shipment_status_change(db: Session, shipment: Shipment, event_type: str) -> None:
+    """Notify the tenant contact and the shipment receiver of a status change.
+
+    Both the logistics company (tenant.contact_email) and the shipment customer
+    (shipment.receiver_email, when present) are notified — see PO decision D-03.
+    Delivery failures are logged and never fail the status transition.
+    """
+    tenant = db.query(Tenant).filter(Tenant.id == shipment.tenant_id).first()
+    if not tenant:
+        return
+    recipients = []
+    for addr in (tenant.contact_email, shipment.receiver_email):
+        if addr and "@" in addr and addr not in recipients:
+            recipients.append(addr)
+    if event_type not in ["created", "booked"]:
+        for to in recipients:
+            try:
+                if event_type == ShipmentStatus.DELIVERED.value:
+                    notification_service.send_shipment_delivered_email(
+                        to=to,
+                        tracking_number=shipment.tracking_number,
+                        company_name=tenant.company_name,
+                    )
+                else:
+                    notification_service.send_shipment_status_update_email(
+                        to=to,
+                        tracking_number=shipment.tracking_number,
+                        status=event_type,
+                        company_name=tenant.company_name,
+                    )
+            except Exception as e:
+                logger.error("Failed to send %s notification to %s: %s", event_type, to, e)
+
+
 def add_shipment_event(
     db: Session,
     shipment_id: str,
@@ -943,29 +980,7 @@ def add_shipment_event(
             db.commit()
             db.refresh(shipment)
 
-        tenant = db.query(Tenant).filter(Tenant.id == shipment.tenant_id).first()
-        # Notify for delivered status
-        if event_type == ShipmentStatus.DELIVERED.value and tenant:
-            try:
-                notification_service.send_shipment_delivered_email(
-                    to=tenant.contact_email,
-                    tracking_number=shipment.tracking_number,
-                    company_name=tenant.company_name
-                )
-            except Exception as e:
-                logger.error("Failed to send delivered notification: %s", e)
-        
-        # Notify for other status updates (excluding creation)
-        elif event_type not in ["created", "booked"] and tenant:
-            try:
-                notification_service.send_shipment_status_update_email(
-                    to=tenant.contact_email,
-                    tracking_number=shipment.tracking_number,
-                    status=event_type,
-                    company_name=tenant.company_name
-                )
-            except Exception as e:
-                logger.error("Failed to send status update notification: %s", e)
+        notify_shipment_status_change(db, shipment, event_type)
 
         enqueue_shipment_event_runtime_sync(
             shipment,

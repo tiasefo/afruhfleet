@@ -17,6 +17,7 @@ class ShipmentCreate(BaseModel):
 
     receiver_name: str = Field(min_length=1, max_length=255)
     receiver_phone: str | None = None
+    receiver_email: str | None = Field(default=None, max_length=255)
     receiver_address: str | None = None
 
     origin_country: str | None = None
@@ -54,6 +55,7 @@ class ShipmentUpdate(BaseModel):
     sender_address: str | None = None
     receiver_name: str | None = None
     receiver_phone: str | None = None
+    receiver_email: str | None = None
     receiver_address: str | None = None
     origin_country: str | None = None
     origin_city: str | None = None
@@ -171,6 +173,7 @@ class ShipmentResponse(BaseModel):
     sender_phone: str | None = None
     receiver_name: str
     receiver_phone: str | None = None
+    receiver_email: str | None = None
     origin_country: str | None = None
     origin_city: str | None = None
     destination_country: str | None = None

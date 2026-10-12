@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from sentinel_app.api.deps import get_current_admin, require_super_admin
+from sentinel_app.api.validation import uuid_param_or_400
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.models.feature_control import (
@@ -14,6 +15,7 @@ from sentinel_app.models.feature_control import (
     GlobalFeatureFlag,
     TenantFeatureAssignment,
 )
+from sentinel_app.services.audit_service import record_admin_audit
 from sentinel_app.schemas.feature_control import (
     ControlCenterSummary,
     FeatureDefinition,
@@ -249,6 +251,14 @@ def update_feature(
         setattr(item, key, value)
     db.commit()
     db.refresh(item)
+    record_admin_audit(
+        db,
+        admin_email=current_user.email,
+        action="control_center.feature_updated",
+        entity_type="feature_flag",
+        entity_id=feature_code,
+        details=data,
+    )
     return FeatureFlagResponse(
         id=str(item.id),
         feature_code=item.feature_code,
@@ -269,6 +279,7 @@ def create_tenant_assignment(
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(require_super_admin),
 ):
+    request.tenant_id = uuid_param_or_400(request.tenant_id, "tenant_id")
     existing = (
         db.query(TenantFeatureAssignment)
         .filter(
@@ -289,6 +300,14 @@ def create_tenant_assignment(
     db.add(obj)
     db.commit()
     db.refresh(obj)
+    record_admin_audit(
+        db,
+        admin_email=current_user.email,
+        action="control_center.tenant_assignment_created",
+        entity_type="tenant_feature_assignment",
+        entity_id=str(obj.id),
+        details={"tenant_id": obj.tenant_id, "feature_code": obj.feature_code, "enabled": obj.enabled},
+    )
     return TenantFeatureAssignmentResponse(
         id=str(obj.id),
         tenant_id=obj.tenant_id,
@@ -336,6 +355,7 @@ def update_tenant_assignment(
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(require_super_admin),
 ):
+    assignment_id = uuid_param_or_400(assignment_id, "assignment_id")
     item = db.query(TenantFeatureAssignment).filter(TenantFeatureAssignment.id == assignment_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Assignment not found")
@@ -344,6 +364,14 @@ def update_tenant_assignment(
         setattr(item, key, value)
     db.commit()
     db.refresh(item)
+    record_admin_audit(
+        db,
+        admin_email=current_user.email,
+        action="control_center.tenant_assignment_updated",
+        entity_type="tenant_feature_assignment",
+        entity_id=assignment_id,
+        details=data,
+    )
     return TenantFeatureAssignmentResponse(
         id=str(item.id),
         tenant_id=item.tenant_id,
@@ -362,9 +390,18 @@ def delete_tenant_assignment(
     db: Session = Depends(get_db),
     current_user: AdminUser = Depends(require_super_admin),
 ):
+    assignment_id = uuid_param_or_400(assignment_id, "assignment_id")
     item = db.query(TenantFeatureAssignment).filter(TenantFeatureAssignment.id == assignment_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Assignment not found")
     db.delete(item)
     db.commit()
+    record_admin_audit(
+        db,
+        admin_email=current_user.email,
+        action="control_center.tenant_assignment_deleted",
+        entity_type="tenant_feature_assignment",
+        entity_id=assignment_id,
+        details={"tenant_id": item.tenant_id, "feature_code": item.feature_code},
+    )
     return {"detail": "Assignment deleted"}

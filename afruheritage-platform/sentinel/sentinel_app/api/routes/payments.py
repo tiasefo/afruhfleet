@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from sentinel_app.api.deps import get_current_admin
+from sentinel_app.api.validation import uuid_param_or_400
+from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
+from sentinel_app.services.audit_service import audited_admin_mutation
 import sentinel_app.services.control_plane_client as cp
 
 router = APIRouter(prefix="/payments", tags=["Admin – Payments"])
@@ -43,6 +47,7 @@ def get_payment(
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    payment_id = uuid_param_or_400(payment_id, "payment_id")
     try:
         return cp.get_admin_payment(_get_cp_token(request), payment_id)
     except cp.ControlPlaneError as exc:
@@ -63,9 +68,17 @@ def create_manual_payment(
     payload: ManualPaymentPayload,
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
 ):
     try:
-        return cp.create_manual_payment(_get_cp_token(request), payload.model_dump())
+        return audited_admin_mutation(
+            db,
+            admin_email=current_admin.email,
+            action="payment.manual_created",
+            entity_type="payment",
+            details=payload.model_dump(),
+            operation=lambda: cp.create_manual_payment(_get_cp_token(request), payload.model_dump()),
+        )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
@@ -82,9 +95,19 @@ def refund_payment(
     payload: RefundPayload,
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
 ):
+    payment_id = uuid_param_or_400(payment_id, "payment_id")
     try:
-        return cp.refund_payment(_get_cp_token(request), payment_id, payload.model_dump())
+        return audited_admin_mutation(
+            db,
+            admin_email=current_admin.email,
+            action="payment.refunded",
+            entity_type="payment",
+            entity_id=payment_id,
+            details=payload.model_dump(),
+            operation=lambda: cp.refund_payment(_get_cp_token(request), payment_id, payload.model_dump()),
+        )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
@@ -101,9 +124,19 @@ def handle_dispute(
     payload: DisputePayload,
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
 ):
+    payment_id = uuid_param_or_400(payment_id, "payment_id")
     try:
-        return cp.handle_dispute(_get_cp_token(request), payment_id, payload.model_dump())
+        return audited_admin_mutation(
+            db,
+            admin_email=current_admin.email,
+            action="payment.dispute_handled",
+            entity_type="payment",
+            entity_id=payment_id,
+            details=payload.model_dump(),
+            operation=lambda: cp.handle_dispute(_get_cp_token(request), payment_id, payload.model_dump()),
+        )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
@@ -114,6 +147,7 @@ def check_payment_status(
     request: Request,
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    payment_id = uuid_param_or_400(payment_id, "payment_id")
     try:
         return cp.check_payment_status(_get_cp_token(request), payment_id)
     except cp.ControlPlaneError as exc:

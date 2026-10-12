@@ -16,6 +16,7 @@ from app.schemas.auth import BootstrapAdminRequest, LoginRequest, PasswordResetC
 from app.services.signup_onboarding_service import ensure_user_tenant_context
 from app.services.billing_service import normalize_plan_code
 from app.services.notification_service import NotificationService
+from app.api.params import uuid_or_400
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -205,7 +206,7 @@ def session(request: Request, db: Session = Depends(get_db)) -> dict:
         sub = payload.get('sub')
         if not sub:
             return {'authenticated': False, 'user': None}
-        user = db.get(User, uuid.UUID(str(sub)))
+        user = db.get(User, uuid_or_400(str(sub)))
         if not user or not user.is_active:
             return {'authenticated': False, 'user': None}
         return {

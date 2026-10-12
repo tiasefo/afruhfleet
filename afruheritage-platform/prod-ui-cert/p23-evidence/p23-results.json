@@ -1,0 +1,24 @@
+[
+  {
+    "step": "owner login",
+    "ok": true,
+    "url": "https://afruheritage.com/dashboard"
+  },
+  {
+    "step": "receiver email field in create form",
+    "ok": true,
+    "count": 1
+  },
+  {
+    "step": "shipments list renders",
+    "ok": true
+  },
+  {
+    "step": "public track resolves shipment",
+    "ok": true
+  },
+  {
+    "step": "dashboard renders",
+    "ok": true
+  }
+]

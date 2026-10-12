@@ -23,6 +23,13 @@ def _resolve_tenant_uuid(db: Session, tenant_identifier: str) -> str:
             return str(tenant.id)
         raise HTTPException(status_code=422, detail='Invalid tenant_id. Provide a valid tenant UUID or known tenant slug.')
 
+def _parse_ticket_id(ticket_id: str) -> str:
+    try:
+        return str(UUID(str(ticket_id)))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=400, detail='Invalid ticket_id: expected a UUID')
+
+
 @router.post('/accounts', response_model=CRMAccountResponse)
 def create_account(request: CRMAccountCreateRequest, tenant_id: str | None = Query(default=None), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
@@ -261,6 +268,7 @@ def list_tenant_tickets(
 def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket_id = _parse_ticket_id(ticket_id)
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')
@@ -272,6 +280,7 @@ def list_tenant_ticket_messages(ticket_id: str, db: Session=Depends(get_db), cur
 def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket_id = _parse_ticket_id(ticket_id)
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')
@@ -287,6 +296,7 @@ def reply_tenant_ticket(ticket_id: str, request: TicketReplyRequest, db: Session
 def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
     if not current_user.tenant_id:
         raise HTTPException(status_code=403, detail='No tenant context.')
+    ticket_id = _parse_ticket_id(ticket_id)
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.tenant_id == str(current_user.tenant_id)).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')
@@ -301,6 +311,7 @@ def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends
 
 @router.patch('/admin/tickets/{ticket_id}/status', response_model=dict)
 def update_admin_ticket_status(ticket_id: str, status: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+    ticket_id = _parse_ticket_id(ticket_id)
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail='Ticket not found')

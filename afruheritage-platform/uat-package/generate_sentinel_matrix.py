@@ -91,8 +91,8 @@ ROWS = [
      "Needs CP tenant-flag endpoints (global flags only today)", "MISSING"),
     ("Audit coverage", "Admin action audit trail",
      "admin_audit_logs table",
-     "Only admin.login + runners.listed audited; CP-proxied mutations (KYC approve, flag toggle, ticket status, tenant actions) write no audit row",
-     "Needs audit middleware/decorator on all sentinel write routes", "PARTIAL"),
+     "audited_admin_mutation on all sentinel write routes (tickets, KYC, flags, payments, control-center) — verified rows with actor/entity/outcome incl. error outcomes",
+     "Done 2026-10-12 — PHASE1_EVIDENCE.md", "WORKING"),
     ("Flag-state consistency", "Global flags vs deferred features",
      "marketplace_enabled, vendor_registration = enabled",
      "Deferred features' global flags are enabled — inert today (no customer nav) but inconsistent with Coming Soon register",
@@ -144,7 +144,7 @@ def main():
     # Summary sheet
     ws2 = wb.create_sheet("Summary")
     verified = sum(1 for r in ROWS if "WORKING" in r[5])
-    gaps = [r for r in ROWS if "GAP" in r[5]]
+    gaps = [r for r in ROWS if "WORKING" not in r[5]]
     ws2.append(["Metric", "Value"])
     ws2.append(["Pages/capabilities inventoried", len(ROWS)])
     ws2.append(["Verified working through real browser UI", verified])

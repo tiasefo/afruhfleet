@@ -322,7 +322,11 @@ def review_kyc_submission(
     if action not in valid_actions:
         raise HTTPException(status_code=400, detail=f'action must be one of {sorted(valid_actions)}')
 
-    row = db.query(KYCSubmission).filter_by(id=uuid.UUID(submission_id)).first()
+    try:
+        submission_uuid = uuid.UUID(submission_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail='Invalid submission_id: expected a UUID')
+    row = db.query(KYCSubmission).filter_by(id=submission_uuid).first()
     if not row:
         raise HTTPException(status_code=404, detail='KYC submission not found')
 
@@ -341,7 +345,11 @@ def approve_kyc_submission(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
 ):
-    row = db.query(KYCSubmission).filter_by(id=uuid.UUID(kyc_id)).first()
+    try:
+        kyc_uuid = uuid.UUID(kyc_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail='Invalid kyc_id: expected a UUID')
+    row = db.query(KYCSubmission).filter_by(id=kyc_uuid).first()
     if not row:
         raise HTTPException(status_code=404, detail='KYC submission not found')
     row.status = KYCStatus.approved
@@ -357,7 +365,11 @@ def revoke_kyc_submission(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_superuser),
 ):
-    row = db.query(KYCSubmission).filter_by(id=uuid.UUID(kyc_id)).first()
+    try:
+        kyc_uuid = uuid.UUID(kyc_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail='Invalid kyc_id: expected a UUID')
+    row = db.query(KYCSubmission).filter_by(id=kyc_uuid).first()
     if not row:
         raise HTTPException(status_code=404, detail='KYC submission not found')
     row.status = KYCStatus.rejected

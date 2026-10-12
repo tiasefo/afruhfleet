@@ -27,6 +27,7 @@ from app.core.config import settings
 from app.services.paystack_client import verify_webhook_signature
 from app.services.paypal_client import verify_webhook_signature as verify_paypal_webhook_signature
 from app.services.platform_payment_service import get_platform_payment_service
+from app.api.params import uuid_or_400
 
 logger = get_logger("afruheritage.payments_api")
 
@@ -451,7 +452,7 @@ def admin_get_payment(
     q = db.query(BillingPayment).filter(BillingPayment.reference == payment_id)
     try:
         q = q.union(
-            db.query(BillingPayment).filter(BillingPayment.id == uuid.UUID(payment_id))
+            db.query(BillingPayment).filter(BillingPayment.id == uuid_or_400(payment_id))
         )
     except ValueError:
         pass

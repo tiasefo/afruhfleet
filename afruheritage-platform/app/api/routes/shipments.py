@@ -45,6 +45,7 @@ from app.services.shipment_service import (
     import_shipments_csv,
     merge_tracking_events,
     list_group_members,
+    notify_shipment_status_change,
     public_track_shipment,
     search_shipments,
     enqueue_shipment_runtime_sync,
@@ -108,17 +109,19 @@ def transition_shipment_status_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
     try:
         shipment.status = ShipmentStatus(status)
-        db.commit()
-        db.refresh(shipment)
-        enqueue_shipment_runtime_sync(shipment)
-    except Exception as e:
+    except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+    db.commit()
+    db.refresh(shipment)
+    notify_shipment_status_change(db, shipment, status)
+    enqueue_shipment_runtime_sync(shipment)
 
     return _to_response(shipment)
 
@@ -213,6 +216,7 @@ def create_shipment_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     data = payload.model_dump()
     data["created_by"] = current_user.email
@@ -231,6 +235,7 @@ def search_shipments_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     items, total = search_shipments(
         db, tenant_id, query=q, status=status, payment_status=payment_status,
         page=page, page_size=page_size,
@@ -263,6 +268,7 @@ def shipment_dashboard_summary_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     shipments = db.query(Shipment).filter(Shipment.tenant_id == tenant_id).all()
 
     in_transit_statuses = {
@@ -347,6 +353,7 @@ def create_member_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     member = create_group_member(db, tenant_id, **payload.model_dump())
     return _member_to_response(db, member)
@@ -361,6 +368,7 @@ def list_members_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     items, total = list_group_members(db, tenant_id, query=q, page=page, page_size=page_size)
     pages = max(1, (total + page_size - 1) // page_size)
     return {
@@ -379,6 +387,7 @@ def get_member_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     member = get_group_member(db, member_id, tenant_id)
     if not member:
         raise HTTPException(status_code=404, detail="Group member not found")
@@ -393,6 +402,7 @@ def update_member_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     member = update_group_member(db, member_id, tenant_id, **payload.model_dump(exclude_unset=True))
     if not member:
@@ -408,6 +418,7 @@ def list_member_shipments(
     current_user: User = Depends(require_active_subscription),
 ):
     """List all shipments assigned to a specific group member."""
+    _assert_tenant_scope(tenant_id, current_user)
     member = get_group_member(db, member_id, tenant_id)
     if not member:
         raise HTTPException(status_code=404, detail="Group member not found")
@@ -451,6 +462,7 @@ def get_shipment_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
@@ -466,6 +478,7 @@ def update_shipment_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     shipment = update_shipment(db, shipment_id, tenant_id, **payload.model_dump(exclude_unset=True))
     if not shipment:
@@ -483,6 +496,7 @@ def assign_shipment_route(
     admin: User = Depends(require_tenant_admin),
 ):
     """Assign a driver and/or vehicle to a shipment (tenant admin only)."""
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     updates = payload.model_dump()
     shipment = update_shipment(db, shipment_id, tenant_id, **updates)
@@ -512,6 +526,7 @@ def add_event_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -545,6 +560,7 @@ def update_location_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     shipment = update_shipment_location(
         db,
@@ -572,6 +588,7 @@ def ingest_tracking_point_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     accepted, reason, point = ingest_tracking_point(
         db,
@@ -618,6 +635,7 @@ def latest_tracking_point_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
@@ -635,6 +653,7 @@ def tracking_history_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
@@ -680,6 +699,7 @@ def get_events_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
@@ -794,6 +814,7 @@ def upload_shipment_image(
     can be displayed on the bidding dashboard.
     Accepts: image/jpeg, image/png, image/webp, image/gif  (max 10 MB)
     """
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
@@ -843,6 +864,7 @@ def import_csv_route(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_tenant_admin),
 ):
+    _assert_tenant_scope(tenant_id, current_user)
     _ensure_tenant_writable(tenant_id)
     if not file.filename or not (file.filename.endswith(".csv") or file.filename.endswith(".xlsx")):
         raise HTTPException(status_code=400, detail="Only .csv and .xlsx files are accepted")
@@ -871,6 +893,7 @@ def _to_response(s, live_snapshot: dict | None = None) -> ShipmentResponse:
         sender_phone=_live_value(live_snapshot, "sender_phone", s.sender_phone),
         receiver_name=_live_value(live_snapshot, "receiver_name", s.receiver_name),
         receiver_phone=_live_value(live_snapshot, "receiver_phone", s.receiver_phone),
+        receiver_email=getattr(s, "receiver_email", None),
         origin_country=_live_value(live_snapshot, "origin_country", s.origin_country),
         origin_city=_live_value(live_snapshot, "origin_city", s.origin_city),
         destination_country=_live_value(live_snapshot, "destination_country", s.destination_country),
@@ -970,6 +993,26 @@ def _ensure_tenant_writable(tenant_id: str) -> None:
     read_only, reason = is_tenant_read_only(tenant_id)
     if read_only:
         raise HTTPException(status_code=402, detail=reason or "Tenant is in read-only mode")
+
+
+def _assert_tenant_scope(tenant_id: str, current_user: User) -> None:
+    """Reject requests whose path tenant does not match the caller's tenant.
+
+    Superusers (platform admins) may act across tenants. Tenant users may only
+    address their own tenant_id in the path — anything else is forbidden,
+    regardless of whether the underlying record exists.
+    """
+    if current_user.is_superuser:
+        return
+
+    def _norm(value: object) -> str | None:
+        try:
+            return str(UUID(str(value)))
+        except (ValueError, TypeError, AttributeError):
+            return str(value) if value is not None else None
+
+    if _norm(current_user.tenant_id) != _norm(tenant_id):
+        raise HTTPException(status_code=403, detail="Forbidden: tenant scope mismatch")
 
 
 def _resolve_public_tenant_id(db: Session, tenant_identifier: str) -> str | None:

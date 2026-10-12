@@ -13,6 +13,7 @@ from app.api.deps import get_current_user, require_tenant_admin, require_superus
 from app.db.session import get_db
 from app.models.new_arrivals import NewArrival, NewArrivalStatus
 from app.models.user import User
+from app.api.params import uuid_or_400
 
 router = APIRouter(prefix="/new-arrivals", tags=["New Arrivals"])
 
@@ -149,7 +150,7 @@ async def get_new_arrival(
     current_user: User = Depends(require_active_subscription),
 ):
     """Get a specific new arrival. Superusers can access any, tenant admins only their tenant's."""
-    query = select(NewArrival).where(NewArrival.id == uuid.UUID(arrival_id))
+    query = select(NewArrival).where(NewArrival.id == uuid_or_400(arrival_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only access their tenant's arrivals
@@ -170,7 +171,7 @@ async def update_new_arrival(
     current_user: User = Depends(require_tenant_admin),
 ):
     """Update a new arrival. Superusers can update any, tenant admins only their tenant's."""
-    query = select(NewArrival).where(NewArrival.id == uuid.UUID(arrival_id))
+    query = select(NewArrival).where(NewArrival.id == uuid_or_400(arrival_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only update their tenant's arrivals
@@ -217,7 +218,7 @@ async def delete_new_arrival(
     current_user: User = Depends(require_tenant_admin),
 ):
     """Delete a new arrival. Superusers can delete any, tenant admins only their tenant's."""
-    query = select(NewArrival).where(NewArrival.id == uuid.UUID(arrival_id))
+    query = select(NewArrival).where(NewArrival.id == uuid_or_400(arrival_id))
     
     if not current_user.is_superuser and current_user.tenant_id:
         # Tenant admins can only delete their tenant's arrivals

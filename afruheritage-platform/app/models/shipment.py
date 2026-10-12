@@ -56,6 +56,7 @@ class Shipment(Base):
 
     receiver_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     receiver_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    receiver_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     receiver_address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     origin_country: Mapped[str | None] = mapped_column(String(100), nullable=True)

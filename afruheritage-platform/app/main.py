@@ -21,9 +21,11 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import DataError
 
 from slowapi.errors import RateLimitExceeded
 
@@ -160,6 +162,16 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+
+@app.exception_handler(DataError)
+async def data_error_handler(request: Request, exc: DataError):
+    """Database type/cast failures on request input surface as controlled 400s.
+
+    The typical trigger is a malformed UUID in a path or query parameter being
+    compared against a uuid column — that is a client error, not a server fault.
+    """
+    return JSONResponse(status_code=400, content={"detail": "Malformed identifier or data value in request"})
 
 app.add_middleware(RequestIdMiddleware)
 app.add_middleware(StructuredLoggingMiddleware)

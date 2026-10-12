@@ -1,6 +1,6 @@
 # Afruheritage — Delivery Gaps & Defects Register
 
-**Date:** 2026-10-11
+**Date:** 2026-10-12 (updated after Phase 1 verification)
 **What this is:** Capabilities that are *part of the product* but are broken or
 incomplete today. These are **defects and delivery gaps — not deferred features**.
 Please DO report anything in this list as a defect; that is its purpose.
@@ -14,8 +14,13 @@ Please DO report anything in this list as a defect; that is its purpose.
   status email is ever sent**. Additionally, when it does fire, the recipient is the
   company's contact address — not the person who booked the shipment.
 - **Severity:** High (PO: core gap)
-- **Status:** Defect — fix required. Decision needed: who should receive
-  notifications (company owner, end customer, or both).
+- **Status:** ✅ **FIXED — verified 2026-10-12.** The transition endpoint now calls a
+  shared `notify_shipment_status_change` helper; per D-03 both the tenant contact
+  and `shipment.receiver_email` (new optional field on create form) are notified.
+  Verified: transition → real mail.tm inbox delivery to BOTH recipients, delivered
+  variant via event path, working public `/track?tracking_number=` link in the email,
+  cross-tenant transition → 403, malformed id → 400.
+  Evidence: `prod-ui-cert/p22-g01-results.json`, `p23-evidence/` screenshots+video.
 
 ## G-02 — Central Afruheritage support intake
 
@@ -49,11 +54,16 @@ Please DO report anything in this list as a defect; that is its purpose.
 ## G-05 — Admin actions not fully audited
 
 - **Expected:** Every administrative action is recorded (AGENT.md audit mandate).
-- **Actual:** `admin_audit_logs` captures `admin.login` and `runners.listed` only.
-  Mutations that proxy to the control plane — KYC approvals, feature-flag toggles,
-  ticket status changes, tenant/billing actions — write **no audit row**.
+- **Actual (before fix):** `admin_audit_logs` captured `admin.login`/`runners.listed`
+  only; KYC approvals, flag toggles, ticket status changes, payments and
+  control-center mutations wrote no row.
 - **Severity:** Medium-high (compliance/supportability)
-- **Status:** Gap — audit middleware needed on all Sentinel write routes.
+- **Status:** ✅ **FIXED — verified 2026-10-12.** `audited_admin_mutation` wraps all
+  Sentinel write routes (tickets, KYC, feature flags, payments, control-center
+  assignments); direct-DB mutations audit inline. Verified rows: actor email,
+  action, entity_id, params, outcome=success AND outcome=error (a rejected ticket
+  status also produced a durable audit row).
+  Evidence: `admin_audit_logs` query output in Phase 1 evidence report.
 
 ## G-06 — Tenant-scoped feature flags unimplemented
 
@@ -77,10 +87,14 @@ Please DO report anything in this list as a defect; that is its purpose.
 ## G-08 — Truncated/invalid IDs return HTTP 500
 
 - **Expected:** Bad identifiers return controlled 400/404.
-- **Actual:** Some endpoints (e.g., ticket status PATCH with a malformed UUID)
-  bubble a database error as HTTP 500.
+- **Actual (before fix):** Malformed UUIDs bubbled a database error as HTTP 500 —
+  both through Sentinel proxies and directly on control-plane endpoints.
 - **Severity:** Low (admin paths)
-- **Status:** Defect — input validation hardening.
+- **Status:** ✅ **FIXED — verified 2026-10-12.** Two-layer fix: `uuid_or_400` guards
+  ~20 parse sites (billing admin, payments, gallery, arrivals, tickets, KYC, team,
+  auth), and a global `DataError→400` handler catches bare UUID-column compares.
+  Sentinel validates path params before proxying. Verified: ticket/KYC/payment/
+  shipment malformed IDs all return 400 — never 500.
 
 ## Fixed defects (kept for the record)
 

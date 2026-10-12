@@ -40,7 +40,7 @@ def get_optional_current_user(request: Request, db: Session = Depends(get_db)) -
         token_tenant_id = payload.get('tenant_id')
         if not sub:
             return None
-        user = db.get(User, uuid.UUID(str(sub)))
+        user = db.get(User, uuid_or_400(str(sub)))
         if not user or not user.is_active:
             return None
         if token_tenant_id and str(user.tenant_id) != str(token_tenant_id):
@@ -60,6 +60,7 @@ from app.schemas.team import (
     TeamMemberTokenResponse,
 )
 from app.services.notification_service import NotificationService
+from app.api.params import uuid_or_400
 
 router = APIRouter(prefix='/team', tags=['Team'])
 

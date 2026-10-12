@@ -55,6 +55,7 @@ export default function CreateShipmentPage() {
     // Receiver Info
     receiver_name: '',
     receiver_phone: '',
+    receiver_email: '',
     receiver_address: '',
     receiver_city: '',
     receiver_country: '',
@@ -132,6 +133,7 @@ export default function CreateShipmentPage() {
         volume_cbm: formData.volume_cbm ? parseFloat(formData.volume_cbm) : undefined,
         shipped_date: formData.shipped_date || undefined,
         estimated_arrival: formData.estimated_arrival || undefined,
+        receiver_email: formData.receiver_email || undefined,
         group_member_id: formData.group_member_id || undefined,
       }
 
@@ -425,6 +427,17 @@ export default function CreateShipmentPage() {
                     value={formData.receiver_phone}
                     onChange={(e) => handleInputChange('receiver_phone', e.target.value)}
                     placeholder="Enter phone number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Receiver Email
+                  </label>
+                  <Input
+                    type="email"
+                    value={formData.receiver_email}
+                    onChange={(e) => handleInputChange('receiver_email', e.target.value)}
+                    placeholder="Receiver gets shipment status updates"
                   />
                 </div>
                 <div className="md:col-span-2">

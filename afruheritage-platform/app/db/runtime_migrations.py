@@ -234,6 +234,7 @@ def run_runtime_migrations(engine: Engine) -> None:
                 ("driver_name", "VARCHAR(255)"),
                 ("vehicle_public_id", "VARCHAR(100)"),
                 ("vehicle_name", "VARCHAR(255)"),
+                ("receiver_email", "VARCHAR(255)"),
             ):
                 if col_name not in shipment_columns:
                     conn.execute(text(f"ALTER TABLE shipments ADD COLUMN {col_name} {col_type} NULL"))
