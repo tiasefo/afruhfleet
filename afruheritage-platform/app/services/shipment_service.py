@@ -975,12 +975,18 @@ def add_shipment_event(
             ShipmentStatus.RETURNED.value: ShipmentStatus.RETURNED,
             ShipmentStatus.CANCELLED.value: ShipmentStatus.CANCELLED,
         }
-        if event_type in status_map and shipment.status != status_map[event_type]:
+        status_changed = event_type in status_map and shipment.status != status_map[event_type]
+        if status_changed:
             shipment.status = status_map[event_type]
             db.commit()
             db.refresh(shipment)
 
-        notify_shipment_status_change(db, shipment, event_type)
+        # Notify once per logical change: a real status transition, or a
+        # non-status event (note/location update). An event that restates the
+        # current status — retry, double-click, or the transition path having
+        # already notified — sends nothing.
+        if event_type not in status_map or status_changed:
+            notify_shipment_status_change(db, shipment, event_type)
 
         enqueue_shipment_event_runtime_sync(
             shipment,

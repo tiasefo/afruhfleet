@@ -116,3 +116,46 @@ API regression: search, get, events, event-add, public track — all 200.
   for handlers not on that dependency.
 - No production data harmed; all mutations used UAT/test records and were
   restored.
+
+---
+
+## PO-requested negative tests — **all PASS** (2026-10-12, post-review)
+
+**T1 — Notification deduplication.** Both notify call sites now guard on a
+real status change: the transition route compares previous vs. new status,
+and the event path notifies only on a real transition or a non-status event.
+Live results (`p24-neg-results.json`, shipment `AFR-E2C382-20261012-1444F8`):
+
+| Action | Receiver | Tenant |
+|---|---|---|
+| transition → picked_up | 1 email | 1 email |
+| re-transition picked_up (retry/no-op) | +0 | +0 |
+| event restating picked_up | +0 | +0 |
+| event → in_transit (real change) | +1 (2 total) | +1 (2 total) |
+
+One logical change = exactly one notification per intended recipient —
+including when transition and event paths both target the same status.
+
+**T2 — Audit integrity.** `admin_audit_logs` is write-protected through the
+app surface: `PUT/PATCH/DELETE` on the only audit route
+(`/sentinel/diagnostics/audit-logs`) all return **405**; the sole read path
+is GET. Audit-write failure behavior: `_safe_record` catches the DB failure
+and emits `ERROR: Failed to write admin audit log` **with traceback** (verified
+by simulating persistence failure inside the sentinel container) — never
+silent. Design note, surfaced honestly: the current model is *audit-failure-tolerant*
+— the admin mutation proceeds when the audit write fails, with the failure
+loud in logs. A stricter fail-closed mode (mutation blocked when audit is
+unwritable) is a PO-configurable policy change, not a code gap.
+
+**T3 — Recipient isolation.** Tenant A's mailbox received **zero** messages
+about tenant B's shipment across every transition and event in the test —
+verified by polling tenant A's real inbox after each action (counts stayed
+at 0 while B's grew to 2). Recipients are resolved from the shipment's own
+`tenant_id` and `receiver_email` — there is no code path that can inject a
+foreign tenant's address.
+
+## Documents updated for the PO return
+
+- `G04_OPS_CHECKLIST.md` — precise provider actions to unblock G-04.
+- `VENDOR_AUTH_DESIGN.md` — D-01 identity-linked vendor model (awaiting approval).
+- `TENANT_FEATURE_CONTROLS_DESIGN.md` — D-12 governed tenant overrides (awaiting approval).

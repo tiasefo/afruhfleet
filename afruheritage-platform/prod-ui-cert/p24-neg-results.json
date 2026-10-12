@@ -1,0 +1,57 @@
+{
+  "ts": "2026-10-12T15:29:20.463Z",
+  "tn": "AFR-E2C382-20261012-1444F8",
+  "recv": "p24recv-mv5equy2tsrf@maxxspace.com",
+  "results": [
+    {
+      "t": "transition -> 1 email to receiver",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "transition -> 1 email to tenant",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "tenant A got 0 (isolation)",
+      "ok": true,
+      "got": 0
+    },
+    {
+      "t": "no-op transition -> no duplicate (receiver)",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "no-op transition -> no duplicate (tenant)",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "repeat-status event -> no duplicate (receiver)",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "repeat-status event -> no duplicate (tenant)",
+      "ok": true,
+      "got": 1
+    },
+    {
+      "t": "real event change -> 2 total (receiver)",
+      "ok": true,
+      "got": 2
+    },
+    {
+      "t": "real event change -> 2 total (tenant)",
+      "ok": true,
+      "got": 2
+    },
+    {
+      "t": "tenant A mailbox still zero after all events",
+      "ok": true,
+      "got": 0
+    }
+  ]
+}

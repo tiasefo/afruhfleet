@@ -114,13 +114,16 @@ def transition_shipment_status_route(
     shipment = get_shipment(db, shipment_id, tenant_id)
     if not shipment:
         raise HTTPException(status_code=404, detail="Shipment not found")
+    previous_status = shipment.status
     try:
         shipment.status = ShipmentStatus(status)
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
     db.commit()
     db.refresh(shipment)
-    notify_shipment_status_change(db, shipment, status)
+    # Notify only on a real change — a retried or no-op transition sends nothing.
+    if shipment.status != previous_status:
+        notify_shipment_status_change(db, shipment, status)
     enqueue_shipment_runtime_sync(shipment)
 
     return _to_response(shipment)
