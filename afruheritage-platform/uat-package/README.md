@@ -11,7 +11,13 @@ Testing website: **https://afruheritage.com** · Version 1.0 · October 2026
 | `AFRUHERITAGE_UAT_CHECKLIST.xlsx` | Excel checklist — record PASS / FAIL / BLOCKED, actual results, comments and evidence per test |
 | `AFRUHERITAGE_UAT_DASHBOARD.html` | Clickable light-mode dashboard — same test IDs as the checklist |
 | `AFRUHERITAGE_SMTP_UAT_REPORT.md` | Verified email delivery report (welcome, invitation, password reset, support ticket) |
-| `COMING_SOON_REGISTER.md` | Standalone list of features that are not available yet |
+| `COMING_SOON_REGISTER.md` | Capabilities awaiting PO launch decision (do not test) |
+| `PO_DECISIONS_REQUIRED.md` | The 12 decisions the Product Owner must rule on |
+| `DELIVERY_GAPS_AND_DEFECTS.md` | Known defects/gaps — these SHOULD be reported |
+| `AVAILABLE_FEATURES_REGISTER.md` | 4-tier feature classification |
+| `PRODUCT_CAPABILITY_MATRIX.md` / `.xlsx` | Full capability reconciliation (evidence + PO decisions) |
+| `CUSTOMER_JOURNEY_VERIFICATION_REPORT.md` | Playwright verification record (14/14 PASS) |
+| `SENTINEL_CUSTOMER_ADMIN_GAP_MATRIX.xlsx` | Admin console gap matrix (WORKING/PARTIAL/MISSING) |
 
 ## How the pieces fit together
 

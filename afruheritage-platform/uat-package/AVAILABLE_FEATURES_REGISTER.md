@@ -44,18 +44,25 @@ please report it as a defect.
 | Storefront templates | Only the freight-forwarding templates are publishable. The mall/ecommerce/restaurant/booking/real-estate previews are display-only and cannot be published. |
 | AI help assistant | Under load it may answer from built-in help content instead of the AI model — answers remain correct, just simpler. |
 
-## Tier 3 — Coming Soon (visible but not usable — do not test)
+## Tier 3 — Pending PO launch decision (do not test)
 
-See `COMING_SOON_REGISTER.md` for the full list. In short:
+The former "Coming Soon" register was rejected by the PO. These capabilities await
+explicit Product Owner rulings — see `PO_DECISIONS_REQUIRED.md` (D-01…D-12) and
+`COMING_SOON_REGISTER.md`. In short:
 
-- Vendor marketplace & vendor registration
-- Driver sign-in portal
-- Shipment status email notifications
-- Warehouse operations
-- Dedicated analytics dashboards
-- Advanced CRM activity workflows
-- Additional storefront templates (preview only)
-- Mobile apps (web works on mobile browsers today)
+- Vendor marketplace & vendor registration (backend ~80% built — decision D-01)
+- Driver sign-in portal (D-02)
+- Warehouse operations (D-06)
+- Dedicated analytics dashboards (D-07)
+- CRM activity history UI (D-08)
+- Additional storefront templates (D-09)
+- Central platform support intake (D-04)
+- Live payment collection (D-05)
+- Mobile apps (D-11)
+
+**Separately**: known defects and delivery gaps you SHOULD report are in
+`DELIVERY_GAPS_AND_DEFECTS.md` — including shipment update emails, which are a
+defect (G-01), not a deferred feature.
 
 ## Tier 4 — Not offered to that user type (by design)
 

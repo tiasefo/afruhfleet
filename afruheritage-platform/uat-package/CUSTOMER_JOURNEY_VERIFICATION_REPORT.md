@@ -52,7 +52,7 @@ a text check) — not to the product. Corrected retests passed both cases.
 - Emails currently send from `advisory@emidentity.com` ("Afruheritage" display name);
   `@afruheritage.com` sender domain is not yet provisioned on the mail account —
   see `AFRUHERITAGE_SMTP_UAT_REPORT.md`
-- Shipment status notification emails are not sent — registered as Coming Soon
+- Shipment update emails are a defect (G-01): send functions exist but the UI transition path never calls them — see DELIVERY_GAPS_AND_DEFECTS.md
 - Driver records deduplicate globally by phone number (Fleetbase behaviour)
 
 ## Evidence
