@@ -31,4 +31,4 @@ prod-ui-cert/.pw-browsers/
 playwright-evidence/videos/
 playwright-evidence/traces/
 sentinel/static/.uat-handover-key
-sentinel/uat-handover/
+sentinel/static/uat-handover/
