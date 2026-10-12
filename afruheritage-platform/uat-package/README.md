@@ -11,7 +11,8 @@ Testing website: **https://afruheritage.com** · Version 1.0 · October 2026
 | `AFRUHERITAGE_UAT_CHECKLIST.xlsx` | Excel checklist — record PASS / FAIL / BLOCKED, actual results, comments and evidence per test |
 | `AFRUHERITAGE_UAT_DASHBOARD.html` | Clickable light-mode dashboard — same test IDs as the checklist |
 | `AFRUHERITAGE_SMTP_UAT_REPORT.md` | Verified email delivery report (welcome, invitation, password reset, support ticket) |
-| `COMING_SOON_REGISTER.md` | Capabilities awaiting PO launch decision (do not test) |
+| `LAUNCH_SCOPE_REGISTER.md` | Definitive launch scope per PO rulings D-01..D-12 |
+| `COMING_SOON_REGISTER.md` | Launch exclusions + under-implementation (do not test) |
 | `PO_DECISIONS_REQUIRED.md` | The 12 decisions the Product Owner must rule on |
 | `DELIVERY_GAPS_AND_DEFECTS.md` | Known defects/gaps — these SHOULD be reported |
 | `AVAILABLE_FEATURES_REGISTER.md` | 4-tier feature classification |

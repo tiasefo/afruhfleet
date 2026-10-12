@@ -29,7 +29,7 @@ def build_docx():
         "Have access to the email inbox you register with — Afruheritage sends real emails you must open.",
         "Fill in the checklist spreadsheet (AFRUHERITAGE_UAT_CHECKLIST.xlsx) as you go: mark each test PASS, FAIL or BLOCKED and describe what actually happened.",
         "Take a screenshot whenever something does not work — it helps us fix it quickly.",
-        "Some capabilities are awaiting a Product Owner launch decision — they are listed in the Pending-decision register at the back of this guide; do not test them.",
+        "Some capabilities are excluded from the initial launch or still being built — they are listed in the launch-exclusions register at the back of this guide; do not test them.",
         "Known defects you SHOULD report are listed in the Delivery Gaps & Defects register (e.g. missing shipment update emails).",
         "Do not make real payments during testing. Plan and trial selection are free to use.",
     ]:
@@ -70,10 +70,10 @@ def build_docx():
         doc.add_paragraph('Screenshot reference: ______________________________________________')
         doc.add_paragraph()
 
-    doc.add_heading('Pending PO launch decision — do not test these', 1)
+    doc.add_heading('Not in the initial launch — do not test these', 1)
     doc.add_paragraph(
-        "The capabilities below await a Product Owner launch decision and are not available today. "
-        "Do not test them. Separately, known defects are listed in the Delivery Gaps & "
+        "The capabilities below are excluded from the initial launch or still under "
+        "implementation. Do not test them. Known defects are in the Delivery Gaps & "
         "Defects register — those SHOULD be reported.")
     tbl = doc.add_table(rows=1, cols=4)
     tbl.style = 'Light Grid Accent 1'
@@ -136,7 +136,7 @@ def build_pdf():
         "Have access to the email inbox you register with — Afruheritage sends real emails.",
         "Fill in the checklist spreadsheet as you go: PASS, FAIL or BLOCKED for each test.",
         "Take a screenshot whenever something does not work.",
-        "Capabilities marked 'Pending PO decision' are not available — do not test them.",
+        "Capabilities marked excluded or under implementation are not available — do not test them.",
         "Known defects (in the Delivery Gaps register) SHOULD be reported.",
         "Do not make real payments during testing.",
     ]:
@@ -162,10 +162,10 @@ def build_pdf():
         story.append(Paragraph('<b>Comments:</b> ____________________________________________________', S))
         story.append(Spacer(1, 10))
 
-    story.append(Paragraph('Pending PO launch decision — do not test these', H1))
+    story.append(Paragraph('Not in the initial launch — do not test these', H1))
     story.append(Paragraph(
-        "The capabilities below await a Product Owner launch decision and are not "
-        "available today — do not test them. Known defects in the Delivery Gaps "
+        "The capabilities below are excluded from the initial launch or still under "
+        "implementation — do not test them. Known defects in the Delivery Gaps "
         "register SHOULD be reported.", B))
     data = [['Feature', 'Where', 'Status', 'Notes']]
     for c in COMING_SOON:
@@ -246,7 +246,7 @@ def build_xlsx():
     ws2['A3'].font = ws2['B3'].font = Font(bold=True)
 
     # coming soon sheet
-    ws3 = wb.create_sheet('Pending PO Decision')
+    ws3 = wb.create_sheet('Launch Exclusions')
     ws3.append(['Feature', 'Where it appears', 'Status', 'Notes'])
     for c in ws3[1]:
         c.fill = header_fill; c.font = hfont; c.border = thin
@@ -341,8 +341,8 @@ footer{{text-align:center;color:var(--mut);font-size:12px;padding:24px}}
 <div class="wrap">
 <h2>Test index</h2><div class="toc">{toc}</div>
 <h2>Tests</h2>{''.join(cards)}
-<h2>Pending PO launch decision — do not test these</h2>
-<p style="font-size:13px;color:#666">Capabilities awaiting a Product Owner launch decision. Known defects you SHOULD report are in DELIVERY_GAPS_AND_DEFECTS.md.</p>
+<h2>Not in the initial launch — do not test these</h2>
+<p style="font-size:13px;color:#666">Excluded from initial launch or under implementation per PO rulings D-01..D-12. Known defects you SHOULD report are in DELIVERY_GAPS_AND_DEFECTS.md.</p>
 <table><tr><th>Feature</th><th>Where it appears</th><th>Status</th><th>Notes</th></tr>{soon_rows}</table>
 </div>
 <footer>Afruheritage UAT Dashboard · generated {TODAY} · statuses selected here are not saved — record them in the Excel checklist</footer>
@@ -365,7 +365,8 @@ Testing website: **{DOMAIN}** · Version 1.0 · {TODAY}
 | `AFRUHERITAGE_UAT_CHECKLIST.xlsx` | Excel checklist — record PASS / FAIL / BLOCKED, actual results, comments and evidence per test |
 | `AFRUHERITAGE_UAT_DASHBOARD.html` | Clickable light-mode dashboard — same test IDs as the checklist |
 | `AFRUHERITAGE_SMTP_UAT_REPORT.md` | Verified email delivery report (welcome, invitation, password reset, support ticket) |
-| `COMING_SOON_REGISTER.md` | Capabilities awaiting PO launch decision (do not test) |
+| `LAUNCH_SCOPE_REGISTER.md` | Definitive launch scope per PO rulings D-01..D-12 |
+| `COMING_SOON_REGISTER.md` | Launch exclusions + under-implementation (do not test) |
 | `PO_DECISIONS_REQUIRED.md` | The 12 decisions the Product Owner must rule on |
 | `DELIVERY_GAPS_AND_DEFECTS.md` | Known defects/gaps — these SHOULD be reported |
 | `AVAILABLE_FEATURES_REGISTER.md` | 4-tier feature classification |
@@ -407,11 +408,11 @@ See `AFRUHERITAGE_SMTP_UAT_REPORT.md` for the email evidence summary.
     print('README written')
 
 def build_coming_soon_md():
-    lines = ["# Afruheritage — Capabilities Pending PO Launch Decision\n",
-             "**This register replaces the former 'Coming Soon' register.** The capabilities below are "
-             "not confirmed for launch — each awaits an explicit Product Owner decision (see "
-             "PO_DECISIONS_REQUIRED.md). Do not test them. Known defects you SHOULD report are in "
-             "DELIVERY_GAPS_AND_DEFECTS.md.\n"]
+    lines = ["# Afruheritage — Launch Exclusions & Under Implementation\n",
+             "**PO rulings D-01..D-12 applied.** The capabilities below are either excluded from the "
+             "initial launch or approved for build but not yet deployed. Do not test them. Known "
+             "defects you SHOULD report are in DELIVERY_GAPS_AND_DEFECTS.md. Full scope: "
+             "LAUNCH_SCOPE_REGISTER.md.\n"]
     for c in COMING_SOON:
         lines.append(f"## {c['feature']}")
         lines.append(f"- **Where it appears:** {c['where']}")

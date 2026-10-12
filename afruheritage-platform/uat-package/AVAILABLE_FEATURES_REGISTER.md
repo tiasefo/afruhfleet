@@ -44,25 +44,22 @@ please report it as a defect.
 | Storefront templates | Only the freight-forwarding templates are publishable. The mall/ecommerce/restaurant/booking/real-estate previews are display-only and cannot be published. |
 | AI help assistant | Under load it may answer from built-in help content instead of the AI model — answers remain correct, just simpler. |
 
-## Tier 3 — Pending PO launch decision (do not test)
+## Tier 3 — Excluded or under implementation (do not test)
 
-The former "Coming Soon" register was rejected by the PO. These capabilities await
-explicit Product Owner rulings — see `PO_DECISIONS_REQUIRED.md` (D-01…D-12) and
-`COMING_SOON_REGISTER.md`. In short:
+**PO rulings D-01…D-12 are issued.** See `LAUNCH_SCOPE_REGISTER.md` (definitive
+scope), `COMING_SOON_REGISTER.md` (exclusions + in-build), and
+`PHASED_EXECUTION_PLAN.md` (remediation sequencing).
 
-- Vendor marketplace & vendor registration (backend ~80% built — decision D-01)
-- Driver sign-in portal (D-02)
-- Warehouse operations (D-06)
-- Dedicated analytics dashboards (D-07)
-- CRM activity history UI (D-08)
-- Additional storefront templates (D-09)
-- Central platform support intake (D-04)
-- Live payment collection (D-05)
-- Mobile apps (D-11)
+Under implementation (approved, not yet deployed): vendor marketplace (D-01),
+central platform support (D-04), CRM activity UI (D-08), paid billing
+certification (D-05), tenant feature flags (D-12).
 
-**Separately**: known defects and delivery gaps you SHOULD report are in
-`DELIVERY_GAPS_AND_DEFECTS.md` — including shipment update emails, which are a
-defect (G-01), not a deferred feature.
+Excluded from initial launch: driver sign-in (D-02), warehouse (D-06), dedicated
+analytics (D-07), demo storefront templates (D-09), custom domains (D-10),
+native mobile (D-11).
+
+**Separately**: known defects you SHOULD report are in
+`DELIVERY_GAPS_AND_DEFECTS.md` — including shipment update emails (G-01).
 
 ## Tier 4 — Not offered to that user type (by design)
 
