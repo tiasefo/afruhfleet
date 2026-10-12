@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, Upl
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-from app.api.deps import get_current_user, require_superuser, require_active_subscription
+from app.api.deps import get_current_user, require_superuser, require_active_subscription, require_vendor, require_approved_vendor, VendorContext
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.vendor import AutoDispatchRequest, AutoDispatchResponse, BookingCreateRequest, BookingDecisionRequest, BookingResponse, BookingUpdateRequest, VendorAvailabilityResponse, VendorAvailabilityUpdateRequest, VendorDocumentResponse, VendorDocumentSubmitResponse, VendorMatchRequest, VendorMatchResult, VendorRegisterRequest, VendorRegisterResponse, VendorResponse, VendorReviewRequest, VendorSearchResult, VendorVehicleResponse
@@ -143,6 +143,149 @@ async def register_vendor_route(request: Request, db: Session=Depends(get_db)):
         logger.exception("Unexpected error during vendor registration")
         raise HTTPException(status_code=500, detail="Unexpected error during registration. Please try again.") from exc
 
+# ── Vendor membership administration (PO D-01) ─────────────────
+# Explicit vendor↔identity linkage. Memberships are NEVER auto-created from
+# matching emails — an admin must link a verified platform user account.
+
+from pydantic import BaseModel, EmailStr
+
+
+class VendorMemberLinkRequest(BaseModel):
+    user_email: EmailStr
+    role: str = "owner"
+
+
+def _member_to_response(m) -> dict:
+    return {
+        'id': str(m.id),
+        'vendor_id': str(m.vendor_id),
+        'user_id': str(m.user_id),
+        'role': m.role.value,
+        'status': m.status.value,
+        'linked_by': m.linked_by,
+        'created_at': m.created_at.isoformat() if m.created_at else None,
+    }
+
+
+@router.get('/admin/{vendor_id}/members', response_model=list)
+def list_vendor_members(
+    vendor_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    from app.models.vendor import VendorMembership
+    from app.api.params import uuid_or_400
+
+    vid = uuid_or_400(vendor_id, 'vendor_id')
+    if not get_vendor(db, str(vid)):
+        raise HTTPException(status_code=404, detail='Vendor not found')
+    members = db.query(VendorMembership).filter(VendorMembership.vendor_id == vid).all()
+    return [_member_to_response(m) for m in members]
+
+
+@router.post('/admin/{vendor_id}/members', response_model=dict)
+def link_vendor_member(
+    vendor_id: str,
+    payload: VendorMemberLinkRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    from app.models.vendor import VendorMembership, VendorMembershipRole, VendorMembershipStatus
+    from app.api.params import uuid_or_400
+
+    vid = uuid_or_400(vendor_id, 'vendor_id')
+    vendor = get_vendor(db, str(vid))
+    if not vendor:
+        raise HTTPException(status_code=404, detail='Vendor not found')
+    try:
+        role = VendorMembershipRole(payload.role)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {payload.role}")
+
+    user = db.query(User).filter(User.email == payload.user_email.lower()).first()
+    invited = False
+    if not user:
+        # Account activation (PO D-01): create a platform identity with the
+        # vendor role and force password setup through the existing reset
+        # flow — completing the reset proves mailbox ownership, i.e. a
+        # verified identity, before the membership is usable.
+        import secrets as _secrets
+        from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+        from app.models.user import UserRole
+        from app.core.security import get_password_hash
+
+        reset_token = _secrets.token_urlsafe(32)
+        user = User(
+            email=payload.user_email.lower(),
+            full_name=payload.user_email.split('@')[0],
+            hashed_password=get_password_hash(_secrets.token_urlsafe(32)),
+            is_superuser=False,
+            is_tenant_admin=False,
+            is_active=True,
+            role=UserRole.vendor,
+            tenant_id=None,
+            must_reset_password=True,
+            password_reset_token=reset_token,
+            password_reset_expires_at=_dt.now(_tz.utc) + _td(hours=48),
+        )
+        db.add(user)
+        db.flush()
+        invited = True
+        try:
+            from app.services.notification_service import get_notification_service
+            reset_url = f"{settings.web_url.rstrip('/')}/reset-password?token={reset_token}"
+            get_notification_service().send_password_reset_email(to=user.email, reset_url=reset_url)
+        except Exception as exc:
+            logger.error("Vendor invite reset email failed for %s: %s", user.email, exc)
+    membership = (
+        db.query(VendorMembership)
+        .filter(VendorMembership.vendor_id == vid, VendorMembership.user_id == user.id)
+        .first()
+    )
+    if membership:
+        membership.role = role
+        membership.status = VendorMembershipStatus.ACTIVE
+        membership.linked_by = current_user.email
+    else:
+        membership = VendorMembership(
+            vendor_id=vid,
+            user_id=user.id,
+            role=role,
+            status=VendorMembershipStatus.ACTIVE,
+            linked_by=current_user.email,
+        )
+        db.add(membership)
+    db.commit()
+    db.refresh(membership)
+    return {**_member_to_response(membership), 'account_invited': invited}
+
+
+@router.delete('/admin/{vendor_id}/members/{membership_id}', response_model=dict)
+def unlink_vendor_member(
+    vendor_id: str,
+    membership_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_superuser),
+):
+    from app.models.vendor import VendorMembership, VendorMembershipStatus
+    from app.api.params import uuid_or_400
+
+    vid = uuid_or_400(vendor_id, 'vendor_id')
+    mid = uuid_or_400(membership_id, 'membership_id')
+    membership = (
+        db.query(VendorMembership)
+        .filter(VendorMembership.id == mid, VendorMembership.vendor_id == vid)
+        .first()
+    )
+    if not membership:
+        raise HTTPException(status_code=404, detail='Membership not found')
+    # Suspend rather than hard-delete — preserves the auditable linkage trail.
+    membership.status = VendorMembershipStatus.SUSPENDED
+    membership.linked_by = current_user.email
+    db.commit()
+    return _member_to_response(membership)
+
+
 @router.get('/admin', response_model=dict)
 def list_vendors_admin(status: str | None=Query(None), q: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
     (items, total) = list_vendors(db, status=status, query=q, page=page, page_size=page_size)
@@ -199,23 +342,15 @@ async def submit_my_vendor_documents_route(
     insurance_doc: UploadFile | None = File(None),
     roadworthy_doc: UploadFile | None = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_active_subscription),
+    ctx: VendorContext = Depends(require_vendor),
 ):
-    tenant_id = str(getattr(current_user, 'tenant_id', '') or '')
-    if not tenant_id:
-        raise HTTPException(status_code=400, detail='Tenant context required for vendor document uploads')
-
-    sub = evaluate_subscription_state(db, tenant_id)
-    if not sub:
-        raise HTTPException(status_code=402, detail='No active subscription found for tenant')
-    if not feature_enabled_for_plan(sub.plan_code.value, 'vendor_ops'):
-        raise HTTPException(status_code=403, detail='Current plan does not include vendor operations workflows')
-
-    vendor = get_vendor_by_email(db, current_user.email)
-    if not vendor:
-        raise HTTPException(status_code=404, detail='No vendor profile found for this user email')
-
-    tenant_scope = str(getattr(current_user, 'tenant_id', None) or 'platform')
+    # PO D-01: vendor identity comes from an explicit active VendorMembership,
+    # not from matching the user's email to a vendor record. Vendors are
+    # platform participants and do not require a logistics-company
+    # subscription; document storage and billing are vendor-scoped, never a
+    # tenant's wallet or storage namespace.
+    vendor = ctx.vendor
+    tenant_scope = f'vendor-{vendor.id}'
     uploads = {
         'id_front': id_front,
         'id_back': id_back,
@@ -249,20 +384,9 @@ async def submit_my_vendor_documents_route(
     if not uploaded_documents:
         raise HTTPException(status_code=400, detail='At least one document must be uploaded')
 
-    per_document_cost = feature_credit_cost('vendor_document_upload')
-    total_cost = per_document_cost * len(uploaded_documents)
-    if total_cost > 0:
-        try:
-            consume_wallet_credits(
-                db,
-                tenant_id=tenant_id,
-                usage_type='document_processing',
-                credits=total_cost,
-                memo=f'Vendor document upload ({len(uploaded_documents)} files)',
-            )
-        except ValueError as exc:
-            raise HTTPException(status_code=402, detail=str(exc)) from exc
-
+    # Verification-document submission is a platform cost, not a tenant
+    # feature — previously this charged whichever tenant the user belonged
+    # to, a cross-account billing bug for platform-global vendors.
     db.refresh(vendor)
     return VendorDocumentSubmitResponse(
         vendor_id=str(vendor.id),
@@ -276,11 +400,9 @@ async def submit_my_vendor_documents_route(
 def update_my_availability_route(
     payload: VendorAvailabilityUpdateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_active_subscription),
+    ctx: VendorContext = Depends(require_vendor),
 ):
-    vendor = get_vendor_by_email(db, current_user.email)
-    if not vendor:
-        raise HTTPException(status_code=404, detail='No vendor profile found for this user email')
+    vendor = ctx.vendor
 
     try:
         vendor = update_vendor_availability(
@@ -375,11 +497,23 @@ def create_booking_route(tenant_id: str, payload: BookingCreateRequest, db: Sess
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-@router.get('/{tenant_id}/bookings', response_model=dict)
-def list_tenant_bookings(tenant_id: str, status: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
-    (items, total) = list_bookings(db, tenant_id=tenant_id, status=status, page=page, page_size=page_size)
-    pages = max(1, (total + page_size - 1) // page_size)
-    return {'items': [_booking_to_response(b).model_dump(mode='json') for b in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
+# /me routes must be declared BEFORE /{tenant_id} wildcards — otherwise
+# "me" binds to {tenant_id} and get_current_user rejects it as a bogus tenant.
+@router.get('/me', response_model=dict)
+def get_my_vendor_profile(
+    db: Session = Depends(get_db),
+    ctx: VendorContext = Depends(require_vendor),
+):
+    """Vendor self-view: profile + membership, without internal admin fields."""
+    vendor = ctx.vendor
+    return {
+        'vendor': _to_self_response(vendor).model_dump(mode='json'),
+        'membership': {
+            'role': ctx.membership.role.value,
+            'status': ctx.membership.status.value,
+            'linked_at': ctx.membership.created_at.isoformat() if ctx.membership.created_at else None,
+        },
+    }
 
 
 @router.get('/me/bookings', response_model=dict)
@@ -388,14 +522,20 @@ def list_my_bookings(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_active_subscription),
+    ctx: VendorContext = Depends(require_approved_vendor),
 ):
-    vendor = get_vendor_by_email(db, current_user.email)
-    if not vendor:
-        raise HTTPException(status_code=404, detail='No vendor profile found for this user email')
+    vendor = ctx.vendor
     items, total = list_bookings(db, vendor_id=str(vendor.id), status=status, page=page, page_size=page_size)
     pages = max(1, (total + page_size - 1) // page_size)
+    return {'items': [_booking_to_vendor_response(b).model_dump(mode='json') for b in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
+
+
+@router.get('/{tenant_id}/bookings', response_model=dict)
+def list_tenant_bookings(tenant_id: str, status: str | None=Query(None), page: int=Query(1, ge=1), page_size: int=Query(20, ge=1, le=100), db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
+    (items, total) = list_bookings(db, tenant_id=tenant_id, status=status, page=page, page_size=page_size)
+    pages = max(1, (total + page_size - 1) // page_size)
     return {'items': [_booking_to_response(b).model_dump(mode='json') for b in items], 'total': total, 'page': page, 'page_size': page_size, 'pages': pages}
+
 
 @router.get('/{tenant_id}/bookings/{booking_id}', response_model=BookingResponse)
 def get_booking_route(tenant_id: str, booking_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_active_subscription)):
@@ -420,18 +560,16 @@ def accept_my_booking_route(
     booking_id: str,
     payload: BookingDecisionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_active_subscription),
+    ctx: VendorContext = Depends(require_approved_vendor),
 ):
-    vendor = get_vendor_by_email(db, current_user.email)
-    if not vendor:
-        raise HTTPException(status_code=404, detail='No vendor profile found for this user email')
+    vendor = ctx.vendor
     try:
         booking = vendor_decide_booking(db, booking_id, vendor_id=str(vendor.id), accept=True, note=payload.note)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not booking:
         raise HTTPException(status_code=404, detail='Booking not found')
-    return _booking_to_response(booking)
+    return _booking_to_vendor_response(booking)
 
 
 @router.post('/me/bookings/{booking_id}/reject', response_model=BookingResponse)
@@ -439,18 +577,16 @@ def reject_my_booking_route(
     booking_id: str,
     payload: BookingDecisionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_active_subscription),
+    ctx: VendorContext = Depends(require_approved_vendor),
 ):
-    vendor = get_vendor_by_email(db, current_user.email)
-    if not vendor:
-        raise HTTPException(status_code=404, detail='No vendor profile found for this user email')
+    vendor = ctx.vendor
     try:
         booking = vendor_decide_booking(db, booking_id, vendor_id=str(vendor.id), accept=False, note=payload.note)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not booking:
         raise HTTPException(status_code=404, detail='Booking not found')
-    return _booking_to_response(booking)
+    return _booking_to_vendor_response(booking)
 
 def _to_response(v) -> VendorResponse:
     regions = v.operating_regions.split(',') if v.operating_regions else []
@@ -463,3 +599,22 @@ def _to_search_result(v) -> VendorSearchResult:
 
 def _booking_to_response(b) -> BookingResponse:
     return BookingResponse(id=str(b.id), tenant_id=str(b.tenant_id), vendor_id=str(b.vendor_id), vendor_name=b.vendor.full_name if b.vendor else '', shipment_id=str(b.shipment_id) if b.shipment_id else None, status=b.status.value, pickup_address=b.pickup_address, delivery_address=b.delivery_address, vehicle_type_requested=b.vehicle_type_requested.value if b.vehicle_type_requested else None, driver_name=b.driver_name, driver_phone=b.driver_phone, current_location=b.current_location, current_latitude=float(b.current_latitude) if b.current_latitude is not None else None, current_longitude=float(b.current_longitude) if b.current_longitude is not None else None, last_location_at=b.last_location_at, live_tracking_provider=b.live_tracking_provider, notes=b.notes, credit_cost=b.credit_cost, currency=b.currency, tenant_rating=b.tenant_rating, tenant_review=b.tenant_review, booked_by=b.booked_by, offered_at=b.offered_at, offer_expires_at=b.offer_expires_at, responded_at=b.responded_at, accepted_at=b.accepted_at, started_at=b.started_at, completed_at=b.completed_at, canceled_at=b.canceled_at, created_at=b.created_at, updated_at=b.updated_at)
+
+
+def _to_self_response(v) -> VendorResponse:
+    """Vendor self-view — own business data, without internal review fields."""
+    resp = _to_response(v)
+    resp.reviewed_by = None
+    resp.rejection_reason = v.rejection_reason  # vendor sees their own rejection reason
+    return resp
+
+
+def _booking_to_vendor_response(b) -> BookingResponse:
+    """Vendor-facing booking view — field allowlist per PO D-01.
+
+    `booked_by` (tenant staff's personal email) is withheld; everything else
+    is booking-domain data the vendor is a counterparty to.
+    """
+    resp = _booking_to_response(b)
+    resp.booked_by = None
+    return resp

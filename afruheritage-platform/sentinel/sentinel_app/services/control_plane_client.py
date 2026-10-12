@@ -258,6 +258,24 @@ def suspend_vendor(cp_token: str, vendor_id: str) -> dict:
         return _handle(resp)
 
 
+def list_vendor_members(cp_token: str, vendor_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/vendors/admin/{vendor_id}/members"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def link_vendor_member(cp_token: str, vendor_id: str, payload: dict) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/vendors/admin/{vendor_id}/members"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def unlink_vendor_member(cp_token: str, vendor_id: str, membership_id: str) -> dict:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.delete(_url(f"/vendors/admin/{vendor_id}/members/{membership_id}"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
 # ── Domains ─────────────────────────────────────────────────────
 
 def list_tenant_domains(cp_token: str, tenant_id: str) -> list[dict]:

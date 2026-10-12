@@ -72,9 +72,7 @@ def create_admin_user(
         is_active=True,
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
-
+    db.flush()  # materialize user.id for the audit entity_id
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -82,7 +80,10 @@ def create_admin_user(
         entity_type="admin_user",
         entity_id=str(user.id),
         details={"email": user.email, "role": user.role},
+        commit=False,
     )
+    db.commit()
+    db.refresh(user)
     return AdminUserResponse(
         id=str(user.id),
         email=user.email,
@@ -124,10 +125,10 @@ def bootstrap_first_admin(payload: AdminCreateRequest, db: Session = Depends(get
         is_active=True,
     )
     db.add(user)
+    db.flush()  # materialize user.id for the audit entity_id
+    record_admin_audit(db, admin_email=user.email, action="admin.bootstrap", entity_type="admin_user", entity_id=str(user.id), commit=False)
     db.commit()
     db.refresh(user)
-
-    record_admin_audit(db, admin_email=user.email, action="admin.bootstrap", entity_type="admin_user", entity_id=str(user.id))
     control_plane_token = None
     try:
         control_plane_token = cp.login_control_plane(payload.email.lower(), payload.password)

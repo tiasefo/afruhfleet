@@ -7,7 +7,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyBillingAdjustCredits, ProxyBillingAssignPlan, ProxyBillingSetReadOnly
-from sentinel_app.services.audit_service import record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/billing", tags=["Admin – Billing"])
@@ -126,6 +126,14 @@ def assign_plan(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="billing.plan_assigned_via_admin",
+        entity_type="subscription",
+        entity_id=payload.tenant_id,
+        details={"plan_code": payload.plan_code},
+    )
     result = cp.assign_plan(_get_cp_token(request), payload.model_dump())
     record_admin_audit(
         db,
@@ -133,7 +141,7 @@ def assign_plan(
         action="billing.plan_assigned_via_admin",
         entity_type="subscription",
         entity_id=payload.tenant_id,
-        details={"plan_code": payload.plan_code},
+        details={**({"plan_code": payload.plan_code}), "outcome": "success"},
     )
     return result
 
@@ -145,6 +153,14 @@ def adjust_credits(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="billing.credits_adjusted_via_admin",
+        entity_type="wallet",
+        entity_id=payload.tenant_id,
+        details={"delta": payload.credits_delta, "memo": payload.memo},
+    )
     result = cp.adjust_credits(_get_cp_token(request), payload.model_dump())
     record_admin_audit(
         db,
@@ -152,7 +168,7 @@ def adjust_credits(
         action="billing.credits_adjusted_via_admin",
         entity_type="wallet",
         entity_id=payload.tenant_id,
-        details={"delta": payload.credits_delta, "memo": payload.memo},
+        details={**({"delta": payload.credits_delta, "memo": payload.memo}), "outcome": "success"},
     )
     return result
 
@@ -164,6 +180,14 @@ def set_read_only(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="billing.read_only_set_via_admin",
+        entity_type="subscription",
+        entity_id=payload.tenant_id,
+        details={"reason": payload.reason},
+    )
     result = cp.set_read_only(_get_cp_token(request), payload.model_dump())
     record_admin_audit(
         db,
@@ -171,6 +195,6 @@ def set_read_only(
         action="billing.read_only_set_via_admin",
         entity_type="subscription",
         entity_id=payload.tenant_id,
-        details={"reason": payload.reason},
+        details={**({"reason": payload.reason}), "outcome": "success"},
     )
     return result

@@ -1,7 +1,7 @@
 {
-  "ts": "2026-10-12T15:29:20.463Z",
-  "tn": "AFR-E2C382-20261012-1444F8",
-  "recv": "p24recv-mv5equy2tsrf@maxxspace.com",
+  "ts": "2026-10-12T21:32:55.467Z",
+  "tn": "AFR-E2C382-20261012-C5AFB9",
+  "recv": "p24recv-mv5rqfhn47bo@maxxspace.com",
   "results": [
     {
       "t": "transition -> 1 email to receiver",

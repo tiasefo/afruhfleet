@@ -942,8 +942,23 @@ def add_shipment_event(
     description: str | None = None,
     occurred_at: datetime | None = None,
 ) -> ShipmentEvent:
-    event = ShipmentEvent(
-        shipment_id=_coerce_uuid(shipment_id),
+    # Idempotency: a retried submission (network retry, double-click, worker
+    # replay) carries the same content fingerprint. If an identical event was
+    # already persisted recently, reuse it instead of recording a duplicate —
+    # the persisted row is the idempotency record, and no new notification
+    # is sent for the duplicate.
+    sid = _coerce_uuid(shipment_id)
+    dedup_window = datetime.utcnow() - timedelta(minutes=10)
+    existing = db.query(ShipmentEvent).filter(
+        ShipmentEvent.shipment_id == sid,
+        ShipmentEvent.event_type == event_type,
+        ShipmentEvent.location == location,
+        ShipmentEvent.description == description,
+        ShipmentEvent.created_at >= dedup_window,
+    ).order_by(ShipmentEvent.created_at.desc()).first()
+    is_duplicate = existing is not None
+    event = existing or ShipmentEvent(
+        shipment_id=sid,
         event_type=event_type,
         location=location,
         latitude=latitude,
@@ -951,9 +966,10 @@ def add_shipment_event(
         description=description,
         occurred_at=occurred_at or datetime.utcnow(),
     )
-    db.add(event)
-    db.commit()
-    db.refresh(event)
+    if not is_duplicate:
+        db.add(event)
+        db.commit()
+        db.refresh(event)
 
     # Automate shipment status transitions based on event_type
     shipment = db.query(Shipment).filter(Shipment.id == _coerce_uuid(shipment_id)).first()
@@ -985,7 +1001,7 @@ def add_shipment_event(
         # non-status event (note/location update). An event that restates the
         # current status — retry, double-click, or the transition path having
         # already notified — sends nothing.
-        if event_type not in status_map or status_changed:
+        if not is_duplicate and (event_type not in status_map or status_changed):
             notify_shipment_status_change(db, shipment, event_type)
 
         enqueue_shipment_event_runtime_sync(

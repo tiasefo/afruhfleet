@@ -108,9 +108,9 @@ def create_user(
         is_active=True,
     )
     db.add(user)
-    db.commit()
-    db.refresh(user)
-
+    db.flush()  # materialize user.id for the audit entity_id
+    # Atomic fail-closed: audit row joins the same transaction — if it
+    # cannot be persisted, the user is not created.
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -118,7 +118,10 @@ def create_user(
         entity_type="admin_user",
         entity_id=str(user.id),
         details={"email": user.email, "role": user.role},
+        commit=False,
     )
+    db.commit()
+    db.refresh(user)
     return _to_response(user)
 
 
@@ -160,9 +163,6 @@ def update_user(
     if "is_active" in update_data and update_data["is_active"] is not None:
         user.is_active = update_data["is_active"]
 
-    db.commit()
-    db.refresh(user)
-
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -170,7 +170,10 @@ def update_user(
         entity_type="admin_user",
         entity_id=str(user.id),
         details=update_data,
+        commit=False,
     )
+    db.commit()
+    db.refresh(user)
     return _to_response(user)
 
 
@@ -191,8 +194,6 @@ def delete_user(
 
     user_email = user.email
     db.delete(user)
-    db.commit()
-
     record_admin_audit(
         db,
         admin_email=current_admin.email,
@@ -200,7 +201,9 @@ def delete_user(
         entity_type="admin_user",
         entity_id=str(user_id),
         details={"email": user_email},
+        commit=False,
     )
+    db.commit()
     return {"detail": f"User {user_email} has been permanently deleted"}
 
 
@@ -217,15 +220,15 @@ def activate_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = True
-    db.commit()
-
     record_admin_audit(
         db,
         admin_email=current_admin.email,
         action="admin.user_activated",
         entity_type="admin_user",
         entity_id=str(user.id),
+        commit=False,
     )
+    db.commit()
     return {"detail": f"User {user.email} has been activated"}
 
 
@@ -245,13 +248,13 @@ def deactivate_user(
         raise HTTPException(status_code=400, detail="Cannot deactivate your own account")
 
     user.is_active = False
-    db.commit()
-
     record_admin_audit(
         db,
         admin_email=current_admin.email,
         action="admin.user_deactivated",
         entity_type="admin_user",
         entity_id=str(user.id),
+        commit=False,
     )
+    db.commit()
     return {"detail": f"User {user.email} has been deactivated"}

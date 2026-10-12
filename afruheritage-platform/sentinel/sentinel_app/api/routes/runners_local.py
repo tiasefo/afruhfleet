@@ -60,10 +60,10 @@ def create_runner(
         admin_email=current_admin.email,
         action="runner.created",
         entity_type="runner",
-        details=f"Created runner: {payload.name}",
+        details={"name": payload.name, "outcome": "attempt"},
     )
     try:
-        return cp.create_runner(
+        result = cp.create_runner(
             _get_cp_token(request),
             {
                 "name": payload.name,
@@ -76,6 +76,15 @@ def create_runner(
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+    record_admin_audit(
+        db,
+        admin_email=current_admin.email,
+        action="runner.created",
+        entity_type="runner",
+        entity_id=str(result.get("id")) if isinstance(result, dict) else None,
+        details={"name": payload.name, "outcome": "success"},
+    )
+    return result
 
 
 @router.get("/{runner_id}")

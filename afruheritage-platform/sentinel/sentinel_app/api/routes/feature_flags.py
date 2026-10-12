@@ -60,6 +60,7 @@ def update_tenant_flags(
             entity_id=tenant_id,
             details={"flags": payload.model_dump().get("flags")},
             operation=lambda: cp.update_tenant_feature_flags(_get_cp_token(request), tenant_id, payload.model_dump()),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -91,6 +92,7 @@ def update_global_flags(
             entity_type="feature_flag",
             details={"flags": payload.model_dump().get("flags")},
             operation=lambda: cp.update_global_feature_flags(_get_cp_token(request), payload.model_dump()),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -113,6 +115,7 @@ def update_global_flag(
             entity_id=flag_key,
             details={"enabled": payload.enabled},
             operation=lambda: cp.update_global_feature_flag(_get_cp_token(request), flag_key, payload.enabled),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)

@@ -78,6 +78,7 @@ def create_manual_payment(
             entity_type="payment",
             details=payload.model_dump(),
             operation=lambda: cp.create_manual_payment(_get_cp_token(request), payload.model_dump()),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -107,6 +108,7 @@ def refund_payment(
             entity_id=payment_id,
             details=payload.model_dump(),
             operation=lambda: cp.refund_payment(_get_cp_token(request), payment_id, payload.model_dump()),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
@@ -136,6 +138,7 @@ def handle_dispute(
             entity_id=payment_id,
             details=payload.model_dump(),
             operation=lambda: cp.handle_dispute(_get_cp_token(request), payment_id, payload.model_dump()),
+            fail_closed=True,
         )
     except cp.ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)

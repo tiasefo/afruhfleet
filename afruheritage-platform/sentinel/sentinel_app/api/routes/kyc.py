@@ -41,6 +41,7 @@ def kyc_approve(
             entity_type="kyc_submission",
             entity_id=kyc_id,
             operation=lambda: approve_kyc_submission(cp_token, kyc_id),
+            fail_closed=True,
         )
     except ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
@@ -61,6 +62,7 @@ def kyc_revoke(
             entity_type="kyc_submission",
             entity_id=kyc_id,
             operation=lambda: revoke_kyc_submission(cp_token, kyc_id),
+            fail_closed=True,
         )
     except ControlPlaneError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc

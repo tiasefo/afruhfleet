@@ -7,7 +7,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyDomainActivate
-from sentinel_app.services.audit_service import record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/domains", tags=["Admin – Domains"])
@@ -36,6 +36,14 @@ def activate_domain(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="domain.activated_via_admin",
+        entity_type="domain",
+        entity_id=payload.tenant_id,
+        details={"hostname": payload.hostname},
+    )
     result = cp.activate_domain(_get_cp_token(request), payload.model_dump())
     record_admin_audit(
         db,
@@ -43,6 +51,6 @@ def activate_domain(
         action="domain.activated_via_admin",
         entity_type="domain",
         entity_id=payload.tenant_id,
-        details={"hostname": payload.hostname},
+        details={**({"hostname": payload.hostname}), "outcome": "success"},
     )
     return result

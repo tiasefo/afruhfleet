@@ -7,7 +7,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyRuntimeDeploy
-from sentinel_app.services.audit_service import record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/runtime", tags=["Admin – Runtime"])
@@ -36,6 +36,14 @@ def deploy_runtime(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="runtime.deployed_via_admin",
+        entity_type="runtime",
+        entity_id=payload.tenant_id,
+        details={"tenant_slug": payload.tenant_slug},
+    )
     result = cp.deploy_runtime(_get_cp_token(request), payload.model_dump())
     record_admin_audit(
         db,
@@ -43,7 +51,7 @@ def deploy_runtime(
         action="runtime.deployed_via_admin",
         entity_type="runtime",
         entity_id=payload.tenant_id,
-        details={"tenant_slug": payload.tenant_slug},
+        details={**({"tenant_slug": payload.tenant_slug}), "outcome": "success"},
     )
     return result
 
@@ -56,6 +64,14 @@ def suspend_runtime(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="runtime.suspended_via_admin",
+        entity_type="runtime",
+        entity_id=runtime_id,
+        details={"reason": reason},
+    )
     result = cp.suspend_runtime(_get_cp_token(request), {"runtime_id": runtime_id, "reason": reason})
     record_admin_audit(
         db,
@@ -63,7 +79,7 @@ def suspend_runtime(
         action="runtime.suspended_via_admin",
         entity_type="runtime",
         entity_id=runtime_id,
-        details={"reason": reason},
+        details={**({"reason": reason}), "outcome": "success"},
     )
     return result
 
@@ -75,6 +91,13 @@ def retry_runtime(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
+    audit_attempt_or_503(
+        db,
+        admin_email=current_admin.email,
+        action="runtime.retried_via_admin",
+        entity_type="runtime",
+        entity_id=runtime_id,
+    )
     result = cp.retry_runtime(_get_cp_token(request), {"runtime_id": runtime_id})
     record_admin_audit(
         db,
@@ -82,5 +105,6 @@ def retry_runtime(
         action="runtime.retried_via_admin",
         entity_type="runtime",
         entity_id=runtime_id,
+    details={"outcome": "success"},
     )
     return result

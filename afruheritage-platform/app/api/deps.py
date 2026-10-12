@@ -276,3 +276,80 @@ def require_feature(feature_code: str):
         return current_user
 
     return _check_feature
+
+
+class VendorContext:
+    """Resolved vendor-portal authorization context (PO D-01)."""
+
+    def __init__(self, user: User, membership: object, vendor: object):
+        self.user = user
+        self.membership = membership
+        self.vendor = vendor
+
+
+def _resolve_vendor_context(current_user: User, db: Session) -> VendorContext:
+    """Membership-based vendor authorization.
+
+    Email equality is NEVER an authorization boundary — only an explicit,
+    active VendorMembership row grants vendor-portal access (PO D-01).
+    Vendor users do not need a logistics-company subscription.
+    """
+    from app.models.vendor import DeliveryVendor, VendorMembership, VendorMembershipStatus, VendorStatus
+
+    membership = (
+        db.query(VendorMembership)
+        .filter(
+            VendorMembership.user_id == current_user.id,
+            VendorMembership.status == VendorMembershipStatus.ACTIVE,
+        )
+        .first()
+    )
+    if not membership:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "no_vendor_membership",
+                "message": "No active vendor membership is associated with this account.",
+            },
+        )
+    vendor = db.query(DeliveryVendor).filter(DeliveryVendor.id == membership.vendor_id).first()
+    if not vendor:
+        raise HTTPException(status_code=403, detail="Vendor profile not found for membership")
+    if vendor.status in (VendorStatus.SUSPENDED, VendorStatus.REJECTED):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "vendor_not_operational",
+                "vendor_status": vendor.status.value,
+                "message": "This vendor account is not operational. Contact Afruheritage support.",
+            },
+        )
+    return VendorContext(current_user, membership, vendor)
+
+
+def require_vendor(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> VendorContext:
+    """Any non-suspended vendor member (pending vendors may manage docs/profile)."""
+    return _resolve_vendor_context(current_user, db)
+
+
+def require_approved_vendor(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> VendorContext:
+    """Vendor operations requiring Sentinel approval (bookings, marketplace work)."""
+    from app.models.vendor import VendorStatus
+
+    ctx = _resolve_vendor_context(current_user, db)
+    if ctx.vendor.status != VendorStatus.APPROVED:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "vendor_not_approved",
+                "vendor_status": ctx.vendor.status.value,
+                "message": "Vendor approval is required before performing this operation.",
+            },
+        )
+    return ctx

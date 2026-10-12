@@ -249,8 +249,6 @@ def update_feature(
     data = request.model_dump(exclude_unset=True)
     for key, value in data.items():
         setattr(item, key, value)
-    db.commit()
-    db.refresh(item)
     record_admin_audit(
         db,
         admin_email=current_user.email,
@@ -258,7 +256,10 @@ def update_feature(
         entity_type="feature_flag",
         entity_id=feature_code,
         details=data,
+        commit=False,
     )
+    db.commit()
+    db.refresh(item)
     return FeatureFlagResponse(
         id=str(item.id),
         feature_code=item.feature_code,
@@ -280,6 +281,17 @@ def create_tenant_assignment(
     current_user: AdminUser = Depends(require_super_admin),
 ):
     request.tenant_id = uuid_param_or_400(request.tenant_id, "tenant_id")
+    # PO D-12: an override grant may only expose a feature that is
+    # implemented and globally enabled. Revokes are always allowed.
+    if request.enabled:
+        flag = db.query(GlobalFeatureFlag).filter(
+            GlobalFeatureFlag.feature_code == request.feature_code
+        ).first()
+        if not flag or not flag.enabled_globally:
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot grant a feature that is not implemented and globally enabled",
+            )
     existing = (
         db.query(TenantFeatureAssignment)
         .filter(
@@ -298,8 +310,7 @@ def create_tenant_assignment(
         notes=request.notes,
     )
     db.add(obj)
-    db.commit()
-    db.refresh(obj)
+    db.flush()  # materialize obj.id for the audit entity_id
     record_admin_audit(
         db,
         admin_email=current_user.email,
@@ -307,7 +318,10 @@ def create_tenant_assignment(
         entity_type="tenant_feature_assignment",
         entity_id=str(obj.id),
         details={"tenant_id": obj.tenant_id, "feature_code": obj.feature_code, "enabled": obj.enabled},
+        commit=False,
     )
+    db.commit()
+    db.refresh(obj)
     return TenantFeatureAssignmentResponse(
         id=str(obj.id),
         tenant_id=obj.tenant_id,
@@ -360,10 +374,19 @@ def update_tenant_assignment(
     if not item:
         raise HTTPException(status_code=404, detail="Assignment not found")
     data = request.model_dump(exclude_unset=True)
+    # PO D-12: re-validating a grant against the global registry.
+    if data.get("enabled") is True or ("feature_code" in data and item.enabled):
+        code = data.get("feature_code", item.feature_code)
+        flag = db.query(GlobalFeatureFlag).filter(
+            GlobalFeatureFlag.feature_code == code
+        ).first()
+        if not flag or not flag.enabled_globally:
+            raise HTTPException(
+                status_code=409,
+                detail="Cannot grant a feature that is not implemented and globally enabled",
+            )
     for key, value in data.items():
         setattr(item, key, value)
-    db.commit()
-    db.refresh(item)
     record_admin_audit(
         db,
         admin_email=current_user.email,
@@ -371,7 +394,10 @@ def update_tenant_assignment(
         entity_type="tenant_feature_assignment",
         entity_id=assignment_id,
         details=data,
+        commit=False,
     )
+    db.commit()
+    db.refresh(item)
     return TenantFeatureAssignmentResponse(
         id=str(item.id),
         tenant_id=item.tenant_id,
@@ -395,7 +421,6 @@ def delete_tenant_assignment(
     if not item:
         raise HTTPException(status_code=404, detail="Assignment not found")
     db.delete(item)
-    db.commit()
     record_admin_audit(
         db,
         admin_email=current_user.email,
@@ -403,5 +428,7 @@ def delete_tenant_assignment(
         entity_type="tenant_feature_assignment",
         entity_id=assignment_id,
         details={"tenant_id": item.tenant_id, "feature_code": item.feature_code},
+        commit=False,
     )
+    db.commit()
     return {"detail": "Assignment deleted"}

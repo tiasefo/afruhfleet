@@ -159,3 +159,76 @@ foreign tenant's address.
 - `G04_OPS_CHECKLIST.md` — precise provider actions to unblock G-04.
 - `VENDOR_AUTH_DESIGN.md` — D-01 identity-linked vendor model (awaiting approval).
 - `TENANT_FEATURE_CONTROLS_DESIGN.md` — D-12 governed tenant overrides (awaiting approval).
+
+---
+
+## Round 2 — PO negative-test hardening + D-01/D-12 implementation (verified 2026-10-12)
+
+### Notification idempotency (T1 follow-up)
+- `add_shipment_event` now treats a re-submitted event with the same
+  (shipment, event_type, location, description) recorded within 10 minutes
+  as a duplicate: the persisted row is the idempotency record, the existing
+  event is returned, and no second notification is sent.
+- Live check: two identical POSTs returned the **same event id**
+  (`40c2e250-…`), `shipment_events` count grew by 1, not 2.
+- P24 regression re-run after the change: **10/10 PASS** — real transitions
+  and real event changes still notify exactly once per recipient.
+
+### Audit immutability at the DB layer (T2 follow-up)
+- `admin_audit_logs` is now append-only in Postgres: ownership moved to
+  `afruheritage_audit` (app role keeps SELECT+INSERT) and BEFORE
+  UPDATE/DELETE/TRUNCATE triggers raise an exception for **every** role,
+  including the owner/superuser.
+- Verified: direct `UPDATE` and `DELETE` against the table as the app
+  superuser both fail with `admin_audit_logs is append-only`.
+
+### Fail-closed audit for sensitive mutations (PO risk-tiered policy)
+- New `audit_attempt_or_503` + `fail_closed` mode on
+  `audited_admin_mutation`: a durable `outcome=attempt` row is written
+  BEFORE the mutation; if audit persistence fails, the mutation is
+  rejected with HTTP 503 and never runs.
+- Applied to: vendors, tenants, billing, domains, runtime, runners,
+  feature_flags, kyc, payments, vendor-membership linkage (~26 proxied
+  sites) — plus atomic same-DB commits in `users.py`, `auth.py`,
+  `control_center.py` (audit row joins the business transaction; an audit
+  write failure rolls the mutation back).
+- Customer support ticket updates remain tolerant (PO "continue" tier),
+  still audited with error logging on failure.
+- Verified: simulated audit-store failure → `HTTP 503`, `mutation ran:
+  False`; fail-open path → `mutation ran: True`.
+
+### D-12 governed tenant feature overrides — IMPLEMENTED
+- `tenant_has_feature` now resolves PO precedence:
+  **platform lock** (`global_feature_flags.enabled_globally=false`)
+  → **tenant override** (`tenant_feature_assignments`, grant/revoke with
+  `enabled_until` expiry and `notes` reason)
+  → **plan + add-on entitlement**.
+  Overrides never bypass an inactive subscription.
+- Sentinel guard: grants require the feature to exist AND be globally
+  enabled — verified 409 on `pod`.
+- Flag registry corrected: the five verified-live codes (`shipments`,
+  `group_members`, `csv_import`, `public_tracking`, `maps`) are enabled;
+  unlaunched codes stay locked.
+- Live verified on tenant B: grant `d12_test_feature` → True; revoke
+  `maps` → False despite plan; expired `enabled_until` → override ignored;
+  cleanup → baseline restored.
+
+### D-01 vendor identity — IMPLEMENTED (per approved design)
+- `vendor_memberships` table (vendor↔user, role, status) created EMPTY —
+  no email backfill.
+- `require_vendor` / `require_approved_vendor` deps: membership is the
+  ONLY authorization boundary; vendor status (suspended/rejected) and
+  membership status enforced per request. No logistics subscription needed.
+- `/me`, `/me/bookings`, `/me/bookings/{id}/accept|reject`,
+  `/me/documents`, `/me/availability` reworked to membership auth;
+  vendor-facing booking serializer drops tenant-staff `booked_by` email.
+- Fixed a cross-account billing bug: vendor document uploads previously
+  charged the uploader's tenant wallet — now vendor-scoped and free
+  (platform verification cost).
+- Sentinel admin: `GET/POST/DELETE /vendors/{id}/members` proxies with
+  attempt+success audit. Linking an email without an account creates a
+  `role=vendor` identity and sends a real reset-password invite
+  (48h token) — activation via the existing verified reset flow.
+- Live verified: register → Sentinel approve → link (account_invited=true)
+  → reset → login → `/me` 200. Negatives: email-match WITHOUT membership
+  → 403; suspended membership → 403; suspended vendor → 403; relink → 200.

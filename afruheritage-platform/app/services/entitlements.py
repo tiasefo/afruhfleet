@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.models.saas_subscription import SaaSPlan, TenantSubscription
+from app.models.tenant import Tenant
 
 
 TRIAL_DURATION_DAYS = 14  # fallback; actual value comes from PlatformSettings DB row
@@ -130,7 +132,73 @@ def ensure_demo_subscription(db: Session, tenant_id: str, plan_code: str = "busi
     return sub
 
 
+def _platform_feature_locked(db: Session, feature_code: str) -> bool:
+    """A feature the platform has explicitly disabled at global level.
+
+    Only an existing global_feature_flags row with enabled_globally=False
+    constitutes a lock — features Sentinel has not registered are treated
+    as un-locked (existing behavior preserved).
+    """
+    try:
+        row = db.execute(
+            text("SELECT enabled_globally FROM global_feature_flags WHERE feature_code = :c"),
+            {"c": feature_code},
+        ).first()
+    except Exception:
+        return False  # table may not exist yet on older deployments
+    return row is not None and not row[0]
+
+
+def _tenant_feature_override(db: Session, tenant_id: str, feature_code: str) -> bool | None:
+    """Governed per-tenant grant/revoke (Sentinel tenant_feature_assignments).
+
+    Returns True for a grant, False for a revoke, None when no live override
+    exists. Expired assignments (enabled_until in the past) are ignored.
+    """
+    try:
+        # Match the tenant by UUID or slug — Sentinel stores the string id.
+        candidates = {str(tenant_id)}
+        tenant = db.query(Tenant).filter(
+            (Tenant.slug == str(tenant_id)) | (Tenant.subdomain == str(tenant_id))
+        ).first()
+        if tenant:
+            candidates.update({str(tenant.id), tenant.slug or "", tenant.subdomain or ""})
+        else:
+            try:
+                import uuid as _uuid
+                tid = _uuid.UUID(str(tenant_id))
+                t2 = db.query(Tenant).filter(Tenant.id == tid).first()
+                if t2:
+                    candidates.update({str(t2.id), t2.slug or "", t2.subdomain or ""})
+            except (ValueError, TypeError):
+                pass
+        tenant_rows = db.execute(
+            text(
+                "SELECT enabled FROM tenant_feature_assignments "
+                "WHERE tenant_id = ANY(:tids) AND feature_code = :c "
+                "AND (enabled_until IS NULL OR enabled_until > now())"
+            ),
+            {"tids": list(candidates), "c": feature_code},
+        ).all()
+        if tenant_rows:
+            return bool(tenant_rows[0][0])
+    except Exception:
+        return None  # table may not exist yet on older deployments
+    return None
+
+
 def tenant_has_feature(db: Session, tenant_id: str, feature_code: str) -> bool:
+    """Effective feature resolution — PO D-12 precedence:
+
+    1. Platform safety lock (global_feature_flags.enabled_globally=False)
+       → disabled for every tenant, overrides cannot bypass it.
+    2. Tenant override (tenant_feature_assignments, audited grant/revoke
+       with optional expiry) → wins over plan entitlement.
+    3. Subscription plan + add-on entitlement → the default.
+
+    An override never bypasses an inactive subscription — that is an
+    explicit commercial-entitlement restriction.
+    """
     seed_default_plans(db)
 
     sub = db.query(TenantSubscription).filter(TenantSubscription.tenant_id == tenant_id).first()
@@ -139,6 +207,13 @@ def tenant_has_feature(db: Session, tenant_id: str, feature_code: str) -> bool:
 
     if sub.status not in ["active", "trialing"]:
         return False
+
+    if _platform_feature_locked(db, feature_code):
+        return False
+
+    override = _tenant_feature_override(db, tenant_id, feature_code)
+    if override is not None:
+        return override
 
     tier = normalize_tier_code(sub.plan_code)
     tier_features = TIER_FEATURES.get(tier, [])

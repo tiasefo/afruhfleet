@@ -294,3 +294,73 @@ def run_runtime_migrations(engine: Engine) -> None:
                 CREATE UNIQUE INDEX IF NOT EXISTS uq_crm_quotes_tenant_number
                 ON crm_quotes (tenant_id, quote_number)
             """))
+
+        # Admin audit immutability (G-05 hardening / PO T2): audit rows must be
+        # append-only at the database layer, not merely unreachable through the
+        # API. Two controls:
+        #   1. Ownership moved to a dedicated `afruheritage_audit` role; the app
+        #      role keeps SELECT+INSERT only (privilege-level enforcement for
+        #      any non-superuser role).
+        #   2. BEFORE UPDATE/DELETE/TRUNCATE triggers that raise — enforced for
+        #      every role including the table owner/superuser, since triggers
+        #      are code, not privileges. Removing them requires DDL, which is
+        #      itself an auditable ops action.
+        if inspector.has_table("admin_audit_logs") and dialect_name == "postgresql":
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'afruheritage_audit') THEN
+                        CREATE ROLE afruheritage_audit NOLOGIN;
+                    END IF;
+                END $$;
+            """))
+            conn.execute(text("ALTER TABLE admin_audit_logs OWNER TO afruheritage_audit"))
+            conn.execute(text("REVOKE ALL ON admin_audit_logs FROM afruheritage"))
+            conn.execute(text("GRANT SELECT, INSERT ON admin_audit_logs TO afruheritage"))
+            conn.execute(text("""
+                CREATE OR REPLACE FUNCTION immutable_admin_audit() RETURNS trigger AS $func$
+                BEGIN
+                    RAISE EXCEPTION 'admin_audit_logs is append-only: % not permitted', TG_OP;
+                END;
+                $func$ LANGUAGE plpgsql;
+            """))
+            conn.execute(text("DROP TRIGGER IF EXISTS admin_audit_logs_immutable ON admin_audit_logs"))
+            conn.execute(text("""
+                CREATE TRIGGER admin_audit_logs_immutable
+                BEFORE UPDATE OR DELETE ON admin_audit_logs
+                FOR EACH ROW EXECUTE FUNCTION immutable_admin_audit()
+            """))
+            conn.execute(text("DROP TRIGGER IF EXISTS admin_audit_logs_no_truncate ON admin_audit_logs"))
+            conn.execute(text("""
+                CREATE TRIGGER admin_audit_logs_no_truncate
+                BEFORE TRUNCATE ON admin_audit_logs
+                FOR EACH STATEMENT EXECUTE FUNCTION immutable_admin_audit()
+            """))
+            logger.info("runtime_migration_hardened_admin_audit_logs_immutability")
+
+        # Vendor memberships (D-01): explicit vendor↔identity association.
+        # The table is created EMPTY — memberships are never backfilled from
+        # matching email addresses (PO ruling); only explicit Sentinel admin
+        # linkage creates them.
+        if not inspector.has_table("vendor_memberships"):
+            mid_type = "UUID" if dialect_name == "postgresql" else "VARCHAR(36)"
+            dt_type = "TIMESTAMPTZ" if dialect_name == "postgresql" else "DATETIME"
+            conn.execute(text(f"""
+                CREATE TABLE vendor_memberships (
+                    id {mid_type} PRIMARY KEY,
+                    vendor_id {mid_type} NOT NULL,
+                    user_id {mid_type} NOT NULL,
+                    role VARCHAR(20) NOT NULL DEFAULT 'owner',
+                    status VARCHAR(20) NOT NULL DEFAULT 'invited',
+                    linked_by VARCHAR(255) NULL,
+                    created_at {dt_type} NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at {dt_type} NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT uq_vendor_membership UNIQUE (vendor_id, user_id)
+                )
+            """))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_vendor_memberships_vendor ON vendor_memberships (vendor_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_vendor_memberships_user ON vendor_memberships (user_id)"))
+            if dialect_name == "postgresql":
+                conn.execute(text("ALTER TABLE vendor_memberships ADD CONSTRAINT fk_vendor_memberships_vendor FOREIGN KEY (vendor_id) REFERENCES delivery_vendors(id) ON DELETE CASCADE"))
+                conn.execute(text("ALTER TABLE vendor_memberships ADD CONSTRAINT fk_vendor_memberships_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"))
+            logger.info("runtime_migration_created_vendor_memberships")

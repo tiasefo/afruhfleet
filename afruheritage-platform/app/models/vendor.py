@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -202,3 +202,49 @@ class VendorServiceBooking(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     vendor: Mapped[DeliveryVendor] = relationship("DeliveryVendor")
+
+
+# ── Vendor ↔ platform identity membership (PO D-01) ────────────
+
+class VendorMembershipRole(str, PyEnum):
+    OWNER = "owner"
+    DISPATCHER = "dispatcher"
+    VIEWER = "viewer"
+
+
+class VendorMembershipStatus(str, PyEnum):
+    INVITED = "invited"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+
+
+class VendorMembership(Base):
+    """Explicit association between a platform identity user and a
+    platform-global delivery vendor.
+
+    Membership — never email equality — is the authorization boundary for
+    vendor-portal operations (PO D-01 ruling). Memberships are created only
+    through explicit Sentinel admin linkage; the migration does not
+    backfill them from matching email addresses.
+    """
+
+    __tablename__ = "vendor_memberships"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    vendor_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("delivery_vendors.id"), nullable=False, index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True)
+    role: Mapped[VendorMembershipRole] = mapped_column(
+        Enum(VendorMembershipRole, values_callable=_ev), nullable=False, default=VendorMembershipRole.OWNER,
+    )
+    status: Mapped[VendorMembershipStatus] = mapped_column(
+        Enum(VendorMembershipStatus, values_callable=_ev), nullable=False, default=VendorMembershipStatus.INVITED,
+    )
+    linked_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    vendor: Mapped[DeliveryVendor] = relationship("DeliveryVendor")
+
+    __table_args__ = (
+        UniqueConstraint("vendor_id", "user_id", name="uq_vendor_membership"),
+    )
