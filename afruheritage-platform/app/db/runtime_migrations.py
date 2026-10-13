@@ -364,3 +364,32 @@ def run_runtime_migrations(engine: Engine) -> None:
                 conn.execute(text("ALTER TABLE vendor_memberships ADD CONSTRAINT fk_vendor_memberships_vendor FOREIGN KEY (vendor_id) REFERENCES delivery_vendors(id) ON DELETE CASCADE"))
                 conn.execute(text("ALTER TABLE vendor_memberships ADD CONSTRAINT fk_vendor_memberships_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"))
             logger.info("runtime_migration_created_vendor_memberships")
+
+        # Platform support tenant (D-04): central Afruheritage support intake
+        # needs a scope for tickets filed from the apex domain where no tenant
+        # subdomain resolves. This is a real ops workspace record, not a
+        # customer tenant — support tickets with tenant scope 'platform' are
+        # attached here and administered from Sentinel.
+        if inspector.has_table("tenants") and dialect_name == "postgresql":
+            conn.execute(text("""
+                INSERT INTO tenants (id, company_name, slug, contact_email, plan_code,
+                                     requested_domain, domain_type, launch_status,
+                                     custom_domain_verified)
+                SELECT gen_random_uuid(), 'Afruheritage Platform Support', 'afruheritage-platform',
+                       'support@afruheritage.com', 'platform', 'afruheritage.com',
+                       'customer_domain', 'active', true
+                WHERE NOT EXISTS (SELECT 1 FROM tenants WHERE slug = 'afruheritage-platform')
+            """))
+            logger.info("runtime_migration_ensured_platform_support_tenant")
+
+        # CRM customers tenant scoping (D-08): crm_customers was previously a
+        # global table — every subscribed tenant could read every other
+        # tenant's records. Rows without a tenant_id are orphaned legacy test
+        # data and become invisible under scoped queries.
+        if inspector.has_table("crm_customers"):
+            crm_cols = {c["name"] for c in inspector.get_columns("crm_customers")}
+            if "tenant_id" not in crm_cols:
+                mid_type = "UUID" if dialect_name == "postgresql" else "VARCHAR(36)"
+                conn.execute(text(f"ALTER TABLE crm_customers ADD COLUMN tenant_id {mid_type}"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_customers_tenant ON crm_customers (tenant_id)"))
+                logger.info("runtime_migration_added_crm_customers_tenant_id")

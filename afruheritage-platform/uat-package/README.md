@@ -15,7 +15,7 @@ Testing website: **https://afruheritage.com** · Version 1.0 · October 2026
 | `COMING_SOON_REGISTER.md` | Launch exclusions + under-implementation (do not test) |
 | `PO_DECISIONS_REQUIRED.md` | The 12 decisions the Product Owner must rule on |
 | `DELIVERY_GAPS_AND_DEFECTS.md` | Known defects/gaps — these SHOULD be reported |
-| `PHASE1_EVIDENCE.md` | Phase 1 (G-01/G-05/G-08) remediation evidence — verified live 2026-10-12 |
+| `PHASE1_EVIDENCE.md` | Phase 1 evidence — Rounds 1-2 (G-01/G-05/G-08, audit hardening, D-01 identity, D-12) verified 2026-10-12; Round 3 (D-01 portal, D-04 support, D-08 CRM, P25-P28 browser+security evidence) verified 2026-10-13 |
 | `G04_OPS_CHECKLIST.md` | Precise ops actions to unblock branded sender domain (G-04, BLOCKED) |
 | `VENDOR_AUTH_DESIGN.md` | D-01 vendor identity design — submitted for PO approval |
 | `TENANT_FEATURE_CONTROLS_DESIGN.md` | D-12 governed tenant overrides — submitted for PO approval |

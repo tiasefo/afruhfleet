@@ -17,6 +17,23 @@ from app.models.user import User
 router = APIRouter(prefix="/crm", tags=["CRM"])
 
 
+def _tenant_customer(db: Session, customer_id: str, user: User) -> CrmCustomer:
+    """Fetch a CRM customer scoped to the caller's tenant (404 if foreign).
+
+    A platform superuser without a tenant context may address any record —
+    the admin console CRM tab is their ops surface. Tenant users only ever
+    reach rows carrying their own tenant_id; tenant-less legacy rows are
+    invisible to tenants.
+    """
+    q = select(CrmCustomer).where(CrmCustomer.id == customer_id)
+    if not (user.is_superuser and not user.tenant_id):
+        q = q.where(CrmCustomer.tenant_id == user.tenant_id)
+    customer = db.scalar(q)
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    return customer
+
+
 # ----- Schemas -----
 class CustomerCreate(BaseModel):
     name: str
@@ -96,12 +113,13 @@ class ActivityResponse(BaseModel):
 @router.get("/customers", response_model=list[CustomerResponse])
 def list_customers(
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """List all CRM customers (admin only)."""
-    customers = db.scalars(
-        select(CrmCustomer).where(CrmCustomer.is_active.is_(True)).order_by(CrmCustomer.created_at.desc())
-    ).all()
+    """List CRM customers for the caller's tenant (all, for tenant-less superuser)."""
+    q = select(CrmCustomer).where(CrmCustomer.is_active.is_(True))
+    if not (current_user.is_superuser and not current_user.tenant_id):
+        q = q.where(CrmCustomer.tenant_id == current_user.tenant_id)
+    customers = db.scalars(q.order_by(CrmCustomer.created_at.desc())).all()
     return customers
 
 
@@ -109,10 +127,10 @@ def list_customers(
 def create_customer(
     data: CustomerCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Create a new CRM customer (admin only)."""
-    customer = CrmCustomer(**data.model_dump())
+    """Create a new CRM customer for the caller's tenant."""
+    customer = CrmCustomer(**data.model_dump(), tenant_id=current_user.tenant_id)
     db.add(customer)
     db.commit()
     db.refresh(customer)
@@ -123,13 +141,10 @@ def create_customer(
 def get_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Get a specific CRM customer (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
-    return customer
+    """Get a specific CRM customer in the caller's tenant."""
+    return _tenant_customer(db, customer_id, current_user)
 
 
 @router.patch("/customers/{customer_id}/stage", response_model=CustomerResponse)
@@ -137,12 +152,10 @@ def update_customer_stage(
     customer_id: str,
     stage: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Update customer stage (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """Update customer stage."""
+    customer = _tenant_customer(db, customer_id, current_user)
     
     if stage not in [s.value for s in CustomerStage]:
         raise HTTPException(status_code=400, detail="Invalid stage")
@@ -159,12 +172,10 @@ def update_customer_owner(
     customer_id: str,
     owner: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Update customer owner (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """Update customer owner."""
+    customer = _tenant_customer(db, customer_id, current_user)
     
     customer.owner = owner
     db.add(customer)
@@ -178,12 +189,10 @@ def convert_customer(
     customer_id: str,
     stage: str = CustomerStage.PROSPECT.value,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Convert a lead to prospect (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """Convert a lead to prospect."""
+    customer = _tenant_customer(db, customer_id, current_user)
     
     if stage not in [s.value for s in CustomerStage]:
         raise HTTPException(status_code=400, detail="Invalid stage")
@@ -199,12 +208,10 @@ def convert_customer(
 def delete_customer(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """Delete a CRM customer (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """Delete a CRM customer in the caller's tenant."""
+    customer = _tenant_customer(db, customer_id, current_user)
     
     db.delete(customer)
     db.commit()
@@ -216,12 +223,10 @@ def delete_customer(
 def list_customer_activities(
     customer_id: str,
     db: Session = Depends(get_db),
-    _: User = Depends(require_active_subscription),
+    current_user: User = Depends(require_active_subscription),
 ):
-    """List activities for a customer (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """List activities for a customer in the caller's tenant."""
+    _tenant_customer(db, customer_id, current_user)
     
     activities = db.scalars(
         select(CrmActivity).where(CrmActivity.customer_id == customer_id).order_by(CrmActivity.created_at.desc())
@@ -236,10 +241,8 @@ def create_activity(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
-    """Create an activity for a customer (admin only)."""
-    customer = db.scalar(select(CrmCustomer).where(CrmCustomer.id == customer_id))
-    if not customer:
-        raise HTTPException(status_code=404, detail="Customer not found")
+    """Create an activity for a customer in the caller's tenant."""
+    _tenant_customer(db, customer_id, current_user)
     
     if data.activity_type not in [t.value for t in ActivityType]:
         raise HTTPException(status_code=400, detail="Invalid activity type")

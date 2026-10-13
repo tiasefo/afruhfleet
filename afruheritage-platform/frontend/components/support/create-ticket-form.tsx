@@ -65,13 +65,9 @@ export function CreateTicketForm() {
     const subject = (form.querySelector('#subject') as HTMLInputElement)?.value || ''
     const description = (form.querySelector('#description') as HTMLTextAreaElement)?.value || ''
     const tracking = (form.querySelector('#tracking') as HTMLInputElement)?.value || ''
-    const tenantId = resolvePublicTenantId()
-
-    if (!tenantId) {
-      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
-      setIsSubmitting(false)
-      return
-    }
+    // D-04: when no tenant context resolves (apex domain / guest), the ticket
+    // goes to central Afruheritage platform support rather than being blocked.
+    const tenantId = resolvePublicTenantId() || 'platform'
 
     try {
       const res = await fetch(`/api/v1/support-crm/public/tickets?tenant_id=${encodeURIComponent(tenantId)}`, {
@@ -190,33 +186,14 @@ export function CreateTicketForm() {
 
   if (hasTenant === null) return null
 
-  if (!hasTenant) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Create a Support Ticket</CardTitle>
-          <CardDescription>
-            Support tickets are handled by the business you are working with.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            To open a support ticket, please use the support page of the business that is
-            handling your shipment — it is linked from their website or tracking page.
-            For general questions about the Afruheritage platform itself, email
-            {' '}<a className="text-primary underline" href="mailto:support@afruheritage.com">support@afruheritage.com</a>.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Create a Support Ticket</CardTitle>
         <CardDescription>
-          Fill out the form below and our team will get back to you as soon as possible.
+          {hasTenant
+            ? 'Fill out the form below and our team will get back to you as soon as possible.'
+            : 'This form reaches Afruheritage platform support directly. For shipment-specific issues handled by a freight business, use their support page instead.'}
         </CardDescription>
       </CardHeader>
       <CardContent>

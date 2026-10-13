@@ -45,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     persistTenantId(userData.tenant_id)
     if (userData.is_superuser) {
       router.push('/dashboard')
+    } else if (userData.role === 'vendor') {
+      router.push('/vendor')
     } else if (!userData.onboarding_complete) {
       router.push('/onboarding')
     } else {
@@ -86,6 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect based on user role and subscription status
       if (userData.is_superuser) {
         router.push('/dashboard')
+      } else if (userData.role === 'vendor') {
+        // Vendor identities are platform participants without a tenant
+        // workspace — they go to the vendor portal, not onboarding.
+        router.push('/vendor')
       } else if (requires_subscription) {
         router.push('/onboarding')
       } else if (!userData.onboarding_complete) {

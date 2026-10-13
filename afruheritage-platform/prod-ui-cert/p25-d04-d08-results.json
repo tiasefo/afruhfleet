@@ -1,0 +1,160 @@
+{
+  "pass": 21,
+  "fail": 0,
+  "results": [
+    {
+      "name": "login tenantA/tenantB/superuser",
+      "ok": true,
+      "detail": {
+        "a": 200,
+        "b": 200,
+        "adm": 401
+      }
+    },
+    {
+      "name": "platform-scope ticket created",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "tenant": "4037ae32-1f6c-4a80-8a92-08c6944fc25f"
+      }
+    },
+    {
+      "name": "public ticket lookup by token",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "public customer reply",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "admin ticket list finds platform ticket",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "total": 1
+      }
+    },
+    {
+      "name": "admin reads full thread",
+      "ok": true,
+      "detail": {
+        "msgs": 2
+      }
+    },
+    {
+      "name": "admin staff reply",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "staff reply visible on public thread",
+      "ok": true,
+      "detail": {
+        "msgs": 3
+      }
+    },
+    {
+      "name": "sentinel admin login",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "sentinel ticket list (CP proxy)",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "sentinel reads thread",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "msgs": 3
+      }
+    },
+    {
+      "name": "sentinel reply proxied + audited",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "detail": "ok"
+      }
+    },
+    {
+      "name": "tenant A ticket list scoped",
+      "ok": true,
+      "detail": {
+        "count": 0
+      }
+    },
+    {
+      "name": "tenant B does NOT see platform ticket",
+      "ok": true,
+      "detail": {
+        "count": 0
+      }
+    },
+    {
+      "name": "tenant A cannot read platform ticket thread via tenant route",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "name": "tenant A creates CRM customer",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "tenant A logs activity",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "tenant A lists activities",
+      "ok": true,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "name": "tenant B does NOT see tenant A customer",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "count": 0
+      }
+    },
+    {
+      "name": "tenant B cannot fetch A customer by id",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "name": "tenant B cannot write activity on A customer",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    }
+  ]
+}

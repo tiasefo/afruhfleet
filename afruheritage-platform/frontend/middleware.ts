@@ -54,6 +54,10 @@ const PUBLIC_ROUTES = new Set([
   // routes above; they must stay public so the redirect can run.
   '/fleetbase/console',
   '/fleetbase/live-map',
+  // Public vendor flows — registration intake and membership invitation
+  // acceptance are intentionally unauthenticated (D-01 portal).
+  '/vendor/register',
+  '/vendor-accept',
 ])
 
 // Public prefixes. /api/ is public at the edge because the backend is

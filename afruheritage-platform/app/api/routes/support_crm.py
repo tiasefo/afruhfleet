@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_superuser, require_active_subscription
 from app.db.session import get_db
-from app.models.support_crm import CRMAccount, CRMContact, Opportunity, Quote, SupportTicket, SupportTicketMessage
+from app.models.support_crm import CRMAccount, CRMContact, Opportunity, Quote, SupportTicket, SupportTicketMessage, SupportTicketStatus
 from app.models.tenant import Tenant
 from app.models.user import User
 from app.schemas.support_crm import CRMAccountCreateRequest, CRMAccountResponse, CRMContactCreateRequest, CRMContactResponse, OpportunityCreateRequest, OpportunityResponse, PublicTicketCreateRequest, QuoteCreateRequest, QuoteResponse, SupportTicketMessageResponse, SupportTicketResponse, TicketReplyRequest
@@ -15,6 +15,14 @@ from app.middleware.rate_limit import rate_limit
 router = APIRouter(prefix='/support-crm', tags=['Support & CRM'])
 
 def _resolve_tenant_uuid(db: Session, tenant_identifier: str) -> str:
+    # D-04: 'platform' scope = central Afruheritage support, filed from the
+    # apex domain where no tenant subdomain resolves. Backed by the real
+    # platform ops workspace tenant created by the runtime migration.
+    if str(tenant_identifier).lower() == 'platform':
+        tenant = db.query(Tenant).filter(Tenant.slug == 'afruheritage-platform').first()
+        if not tenant:
+            raise HTTPException(status_code=503, detail='Platform support scope is not provisioned yet.')
+        return str(tenant.id)
     try:
         return str(UUID(str(tenant_identifier)))
     except (ValueError, TypeError):
@@ -307,6 +315,38 @@ def update_tenant_ticket_status(ticket_id: str, status: str, db: Session=Depends
     db.commit()
     db.refresh(ticket)
     return {'id': str(ticket.id), 'status': ticket.status.value}
+
+
+@router.get('/admin/tickets/{ticket_id}/messages', response_model=list[SupportTicketMessageResponse])
+def list_admin_ticket_messages(ticket_id: str, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+    """D-04: platform ops read full ticket threads (incl. internal notes)."""
+    ticket_id = _parse_ticket_id(ticket_id)
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail='Ticket not found')
+    rows = db.query(SupportTicketMessage).filter(SupportTicketMessage.ticket_id == ticket.id).order_by(SupportTicketMessage.created_at.asc()).all()
+    return [SupportTicketMessageResponse(id=str(x.id), ticket_id=str(x.ticket_id), author_type=x.author_type, author_name=x.author_name, body=x.body, visible_to_public=x.visible_to_public) for x in rows]
+
+
+@router.post('/admin/tickets/{ticket_id}/reply', response_model=SupportTicketMessageResponse)
+def reply_admin_ticket(ticket_id: str, request: TicketReplyRequest, db: Session=Depends(get_db), current_user: User=Depends(require_superuser)):
+    """D-04: platform ops reply to any tenant or platform-scope ticket."""
+    ticket_id = _parse_ticket_id(ticket_id)
+    ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail='Ticket not found')
+    msg = add_ticket_message(
+        db=db,
+        ticket_id=str(ticket.id),
+        body=request.body,
+        author_type=request.author_type or 'staff',
+        author_name=request.author_name or current_user.full_name or 'Afruheritage Support',
+        visible_to_public=request.visible_to_public,
+    )
+    if ticket.status == SupportTicketStatus.OPEN:
+        ticket.status = SupportTicketStatus.WAITING_CUSTOMER
+        db.commit()
+    return SupportTicketMessageResponse(id=str(msg.id), ticket_id=str(msg.ticket_id), author_type=msg.author_type, author_name=msg.author_name, body=msg.body, visible_to_public=msg.visible_to_public)
 
 
 @router.patch('/admin/tickets/{ticket_id}/status', response_model=dict)

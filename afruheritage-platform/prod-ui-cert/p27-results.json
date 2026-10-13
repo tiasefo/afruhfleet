@@ -1,0 +1,97 @@
+{
+  "pass": 12,
+  "fail": 1,
+  "vendorEmail": "p27vend-mv6azst58dt1@maxxspace.com",
+  "results": [
+    {
+      "name": "vendor registration via UI",
+      "ok": true,
+      "detail": {
+        "regOk": 1
+      }
+    },
+    {
+      "name": "admin finds registered vendor",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "vendor approved (admin review)",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "got": "approved"
+      }
+    },
+    {
+      "name": "membership linked + account invited",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "invited": true
+      }
+    },
+    {
+      "name": "vendor invitation email delivered",
+      "ok": true,
+      "detail": {
+        "subject": "You've been invited to join Afruheritage on Afruheritage"
+      }
+    },
+    {
+      "name": "invite contains /vendor-accept link",
+      "ok": true,
+      "detail": {
+        "links": [
+          "https://afruheritage.com/vendor-accept?token=uGWEsySrGE9jr6mh5600BnqM53OXLRwLv3hkDN6jan4"
+        ]
+      }
+    },
+    {
+      "name": "invitation accepted via UI",
+      "ok": true,
+      "detail": {
+        "actOk": 1
+      }
+    },
+    {
+      "name": "vendor login redirects to /vendor",
+      "ok": true,
+      "detail": {
+        "url": "https://afruheritage.com/vendor"
+      }
+    },
+    {
+      "name": "dashboard shows profile + approved status",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "availability update via UI",
+      "ok": true,
+      "detail": {
+        "availOk": 1
+      }
+    },
+    {
+      "name": "tenant creates booking for vendor",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "id": "a7d1e4eb-6cdb-4afe-b0cd-ca7e6bf6dbdb"
+      }
+    },
+    {
+      "name": "vendor sees booking in portal",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "journey completed without exception",
+      "ok": false,
+      "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('button:has-text(\"Accept booking\")')\n"
+    }
+  ]
+}

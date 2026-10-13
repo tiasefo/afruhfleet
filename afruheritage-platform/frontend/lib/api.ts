@@ -388,6 +388,60 @@ export const vendorAPI = {
   },
 }
 
+// Vendor-facing portal — membership-scoped /vendors/me/* endpoints.
+// Vendors are platform participants; these calls carry no tenant_id.
+export const vendorPortalApi = {
+  register: (data: {
+    full_name: string
+    email: string
+    phone: string
+    id_type: string
+    id_number: string
+    vehicle_types: string[]
+    vehicle_reg_number: string
+    vehicle_model?: string
+    vehicle_year?: string
+    business_name?: string
+    business_type: string
+    operating_regions: string[]
+    years_experience?: string
+    terms_accepted: boolean
+    insurance_accepted: boolean
+    background_check_accepted: boolean
+  }) => api.post('/vendors/register', data),
+
+  acceptInvitation: (data: { token: string; new_password?: string }) =>
+    api.post('/vendors/invitations/accept', data),
+
+  me: () => api.get('/vendors/me'),
+
+  myBookings: (params?: { status?: string; page?: number; page_size?: number }) => {
+    const q = params ? `?${buildQuery(params)}` : ''
+    return api.get(`/vendors/me/bookings${q}`)
+  },
+
+  acceptBooking: (bookingId: string, note?: string) =>
+    api.post(`/vendors/me/bookings/${bookingId}/accept`, { note: note || null }),
+
+  rejectBooking: (bookingId: string, note?: string) =>
+    api.post(`/vendors/me/bookings/${bookingId}/reject`, { note: note || null }),
+
+  updateAvailability: (data: {
+    availability_status: string
+    current_location?: string
+    current_latitude?: number
+    current_longitude?: number
+  }) => api.patch('/vendors/me/availability', data),
+
+  submitDocuments: (files: Record<string, File>) => {
+    const form = new FormData()
+    for (const [key, file] of Object.entries(files)) {
+      if (file) form.append(key, file)
+    }
+    return api.post('/vendors/me/documents', form)
+  },
+}
+
 export const fleetbaseAPI = {
   getRunners: () => {
     return api.get('/fleetbase-runtime/runners')
@@ -660,16 +714,16 @@ export const adminMarketplaceApi = {
 
 export const adminVendorApi = {
   approveVendor: (vendorId: string) =>
-    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'approved' }),
+    api.post(`/vendors/admin/${vendorId}/review`, { action: 'approve' }),
 
-  rejectVendor: (vendorId: string) =>
-    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'rejected' }),
+  rejectVendor: (vendorId: string, reason?: string) =>
+    api.post(`/vendors/admin/${vendorId}/review`, { action: 'reject', rejection_reason: reason }),
 
   suspendVendor: (vendorId: string, reason: string) =>
     api.post(`/vendors/admin/${vendorId}/suspend`, { reason }),
 
   reinstateVendor: (vendorId: string) =>
-    api.post(`/vendors/admin/${vendorId}/review`, { decision: 'approved' }),
+    api.post(`/vendors/admin/${vendorId}/review`, { action: 'approve' }),
 
   deleteVendor: (vendorId: string) =>
     api.delete(`/vendors/admin/${vendorId}`),

@@ -1,0 +1,31 @@
+[
+  {
+    "n": "vendor sees booking in portal",
+    "ok": true,
+    "d": {}
+  },
+  {
+    "n": "vendor accepts booking via UI",
+    "ok": true,
+    "d": {}
+  },
+  {
+    "n": "documents page renders upload slots",
+    "ok": true,
+    "d": {}
+  },
+  {
+    "n": "vendor booking view excludes booked_by PII",
+    "ok": true,
+    "d": {
+      "count": 1
+    }
+  },
+  {
+    "n": "booking status persisted as accepted",
+    "ok": true,
+    "d": {
+      "status": "accepted"
+    }
+  }
+]

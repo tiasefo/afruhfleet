@@ -77,12 +77,9 @@ export function TicketDetail({ token }: TicketDetailProps) {
   const loadTicket = async () => {
     setLoading(true)
     setError('')
-    const tenantId = resolvePublicTenantId()
-    if (!tenantId) {
-      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
-      setLoading(false)
-      return
-    }
+    // D-04: on the apex domain (no tenant context) platform tickets are
+    // tracked under the central 'platform' support scope.
+    const tenantId = resolvePublicTenantId() || 'platform'
     try {
       const res = await fetch(`/api/v1/support-crm/public/tickets/${token}?tenant_id=${encodeURIComponent(tenantId)}`)
       if (!res.ok) {
@@ -107,11 +104,7 @@ export function TicketDetail({ token }: TicketDetailProps) {
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!replyText.trim()) return
-    const tenantId = resolvePublicTenantId()
-    if (!tenantId) {
-      setError('Tenant context is missing. Please open support from your tenant domain or add tenant_id in the URL.')
-      return
-    }
+    const tenantId = resolvePublicTenantId() || 'platform'
 
     setIsSubmitting(true)
     try {

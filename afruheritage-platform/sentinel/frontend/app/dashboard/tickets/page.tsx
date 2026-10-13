@@ -5,10 +5,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { RefreshCw, Search, Ticket } from "lucide-react"
+import { RefreshCw, Search, Ticket, MessageSquare, Send, X } from "lucide-react"
 
 const statuses = ["open", "pending", "waiting_customer", "resolved", "closed"]
 
@@ -17,6 +18,11 @@ export default function TicketsDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [openTicket, setOpenTicket] = useState<any>(null)
+  const [messages, setMessages] = useState<any[]>([])
+  const [messagesLoading, setMessagesLoading] = useState(false)
+  const [reply, setReply] = useState("")
+  const [sending, setSending] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -41,17 +47,53 @@ export default function TicketsDashboardPage() {
     try {
       await api.patch(`/sentinel/tickets/${id}/status?status=${encodeURIComponent(status)}`)
       toast.success("Ticket status updated")
+      if (openTicket?.id === id) setOpenTicket({ ...openTicket, status })
       load()
     } catch (e: any) {
       toast.error(e.message || "Failed to update ticket")
     }
   }
 
+  const openThread = async (ticket: any) => {
+    setOpenTicket(ticket)
+    setMessagesLoading(true)
+    setMessages([])
+    try {
+      const msgs = await api.get(`/sentinel/tickets/${ticket.id}/messages`)
+      setMessages(Array.isArray(msgs) ? msgs : [])
+    } catch (e: any) {
+      toast.error(e.message || "Failed to load messages")
+    } finally {
+      setMessagesLoading(false)
+    }
+  }
+
+  const sendReply = async () => {
+    if (!openTicket || !reply.trim()) return
+    setSending(true)
+    try {
+      await api.post(`/sentinel/tickets/${openTicket.id}/reply`, { body: reply.trim() })
+      toast.success("Reply sent to customer")
+      setReply("")
+      openThread(openTicket)
+      load()
+    } catch (e: any) {
+      toast.error(e.message || "Failed to send reply")
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const statusColor = (s: string) =>
+    s === "resolved" || s === "closed" ? "secondary" : s === "open" ? "default" : "outline"
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Support Tickets</h1>
-        <p className="mt-1 text-muted-foreground">Review and update ticket statuses</p>
+        <p className="mt-1 text-muted-foreground">
+          Central Afruheritage support — all tenant and platform tickets, with reply and status management
+        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -71,39 +113,103 @@ export default function TicketsDashboardPage() {
         <Button variant="outline" size="icon" onClick={load}><RefreshCw className="h-4 w-4" /></Button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      ) : tickets.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">No tickets found</CardContent></Card>
-      ) : (
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Ticket list */}
         <div className="space-y-3">
-          {tickets.map((t: any) => (
-            <Card key={t.id}>
-              <CardContent className="space-y-3 p-4">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : tickets.length === 0 ? (
+            <Card><CardContent className="py-12 text-center text-muted-foreground">No tickets found</CardContent></Card>
+          ) : (
+            tickets.map((t: any) => (
+              <Card
+                key={t.id}
+                className={`cursor-pointer transition-colors ${openTicket?.id === t.id ? "ring-2 ring-primary" : "hover:bg-muted/40"}`}
+                onClick={() => openThread(t)}
+              >
+                <CardContent className="space-y-2 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-semibold flex items-center gap-2"><Ticket className="h-4 w-4 shrink-0" />{t.subject}</div>
+                      <div className="text-sm text-muted-foreground">{t.public_submitter_email || t.public_submitter_name || 'Unknown submitter'}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">Tenant: {t.tenant_id}</div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Badge variant="outline">{t.priority}</Badge>
+                      <Badge variant={statusColor(t.status) as any}>{t.status}</Badge>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{t.description}</p>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Thread + reply panel */}
+        <div>
+          {!openTicket ? (
+            <Card><CardContent className="flex flex-col items-center gap-2 py-20 text-center text-muted-foreground">
+              <MessageSquare className="h-8 w-8" />
+              <p className="text-sm">Select a ticket to view the conversation</p>
+            </CardContent></Card>
+          ) : (
+            <Card>
+              <CardContent className="space-y-4 p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-semibold flex items-center gap-2"><Ticket className="h-4 w-4" />{t.subject}</div>
-                    <div className="text-sm text-muted-foreground">{t.public_submitter_email || t.public_submitter_name || 'Unknown submitter'}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">Tenant: {t.tenant_id}</div>
+                  <div className="min-w-0">
+                    <div className="font-semibold">{openTicket.subject}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {openTicket.public_submitter_name} · {openTicket.public_submitter_email || 'no email'} · {openTicket.public_token}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{t.priority}</Badge>
-                    <Badge>{t.status}</Badge>
-                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => setOpenTicket(null)}><X className="h-4 w-4" /></Button>
                 </div>
-                <p className="text-sm text-muted-foreground line-clamp-2">{t.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  {statuses.filter((s) => s !== t.status).map((s) => (
-                    <Button key={s} size="sm" variant="outline" onClick={() => updateStatus(t.id, s)}>{s}</Button>
-                  ))}
+
+                <div className="max-h-[320px] space-y-2 overflow-y-auto rounded-md border p-3">
+                  {messagesLoading ? (
+                    <div className="flex justify-center py-6"><RefreshCw className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+                  ) : messages.length === 0 ? (
+                    <p className="py-4 text-center text-sm text-muted-foreground">No messages</p>
+                  ) : (
+                    messages.map((m: any) => (
+                      <div key={m.id} className={`rounded-md p-3 text-sm ${m.author_type === 'staff' ? 'bg-primary/10 ml-8' : 'bg-muted mr-8'}`}>
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <span className="text-xs font-medium">{m.author_name || m.author_type}</span>
+                          <Badge variant="outline" className="text-[10px]">{m.author_type}</Badge>
+                        </div>
+                        <p className="whitespace-pre-wrap">{m.body}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder="Reply to customer (visible on their public ticket page)..."
+                    value={reply}
+                    onChange={e => setReply(e.target.value)}
+                    rows={3}
+                  />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {statuses.filter((s) => s !== openTicket.status).map((s) => (
+                        <Button key={s} size="sm" variant="outline" onClick={() => updateStatus(openTicket.id, s)}>{s}</Button>
+                      ))}
+                    </div>
+                    <Button onClick={sendReply} disabled={sending || !reply.trim()}>
+                      {sending ? <RefreshCw className="mr-1 h-4 w-4 animate-spin" /> : <Send className="mr-1 h-4 w-4" />}
+                      Reply
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

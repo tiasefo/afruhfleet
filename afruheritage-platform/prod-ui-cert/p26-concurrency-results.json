@@ -1,0 +1,59 @@
+{
+  "pass": 6,
+  "fail": 0,
+  "results": [
+    {
+      "name": "shipment created",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "id": "47308d54-d4c0-4aa3-9021-616da8d73848"
+      }
+    },
+    {
+      "name": "8 concurrent identical event submissions all 2xx",
+      "ok": true,
+      "detail": [
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200,
+        200
+      ]
+    },
+    {
+      "name": "all responses return the SAME event id",
+      "ok": true,
+      "detail": {
+        "unique": 1,
+        "ids": [
+          "b1f7ba86-96de-4bef-a72d-efdfb643cebc"
+        ]
+      }
+    },
+    {
+      "name": "exactly one persisted event row",
+      "ok": true,
+      "detail": {
+        "rows": 1
+      }
+    },
+    {
+      "name": "receiver got ≤1 notification for the raced event",
+      "ok": true,
+      "detail": {
+        "recvCount": 1
+      }
+    },
+    {
+      "name": "tenant got ≤1 notification for the raced event",
+      "ok": true,
+      "detail": {
+        "tenantCount": 0
+      }
+    }
+  ]
+}

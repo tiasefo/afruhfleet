@@ -1,0 +1,82 @@
+{
+  "pass": 14,
+  "fail": 0,
+  "results": [
+    {
+      "name": "apex support form renders (platform scope)",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "apex ticket submitted via UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "public tracking token shown",
+      "ok": true,
+      "detail": {
+        "len": 32
+      }
+    },
+    {
+      "name": "public ticket detail loads on apex",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "guest reply persisted on public page",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "sentinel login",
+      "ok": true,
+      "detail": {
+        "url": "https://admin.afruheritage.com/sentinel/dashboard/"
+      }
+    },
+    {
+      "name": "sentinel ticket list shows apex ticket",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "sentinel thread shows messages",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "sentinel staff reply appears in thread",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "sentinel status change via UI",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "staff reply visible on public tracking page",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "tenant CRM page loads real pipeline view",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "name": "crm customer created via API (tenant-scoped)",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "CRM page lists the created customer",
+      "ok": true,
+      "detail": {}
+    }
+  ]
+}

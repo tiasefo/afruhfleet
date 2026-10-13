@@ -134,6 +134,11 @@ export default function CRMPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Sales Pipeline</h1>
               <p className="mt-2 text-sm text-gray-600">Manage opportunities and track deals</p>
+              <div className="mt-3 flex gap-2">
+                <Link href="/crm/customers" className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Customers</Link>
+                <Link href="/crm/contacts" className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Contacts</Link>
+                <Link href="/crm/quotes" className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100">Quotes</Link>
+              </div>
             </div>
             <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
               <DialogTrigger asChild>

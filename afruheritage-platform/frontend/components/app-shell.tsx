@@ -46,11 +46,13 @@ const PUBLIC_ROUTES = [
   '/onboarding',
   '/tenant-request',
   '/store',
+  '/vendor-accept',
 ]
 
 function isPublicRoute(pathname: string): boolean {
   if (PUBLIC_ROUTES.includes(pathname)) return true
   if (pathname.startsWith('/register/')) return true
+  if (pathname.startsWith('/vendor/register')) return true
   if (pathname.startsWith('/support/ticket/')) return true
   if (pathname.startsWith('/store/')) return true
   return false
@@ -89,6 +91,16 @@ const NAV_ITEMS: NavItem[] = [
 
 const ADMIN_ITEMS: NavItem[] = [
   { label: 'Admin Console', href: '/admin', icon: Shield, superonly: true },
+]
+
+// Vendor portal nav — vendor identities are platform participants without a
+// tenant workspace, so they get a dedicated nav instead of tenant features.
+const VENDOR_NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/vendor', icon: LayoutDashboard },
+  { label: 'Bookings', href: '/vendor/bookings', icon: Package },
+  { label: 'Documents', href: '/vendor/documents', icon: BadgeCheck },
+  { label: 'Support', href: '/support/dashboard', icon: HelpCircle },
+  { label: 'Profile', href: '/vendor', icon: UserCircle },
 ]
 
 function resolveHref(item: NavItem): string {
@@ -143,7 +155,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>
   }
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => {
+  const navSource = user?.role === 'vendor' ? VENDOR_NAV_ITEMS : NAV_ITEMS
+  const visibleNavItems = navSource.filter((item) => {
     if (item.superonly) return false
     if (item.adminOnly && !user?.is_tenant_admin && !user?.is_superuser) return false
     return true

@@ -340,6 +340,19 @@ def update_admin_ticket_status(cp_token: str, ticket_id: str, status: str) -> di
         return _handle(resp)
 
 
+def list_admin_ticket_messages(cp_token: str, ticket_id: str) -> list:
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.get(_url(f"/support-crm/admin/tickets/{ticket_id}/messages"), headers=_headers(cp_token))
+        return _handle(resp)
+
+
+def reply_admin_ticket(cp_token: str, ticket_id: str, body: str, author_name: str | None = None) -> dict:
+    payload = {"body": body, "author_type": "staff", "author_name": author_name, "visible_to_public": True}
+    with httpx.Client(timeout=_TIMEOUT) as c:
+        resp = c.post(_url(f"/support-crm/admin/tickets/{ticket_id}/reply"), json=payload, headers=_headers(cp_token))
+        return _handle(resp)
+
+
 # ── Tracking ─────────────────────────────────────────────────────
 
 def track_public_shipment(cp_token: str, tenant_id: str, tracking_number: str) -> dict:

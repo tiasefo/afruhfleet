@@ -1,0 +1,33 @@
+{
+  "pass": 5,
+  "fail": 0,
+  "results": [
+    {
+      "n": "customer created via UI dialog",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "stage change via UI",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "activity logged via UI dialog",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "customer persisted + tenant-scoped (API)",
+      "ok": true,
+      "d": {
+        "stage": "qualified"
+      }
+    },
+    {
+      "n": "activity persisted via API",
+      "ok": true,
+      "d": {}
+    }
+  ]
+}

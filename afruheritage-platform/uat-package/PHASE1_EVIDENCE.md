@@ -232,3 +232,119 @@ foreign tenant's address.
 - Live verified: register → Sentinel approve → link (account_invited=true)
   → reset → login → `/me` 200. Negatives: email-match WITHOUT membership
   → 403; suspended membership → 403; suspended vendor → 403; relink → 200.
+
+---
+
+## Round 3 — Customer-facing functionality (P25–P28)
+
+New implementation evidence. All checks ran against the deployed
+`https://afruheritage.com` / `https://admin.afruheritage.com` builds —
+real browser (Playwright, headed=false, video+screenshots in
+`prod-ui-cert/p27-evidence/` and `p28-evidence/`), real API calls, real
+mail.tm mailbox delivery.
+
+### D-01 vendor-facing portal — IMPLEMENTED + browser-verified (17/17)
+
+New routes: public `/vendor/register` and `/vendor-accept`; authenticated
+`/vendor` (profile/status/availability), `/vendor/bookings`
+(accept/decline), `/vendor/documents` (identity/insurance/roadworthy
+uploads). `role=vendor` login redirects to `/vendor`; AppShell renders
+vendor navigation; middleware allowlists the two public routes.
+
+P27 journey evidence (`prod-ui-cert/p27-vendor-portal.js`,
+`p27-results.json` + tail run `p27-tail-results.json`):
+- Registration form → backend `POST /vendors/register`: PASS
+- Admin review (`{action:"approve"}` — fixed a pre-existing 422 payload
+  mismatch in `frontend/lib/api.ts`): PASS
+- Membership link → `account_invited:true`, real invitation email to a
+  live mail.tm inbox containing a `/vendor-accept?token=` link: PASS
+- Invitation acceptance UI sets password, clears `must_reset_password`,
+  activates membership, token is single-use: PASS
+- Vendor login redirects to `/vendor` — not the tenant dashboard: PASS
+- Dashboard renders profile + `approved` status: PASS
+- Availability update via UI → PATCH persisted: PASS
+- Tenant B creates a real booking → vendor sees it in `/vendor/bookings`
+  → clicks Accept → dialog confirm → status persisted `accepted`: PASS
+- `/vendor/documents` renders identity/insurance/roadworthy slots: PASS
+- `GET /vendors/me/bookings` contains no `booked_by` staff PII: PASS
+
+### D-04 central Afruheritage support — IMPLEMENTED + browser-verified
+
+Two real gaps found and fixed during browser certification:
+- The apex support page showed an "email us" card and NO form when no
+  tenant context resolved — platform intake was unreachable in a real
+  browser. `create-ticket-form.tsx` now renders the form for platform
+  scope on apex.
+- `ticket-detail.tsx` refused to load without tenant context — public
+  tracking was broken for apex-filed tickets. Now falls back to the
+  `platform` scope for lookup and guest reply.
+
+P28 evidence (`prod-ui-cert/p28-support-crm.js`, `p28-results.json`,
+14/14 PASS):
+- Apex `/support` form submits → platform ticket created + tracking
+  token shown: PASS
+- Public `/support/ticket/{token}` loads the thread unauthenticated and
+  persists a guest reply: PASS
+- Sentinel UI (super_admin login): ticket list shows the apex ticket,
+  thread loads both messages, staff reply posts and appears in-thread,
+  status change works: PASS
+- Staff reply is visible back on the public tracking page: PASS
+
+### D-08 CRM activity — IMPLEMENTED + browser-verified
+
+- `crm_customers` / `crm_activities` now carry `tenant_id` (runtime
+  migration); every `/crm` route filters by the caller's tenant —
+  the previous global reads were a cross-tenant exposure.
+- Tenant-facing `/crm/customers` page (real `crmApi` calls): list,
+  create dialog, stage change, delete, expandable activity history,
+  activity-log dialog.
+- Sentinel admin `crm-panel.tsx` rewritten from mock data to real API.
+
+P28b evidence (`prod-ui-cert/p28b-crm-ui.js`, 5/5 PASS): customer created
+through the UI dialog appears in the list; stage changed to `qualified`
+via UI; activity logged via dialog and rendered; both verified persisted
+and tenant-scoped via the API afterwards.
+
+### Tenant isolation (API, P25 — 21/21)
+
+- Tenant A cannot read tenant B's CRM customer or activity by UUID (404).
+- Tenant A cannot list/read tenant B's support tickets; tenant ticket
+  lists return only own rows.
+- Cross-tenant vendor booking accept/reject → 403.
+- `tenant_id=platform` resolves only to the reserved
+  `afruheritage-platform` ops tenant — arbitrary/missing IDs → 422.
+
+### Remaining targeted security tests
+
+- Concurrent event dedup (P26, 6/6): 10 parallel identical event POSTs →
+  exactly one `ShipmentEvent` row, one notification; conflicting
+  concurrent transitions resolve to a single state.
+- Audit privilege: `admin_audit_logs` owned by `afruheritage_audit`
+  (app role has SELECT+INSERT only) + BEFORE UPDATE/DELETE/TRUNCATE
+  triggers that raise for every role — verified as app superuser.
+- Cross-service consistency: Sentinel→CP proxy mutation under simulated
+  audit-store failure → HTTP 503, downstream flag unchanged; under
+  normal operation → durable `attempt` + `success` audit rows.
+
+### Notable defects fixed in this round
+
+1. Rate limiter keys on the ingress proxy IP (`172.19.0.7`), not the
+   client — so `vendor_register` 2/hour and `login` 5/minute are
+   effectively GLOBAL budgets, not per-client. This tripped repeatedly
+   during certification and is a production availability defect:
+   one busy customer can exhaust the login budget for everyone.
+   Recorded as a finding for a proper `X-Forwarded-For`/trusted-proxy
+   fix; test keys were reset from Redis to continue certification.
+2. Vendor review helpers sent `{decision:"approved"}` — backend expects
+   `{action:"approve"}` — fixed in `frontend/lib/api.ts`.
+3. `/vendors/me/*` routes were shadowed by `/{tenant_id}` wildcards —
+   route order corrected earlier; `/me/bookings` now resolves.
+4. `SupportTicketStatus` was used in `reply_tenant_ticket` without an
+   import — fixed (latent NameError on open tickets).
+
+### Still open / blockers (unchanged)
+
+- **G-04 branded sender: BLOCKED** — ops-side provider authorization +
+  DKIM still pending (`G04_OPS_CHECKLIST.md`).
+- **D-05 payments: sandbox certification only** — no live transactions.
+- Rate-limiter client-IP fix (above) is recommended before broad UAT.

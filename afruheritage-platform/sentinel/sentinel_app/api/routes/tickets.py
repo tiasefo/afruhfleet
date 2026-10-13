@@ -43,6 +43,50 @@ def list_tickets(
         raise HTTPException(status_code=exc.status_code, detail=exc.detail)
 
 
+@router.get("/{ticket_id}/messages")
+def list_ticket_messages(
+    ticket_id: str,
+    request: Request,
+    current_admin: AdminUser = Depends(get_current_admin),
+):
+    ticket_id = uuid_param_or_400(ticket_id, "ticket_id")
+    try:
+        return cp.list_admin_ticket_messages(_get_cp_token(request), ticket_id)
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
+@router.post("/{ticket_id}/reply")
+def reply_ticket(
+    ticket_id: str,
+    request: Request,
+    payload: dict,
+    current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    ticket_id = uuid_param_or_400(ticket_id, "ticket_id")
+    body = (payload.get("body") or "").strip()
+    if not body:
+        raise HTTPException(status_code=400, detail="Reply body is required")
+    try:
+        # Support replies are in the PO "continue" audit tier: audited but
+        # tolerant if the audit store is unavailable.
+        return audited_admin_mutation(
+            db,
+            admin_email=current_admin.email,
+            action="ticket.reply_sent",
+            entity_type="support_ticket",
+            entity_id=ticket_id,
+            details={"body_length": len(body)},
+            operation=lambda: cp.reply_admin_ticket(
+                _get_cp_token(request), ticket_id, body,
+                author_name=current_admin.full_name or current_admin.email,
+            ),
+        )
+    except cp.ControlPlaneError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail)
+
+
 @router.patch("/{ticket_id}/status")
 def update_ticket_status(
     ticket_id: str,
