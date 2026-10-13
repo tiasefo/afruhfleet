@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     redis_url: str = Field(alias='REDIS_URL')
     cors_origins: List[str] = Field(default_factory=list, alias='CORS_ORIGINS')
     enable_bootstrap_admin: bool = Field(default=True, alias='ENABLE_BOOTSTRAP_ADMIN')
+    # R1: CIDRs whose peer IPs are trusted to relay client identity headers
+    # (X-Real-IP). Only the deployed reverse proxy should match; anything else
+    # is keyed on its direct peer IP and forwarding headers are ignored.
+    trusted_proxy_cidrs: str = Field(default='172.16.0.0/12,10.0.0.0/8', alias='TRUSTED_PROXY_CIDRS')
 
     default_subdomain_base: str = Field(alias='DEFAULT_SUBDOMAIN_BASE')
 

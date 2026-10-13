@@ -348,3 +348,83 @@ and tenant-scoped via the API afterwards.
   DKIM still pending (`G04_OPS_CHECKLIST.md`).
 - **D-05 payments: sandbox certification only** — no live transactions.
 - Rate-limiter client-IP fix (above) is recommended before broad UAT.
+
+---
+
+## Round 4 — PO gates R1/R2/R3 (commit after 4954da3d)
+
+### R1 — Rate-limiter correction — VERIFIED (P29: 12/12)
+
+Root cause discovered during certification: the real ingress topology is
+**cloudflared → localhost published ports → docker-proxy → API**, not the
+host nginx (which sits bypassed on :80). Docker-proxy masquerades all
+published-port traffic as the bridge gateway, so a subnet-wide trust
+range made `X-Real-IP` forgeable from anywhere reaching `:8100` — proven
+live (a forged `6.6.6.6` bucket was created before the fix).
+
+Fix applied:
+- `get_client_ip()` resolves the client IP only when the immediate peer
+  is in `TRUSTED_PROXY_CIDRS`; forwarded headers are ignored for
+  untrusted peers. `CF-Connecting-IP` preferred, `X-Real-IP` fallback.
+- Published ports bound to `127.0.0.1` (api 8100, frontend 3002,
+  sentinel 9200, **postgres 5433, redis 6380**) — the direct external
+  bypass is closed at the network layer AND the publicly exposed
+  database/cache ports are no longer reachable from outside.
+- Trusted set narrowed to exactly the two legitimate forwarders:
+  gateway `172.19.0.1/32` (cloudflared path) and the frontend container
+  `172.19.0.100` (browser `/api/v1` path — pinned via compose IPAM).
+- `APP_ENV` corrected `development` → `production`: auth cookie now
+  `Secure`, `/api/docs` disabled (404), HSTS emitted, login limit is the
+  production 5/minute.
+
+Evidence (P29): forged `X-Real-IP`/`CF-Connecting-IP` via edge → 403, no
+bucket; forged via untrusted internal container → bucket keyed on the
+container's own IP (no spoof); direct published-port access → connection
+refused; per-client buckets (`24.17.193.224` vs `172.19.0.5` distinct);
+brute-force 429s still fire.
+
+### R2 — CRM tenant-isolation certification — VERIFIED (P30: 19/19)
+
+- Direct object-ID negatives: tenant B gets **404** on tenant A's
+  customer for GET, PATCH stage, PATCH owner, POST convert, DELETE, GET
+  activities, POST activity.
+- List isolation: B's list contains zero A records.
+- Historical records: 3 pre-migration rows had NULL `tenant_id` — all
+  Aug-30/31 test data ("Test Customer"/"Verify Customer"), unattributable
+  to any tenant. Per mandate, not assigned — and now **invisible to all
+  callers including superuser** (`tenant_id IS NOT NULL` enforced in
+  both list and single-row fetch paths).
+- Superuser ops view: sees *owned* cross-tenant rows only.
+- Sentinel surface: no CRM proxy route exists (the 200 was the static
+  SPA catch-all; verified by content-type).
+- Access-log review: **no durable per-request access log exists**
+  (`user_activity_logs` empty; container logs lost on recreate;
+  cloudflared logs errors only — 2 `/crm` page loads, zero API reads).
+  Whether the vulnerable global-query path was ever exploited cannot be
+  determined from available records — recorded as a logging-coverage gap,
+  not as confirmed access.
+
+### R3 — Vendor identity regression — VERIFIED (P31: 21/21)
+
+- Single-use invitation: first accept activates; replay of the same
+  token → 404; garbage token → 404.
+- Role preservation: `company_admin` user linked as vendor member keeps
+  `role=company_admin` through invite, accept, and post-accept — the
+  invite only activates the *membership*, never rewrites the identity.
+- INVITED (unaccepted) membership grants no vendor access: 403.
+- Suspension: suspended membership → 403; suspended vendor → 403 on
+  profile and bookings.
+- Booking isolation: vendor sees own booking; `booked_by` staff email is
+  null in the vendor serializer; cross-tenant accept → 404.
+
+### Known limitation (honest flag)
+
+`_resolve_vendor_context` resolves the FIRST active membership — a user
+holding memberships on multiple vendors sees a single vendor context.
+Multi-vendor portal switching is a Phase-3 design item, not a security
+hole (authorization is still membership-bound), but worth a PO decision.
+
+### Deployment findings fixed in this round
+
+- `APP_ENV=development` on production (see R1).
+- Postgres/Redis published on `0.0.0.0` — now localhost-bound.

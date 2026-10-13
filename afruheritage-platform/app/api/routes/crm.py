@@ -20,12 +20,14 @@ router = APIRouter(prefix="/crm", tags=["CRM"])
 def _tenant_customer(db: Session, customer_id: str, user: User) -> CrmCustomer:
     """Fetch a CRM customer scoped to the caller's tenant (404 if foreign).
 
-    A platform superuser without a tenant context may address any record —
-    the admin console CRM tab is their ops surface. Tenant users only ever
-    reach rows carrying their own tenant_id; tenant-less legacy rows are
-    invisible to tenants.
+    A platform superuser without a tenant context may address any *owned*
+    record — the admin console CRM tab is their ops surface. Records with no
+    tenant ownership (unassigned legacy rows) are invisible to everyone.
     """
-    q = select(CrmCustomer).where(CrmCustomer.id == customer_id)
+    q = select(CrmCustomer).where(
+        CrmCustomer.id == customer_id,
+        CrmCustomer.tenant_id.isnot(None),
+    )
     if not (user.is_superuser and not user.tenant_id):
         q = q.where(CrmCustomer.tenant_id == user.tenant_id)
     customer = db.scalar(q)
@@ -115,8 +117,14 @@ def list_customers(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription),
 ):
-    """List CRM customers for the caller's tenant (all, for tenant-less superuser)."""
-    q = select(CrmCustomer).where(CrmCustomer.is_active.is_(True))
+    """List CRM customers for the caller's tenant (all owned, for tenant-less superuser)."""
+    # R2: records without tenant ownership are never exposed — not to tenants,
+    # not to platform admins. Unassigned legacy rows stay invisible until a
+    # privileged reconciliation assigns them.
+    q = select(CrmCustomer).where(
+        CrmCustomer.is_active.is_(True),
+        CrmCustomer.tenant_id.isnot(None),
+    )
     if not (current_user.is_superuser and not current_user.tenant_id):
         q = q.where(CrmCustomer.tenant_id == current_user.tenant_id)
     customers = db.scalars(q.order_by(CrmCustomer.created_at.desc())).all()

@@ -1,0 +1,156 @@
+{
+  "pass": 21,
+  "fail": 0,
+  "results": [
+    {
+      "n": "vendor registered",
+      "ok": true,
+      "d": {
+        "status": 200,
+        "id": "29ae517e-6bdd-403d-af55-20c77f82c0be"
+      }
+    },
+    {
+      "n": "vendor approved",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "membership linked + invited",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "single-use invite token issued",
+      "ok": true,
+      "d": {
+        "len": 43
+      }
+    },
+    {
+      "n": "first accept activates membership",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "replay of same token rejected",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "garbage token rejected",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "existing user linked (invited membership)",
+      "ok": true,
+      "d": {
+        "status": 200,
+        "invited": true
+      }
+    },
+    {
+      "n": "existing user role unchanged (not vendor)",
+      "ok": true,
+      "d": {
+        "role": "company_admin"
+      }
+    },
+    {
+      "n": "existing user login still works",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "invited (unaccepted) membership grants no vendor access",
+      "ok": true,
+      "d": {
+        "status": 403
+      }
+    },
+    {
+      "n": "existing user accepts invite (password untouched)",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "existing user password unchanged after accept",
+      "ok": true,
+      "d": {
+        "status": 200,
+        "note": "429=ratelimit"
+      }
+    },
+    {
+      "n": "accepted membership grants vendor access",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "platform role STILL preserved post-accept",
+      "ok": true,
+      "d": {
+        "role": "company_admin"
+      }
+    },
+    {
+      "n": "suspended membership -> 403",
+      "ok": true,
+      "d": {
+        "status": 403
+      }
+    },
+    {
+      "n": "suspended vendor -> 403",
+      "ok": true,
+      "d": {
+        "status": 403
+      }
+    },
+    {
+      "n": "suspended vendor -> bookings 403",
+      "ok": true,
+      "d": {
+        "status": 403
+      }
+    },
+    {
+      "n": "vendor sees own booking",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "booking response excludes booked_by staff PII",
+      "ok": true,
+      "d": {
+        "booked_by": null
+      }
+    },
+    {
+      "n": "cross-tenant booking action rejected",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    }
+  ]
+}

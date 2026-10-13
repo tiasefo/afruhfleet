@@ -1,0 +1,108 @@
+{
+  "pass": 12,
+  "fail": 0,
+  "results": [
+    {
+      "n": "trusted peer honors X-Real-IP",
+      "ok": true,
+      "d": {
+        "r1": "203.0.113.50"
+      }
+    },
+    {
+      "n": "trusted peer without header -> peer IP",
+      "ok": true,
+      "d": {
+        "r2": "172.19.0.100"
+      }
+    },
+    {
+      "n": "untrusted peer ignores forged X-Real-IP",
+      "ok": true,
+      "d": {
+        "r3": "198.51.100.9"
+      }
+    },
+    {
+      "n": "CF-Connecting-IP preferred on trusted peer",
+      "ok": true,
+      "d": {
+        "r4": "203.0.113.60"
+      }
+    },
+    {
+      "n": "untrusted peer ignores forged CF-Connecting-IP",
+      "ok": true,
+      "d": {
+        "r5": "198.51.100.9"
+      }
+    },
+    {
+      "n": "direct published-port access refused",
+      "ok": true,
+      "d": {
+        "status": "ERR:Command failed: docker run --rm curlimages/curl -s -o /dev/null -w '%{http_code}' --max-time 8 -X POST 'http://172.19.0."
+      }
+    },
+    {
+      "n": "postgres published-port access refused",
+      "ok": true,
+      "d": {
+        "status": "ERR:Command failed: docker run --rm curlimages/curl -s -o /dev/null -w '%{http_code}' --max-time 8 http://172.19.0.1:5433/"
+      }
+    },
+    {
+      "n": "forged CF-Connecting-IP/X-Real-IP creates no bucket",
+      "ok": true,
+      "d": {
+        "status": 403,
+        "keys": []
+      }
+    },
+    {
+      "n": "internal untrusted peer keyed on its own IP (no spoof)",
+      "ok": true,
+      "d": {
+        "workerPeer": "172.19.0.5",
+        "keys2": [
+          "LIMITS:LIMITER/172.19.0.5//api/v1/auth/login/5/1/minute"
+        ]
+      }
+    },
+    {
+      "n": "brute-force protection fires (429 within 9 tries)",
+      "ok": true,
+      "d": {
+        "statuses": [
+          401,
+          401,
+          401,
+          401,
+          401,
+          429,
+          429,
+          429,
+          429
+        ]
+      }
+    },
+    {
+      "n": "bucket keyed on real client IP",
+      "ok": true,
+      "d": {
+        "realIp": "24.17.193.224",
+        "postKeys": [
+          "LIMITS:LIMITER/172.19.0.5//api/v1/auth/login/5/1/minute",
+          "LIMITS:LIMITER/24.17.193.224//api/v1/auth/login/5/1/minute"
+        ]
+      }
+    },
+    {
+      "n": "/api/docs disabled in production mode",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    }
+  ]
+}

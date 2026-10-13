@@ -4,6 +4,8 @@ from app.core.config import settings
 import time
 from typing import Callable
 
+import ipaddress
+
 from fastapi import Request, Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -12,15 +14,42 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.structured_logging import security_logger, tenant_id, user_id
 
+# R1: resolve the real client IP only when the immediate peer is a trusted
+# ingress proxy. nginx overwrites X-Real-IP with $remote_addr, so its value
+# cannot be forged by an external client — but the header must never be
+# honored from untrusted direct peers (the API port is published, so
+# clients can bypass nginx entirely).
+_TRUSTED_NETWORKS = [
+    ipaddress.ip_network(c.strip())
+    for c in getattr(settings, 'trusted_proxy_cidrs', '').split(',')
+    if c.strip()
+]
+
+def get_client_ip(request: Request) -> str:
+    peer = request.client.host if request.client else None
+    if peer:
+        try:
+            addr = ipaddress.ip_address(peer)
+        except ValueError:
+            addr = None
+        if addr is not None and any(addr in net for net in _TRUSTED_NETWORKS):
+            # Cloudflare edge overwrites CF-Connecting-IP with the real client;
+            # nginx sets X-Real-IP=$remote_addr. Prefer CF when present.
+            real = (request.headers.get('cf-connecting-ip') or
+                    request.headers.get('x-real-ip') or '').strip()
+            if real:
+                return real
+    return peer or 'unknown'
+
 # Create limiter instance with Redis storage for distributed rate limiting
-limiter = Limiter(key_func=get_remote_address, storage_uri=getattr(settings, 'redis_url', 'memory://'))
+limiter = Limiter(key_func=get_client_ip, storage_uri=getattr(settings, 'redis_url', 'memory://'))
 
 # Custom rate limit exceeded handler
 async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
     """Custom handler for rate limit exceeded"""
     # Log rate limit violation
     security_logger.log_rate_limit_exceeded(
-        ip_address=get_remote_address(request),
+        ip_address=get_client_ip(request),
         endpoint=f"{request.method} {request.url.path}",
         limit=str(exc.detail),
         user_id=user_id.get(),
@@ -84,7 +113,7 @@ class TenantAwareLimiter:
         user_id = getattr(request.state, "user_id", None)
         
         # Build key: ip:tenant:user or just ip for public
-        key_parts = [get_remote_address(request)]
+        key_parts = [get_client_ip(request)]
         if tenant_id:
             key_parts.append(f"tenant:{tenant_id}")
         if user_id:

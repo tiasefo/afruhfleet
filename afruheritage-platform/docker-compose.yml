@@ -23,7 +23,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8100:8000"
+      - "127.0.0.1:8100:8000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -100,7 +100,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U afruheritage -d afruheritage"]
@@ -116,7 +116,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "6380:6379"
+      - "127.0.0.1:6380:6379"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -137,7 +137,10 @@ services:
       - JWT_SECRET=${SECRET_KEY}
       - NODE_OPTIONS=--dns-result-order=ipv4first
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000"
+    networks:
+      default:
+        ipv4_address: 172.19.0.100
     depends_on:
       api:
         condition: service_healthy
@@ -165,7 +168,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9200/sentinel/health"]
@@ -201,6 +204,9 @@ volumes:
 networks:
   default:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.19.0.0/16
   # Join the Fleetbase network so `fleetbase-httpd` hostname resolves
   # from within the afruheritage-api container.
   fleetbase_default:

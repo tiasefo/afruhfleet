@@ -1,0 +1,137 @@
+{
+  "pass": 19,
+  "fail": 0,
+  "results": [
+    {
+      "n": "tenant A + B authenticated",
+      "ok": true,
+      "d": {
+        "a": 200,
+        "b": 200
+      }
+    },
+    {
+      "n": "A creates customer",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "A creates activity",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "B cannot GET A's customer by UUID",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot PATCH A's customer stage",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot PATCH A's customer owner",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot POST convert on A's customer",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot DELETE A's customer",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot GET A's activities",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B cannot POST activity on A's customer",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "B list contains no A records",
+      "ok": true,
+      "d": {
+        "count": 4
+      }
+    },
+    {
+      "n": "tenant cannot fetch unowned legacy row by UUID",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "tenant list excludes unowned legacy rows",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "superuser sees owned cross-tenant rows (ops surface)",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "superuser list excludes unowned legacy rows",
+      "ok": true,
+      "d": {
+        "found": 0
+      }
+    },
+    {
+      "n": "superuser cannot fetch unowned row by UUID",
+      "ok": true,
+      "d": {
+        "status": 404
+      }
+    },
+    {
+      "n": "sentinel has no un-audited CRM proxy surface",
+      "ok": true,
+      "d": {
+        "status": 200,
+        "ctype": "text/html; charset=utf-8"
+      }
+    },
+    {
+      "n": "A reads own customer + activities",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "cleanup: A deletes own customer",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    }
+  ]
+}
