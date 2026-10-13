@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_superuser, require_active_subscription, require_vendor, require_approved_vendor, VendorContext
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.vendor import AutoDispatchRequest, AutoDispatchResponse, BookingCreateRequest, BookingDecisionRequest, BookingResponse, BookingUpdateRequest, VendorAvailabilityResponse, VendorAvailabilityUpdateRequest, VendorDocumentResponse, VendorDocumentSubmitResponse, VendorMatchRequest, VendorMatchResult, VendorRegisterRequest, VendorRegisterResponse, VendorResponse, VendorReviewRequest, VendorSearchResult, VendorVehicleResponse
+from app.schemas.vendor import AutoDispatchRequest, AutoDispatchResponse, BookingCreateRequest, BookingDecisionRequest, BookingResponse, BookingUpdateRequest, VendorAvailabilityResponse, VendorAvailabilityUpdateRequest, VendorDocumentResponse, VendorDocumentSubmitResponse, VendorMatchRequest, VendorMatchResult, VendorRegisterRequest, VendorRegisterResponse, VendorResponse, VendorReviewRequest, VendorSearchResult, VendorVehicleResponse, VendorInvitationAcceptRequest
 from app.services.billing_service import consume_wallet_credits, evaluate_subscription_state, feature_credit_cost, feature_enabled_for_plan
 from app.services.storage_service import storage_service
 from app.services.vendor_service import add_vendor_document, auto_dispatch_booking, create_booking, get_booking, get_vendor, get_vendor_by_email, list_bookings, list_vendors, register_vendor, review_vendor, search_marketplace, suggest_vendors_for_pickup, suspend_vendor, update_booking, update_vendor_availability, vendor_decide_booking
@@ -202,19 +202,19 @@ def link_vendor_member(
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid role: {payload.role}")
 
-    user = db.query(User).filter(User.email == payload.user_email.lower()).first()
+    import secrets as _secrets
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+
     invited = False
+    user = db.query(User).filter(User.email == payload.user_email.lower()).first()
     if not user:
-        # Account activation (PO D-01): create a platform identity with the
-        # vendor role and force password setup through the existing reset
-        # flow — completing the reset proves mailbox ownership, i.e. a
-        # verified identity, before the membership is usable.
-        import secrets as _secrets
-        from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+        # PO Gate A-2: invited-created platform identity. The account starts
+        # password-less (must_reset_password) and the membership starts
+        # INVITED — vendor access requires ACTIVE (app/api/deps.py), so the
+        # account grants nothing until the emailed invitation is accepted.
         from app.models.user import UserRole
         from app.core.security import get_password_hash
 
-        reset_token = _secrets.token_urlsafe(32)
         user = User(
             email=payload.user_email.lower(),
             full_name=payload.user_email.split('@')[0],
@@ -225,39 +225,110 @@ def link_vendor_member(
             role=UserRole.vendor,
             tenant_id=None,
             must_reset_password=True,
-            password_reset_token=reset_token,
-            password_reset_expires_at=_dt.now(_tz.utc) + _td(hours=48),
         )
         db.add(user)
         db.flush()
         invited = True
-        try:
-            from app.services.notification_service import get_notification_service
-            reset_url = f"{settings.web_url.rstrip('/')}/reset-password?token={reset_token}"
-            get_notification_service().send_password_reset_email(to=user.email, reset_url=reset_url)
-        except Exception as exc:
-            logger.error("Vendor invite reset email failed for %s: %s", user.email, exc)
+
     membership = (
         db.query(VendorMembership)
         .filter(VendorMembership.vendor_id == vid, VendorMembership.user_id == user.id)
         .first()
     )
-    if membership:
+    if membership and membership.status == VendorMembershipStatus.ACTIVE:
+        # Existing ACTIVE membership: role management only — never re-issue
+        # an invitation for a live membership.
         membership.role = role
-        membership.status = VendorMembershipStatus.ACTIVE
         membership.linked_by = current_user.email
     else:
-        membership = VendorMembership(
-            vendor_id=vid,
-            user_id=user.id,
-            role=role,
-            status=VendorMembershipStatus.ACTIVE,
-            linked_by=current_user.email,
-        )
-        db.add(membership)
+        # New, INVITED or SUSPENDED membership → (re)issue a membership-bound,
+        # single-use, expiring invitation. Applies identically to existing
+        # platform users: their account is NOT silently activated into a
+        # vendor context and their primary role is never touched.
+        token = _secrets.token_urlsafe(32)
+        if not membership:
+            membership = VendorMembership(
+                vendor_id=vid,
+                user_id=user.id,
+                role=role,
+                status=VendorMembershipStatus.INVITED,
+                linked_by=current_user.email,
+            )
+            db.add(membership)
+        else:
+            membership.role = role
+            membership.status = VendorMembershipStatus.INVITED
+            membership.linked_by = current_user.email
+        membership.invitation_token = token
+        membership.invitation_expires_at = _dt.now(_tz.utc) + _td(hours=72)
+        invited = True
+        try:
+            from app.services.notification_service import get_notification_service
+            accept_url = f"{settings.web_url.rstrip('/')}/vendor-accept?token={token}"
+            get_notification_service(db).send_team_invitation_email(
+                to=user.email,
+                setup_url=accept_url,
+                company_name="Afruheritage",
+                inviter_name=current_user.email,
+            )
+        except Exception as exc:
+            logger.error("Vendor invitation email failed for %s: %s", user.email, exc)
     db.commit()
     db.refresh(membership)
     return {**_member_to_response(membership), 'account_invited': invited}
+
+
+@router.post('/invitations/accept', response_model=dict)
+def accept_vendor_invitation(
+    payload: VendorInvitationAcceptRequest,
+    db: Session = Depends(get_db),
+):
+    """PO Gate A-2: single-use, expiring, membership-bound invitation accept.
+
+    The token lives on the membership row — it can only ever activate that
+    one membership, and clearing it on success makes replay impossible.
+    """
+    from app.models.vendor import VendorMembership, VendorMembershipStatus
+    from app.core.security import get_password_hash
+    from datetime import datetime as _dt, timezone as _tz
+
+    membership = (
+        db.query(VendorMembership)
+        .filter(VendorMembership.invitation_token == payload.token)
+        .first()
+    )
+    if not membership:
+        raise HTTPException(status_code=404, detail='Invalid invitation token')
+    expires_at = membership.invitation_expires_at
+    now = _dt.now(_tz.utc)
+    if expires_at is None:
+        raise HTTPException(status_code=400, detail='Invitation has no expiry')
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=_tz.utc)
+    if expires_at < now:
+        raise HTTPException(status_code=400, detail='Invitation expired')
+
+    user = db.query(User).filter(User.id == membership.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail='Invited user not found')
+
+    if user.must_reset_password:
+        if not payload.new_password or len(payload.new_password) < 8:
+            raise HTTPException(
+                status_code=400,
+                detail='A new password (min 8 characters) is required to activate this account',
+            )
+        user.hashed_password = get_password_hash(payload.new_password)
+        user.must_reset_password = False
+        user.is_active = True
+
+    membership.status = VendorMembershipStatus.ACTIVE
+    membership.invitation_token = None
+    membership.invitation_expires_at = None
+    db.add(membership)
+    db.commit()
+    db.refresh(membership)
+    return {'status': 'activated', 'membership': _member_to_response(membership)}
 
 
 @router.delete('/admin/{vendor_id}/members/{membership_id}', response_model=dict)

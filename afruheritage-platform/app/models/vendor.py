@@ -243,6 +243,9 @@ class VendorMembership(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    invitation_token: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    invitation_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     vendor: Mapped[DeliveryVendor] = relationship("DeliveryVendor")
 
     __table_args__ = (

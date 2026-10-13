@@ -254,3 +254,9 @@ class BookingResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class VendorInvitationAcceptRequest(BaseModel):
+    """Accept a vendor membership invitation (PO Gate A-2)."""
+    token: str
+    new_password: str | None = None
