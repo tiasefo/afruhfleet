@@ -7,7 +7,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyRunnerCreate
-from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit, audited_proxy_mutation
 from sentinel_app.services import control_plane_client as cp
 from sentinel_app.services.control_plane_client import ControlPlaneError
 
@@ -39,23 +39,18 @@ def create_runner(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    def _create() -> dict:
+        try:
+            return cp.create_runner(_get_cp_token(request), payload.model_dump())
+        except ControlPlaneError as exc:
+            raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="runner.created_via_admin",
         entity_type="runner",
         details={"name": payload.name, "host": payload.host},
+        operation=_create,
+        result_entity_id=lambda r: r.get("id"),
     )
-    try:
-        result = cp.create_runner(_get_cp_token(request), payload.model_dump())
-    except ControlPlaneError as exc:
-        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="runner.created_via_admin",
-        entity_type="runner",
-        entity_id=result.get("id"),
-        details={**({"name": payload.name, "host": payload.host}), "outcome": "success"},
-    )
-    return result

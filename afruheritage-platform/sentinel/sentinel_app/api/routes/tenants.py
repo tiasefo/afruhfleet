@@ -8,7 +8,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyTenantApprove, ProxyTenantCreate, ProxyTenantLaunch
-from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit, audited_proxy_mutation
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/tenants", tags=["Admin – Tenants"])
@@ -40,25 +40,15 @@ def create_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.created_via_admin",
         entity_type="tenant",
         details={"company_name": payload.company_name},
+        operation=lambda: cp.create_tenant(_get_cp_token(request), payload.model_dump()),
     )
-    result = cp.create_tenant(_get_cp_token(request), payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.created_via_admin",
-        entity_type="tenant",
-        entity_id=result.get("id"),
-        details={**({"company_name": payload.company_name}), "outcome": "success"},
-    )
-    return result
-
-
 @router.get("/requests")
 def list_tenant_requests(
     request: Request,
@@ -84,26 +74,16 @@ def review_tenant_request(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.request.reviewed_via_admin",
         entity_type="tenant_request",
         entity_id=request_id,
         details={"status": payload.status},
+        operation=lambda: cp.review_tenant_request(_get_cp_token(request), request_id, payload.model_dump()),
     )
-    result = cp.review_tenant_request(_get_cp_token(request), request_id, payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.request.reviewed_via_admin",
-        entity_type="tenant_request",
-        entity_id=request_id,
-        details={**({"status": payload.status}), "outcome": "success"},
-    )
-    return result
-
-
 @router.post("/requests/{request_id}/auto-provision")
 def auto_provision_tenant_request(
     request_id: str,
@@ -111,25 +91,15 @@ def auto_provision_tenant_request(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.request.auto_provisioned_via_admin",
         entity_type="tenant_request",
         entity_id=request_id,
+        operation=lambda: cp.auto_provision_tenant_request(_get_cp_token(request), request_id),
     )
-    result = cp.auto_provision_tenant_request(_get_cp_token(request), request_id)
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.request.auto_provisioned_via_admin",
-        entity_type="tenant_request",
-        entity_id=request_id,
-    details={"outcome": "success"},
-    )
-    return result
-
-
 @router.post("/{tenant_id}/approve")
 def approve_tenant(
     tenant_id: str,
@@ -138,25 +108,15 @@ def approve_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.approved_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.approve_tenant(_get_cp_token(request), tenant_id, payload.model_dump()),
     )
-    result = cp.approve_tenant(_get_cp_token(request), tenant_id, payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.approved_via_admin",
-        entity_type="tenant",
-        entity_id=tenant_id,
-    details={"outcome": "success"},
-    )
-    return result
-
-
 @router.post("/{tenant_id}/launch")
 def launch_tenant(
     tenant_id: str,
@@ -165,25 +125,15 @@ def launch_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.launched_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.launch_tenant(_get_cp_token(request), tenant_id, payload.model_dump()),
     )
-    result = cp.launch_tenant(_get_cp_token(request), tenant_id, payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.launched_via_admin",
-        entity_type="tenant",
-        entity_id=tenant_id,
-    details={"outcome": "success"},
-    )
-    return result
-
-
 @router.get("/jobs/{job_id}")
 def get_job(
     job_id: str,
@@ -200,20 +150,15 @@ def suspend_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.suspended_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.suspend_tenant(_get_cp_token(request), tenant_id),
     )
-    result = cp.suspend_tenant(_get_cp_token(request), tenant_id)
-    record_admin_audit(db, admin_email=current_admin.email, action="tenant.suspended_via_admin", entity_type="tenant", entity_id=tenant_id,
-        details={"outcome": "success"},
-    )
-    return result
-
-
 @router.post("/{tenant_id}/activate")
 def activate_tenant(
     tenant_id: str,
@@ -221,20 +166,15 @@ def activate_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.activated_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.activate_tenant(_get_cp_token(request), tenant_id),
     )
-    result = cp.activate_tenant(_get_cp_token(request), tenant_id)
-    record_admin_audit(db, admin_email=current_admin.email, action="tenant.activated_via_admin", entity_type="tenant", entity_id=tenant_id,
-        details={"outcome": "success"},
-    )
-    return result
-
-
 @router.delete("/{tenant_id}")
 def delete_tenant(
     tenant_id: str,
@@ -242,20 +182,15 @@ def delete_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.deleted_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.delete_tenant(_get_cp_token(request), tenant_id),
     )
-    result = cp.delete_tenant(_get_cp_token(request), tenant_id)
-    record_admin_audit(db, admin_email=current_admin.email, action="tenant.deleted_via_admin", entity_type="tenant", entity_id=tenant_id,
-        details={"outcome": "success"},
-    )
-    return result
-
-
 @router.post("/{tenant_id}/provision")
 def provision_tenant(
     tenant_id: str,
@@ -263,20 +198,15 @@ def provision_tenant(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.provisioned_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.provision_tenant_fleetbase(_get_cp_token(request), tenant_id),
     )
-    result = cp.provision_tenant_fleetbase(_get_cp_token(request), tenant_id)
-    record_admin_audit(db, admin_email=current_admin.email, action="tenant.provisioned_via_admin", entity_type="tenant", entity_id=tenant_id,
-        details={"outcome": "success"},
-    )
-    return result
-
-
 # ── Support: lookup + resend portal URL ─────────────────────────────────────────
 
 @router.get("/lookup")
@@ -298,25 +228,15 @@ def resend_portal_url(
     current_admin: AdminUser = Depends(get_current_admin),
 ):
     """Support: re-send portal URL email to tenant admin and return the URL."""
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="tenant.portal_url.resent_via_admin",
         entity_type="tenant",
         entity_id=tenant_id,
+        operation=lambda: cp.resend_portal_url(_get_cp_token(request), tenant_id),
     )
-    result = cp.resend_portal_url(_get_cp_token(request), tenant_id)
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="tenant.portal_url.resent_via_admin",
-        entity_type="tenant",
-        entity_id=tenant_id,
-        details={**({"portal_url": result.get("portal_url"), "email_sent": result.get("email_sent")}), "outcome": "success"},
-    )
-    return result
-
-
 # ── Tenant Preview: products, categories, fleetbase ──────────────────────────
 
 @router.get("/{tenant_id}/products")

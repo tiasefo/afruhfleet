@@ -7,7 +7,7 @@ from sentinel_app.api.deps import get_current_admin
 from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyBillingAdjustCredits, ProxyBillingAssignPlan, ProxyBillingSetReadOnly
-from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit, audited_proxy_mutation
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/billing", tags=["Admin – Billing"])
@@ -126,26 +126,16 @@ def assign_plan(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="billing.plan_assigned_via_admin",
         entity_type="subscription",
         entity_id=payload.tenant_id,
         details={"plan_code": payload.plan_code},
+        operation=lambda: cp.assign_plan(_get_cp_token(request), payload.model_dump()),
     )
-    result = cp.assign_plan(_get_cp_token(request), payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="billing.plan_assigned_via_admin",
-        entity_type="subscription",
-        entity_id=payload.tenant_id,
-        details={**({"plan_code": payload.plan_code}), "outcome": "success"},
-    )
-    return result
-
-
 @router.post("/adjust-credits")
 def adjust_credits(
     payload: ProxyBillingAdjustCredits,
@@ -153,26 +143,16 @@ def adjust_credits(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="billing.credits_adjusted_via_admin",
         entity_type="wallet",
         entity_id=payload.tenant_id,
         details={"delta": payload.credits_delta, "memo": payload.memo},
+        operation=lambda: cp.adjust_credits(_get_cp_token(request), payload.model_dump()),
     )
-    result = cp.adjust_credits(_get_cp_token(request), payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="billing.credits_adjusted_via_admin",
-        entity_type="wallet",
-        entity_id=payload.tenant_id,
-        details={**({"delta": payload.credits_delta, "memo": payload.memo}), "outcome": "success"},
-    )
-    return result
-
-
 @router.post("/set-read-only")
 def set_read_only(
     payload: ProxyBillingSetReadOnly,
@@ -180,21 +160,13 @@ def set_read_only(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="billing.read_only_set_via_admin",
         entity_type="subscription",
         entity_id=payload.tenant_id,
         details={"reason": payload.reason},
+        operation=lambda: cp.set_read_only(_get_cp_token(request), payload.model_dump()),
     )
-    result = cp.set_read_only(_get_cp_token(request), payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="billing.read_only_set_via_admin",
-        entity_type="subscription",
-        entity_id=payload.tenant_id,
-        details={**({"reason": payload.reason}), "outcome": "success"},
-    )
-    return result

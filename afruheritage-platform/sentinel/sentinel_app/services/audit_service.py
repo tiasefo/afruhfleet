@@ -145,3 +145,76 @@ def audited_admin_mutation(
         details={**(details or {}), "outcome": "success"},
     )
     return result
+
+def audited_proxy_mutation(
+    db: Session,
+    *,
+    admin_email: str,
+    action: str,
+    entity_type: str,
+    entity_id: str | None = None,
+    details: dict[str, Any] | None = None,
+    ip_address: str | None = None,
+    operation: Callable[[], T],
+    result_entity_id: Callable[[T], str | None] | None = None,
+) -> T:
+    """Fail-closed attempt + reconciled outcome for PROXIED mutations.
+
+    PO Gate A-4: a durable `attempt` row alone is not an audit outcome.
+    For mutations executed on another service over HTTP, an exception after
+    the request was sent does not prove the mutation did not commit. The
+    outcome row therefore records:
+
+      success     — downstream returned success
+      rejected    — downstream responded 4xx (mutation refused)
+      unconfirmed — timeout, connection failure, 5xx, or any other error
+                    after dispatch; the mutation MAY have committed and the
+                    record must not claim failure or success
+
+    Rows are append-only; each outcome is a separate durable row.
+    """
+    audit_attempt_or_503(
+        db,
+        admin_email=admin_email,
+        action=action,
+        entity_type=entity_type,
+        entity_id=entity_id,
+        details=details,
+        ip_address=ip_address,
+    )
+    try:
+        result = operation()
+    except Exception as exc:
+        from sentinel_app.services.control_plane_client import ControlPlaneError
+        if isinstance(exc, ControlPlaneError) and exc.status_code < 500:
+            outcome = "rejected"
+        elif isinstance(exc, HTTPException) and exc.status_code < 500:
+            outcome = "rejected"
+        else:
+            outcome = "unconfirmed"
+        _safe_record(
+            db,
+            admin_email=admin_email,
+            action=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            details={**(details or {}), "outcome": outcome, "error": str(exc)[:500]},
+            ip_address=ip_address,
+        )
+        raise
+    out_entity_id = entity_id
+    if result_entity_id is not None:
+        try:
+            out_entity_id = result_entity_id(result)
+        except Exception:
+            pass
+    _safe_record(
+        db,
+        admin_email=admin_email,
+        action=action,
+        entity_type=entity_type,
+        entity_id=out_entity_id,
+        details={**(details or {}), "outcome": "success"},
+        ip_address=ip_address,
+    )
+    return result

@@ -8,7 +8,7 @@ from sentinel_app.db.session import get_db
 from sentinel_app.models.admin_user import AdminUser
 from sentinel_app.schemas.proxy import ProxyVendorReview
 from pydantic import BaseModel, EmailStr
-from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit
+from sentinel_app.services.audit_service import audit_attempt_or_503, record_admin_audit, audited_proxy_mutation
 from sentinel_app.services import control_plane_client as cp
 
 router = APIRouter(prefix="/vendors", tags=["Admin – Vendors"])
@@ -59,26 +59,16 @@ def review_vendor(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action=f"vendor.{payload.action}_via_admin",
         entity_type="vendor",
         entity_id=vendor_id,
         details={"action": payload.action},
+        operation=lambda: cp.review_vendor(_get_cp_token(request), vendor_id, payload.model_dump()),
     )
-    result = cp.review_vendor(_get_cp_token(request), vendor_id, payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action=f"vendor.{payload.action}_via_admin",
-        entity_type="vendor",
-        entity_id=vendor_id,
-        details={**({"action": payload.action}), "outcome": "success"},
-    )
-    return result
-
-
 @router.post("/{vendor_id}/suspend")
 def suspend_vendor(
     vendor_id: str,
@@ -86,25 +76,15 @@ def suspend_vendor(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="vendor.suspended_via_admin",
         entity_type="vendor",
         entity_id=vendor_id,
+        operation=lambda: cp.suspend_vendor(_get_cp_token(request), vendor_id),
     )
-    result = cp.suspend_vendor(_get_cp_token(request), vendor_id)
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="vendor.suspended_via_admin",
-        entity_type="vendor",
-        entity_id=vendor_id,
-        details={"outcome": "success"},
-    )
-    return result
-
-
 # ── Vendor membership administration (PO D-01) ─────────────────
 # Explicit vendor↔identity linkage; never auto-granted from email matches.
 
@@ -130,26 +110,16 @@ def link_vendor_member(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="vendor.member_linked_via_admin",
         entity_type="vendor",
         entity_id=vendor_id,
         details={"user_email": payload.user_email, "role": payload.role},
+        operation=lambda: cp.link_vendor_member(_get_cp_token(request), vendor_id, payload.model_dump()),
     )
-    result = cp.link_vendor_member(_get_cp_token(request), vendor_id, payload.model_dump())
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="vendor.member_linked_via_admin",
-        entity_type="vendor",
-        entity_id=vendor_id,
-        details={"user_email": payload.user_email, "role": payload.role, "outcome": "success"},
-    )
-    return result
-
-
 @router.delete("/{vendor_id}/members/{membership_id}")
 def unlink_vendor_member(
     vendor_id: str,
@@ -158,21 +128,13 @@ def unlink_vendor_member(
     db: Session = Depends(get_db),
     current_admin: AdminUser = Depends(get_current_admin),
 ):
-    audit_attempt_or_503(
+    
+    return audited_proxy_mutation(
         db,
         admin_email=current_admin.email,
         action="vendor.member_unlinked_via_admin",
         entity_type="vendor",
         entity_id=vendor_id,
         details={"membership_id": membership_id},
+        operation=lambda: cp.unlink_vendor_member(_get_cp_token(request), vendor_id, membership_id),
     )
-    result = cp.unlink_vendor_member(_get_cp_token(request), vendor_id, membership_id)
-    record_admin_audit(
-        db,
-        admin_email=current_admin.email,
-        action="vendor.member_unlinked_via_admin",
-        entity_type="vendor",
-        entity_id=vendor_id,
-        details={"membership_id": membership_id, "outcome": "success"},
-    )
-    return result
