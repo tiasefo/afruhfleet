@@ -58,6 +58,8 @@ const PUBLIC_ROUTES = new Set([
   // acceptance are intentionally unauthenticated (D-01 portal).
   '/vendor/register',
   '/vendor-accept',
+  // Public company registration intake (self-serve tenant onboarding).
+  '/register/company',
 ])
 
 // Public prefixes. /api/ is public at the edge because the backend is

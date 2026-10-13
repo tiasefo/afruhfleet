@@ -393,3 +393,37 @@ def run_runtime_migrations(engine: Engine) -> None:
                 conn.execute(text(f"ALTER TABLE crm_customers ADD COLUMN tenant_id {mid_type}"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS ix_crm_customers_tenant ON crm_customers (tenant_id)"))
                 logger.info("runtime_migration_added_crm_customers_tenant_id")
+
+        # payment_records.status enum collision (P1): the legacy PaymentStatus
+        # enum (pending/completed/...) and the billing PaymentStatus enum
+        # (UNPAID/PAID/...) both map to Postgres type "paymentstatus", which
+        # holds billing values. Every payment_records INSERT failed with
+        # invalid enum input. Give payment_records its own enum type.
+        if dialect_name == "postgresql" and inspector.has_table("payment_records"):
+            try:
+                with conn.begin_nested():
+                    conn.execute(text("""
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_record_status') THEN
+                                CREATE TYPE payment_record_status AS ENUM
+                                    ('PENDING','PROCESSING','COMPLETED','FAILED','CANCELLED','REFUNDED');
+                            END IF;
+                        END $$;
+                    """))
+                    conn.execute(text("""
+                        ALTER TABLE payment_records
+                        ALTER COLUMN status TYPE payment_record_status
+                        USING CASE status::text
+                            WHEN 'PAID' THEN 'COMPLETED'
+                            WHEN 'OVERDUE' THEN 'FAILED'
+                            WHEN 'REFUNDED' THEN 'REFUNDED'
+                            WHEN 'PARTIALLY_PAID' THEN 'PROCESSING'
+                            ELSE 'PENDING' END::payment_record_status
+                    """))
+                    conn.execute(text(
+                        "ALTER TABLE payment_records ALTER COLUMN status SET DEFAULT 'PENDING'::payment_record_status"
+                    ))
+                logger.info("runtime_migration_split_payment_records_status_enum")
+            except Exception as e:
+                logger.warning(f"runtime_migration_payment_records_enum_failed: {e}")

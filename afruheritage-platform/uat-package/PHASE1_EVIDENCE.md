@@ -428,3 +428,93 @@ hole (authorization is still membership-bound), but worth a PO decision.
 
 - `APP_ENV=development` on production (see R1).
 - Postgres/Redis published on `0.0.0.0` — now localhost-bound.
+
+---
+
+## Round 5 — PO gates U1/S1/P1/O1 (post-bbb3dbaf)
+
+### S1 — Production security review — COMPLETE
+
+- **External port closure**: `ss` shows api:8100, postgres:5433, redis:6380,
+  frontend:3002, sentinel:9200 bound to 127.0.0.1 only; external connects
+  to all five → refused/filtered.
+- **Trusted-proxy persistence**: frontend container pinned at 172.19.0.100
+  via compose IPAM; verified after full rebuild+recreate — TRUSTED_PROXY_CIDRS
+  (env) survives deployment.
+- **Environment-mode audit**: ALL APP_ENV consumers enumerated —
+  auth cookie Secure, docs off, HSTS, login 5/min, structured logging.
+  **Second defect found**: Sentinel ran `ADMIN_APP_ENV=development` →
+  `/sentinel/docs` + `/sentinel/redoc` were PUBLIC. Fixed → both 404.
+- **Credential exposure assessment**: Postgres used scram-sha-256
+  (authenticated, but remotely reachable → **password rotated**, all
+  connection strings updated, stack recreated). **Redis had NO
+  authentication** while publicly bound → `requirepass` enabled; app,
+  worker, beat re-verified against authenticated broker (NOAUTH confirmed).
+- **Historical access evidence**: pg/redis container logs do not survive
+  recreation; no external connection records found in surviving logs.
+  **Cannot rule out past access** — recorded as unresolved visibility gap,
+  not non-exploitation.
+- **Handover key replaced**: static query-string key removed entirely.
+  `/sentinel/uat-handover` now serves only via short-lived HMAC-signed
+  links (default 72h, max 168h) minted by a staff-authenticated, audited
+  endpoint (`POST /uat-handover/mint`, 401 unauth). Old key → 403;
+  bad sig → 403; expired valid sig → 403; index+download → 200.
+- Minor: concurrent-worker runtime-migration deadlock observed (benign —
+  one worker wins, idempotent, self-heals on next boot).
+
+### U1 — Expanded customer UAT — 16/16 (u1-expanded-uat.js) + regressions
+
+Real browser journeys on afruheritage.com with real mail.tm mailboxes:
+
+- **Company registration** `/register/company` → success screen → admin
+  login → dashboard. **Found + fixed**: route was middleware-gated
+  (unreachable publicly).
+- **Self-serve registration** `/register` → plan picker → **real Paystack
+  sandbox checkout redirect** (end-to-end billing path proven).
+- **Staff invitation** → real invite email → `/invite/accept` → password →
+  login → dashboard.
+- **Fleet** → Add Vehicle via UI → persisted (UI + API verified).
+- **Public tracking** `/track` → real shipment timeline.
+- **Customer notification** → shipment event → real branded email to
+  tenant mailbox.
+- **Errors**: bad login → validation error; invalid tracking → error
+  state; unauth `/shipments` → login redirect.
+- **Isolation**: tenant B list = own records only; cross-tenant list →
+  403; tenant B CRM page shows no A records.
+- Regressions on current build: p28b CRM UI **5/5**.
+
+### P1 — Payment sandbox certification — 17 PASS / 0 FAIL / 2 BLOCKED (p32)
+
+**Paystack (sk_test)**: init → real `checkout.paystack.com` URL; unpaid
+verify → graceful pending; forged/missing webhook signature → 401;
+valid-signed unknown ref → ignored; signed charge.success → COMPLETED;
+**duplicate charge.success → idempotent** (1 billing row, still
+COMPLETED); charge.failed on unknown ref → graceful; cross-tenant verify
+→ 403; unpaid payments granted zero credits.
+
+**Defects found + fixed**:
+- `payment_records` INSERT always failed — legacy `PaymentStatus` enum
+  (pending/completed) collided with billing enum (UNPAID/PAID) on shared
+  Postgres type `paymentstatus`. Split into `payment_record_status` via
+  runtime migration; `/payments/initiate` now works end-to-end.
+- `/billing/payments/verify` hardcoded Paystack verify for ALL providers —
+  Flutterwave payments could never confirm. Dispatched by
+  `payment.provider` to FLW `verify_by_reference`.
+- No Flutterwave webhook existed; dead-code HMAC check used the wrong
+  scheme. Implemented `/payments/webhook/flutterwave` with real
+  `verif-hash` comparison + server-side re-verify by tx_ref + amount
+  sanity check + idempotent entitlement via shared
+  `finalize_verified_payment`.
+
+**Flutterwave: BLOCKED** — configured `FLWSECK_TEST` returns provider-side
+401 (revoked/expired sandbox credential). Webhook auth, verify dispatch,
+and don't-trust-the-body guarantees verified against synthetic rows;
+end-to-end needs fresh FLW sandbox keys from Ops. Manual-renewal model
+stands: no recurring billing, refunds, or automated payouts.
+
+### O1 — G-04 stays BLOCKED
+
+`G04_OPS_CHECKLIST.md` is the actionable provider-side runbook: domain
+provisioning, DKIM publish, SPF include, sender authorization, app sender
+flip, DMARC tightening, plus per-journey DKIM/SPF/DMARC evidence required
+to unblock.

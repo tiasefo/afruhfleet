@@ -1,5 +1,4 @@
 from __future__ import annotations
-import hashlib
 import hmac
 import time
 import os
@@ -87,11 +86,39 @@ def verify_transaction(transaction_id: str) -> dict:
     }
 
 
+def verify_transaction_by_reference(tx_ref: str) -> dict:
+    """
+    Verify by our merchant tx_ref (Flutterwave /transactions/verify_by_reference).
+    Returns dict with data.status == 'successful' on success.
+    """
+    resp = _request_with_retries("GET", f"/transactions/verify_by_reference?tx_ref={tx_ref}")
+    flw_data = resp.get("data", {})
+    status = flw_data.get("status", "failed")
+    return {
+        "status": "success" if status == "successful" else "error",
+        "data": {
+            "status": "success" if status == "successful" else status,
+            "amount": flw_data.get("amount", 0),
+            "currency": flw_data.get("currency", ""),
+            "reference": flw_data.get("tx_ref", ""),
+            "metadata": flw_data.get("meta", {}),
+        },
+        "_raw": resp,
+    }
+
+
 def verify_webhook_signature(payload: bytes, signature: str | None) -> bool:
+    """
+    Flutterwave v3 webhook verification. FLW sends a static `verif-hash`
+    header that must equal the secret hash configured in the dashboard —
+    it is NOT an HMAC of the body. `payload` is accepted for call-site
+    symmetry; `signature` is the verif-hash header value.
+    """
     if not signature:
         return False
-    secret_hash = os.getenv("FLUTTERWAVE_WEBHOOK_SECRET", _secret_key())
-    expected = hmac.new(secret_hash.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+    expected = os.getenv("FLUTTERWAVE_WEBHOOK_SECRET", "")
+    if not expected:
+        return False
     return hmac.compare_digest(expected, signature)
 
 

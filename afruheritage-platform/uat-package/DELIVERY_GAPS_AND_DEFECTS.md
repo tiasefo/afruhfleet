@@ -104,3 +104,19 @@ fabricated storefront vendors/stats/routes/warehouse-notices; zero-amount
 "Payment Successful" email; onboarding duplicate-registration redirect;
 invitation "Password Reset" subject; i18n 422 noise; Sentinel stale bundle,
 subpage routing, mock dashboard metrics, fake plan fallbacks, auth chain.
+
+## Round 5 additions (2026-10-13)
+
+| # | Defect | Severity | Status |
+|---|--------|----------|--------|
+| D-NEW-01 | `/register/company` middleware-gated — public company signup unreachable | HIGH | FIXED (allowlisted + rebuilt) |
+| D-NEW-02 | Sentinel `ADMIN_APP_ENV=development` — /sentinel/docs + /redoc public | HIGH | FIXED (env=production; 404 verified) |
+| D-NEW-03 | Redis bound publicly with NO authentication | CRITICAL | FIXED (requirepass + localhost bind) |
+| D-NEW-04 | Postgres remotely reachable (scram auth present) | HIGH | FIXED (localhost bind + password rotated) |
+| D-NEW-05 | `payment_records` enum collision — /payments/initiate always 500 | HIGH | FIXED (payment_record_status split) |
+| D-NEW-06 | `/billing/payments/verify` ignored payment.provider — FLW unverifiable | HIGH | FIXED (provider dispatch) |
+| D-NEW-07 | No Flutterwave webhook route; dead-code HMAC scheme | HIGH | FIXED (verif-hash + server re-verify + amount check) |
+| D-NEW-08 | UAT handover long-lived static key | MEDIUM | FIXED (staff-minted expiring HMAC links) |
+| D-NEW-09 | FLW sandbox credential rejected by provider (401) | BLOCKER | OPS ACTION — fresh FLWSECK_TEST needed |
+| D-NEW-10 | Historical pg/redis exposure cannot be ruled out (no durable logs) | INFO | OPEN — recorded visibility gap |
+| D-NEW-11 | Vendor resolver picks first active membership (multi-vendor users) | LOW | DEFERRED — deterministic context; PO decision |

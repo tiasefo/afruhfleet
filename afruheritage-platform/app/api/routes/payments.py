@@ -25,6 +25,10 @@ from app.schemas.payment import (
 )
 from app.core.config import settings
 from app.services.paystack_client import verify_webhook_signature
+from app.services.flutterwave_client import (
+    verify_webhook_signature as verify_flw_webhook_hash,
+    verify_transaction_by_reference as flw_verify_transaction,
+)
 from app.services.paypal_client import verify_webhook_signature as verify_paypal_webhook_signature
 from app.services.platform_payment_service import get_platform_payment_service
 from app.api.params import uuid_or_400
@@ -263,6 +267,74 @@ async def paystack_webhook(
             status="error",
             reason=str(e)
         )
+
+
+@router.post("/webhook/flutterwave")
+async def flutterwave_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Handle Flutterwave webhook notifications.
+
+    Security model:
+    - `verif-hash` header must equal the configured webhook secret hash
+      (constant-time compare). FLW does not HMAC the body.
+    - The body is never trusted: the transaction is re-verified against
+      Flutterwave's API by tx_ref before any state changes.
+    - Entitlement side-effects are idempotent on the payment reference.
+    """
+    try:
+        verif_hash = request.headers.get("verif-hash")
+        raw_body = await request.body()
+        if not verify_flw_webhook_hash(raw_body, verif_hash):
+            logger.warning("Invalid Flutterwave webhook verif-hash")
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+        webhook_data = await request.json()
+        event_data = webhook_data.get("data", {})
+        tx_ref = event_data.get("tx_ref") or event_data.get("txRef")
+        if not tx_ref:
+            return WebhookResponse(status="ignored", reason="missing tx_ref")
+
+        payment = (
+            db.query(BillingPayment)
+            .filter(BillingPayment.reference == tx_ref)
+            .first()
+        )
+        if not payment:
+            logger.warning("Flutterwave webhook for unknown reference", extra={"tx_ref": tx_ref})
+            return WebhookResponse(status="ignored", reason="unknown reference")
+
+        # Re-verify server-side — the webhook body alone is not proof of payment.
+        try:
+            provider_payload = flw_verify_transaction(tx_ref)
+        except Exception as exc:
+            logger.warning("Flutterwave server-side verify failed", extra={"tx_ref": tx_ref, "error": str(exc)})
+            return WebhookResponse(status="error", reason="provider verification unavailable")
+
+        data = provider_payload.get("data", {})
+        if data.get("status") != "success":
+            return WebhookResponse(status="ignored", reason=f"provider status: {data.get('status')}")
+
+        # Amount/currency sanity check against the stored payment intent.
+        expected_minor = payment.amount_minor or 0
+        paid_minor = round(float(data.get("amount") or 0) * 100)
+        if expected_minor and paid_minor != expected_minor:
+            logger.warning("Flutterwave amount mismatch", extra={
+                "tx_ref": tx_ref, "expected_minor": expected_minor, "paid_minor": paid_minor,
+            })
+            return WebhookResponse(status="error", reason="amount mismatch")
+
+        from app.api.routes.billing import finalize_verified_payment
+        finalize_verified_payment(db, payment, provider_payload, tx_ref)
+        logger.info("Flutterwave webhook processed", extra={"tx_ref": tx_ref})
+        return WebhookResponse(status="success", reason="payment verified")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Flutterwave webhook processing failed", extra={"error": str(e)})
+        return WebhookResponse(status="error", reason=str(e))
 
 
 @router.post("/webhook/paypal")

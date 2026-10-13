@@ -1,0 +1,182 @@
+{
+  "pass": 17,
+  "fail": 0,
+  "blocked": 2,
+  "total": 19,
+  "results": [
+    {
+      "name": "tenant admin login",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "paystack init -> authorization_url",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200,
+        "url": "https://checkout.paystack.com/7e2v3n89lm"
+      }
+    },
+    {
+      "name": "paystack verify unpaid -> pending/failed, not verified",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": "failed",
+        "prov": "abandoned"
+      }
+    },
+    {
+      "name": "paystack webhook forged signature -> 401",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "paystack webhook missing signature -> 401",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "paystack webhook valid sig + unknown ref -> ignored",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200,
+        "body": "{\"status\":\"ignored\",\"payment_id\":null,\"amount\":null,\"platform_fee\":null,\"reason\""
+      }
+    },
+    {
+      "name": "platform payment initiated",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200,
+        "ref": "PM_209738f3_0A565F6A96"
+      }
+    },
+    {
+      "name": "signed charge.success -> payment completed",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "w1": 200,
+        "db": "COMPLETED"
+      }
+    },
+    {
+      "name": "duplicate charge.success -> idempotent (no dup rows, still completed)",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "w2": 200,
+        "db": "COMPLETED",
+        "billingRows": "1"
+      }
+    },
+    {
+      "name": "charge.failed on unknown ref -> ignored gracefully",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "flutterwave init -> hosted link",
+      "ok": false,
+      "blocked": true,
+      "detail": {
+        "status": 502,
+        "link": ""
+      }
+    },
+    {
+      "name": "flw payment recorded with provider=flutterwave",
+      "ok": false,
+      "blocked": true,
+      "detail": {
+        "provider": ""
+      }
+    },
+    {
+      "name": "valid-hash webhook claiming success does NOT verify unconfirmed payment",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "resp": 200,
+        "db": "UNPAID"
+      }
+    },
+    {
+      "name": "flw verify route dispatches to flutterwave (graceful, no crash)",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 200,
+        "body": {
+          "reference": "P32-FLW-VERIFY",
+          "status": "UNPAID",
+          "provider_status": "pending",
+          "message": "Payment not yet confirmed by payment provider. If you completed payment, please wait a moment and refresh."
+        }
+      }
+    },
+    {
+      "name": "flutterwave webhook wrong verif-hash -> 401",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "flutterwave webhook missing verif-hash -> 401",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 401
+      }
+    },
+    {
+      "name": "valid hash + UNPAID txn -> server re-verify prevents verification",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "resp": {
+          "status": "ignored",
+          "payment_id": null,
+          "amount": null,
+          "platform_fee": null,
+          "reason": "missing tx_ref"
+        },
+        "db": ""
+      }
+    },
+    {
+      "name": "tenant B cannot verify tenant A payment",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "status": 403
+      }
+    },
+    {
+      "name": "no credits granted for unpaid payments",
+      "ok": true,
+      "blocked": false,
+      "detail": {
+        "walletTx": "0"
+      }
+    }
+  ]
+}

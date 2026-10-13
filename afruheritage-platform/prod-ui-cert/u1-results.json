@@ -1,0 +1,118 @@
+{
+  "pass": 16,
+  "total": 16,
+  "results": [
+    {
+      "n": "company registration via UI (success screen)",
+      "ok": true,
+      "d": {
+        "url": "https://afruheritage.com/register/company",
+        "body": "Company Registered!\n\nYour company portal has been set up. Log in with your admin credentials to get started.\n\nYour porta"
+      }
+    },
+    {
+      "n": "new company admin can log in",
+      "ok": true,
+      "d": {
+        "url": "https://afruheritage.com/dashboard"
+      }
+    },
+    {
+      "n": "self-serve registration journey reaches post-signup state",
+      "ok": true,
+      "d": {
+        "url": "https://checkout.paystack.com/q0lcrv5li4sekka"
+      }
+    },
+    {
+      "n": "staff invitation sent via members UI",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "invite email delivered to real mailbox",
+      "ok": true,
+      "d": {
+        "subject": "You've been invited to join UATCERT Meridian Freight 3 on Afruheritage"
+      }
+    },
+    {
+      "n": "invite accept flow completes",
+      "ok": true,
+      "d": {
+        "url": "https://afruheritage.com/login"
+      }
+    },
+    {
+      "n": "invited staff member can log in",
+      "ok": true,
+      "d": {
+        "url": "https://afruheritage.com/dashboard"
+      }
+    },
+    {
+      "n": "vehicle added via UI persists (UI or API)",
+      "ok": true,
+      "d": {
+        "ui": true,
+        "api": true
+      }
+    },
+    {
+      "n": "public tracking returns real shipment data",
+      "ok": true,
+      "d": {
+        "hits": 8
+      }
+    },
+    {
+      "n": "shipment event created for notification",
+      "ok": true,
+      "d": {
+        "status": 200
+      }
+    },
+    {
+      "n": "shipment-update email notification delivered",
+      "ok": true,
+      "d": {
+        "subject": "UATCERT Meridian Freight 3 — Shipment Update: AFR-209738-20261009-90797B"
+      }
+    },
+    {
+      "n": "bad login shows meaningful error",
+      "ok": true,
+      "d": {
+        "hits": 1
+      }
+    },
+    {
+      "n": "invalid tracking number shows error state",
+      "ok": true,
+      "d": {
+        "hits": 3
+      }
+    },
+    {
+      "n": "unauthenticated /shipments redirects to login",
+      "ok": true,
+      "d": {
+        "url": "https://afruheritage.com/login?next=%2Fshipments"
+      }
+    },
+    {
+      "n": "tenant B shipment list has no tenant A records",
+      "ok": true,
+      "d": {
+        "bCount": 15,
+        "aLeak": [],
+        "crossStatus": 403
+      }
+    },
+    {
+      "n": "tenant B CRM page shows no tenant A customers",
+      "ok": true,
+      "d": {}
+    }
+  ]
+}

@@ -49,7 +49,11 @@ class PaymentRecord(Base):
     paid_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
 
     payment_method: Mapped[PaymentMethod] = mapped_column(Enum(PaymentMethod), nullable=False)
-    status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus), nullable=False, default=PaymentStatus.PENDING)
+    status: Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus, name="payment_record_status"),
+        nullable=False,
+        default=PaymentStatus.PENDING,
+    )
 
     customer_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     customer_phone: Mapped[str | None] = mapped_column(String(50), nullable=True)

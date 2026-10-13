@@ -225,6 +225,35 @@ def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(
     payment = set_payment_initialized(db, payment, authorization_url=data.get('authorization_url'), access_code=data.get('access_code'), provider_payload=payload)
     return PaymentInitResponse(reference=payment.reference, authorization_url=payment.provider_authorization_url, access_code=payment.provider_access_code, status=payment.status.value)
 
+def finalize_verified_payment(db: Session, payment: Payment, payload: dict, reference: str) -> None:
+    """Apply entitlement side-effects after a provider confirms success.
+
+    Idempotent: mark_payment_verified is skipped when already verified, and
+    wallet credits/allowances are keyed on the payment reference, so replays
+    (webhook + callback verify, duplicate webhooks) apply exactly once.
+    """
+    data = payload.get('data', {})
+    if payment.status != PaymentStatus.VERIFIED:
+        payment = mark_payment_verified(db, payment, payload)
+    metadata = data.get('metadata') or {}
+    purpose = metadata.get('purpose') or payment.purpose
+    tenant_id = metadata.get('tenant_id') or payment.tenant_id
+    if purpose == 'subscription':
+        plan_code = normalize_plan_code(metadata.get('plan_code') or 'professional').value
+        activate_or_upgrade_subscription(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
+        grant_subscription_allowance(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency, reference=reference)
+        # Auto-approve and auto-launch tenant after successful subscription payment
+        try:
+            from app.services.auto_provisioning import handle_subscription_payment_success
+            handle_subscription_payment_success(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
+        except Exception as exc:
+            logging.getLogger('afruheritage.billing').warning('Auto-provisioning after payment failed: %s', exc)
+    elif purpose == 'credit_topup':
+        credits = int(metadata.get('credits_to_buy') or 0)
+        if credits > 0:
+            add_wallet_credits_once(db, tenant_id=tenant_id, credits=credits, tx_type=WalletTransactionType.CREDIT_PURCHASE, reference=reference, memo='Credit purchase', currency=payment.currency)
+
+
 @router.post('/payments/verify/{reference}', response_model=PaymentVerifyResponse)
 def verify_payment(tenant_id: str | None = None, reference: str = '', db: Session=Depends(get_db), current_user: User=Depends(get_current_user)):
     payment = db.query(Payment).filter(Payment.reference == reference).first()
@@ -233,9 +262,12 @@ def verify_payment(tenant_id: str | None = None, reference: str = '', db: Sessio
     if not current_user.is_superuser and str(payment.tenant_id) != str(current_user.tenant_id):
         raise HTTPException(status_code=403, detail='Tenant access denied')
     try:
-        payload = verify_transaction(reference)
+        if (payment.provider or 'paystack').lower() == 'flutterwave':
+            payload = _flw.verify_transaction_by_reference(reference)
+        else:
+            payload = verify_transaction(reference)
     except Exception:
-        # Paystack can't find it yet — return current DB status so callback page
+        # Provider can't find it yet — return current DB status so callback page
         # shows "pending" rather than a hard error
         return PaymentVerifyResponse(
             reference=payment.reference,
@@ -246,26 +278,7 @@ def verify_payment(tenant_id: str | None = None, reference: str = '', db: Sessio
     data = payload.get('data', {})
     status = data.get('status')
     if status == 'success':
-        if payment.status != PaymentStatus.VERIFIED:
-            payment = mark_payment_verified(db, payment, payload)
-        metadata = data.get('metadata') or {}
-        purpose = metadata.get('purpose') or payment.purpose
-        tenant_id = metadata.get('tenant_id') or payment.tenant_id
-        if purpose == 'subscription':
-            plan_code = normalize_plan_code(metadata.get('plan_code') or 'professional').value
-            activate_or_upgrade_subscription(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
-            grant_subscription_allowance(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency, reference=reference)
-            # Auto-approve and auto-launch tenant after successful subscription payment
-            try:
-                from app.services.auto_provisioning import handle_subscription_payment_success
-                handle_subscription_payment_success(db, tenant_id=tenant_id, plan_code=plan_code, currency=payment.currency)
-            except Exception as exc:
-                import logging
-                logging.getLogger('afruheritage.billing').warning('Auto-provisioning after payment failed: %s', exc)
-        elif purpose == 'credit_topup':
-            credits = int(metadata.get('credits_to_buy') or 0)
-            if credits > 0:
-                add_wallet_credits_once(db, tenant_id=tenant_id, credits=credits, tx_type=WalletTransactionType.CREDIT_PURCHASE, reference=reference, memo='Paystack credit purchase', currency=payment.currency)
+        finalize_verified_payment(db, payment, payload, reference)
         return PaymentVerifyResponse(reference=reference, status='verified', provider_status=status, message='Payment verified successfully')
     return PaymentVerifyResponse(reference=reference, status='failed', provider_status=status, message='Payment not successful')
 
