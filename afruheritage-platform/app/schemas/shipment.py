@@ -106,6 +106,9 @@ class ShipmentEventCreate(BaseModel):
     longitude: float | None = None
     description: str | None = None
     occurred_at: datetime | None = None
+    # Optional client idempotency key: retries with the same key return the
+    # originally recorded event without creating a duplicate or re-notifying.
+    idempotency_key: str | None = None
 
 
 class ShipmentLocationUpdate(BaseModel):

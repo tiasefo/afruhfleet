@@ -11,8 +11,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import requests
+import hashlib
 from fastapi import HTTPException
 from sqlalchemy import or_
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from app.models.shipment import (
@@ -941,6 +943,7 @@ def add_shipment_event(
     longitude: float | None = None,
     description: str | None = None,
     occurred_at: datetime | None = None,
+    idempotency_key: str | None = None,
 ) -> ShipmentEvent:
     # Idempotency: a retried submission (network retry, double-click, worker
     # replay) carries the same content fingerprint. If an identical event was
@@ -948,28 +951,46 @@ def add_shipment_event(
     # the persisted row is the idempotency record, and no new notification
     # is sent for the duplicate.
     sid = _coerce_uuid(shipment_id)
-    dedup_window = datetime.utcnow() - timedelta(minutes=10)
-    existing = db.query(ShipmentEvent).filter(
-        ShipmentEvent.shipment_id == sid,
-        ShipmentEvent.event_type == event_type,
-        ShipmentEvent.location == location,
-        ShipmentEvent.description == description,
-        ShipmentEvent.created_at >= dedup_window,
-    ).order_by(ShipmentEvent.created_at.desc()).first()
-    is_duplicate = existing is not None
-    event = existing or ShipmentEvent(
-        shipment_id=sid,
-        event_type=event_type,
-        location=location,
-        latitude=latitude,
-        longitude=longitude,
-        description=description,
-        occurred_at=occurred_at or datetime.utcnow(),
+    occurred = occurred_at or datetime.utcnow()
+    # Idempotency: an explicit client key wins; otherwise derive a deterministic
+    # key from the content fingerprint + a 10-minute bucket. Same content inside
+    # one bucket = same logical event (retry/double-submit); same content in a
+    # later bucket = a legitimate repeat. Uniqueness is enforced at the DB by a
+    # partial unique index, so concurrent identical submissions cannot both
+    # insert — the loser re-reads the winner's row and sends no notification.
+    bucket = occurred.replace(second=0, microsecond=0, minute=(occurred.minute // 10) * 10)
+    idem_key = idempotency_key or "auto:" + hashlib.sha256(
+        f"{sid}|{event_type}|{location}|{description}|{bucket.isoformat()}".encode()
+    ).hexdigest()
+    new_id = uuid.uuid4()
+    stmt = (
+        pg_insert(ShipmentEvent)
+        .values(
+            id=new_id,
+            shipment_id=sid,
+            event_type=event_type,
+            location=location,
+            latitude=latitude,
+            longitude=longitude,
+            description=description,
+            occurred_at=occurred,
+            idempotency_key=idem_key,
+        )
+        .on_conflict_do_nothing(
+            index_elements=["shipment_id", "idempotency_key"],
+            index_where=ShipmentEvent.idempotency_key.isnot(None),
+        )
     )
-    if not is_duplicate:
-        db.add(event)
-        db.commit()
-        db.refresh(event)
+    db.execute(stmt)
+    db.commit()
+    event = db.query(ShipmentEvent).filter(
+        ShipmentEvent.shipment_id == sid,
+        ShipmentEvent.idempotency_key == idem_key,
+    ).one()
+    # rowcount is driver-dependent for ON CONFLICT DO NOTHING; the durable
+    # signal is whether the persisted row carries the id we just generated —
+    # a conflict loser's re-read returns the winner's row with a different id.
+    is_duplicate = event.id != new_id
 
     # Automate shipment status transitions based on event_type
     shipment = db.query(Shipment).filter(Shipment.id == _coerce_uuid(shipment_id)).first()

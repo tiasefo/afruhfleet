@@ -5,7 +5,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, Numeric, String, Text, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -126,6 +126,19 @@ class ShipmentEvent(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    # NULL for events recorded before the constraint existed; unique per
+    # (shipment_id, key) when set — see partial index below.
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    __table_args__ = (
+        Index(
+            "uq_shipment_events_idem_key",
+            "shipment_id",
+            "idempotency_key",
+            unique=True,
+            postgresql_where=text("idempotency_key IS NOT NULL"),
+        ),
+    )
 
     shipment: Mapped[Shipment] = relationship("Shipment", back_populates="events")
 

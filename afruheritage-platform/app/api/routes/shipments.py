@@ -542,6 +542,7 @@ def add_event_route(
         longitude=payload.longitude,
         description=payload.description,
         occurred_at=payload.occurred_at,
+        idempotency_key=payload.idempotency_key,
     )
     return ShipmentEventResponse(
         id=str(event.id),
