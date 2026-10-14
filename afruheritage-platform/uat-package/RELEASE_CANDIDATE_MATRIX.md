@@ -92,14 +92,17 @@ Flutterwave disabled across **every** surface, not just the selector:
 | `POST /payments/webhook/flutterwave` | 200 `ignored: provider disabled` — quarantined **before** signature/verify/finalize; valid-signed `charge.completed` left payment UNPAID, 0 wallet credits, 0 subscriptions | yes |
 | Checkout UI | Option removed | yes |
 
-### RC-2 — Pilot email exception: CONDITIONAL (PO decision)
+### RC-2 — Pilot email exception: AUTHENTICATED — PASS (post-DKIM re-test)
 
-See `PILOT_EMAIL_ASSESSMENT.md`. All four journeys deliver to real
-mailboxes as `Afruheritage <advisory@emidentity.com>`; SPF passes at the
-provider hop; **no DKIM signature on the wire**; DMARC `p=none`.
-Deliverable and traceable, partially authenticated — the assessment lays
-out three options including cheap DKIM-on-`emidentity.com` (option 2)
-which satisfies "authenticated" without waiting for G-04.
+See `PILOT_EMAIL_ASSESSMENT.md`. After Operations enabled DKIM signing
+(`zmail._domainkey` verified), all four journeys re-tested to real
+mailboxes: **real `DKIM-Signature: s=zmail; d=emidentity.com` present
+on every message**, `dkim=pass`, `spf=pass`, `dmarc=pass`, and DKIM
+domain aligns with `From` (`advisory@emidentity.com`). 12/12 checks
+PASS — each journey verified for authentication, not just delivery.
+Raw MIME captured per journey. `advisory@emidentity.com` is suitable
+as a disclosed temporary sender for the invitation-only pilot;
+G-04 (`afruheritage.com` sender) remains a separate open workstream.
 
 ### RC-3 — Production payment readiness: CONDITIONAL
 
@@ -118,14 +121,16 @@ still requires explicit PO authorization.
   portal, Sentinel refund controls — all non-blocking.)
 
 **Operations**
-- G-04: `afruheritage.com` sender authorization + DKIM + SPF + DMARC
-  (OR the cheaper RC-2 option: DKIM on `emidentity.com`).
+- G-04 (permanent sender): `afruheritage.com` provider-side sender
+  authorization + DKIM + SPF + DMARC. (Interim `emidentity.com` DKIM
+  DONE — authenticated.)
 - Flutterwave: working sandbox credentials → P2 certification → re-enable.
 - Paystack: execute `PAYSTACK_PRODUCTION_READINESS.md` when paid launch
   is approved.
 
 **Product Owner**
-- Decide pilot-email exception (option 1/2/3 in the assessment).
+- Accept `advisory@emidentity.com` as the disclosed temporary pilot
+  sender (now authenticated — recommend disclosure in pilot comms).
 - Authorize live-charge smoke test when ready for paid-launch review.
 - Approve/deny paid commercial launch separately.
 
@@ -145,8 +150,8 @@ still requires explicit PO authorization.
 | Security hardening (S1/S2) | PASS |
 | Paystack sandbox | PASS (production = conditional on checklist) |
 | Flutterwave | EXCLUDED — disabled pending certification |
-| Branded email (G-04) | BLOCKED — Ops |
-| Pilot email exception | CONDITIONAL — PO decision |
+| Branded email (G-04, `afruheritage.com` sender) | BLOCKED — Ops (separate workstream) |
+| Pilot email (temp sender `emidentity.com`) | PASS — authenticated (DKIM+SPF+DMARC aligned); PO disclosure recommended |
 | Recurring billing | EXCLUDED — not supported (manual renewal) |
 | Refunds (automated) | EXCLUDED — manual procedure documented |
 | Paid commercial launch | BLOCKED — pending live readiness + PO approval |

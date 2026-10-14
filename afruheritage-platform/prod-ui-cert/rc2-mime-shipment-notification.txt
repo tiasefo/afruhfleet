@@ -1,0 +1,40 @@
+Delivered-To: stab-mv0j6arnsi4h@maxxspace.com
+Return-Path: <advisory@emidentity.com>
+Received: from sender5-of-o56.zoho.com (sender5-of-o56.zoho.com [165.173.182.56]) by in.mail.tm (Haraka/3.1.7) with ESMTPS id B4F64AC9-82C4-4339-AB5E-E04666433537.1 envelope-from <advisory@emidentity.com> tls TLS_AES_256_GCM_SHA384; Wed, 14 Oct 2026 05:08:14 +0000
+ARC-Seal: i=1; a=rsa-sha256; t=1791954492; cv=none;  d=zohomail.com; s=zohoarc;  b=PgstU8IAa1OGMNr7XUMYZ69ftQu3Jlbzdcv2M0wOUXSnpD6HHJ4ThNyyYlLQPRr5I5ib0ikjQN8JQSgKZ7OrOu+XcxYRQ4NeVk2SpcAd2HPsSLoYCMDLY98YqUIqPHfiMdjPxVAmz8Ysf1++3HL4H71iZTgP9dPxXQNIjHsl8R0=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc;  t=1791954492; h=Content-Type:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To:Cc;  bh=19T7BLImBKYn3fyRxjIYuPR+/4OHejWSealnurs+mRY=;  b=UWRxdA7ITW5yhqg2z8E2UFzqZ79dUxwduzDckRcSKn3z3s7QEpqCUrkKncVV/OiYeZ+lsldaL3jhdz/A2TN2HlHU+3UIXQUq2PuNXlOVDaxnw5+h/SFeM6MTkBO8g3u9boqnBzi3vv16GSH1KYRB8hB92YqQvbGdC+tIk+8aEeo=
+ARC-Authentication-Results: i=1; mx.zohomail.com; dkim=pass  header.i=emidentity.com; spf=pass  smtp.mailfrom=advisory@emidentity.com; dmarc=pass header.from=<advisory@emidentity.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1791954492; s=zmail; d=emidentity.com; i=advisory@emidentity.com; h=Content-Type:MIME-Version:Subject:Subject:From:From:To:To:Message-ID:Date:Date:Message-Id:Reply-To:Cc; bh=19T7BLImBKYn3fyRxjIYuPR+/4OHejWSealnurs+mRY=; b=XkCN1XI4bSey1BOA59Vc6sKE5OibBitTSvgurn8FhckMNM/MbTCWRmVTGZToeEty XpQPyt2JoKEVg9k4Tj5JGFufHXDWI7NcRS+32Y8bEImxyPQ++emFBGi8gnup54ZhHPr 550Gq001WB7jDlj81zwb2FRY7KURztHAN38NlEHw=
+Received: by smtp.zohomail.com with SMTPS id 1791954489394945.5526292627889; Tue, 13 Oct 2026 22:08:09 -0700 (PDT)
+Content-Type: multipart/alternative; boundary="===============1918902046580397939=="
+MIME-Version: 1.0
+Subject: =?utf-8?q?UATCERT_Meridian_Freight_3_=E2=80=94_Shipment_Update=3A_AFR-209738-20261009-90797B?=
+From: Afruheritage <advisory@emidentity.com>
+To: stab-mv0j6arnsi4h@maxxspace.com
+Message-ID: <1a138cf903a.4fc2b08a1662850115.-633805989736298010@zoho.com>
+Date: Tue, 13 Oct 2026 22:08:09 -0700 (PDT)
+X-ZohoMailClient: External
+
+
+--===============1918902046580397939==Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+CiAgICAgICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFj
+U3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCBzYW5zLXNlcmlmOyBtYXgtd2lkdGg6IDYw
+MHB4OyBtYXJnaW46IDAgYXV0bzsgcGFkZGluZzogNDBweCAyMHB4OyI+CiAgICAgICAgICAgIDxo
+MSBzdHlsZT0iY29sb3I6ICMxZTI5M2I7IGZvbnQtc2l6ZTogMjRweDsgbWFyZ2luLWJvdHRvbTog
+MTZweDsiPvCfk6YgU2hpcG1lbnQgVXBkYXRlPC9oMT4KICAgICAgICAgICAgPHAgc3R5bGU9ImNv
+bG9yOiAjNDc1NTY5OyBmb250LXNpemU6IDE2cHg7IGxpbmUtaGVpZ2h0OiAxLjY7Ij4KICAgICAg
+ICAgICAgICAgIFlvdXIgc2hpcG1lbnQgPHN0cm9uZz5BRlItMjA5NzM4LTIwMjYxMDA5LTkwNzk3
+Qjwvc3Ryb25nPiBoYXMgYmVlbiB1cGRhdGVkIHRvOiA8c3Ryb25nPnN0YXR1c191cGRhdGU8L3N0
+cm9uZz4KICAgICAgICAgICAgPC9wPgogICAgICAgICAgICA8ZGl2IHN0eWxlPSJtYXJnaW46IDMy
+cHggMDsiPgogICAgICAgICAgICAgICAgPGEgaHJlZj0iaHR0cHM6Ly9hZnJ1aGVyaXRhZ2UuY29t
+L3RyYWNrP3RyYWNraW5nX251bWJlcj1BRlItMjA5NzM4LTIwMjYxMDA5LTkwNzk3QiIKICAgICAg
+ICAgICAgICAgICAgIHN0eWxlPSJiYWNrZ3JvdW5kOiAjMGVhNWU5OyBjb2xvcjogd2hpdGU7IHBh
+ZGRpbmc6IDE0cHggMzJweDsgdGV4dC1kZWNvcmF0aW9uOiBub25lOyBib3JkZXItcmFkaXVzOiA4
+cHg7IGZvbnQtc2l6ZTogMTZweDsgZm9udC13ZWlnaHQ6IDYwMDsiPgogICAgICAgICAgICAgICAg
+ICAgIFRyYWNrIFNoaXBtZW50CiAgICAgICAgICAgICAgICA8L2E+CiAgICAgICAgICAgIDwvZGl2
+PgogICAgICAgIDwvZGl2PgogICAgICAgIA==
+
+--===============1918902046580397939==--

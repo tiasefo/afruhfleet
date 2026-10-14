@@ -9,26 +9,52 @@ const results = [];
 const check = (n, ok, d) => { results.push({ n, ok: !!ok, d }); console.log((ok ? 'PASS' : 'FAIL') + '  ' + n, JSON.stringify(d || '').slice(0, 200)); };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const api = async (m, p, t, b) => { const r = await fetch(API + p, { method: m, headers: { 'content-type': 'application/json', ...(t ? { Authorization: 'Bearer ' + t } : {}) }, body: b ? JSON.stringify(b) : undefined }); let d; try { d = await r.json() } catch { d = await r.text() } return { status: r.status, data: d } };
-async function headersOf(box, msgId) {
+function unfoldHeaders(raw) {
+  // unfold continuation lines so each header is one logical line
+  return raw.replace(/\r?\n[ \t]+/g, ' ');
+}
+function headerAll(raw, name) {
+  const re = new RegExp('^' + name + ':[ \\t]*([^\\r\\n]*)', 'gim');
+  return [...raw.matchAll(re)].map(m => name + ': ' + m[1].trim());
+}
+async function headersOf(box, msgId, label) {
   const m = await readMessage(box, msgId);
   const res = await fetch('https://api.mail.tm' + m.sourceUrl, { headers: { Authorization: 'Bearer ' + box.token } });
   const j = await res.json();
-  const data = j.data || '';
-  const grab = re => (data.match(re) || [''])[0];
+  const raw = unfoldHeaders(j.data || '');
+  if (label) fs.writeFileSync(`rc2-mime-${label}.txt`, raw.slice(0, 12000));
+  const authResults = headerAll(raw, 'Authentication-Results');
+  const arcAuth = headerAll(raw, 'ARC-Authentication-Results');
+  const dkimSigs = headerAll(raw, 'DKIM-Signature').map(h => {
+    const d = (h.match(/d=([^;\s]+)/) || [])[1];
+    const s = (h.match(/s=([^;\s]+)/) || [])[1];
+    return { d, s };
+  });
+  const from = (headerAll(raw, 'From')[0] || '').replace('From: ', '');
+  const fromDomain = (from.match(/@([^\s>]+)/) || [])[1] || '';
+  const returnPath = headerAll(raw, 'Return-Path')[0] || '';
+  // PO-decisive: receiver Authentication-Results dkim=pass AND d aligns w/ From
+  const recvAuth = authResults.find(h => /mail\.tm|mailtm/i.test(h)) || authResults[0] || '';
+  const dkimPass = /dkim=pass/i.test(recvAuth) || dkimSigs.some(x => x.d === fromDomain);
+  const dkimAligned = dkimSigs.some(x => x.d && (x.d === fromDomain || fromDomain.endsWith('.' + x.d)));
+  const dmarcPass = /dmarc=pass/i.test(recvAuth) || arcAuth.some(h => /dmarc=pass/i.test(h));
+  const authenticated = dkimPass && dkimAligned && dmarcPass;
   return {
-    from: grab(/From: ([^\r\n]+)/), returnPath: grab(/Return-Path: <([^>]+)>/),
-    spf_arc: grab(/spf=(\w+)\s+smtp\.mailfrom=([^\s;]+)/) ? (data.match(/spf=(\w+)\s+smtp\.mailfrom=([^\s;]+)/) || []).slice(1) : null,
-    dmarc_arc: grab(/dmarc=(\w+)\s+header\.from/) ? (data.match(/dmarc=(\w+)\s+header\.from/) || []).slice(1) : null,
-    dkim_sig: /DKIM-Signature:/i.test(data),
+    from, returnPath, fromDomain,
+    authentication_results: authResults, arc_results: arcAuth,
+    dkim_signatures: dkimSigs, dkim_aligned: dkimAligned,
+    dkim_pass: dkimPass, dmarc_pass: dmarcPass, authenticated,
     receiver_verif: m.verifications || null,
-    received_from: grab(/Received: from ([^\r\n(]+)/),
+    received_from: (headerAll(raw, 'Received')[0] || '').slice(0, 160),
   };
 }
 async function deliver(box, re, label, sinceMs) {
   const msg = await waitForMessage(box, { subjectRe: re, timeoutMs: 120000, sinceMs });
   if (!msg) { check(label + ' delivered', false, {}); return null; }
-  const h = await headersOf(box, msg.id);
-  check(label + ' delivered', true, { subject: msg.subject, from: h.from, spf_arc: h.spf_arc, dmarc_arc: h.dmarc_arc, dkim_sig: h.dkim_sig, receiver: h.receiver_verif });
+  const h = await headersOf(box, msg.id, label);
+  check(label + ' delivered', true, { subject: msg.subject, from: h.from });
+  check(label + ' authenticated (dkim+align+dmarc)', h.authenticated,
+    { dkim_sigs: h.dkim_signatures, dkim_aligned: h.dkim_aligned, dkim_pass: h.dkim_pass, dmarc_pass: h.dmarc_pass, auth_results: h.authentication_results, receiver: h.receiver_verif });
   return msg;
 }
 
@@ -36,7 +62,8 @@ async function deliver(box, re, label, sinceMs) {
   const since = Date.now() - 60000;
   // 1. support reply on a public ticket (existing uat ticket? use support-crm public path)
   const supBox = await createMailbox('rc2sup');
-  const t = await api('POST', '/support-crm/public/tickets', null, { subject: 'RC2 support evidence ' + Date.now(), body: 'Ticket for email-header evidence', requester_email: supBox.address, requester_name: 'RC2 Tester' });
+  const la0 = await api('POST', '/auth/login', null, { email: state.tenantA.email, password: state.tenantA.password });
+  const t = await api('POST', '/support-crm/public/tickets', null, { tenant_id: la0.data?.tenant_id, subject: 'RC2 support evidence ' + Date.now(), description: 'Ticket for email-header evidence', public_submitter_email: supBox.address, public_submitter_name: 'RC2 Tester' });
   check('support ticket created', t.status === 200 || t.status === 201, { status: t.status });
   const ticketToken = t.data?.public_token || t.data?.token;
   // staff reply -> requester email notification

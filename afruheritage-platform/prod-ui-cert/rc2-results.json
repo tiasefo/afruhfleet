@@ -1,15 +1,43 @@
 [
   {
     "n": "support ticket created",
-    "ok": false,
+    "ok": true,
     "d": {
-      "status": 422
+      "status": 200
     }
   },
   {
     "n": "support-notification delivered",
-    "ok": false,
-    "d": {}
+    "ok": true,
+    "d": {
+      "subject": "UATCERT Meridian Freight 3 — Support Ticket Created: #8f37e740",
+      "from": "Afruheritage <advisory@emidentity.com>"
+    }
+  },
+  {
+    "n": "support-notification authenticated (dkim+align+dmarc)",
+    "ok": true,
+    "d": {
+      "dkim_sigs": [
+        {
+          "d": "emidentity.com",
+          "s": "zmail"
+        }
+      ],
+      "dkim_aligned": true,
+      "dkim_pass": true,
+      "dmarc_pass": true,
+      "auth_results": [],
+      "receiver": {
+        "tls": {
+          "name": "TLS_AES_256_GCM_SHA384",
+          "standardName": "TLS_AES_256_GCM_SHA384",
+          "version": "TLSv1.3"
+        },
+        "spf": false,
+        "dkim": false
+      }
+    }
   },
   {
     "n": "rc2 individual account created",
@@ -30,15 +58,23 @@
     "ok": true,
     "d": {
       "subject": "Afruheritage — Password Reset Request",
-      "from": "From: Afruheritage <advisory@emidentity.com>",
-      "spf_arc": [
-        "pass",
-        "advisory@emidentity.com"
+      "from": "Afruheritage <advisory@emidentity.com>"
+    }
+  },
+  {
+    "n": "password-reset authenticated (dkim+align+dmarc)",
+    "ok": true,
+    "d": {
+      "dkim_sigs": [
+        {
+          "d": "emidentity.com",
+          "s": "zmail"
+        }
       ],
-      "dmarc_arc": [
-        "pass"
-      ],
-      "dkim_sig": false,
+      "dkim_aligned": true,
+      "dkim_pass": true,
+      "dmarc_pass": true,
+      "auth_results": [],
       "receiver": {
         "tls": {
           "name": "TLS_AES_256_GCM_SHA384",
@@ -62,15 +98,23 @@
     "ok": true,
     "d": {
       "subject": "You have been invited to join UATCERT Meridian Freight 3 on Afruheritage",
-      "from": "From: Afruheritage <advisory@emidentity.com>",
-      "spf_arc": [
-        "pass",
-        "advisory@emidentity.com"
+      "from": "Afruheritage <advisory@emidentity.com>"
+    }
+  },
+  {
+    "n": "staff-invitation authenticated (dkim+align+dmarc)",
+    "ok": true,
+    "d": {
+      "dkim_sigs": [
+        {
+          "d": "emidentity.com",
+          "s": "zmail"
+        }
       ],
-      "dmarc_arc": [
-        "pass"
-      ],
-      "dkim_sig": false,
+      "dkim_aligned": true,
+      "dkim_pass": true,
+      "dmarc_pass": true,
+      "auth_results": [],
       "receiver": {
         "tls": {
           "name": "TLS_AES_256_GCM_SHA384",
@@ -87,15 +131,23 @@
     "ok": true,
     "d": {
       "subject": "UATCERT Meridian Freight 3 — Shipment Update: AFR-209738-20261009-90797B",
-      "from": "From: Afruheritage <advisory@emidentity.com>",
-      "spf_arc": [
-        "pass",
-        "advisory@emidentity.com"
+      "from": "Afruheritage <advisory@emidentity.com>"
+    }
+  },
+  {
+    "n": "shipment-notification authenticated (dkim+align+dmarc)",
+    "ok": true,
+    "d": {
+      "dkim_sigs": [
+        {
+          "d": "emidentity.com",
+          "s": "zmail"
+        }
       ],
-      "dmarc_arc": [
-        "pass"
-      ],
-      "dkim_sig": false,
+      "dkim_aligned": true,
+      "dkim_pass": true,
+      "dmarc_pass": true,
+      "auth_results": [],
       "receiver": {
         "tls": {
           "name": "TLS_AES_256_GCM_SHA384",

@@ -1,0 +1,50 @@
+Delivered-To: rc2inv-mv7nff0usd3s@maxxspace.com
+Return-Path: <advisory@emidentity.com>
+Received: from sender6-of-o56.zoho.com (sender6-of-o56.zoho.com [165.173.180.56]) by in.mail.tm (Haraka/3.1.7) with ESMTPS id 87EA1A4B-08A3-4ED8-94A4-188C5245F8ED.1 envelope-from <advisory@emidentity.com> tls TLS_AES_256_GCM_SHA384; Wed, 14 Oct 2026 05:08:04 +0000
+ARC-Seal: i=1; a=rsa-sha256; t=1791954482; cv=none;  d=zohomail.com; s=zohoarc;  b=jq8obZzsd7RPNFp1qZ8Px2Vqwaa+dreS9p0h/RPnmBLCPVWAzY4k1zb+awqB2+Gqa/GNfKiKwYh1lG8gTtncnqqoSEtgTiSjmPM52eHua50FLXLdPKqAWJcMbriQJkjNjZ+Ia2Bvg+C4upMlkd+MHLFiaH1Olzmu5WVWFEZaInM=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc;  t=1791954482; h=Content-Type:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To:Cc;  bh=Qyyr8o6+NElQ2dmc3Wc7Z3fInYqhWRhkkGpGc68jAVc=;  b=OYJgFkbL+ZK5lBhhqdJEzEh5pX3KPedTvRrIA1UAs09rYeDtGwn5FyHQ30VSJlrfpaeyYovtPgJkR0Ba8rwe+tq75A9nyOLXxm2XPvSlC8Kjqied5kfHXCQ7Xk/1y9Dt9xKH0I5pwpK6niiInWhu3+CLcQTmzzH+X09z3enhM1Y=
+ARC-Authentication-Results: i=1; mx.zohomail.com; dkim=pass  header.i=emidentity.com; spf=pass  smtp.mailfrom=advisory@emidentity.com; dmarc=pass header.from=<advisory@emidentity.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1791954482; s=zmail; d=emidentity.com; i=advisory@emidentity.com; h=Content-Type:MIME-Version:Subject:Subject:From:From:To:To:Message-ID:Date:Date:Message-Id:Reply-To:Cc; bh=Qyyr8o6+NElQ2dmc3Wc7Z3fInYqhWRhkkGpGc68jAVc=; b=UnFugMpyI5V+SSfsSOuTf3SV/0ffxr/cYEdQgkDViflejwTFq0ErODmRgi2PWieL cTPZQq/2K6uav/omVFwW0raYhpj/5dtFETjJdn/0Gjc8ENfH7ev/dAgPV4LW6KYP5kY xZ/Hiom8CWM7poIuLFf4VWqc2BRqOgYd7HVE0330=
+Received: by smtp.zohomail.com with SMTPS id 17919544802311001.1454988405027; Tue, 13 Oct 2026 22:08:00 -0700 (PDT)
+Content-Type: multipart/alternative; boundary="===============3521459351514707400=="
+MIME-Version: 1.0
+Subject: You have been invited to join UATCERT Meridian Freight 3 on Afruheritage
+From: Afruheritage <advisory@emidentity.com>
+To: rc2inv-mv7nff0usd3s@maxxspace.com
+Message-ID: <1a138cf6c70.ba16a931493552058.-980488729752369886@zoho.com>
+Date: Tue, 13 Oct 2026 22:08:00 -0700 (PDT)
+X-ZohoMailClient: External
+
+
+--===============3521459351514707400==Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+WW91IGhhdmUgYmVlbiBpbnZpdGVkIHRvIGpvaW4gVUFUQ0VSVCBNZXJpZGlhbiBGcmVpZ2h0IDMg
+b24gQWZydWhlcml0YWdlLgoKQWNjZXB0IGhlcmU6IGh0dHBzOi8vYWZydWhlcml0YWdlLmNvbS9p
+bnZpdGUvYWNjZXB0P3Rva2VuPXNGbGFaeVA1VGdrbnRLSE1mOElEZmE0OHVQRFM3NWxvCgpUaGlz
+IGludml0YXRpb24gZXhwaXJlcyBpbiA3IGRheXMu
+
+--===============3521459351514707400==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+CiAgICAgICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFj
+U3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCBzYW5zLXNlcmlmOyBtYXgtd2lkdGg6IDYw
+MHB4OyBtYXJnaW46IDAgYXV0bzsgcGFkZGluZzogNDBweCAyMHB4OyI+CiAgICAgICAgICAgIDxo
+MSBzdHlsZT0iY29sb3I6ICMxZTI5M2I7IGZvbnQtc2l6ZTogMjRweDsgbWFyZ2luLWJvdHRvbTog
+MTZweDsiPllvdSdyZSBpbnZpdGVkIHRvIGpvaW4gVUFUQ0VSVCBNZXJpZGlhbiBGcmVpZ2h0IDM8
+L2gxPgogICAgICAgICAgICA8cCBzdHlsZT0iY29sb3I6ICM0NzU1Njk7IGZvbnQtc2l6ZTogMTZw
+eDsgbGluZS1oZWlnaHQ6IDEuNjsiPgogICAgICAgICAgICAgICAgVUFUIENlcnQgT3duZXIgQWxw
+aGEgaGFzIGludml0ZWQgeW91IHRvIGNvbGxhYm9yYXRlIG9uIDxzdHJvbmc+VUFUQ0VSVCBNZXJp
+ZGlhbiBGcmVpZ2h0IDM8L3N0cm9uZz4gYXMgYSA8c3Ryb25nPmN1c3RvbWVyPC9zdHJvbmc+Lgog
+ICAgICAgICAgICA8L3A+CiAgICAgICAgICAgIDxwIHN0eWxlPSJjb2xvcjogIzk0YTNiODsgZm9u
+dC1zaXplOiAxNHB4OyI+CiAgICAgICAgICAgICAgICBUaGlzIGludml0YXRpb24gZXhwaXJlcyBp
+biA3IGRheXMuCiAgICAgICAgICAgIDwvcD4KICAgICAgICAgICAgPHAgc3R5bGU9ImNvbG9yOiAj
+OTRhM2I4OyBmb250LXNpemU6IDE0cHg7Ij4KICAgICAgICAgICAgICAgIEFjY2VwdCB0aGUgaW52
+aXRhdGlvbiBoZXJlOiBodHRwczovL2FmcnVoZXJpdGFnZS5jb20vaW52aXRlL2FjY2VwdD90b2tl
+bj1zRmxhWnlQNVRna250S0hNZjhJRGZhNDh1UERTNzVsbwogICAgICAgICAgICA8L3A+CiAgICAg
+ICAgPC9kaXY+CiAgICAgICAg
+
+--===============3521459351514707400==--

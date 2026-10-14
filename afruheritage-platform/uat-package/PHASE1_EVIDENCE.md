@@ -589,3 +589,12 @@ enable DKIM on emidentity.com as interim.
 PAYSTACK_PRODUCTION_READINESS.md completed incl. manual refund/dispute
 procedure + renewal disclosures. Customer-facing "no auto-renewal"
 disclosure added to billing page (current-plan card + plan dialog).
+
+## Round 8 — RC-2 re-test after Ops DKIM enablement: AUTHENTICATED
+
+After Operations enabled DKIM signing (zmail._domainkey verified in Zoho),
+rc2-email-evidence.js re-run: 12/12 PASS. All four journeys now carry a
+real `DKIM-Signature: s=zmail; d=emidentity.com` aligned with From —
+dkim=pass, spf=pass, dmarc=pass. Raw MIME: prod-ui-cert/rc2-mime-*.txt.
+advisory@emidentity.com is suitable as a disclosed temporary pilot sender;
+G-04 (afruheritage.com sender) remains a separate open workstream.
