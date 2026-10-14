@@ -69,15 +69,19 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
         user,
         company_name=payload.company_name,
         plan_code=normalize_plan_code(payload.plan_code).value,
+        account_type=payload.account_type,
     )
     db.flush()
     db.refresh(user)
     # Fetch the tenant's slug to build the portal URL
     subdomain: str | None = None
     portal_url: str | None = None
+    workspace_label = payload.company_name or payload.full_name
     if user.tenant_id:
         from app.models.tenant import Tenant
         tenant = db.scalar(select(Tenant).where(Tenant.id == user.tenant_id))
+        if tenant:
+            workspace_label = tenant.company_name
         if tenant and tenant.slug:
             subdomain = tenant.slug
             portal_url = f"https://{tenant.slug}.afruheritage.com"
@@ -90,11 +94,17 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
     # Send welcome email to the newly registered user
     try:
         notification_service = NotificationService()
+        if payload.account_type == 'individual':
+            account_blurb = f"Hi {payload.full_name}, your personal Afruheritage account has been created successfully!"
+            subject_line = "Welcome to Afruheritage — Your Account is Ready!"
+        else:
+            account_blurb = f"Hi {payload.full_name}, your freight forwarding platform <strong>{workspace_label}</strong> has been created successfully!"
+            subject_line = f"Welcome to Afruheritage — {workspace_label} is Ready!"
         welcome_html = f"""
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
             <h1 style="color: #1e293b; font-size: 24px; margin-bottom: 16px;">Welcome to Afruheritage!</h1>
             <p style="color: #475569; font-size: 16px; line-height: 1.6;">
-                Hi {payload.full_name}, your freight forwarding platform <strong>{payload.company_name}</strong> has been created successfully!
+                {account_blurb}
             </p>
             <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 24px 0;">
                 <p style="margin: 0; color: #64748b;"><strong>Your Portal:</strong> {portal_url or 'https://afruheritage.com'}</p>
@@ -115,9 +125,9 @@ def register(payload: RegisterRequest, response: Response, db: Session=Depends(g
         """
         notification_service.send_generic_email(
             to=payload.email.lower(),
-            subject=f"Welcome to Afruheritage — {payload.company_name} is Ready!",
+            subject=subject_line,
             html_body=welcome_html,
-            plain_body=f"Welcome to Afruheritage!\n\nHi {payload.full_name}, your freight forwarding platform {payload.company_name} has been created successfully.\n\nYour Portal: {portal_url or 'https://afruheritage.com'}\nLogin Email: {payload.email}\n\nLogin at: {portal_url or 'https://afruheritage.com'}/login",
+            plain_body=f"Welcome to Afruheritage!\n\nHi {payload.full_name}, your {'personal account' if payload.account_type == 'individual' else f'freight forwarding platform {workspace_label}'} has been created successfully.\n\nYour Portal: {portal_url or 'https://afruheritage.com'}\nLogin Email: {payload.email}\n\nLogin at: {portal_url or 'https://afruheritage.com'}/login",
         )
     except Exception as e:
         import logging

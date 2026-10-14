@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBranding } from '@/hooks/useBranding'
+import { useTenant } from '@/components/tenant-context-provider'
 import { useTranslation } from '@/hooks/useTranslation'
 import { brandingAPI, domainsAPI, templatesApi } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,8 @@ import {
 export default function SettingsPage() {
   const { user } = useAuth()
   const { branding, refreshBranding } = useBranding()
+  const { tenant } = useTenant()
+  const isIndividual = tenant?.account_type === 'individual'
   const { t, lang, setLang } = useTranslation()
   
   const [formData, setFormData] = useState({
@@ -415,19 +418,21 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Settings className="w-5 h-5 mr-2" />
-                  Company Information
+                  {isIndividual ? 'Account Information' : 'Company Information'}
+                  {isIndividual && <Badge variant="secondary" className="ml-2">Personal account</Badge>}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{isIndividual ? 'Display Name' : 'Company Name'}</label>
                   <Input
                     value={formData.company_name}
                     onChange={(e) => handleInputChange('company_name', e.target.value)}
-                    placeholder="Enter company name"
+                    placeholder={isIndividual ? 'Enter your display name' : 'Enter company name'}
                   />
                 </div>
-                
+
+                {!isIndividual && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Legal Company Name</label>
                   <Input
@@ -436,6 +441,7 @@ export default function SettingsPage() {
                     placeholder="Enter legal company name"
                   />
                 </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Support Email</label>

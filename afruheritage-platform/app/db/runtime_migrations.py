@@ -22,6 +22,13 @@ def run_runtime_migrations(engine: Engine) -> None:
     dialect_name = engine.dialect.name
 
     with engine.begin() as conn:
+        # S2: serialize runtime migrations across concurrent workers (API,
+        # Sentinel, beat) — pg_advisory_xact_lock makes every process wait for
+        # the first to finish instead of racing on shared DDL/UPDATEs. The
+        # lock auto-releases at transaction end. Non-Postgres dialects have no
+        # multi-worker deployments so no lock is needed there.
+        if dialect_name == "postgresql":
+            conn.execute(text("SELECT pg_advisory_xact_lock(873421097)"))
         if "tenant_id" not in existing_columns:
             tenant_id_type = "UUID" if dialect_name == "postgresql" else "VARCHAR(36)"
             conn.execute(text(f"ALTER TABLE users ADD COLUMN tenant_id {tenant_id_type} NULL"))
@@ -46,6 +53,12 @@ def run_runtime_migrations(engine: Engine) -> None:
 
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_tenant_id ON users (tenant_id)"))
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_password_reset_token ON users (password_reset_token)"))
+
+        # Tenants account_type column migration (I1: individual vs business)
+        if "account_type" not in existing_tenants_columns:
+            conn.execute(text("ALTER TABLE tenants ADD COLUMN account_type VARCHAR(20) NOT NULL DEFAULT 'business'"))
+            conn.execute(text("UPDATE tenants SET account_type = 'business' WHERE account_type IS NULL OR account_type = ''"))
+            logger.info("runtime_migration_added_tenants_account_type")
 
         # Tenants whatsapp_channel_url column migration
         if "whatsapp_channel_url" not in existing_tenants_columns:

@@ -133,7 +133,8 @@ export const authApi = {
     email: string
     password: string
     full_name: string
-    company_name: string
+    company_name?: string
+    account_type?: 'individual' | 'business'
     plan_code?: string
   }) => api.post('/auth/register', data),
 

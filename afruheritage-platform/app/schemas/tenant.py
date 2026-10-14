@@ -17,6 +17,7 @@ class TenantCreate(BaseModel):
 class TenantResponse(BaseModel):
     id: UUID
     company_name: str
+    account_type: str = 'business'
     slug: str
     contact_email: EmailStr
     plan_code: str

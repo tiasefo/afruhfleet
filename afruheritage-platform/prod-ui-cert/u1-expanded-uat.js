@@ -88,11 +88,26 @@ async function uiLogin(page, email, password) {
   const compLoggedIn = !page.url().includes('/login');
   check('new company admin can log in', compLoggedIn, { url: page.url() });
 
-  // ══ 2. INDIVIDUAL REGISTRATION (register form → free trial) ════════
+  // ══ 2. INDIVIDUAL REGISTRATION (I1: no company name required) ════════
   const indBox = await createMailbox('u1ind');
   await page.goto(`${BASE}/register`, { waitUntil: 'domcontentloaded' });
   await sleep(4000);
-  await page.locator('#company_name').fill(`U1 Indiv Workspace ${Date.now() % 100000}`).catch(() => {});
+  // I1: the account-type toggle must exist; Individual is the default and
+  // must NOT render a required company field.
+  const indToggle = page.locator('button:has-text("Individual")').first();
+  const bizToggle = page.locator('button:has-text("Business")').first();
+  check('account-type selector present on /register', (await indToggle.count()) > 0 && (await bizToggle.count()) > 0, {});
+  await indToggle.click().catch(() => {});
+  await sleep(800);
+  const companyFieldCount = await page.locator('#company_name').count();
+  check('individual mode hides company field', companyFieldCount === 0, { companyFieldCount });
+  // business mode must still expose + require the company field
+  await bizToggle.click().catch(() => {});
+  await sleep(800);
+  const bizCompanyField = await page.locator('#company_name[required], #company_name').count();
+  await indToggle.click().catch(() => {});
+  await sleep(800);
+  check('business mode exposes company field', bizCompanyField > 0, { bizCompanyField });
   await page.locator('#full_name').fill('U1 Individual').catch(() => {});
   await page.locator('#email').fill(indBox.address).catch(() => {});
   const indPw = 'U1Indiv!2026';
@@ -108,7 +123,13 @@ async function uiLogin(page, email, password) {
   const contBtn = page.getByRole('button', { name: 'Continue', exact: true }).first();
   if (await contBtn.count() && await contBtn.isVisible()) { await contBtn.click(); await sleep(7000); }
   await shot('07-individual-final');
-  check('self-serve registration journey reaches post-signup state', !page.url().includes('/register'), { url: page.url() });
+  check('individual registration journey reaches post-signup state', !page.url().includes('/register'), { url: page.url() });
+  // I1: verify the tenant record is genuinely typed 'individual' (not a
+  // company wearing a person's name)
+  const indLogin = await api('POST', '/auth/login', null, { email: indBox.address, password: indPw });
+  const indTok = indLogin.data?.access_token;
+  const indTenant = await api('GET', '/tenants/me', indTok);
+  check('individual tenant recorded as account_type=individual', indTenant.data?.account_type === 'individual', { account_type: indTenant.data?.account_type, company_name: indTenant.data?.company_name });
 
   // ══ 3. STAFF INVITATION (tenant A → real email → accept → login) ═══
   await uiLogin(page, state.tenantA.email, state.tenantA.password);

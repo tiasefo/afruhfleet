@@ -15,8 +15,17 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
     full_name: str = Field(min_length=2, max_length=255)
-    company_name: str = Field(min_length=2, max_length=255)
+    # I1: optional for individuals — a personal account must not require an
+    # invented company name. Required when account_type == 'business'.
+    company_name: str | None = Field(default=None, min_length=2, max_length=255)
+    account_type: str = Field(default='business', pattern='^(individual|business)$')
     plan_code: str | None = Field(default=None, min_length=3, max_length=64)
+
+    @model_validator(mode="after")
+    def require_company_name_for_business(self) -> "RegisterRequest":
+        if self.account_type == 'business' and not (self.company_name or '').strip():
+            raise ValueError("company_name is required for business accounts")
+        return self
 
 
 class LoginRequest(BaseModel):

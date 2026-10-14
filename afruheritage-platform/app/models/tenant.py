@@ -30,6 +30,7 @@ class Tenant(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     company_name: Mapped[str] = mapped_column(String(255), unique=True)
+    account_type: Mapped[str] = mapped_column(String(20), default='business', server_default='business')
     slug: Mapped[str] = mapped_column(String(120), unique=True, index=True)
     contact_email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     plan_code: Mapped[str] = mapped_column(String(80))

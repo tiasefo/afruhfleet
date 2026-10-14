@@ -4,6 +4,7 @@ export interface TenantContext {
   id: string
   slug: string
   company_name: string
+  account_type?: 'individual' | 'business'
   logo_url: string | null
   favicon_url: string | null
   primary_color: string

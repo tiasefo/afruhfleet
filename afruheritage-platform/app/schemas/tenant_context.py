@@ -71,6 +71,7 @@ class TenantContextResponse(BaseModel):
     id: str
     slug: str
     company_name: str
+    account_type: str = 'business'
     tagline: Optional[str] = None
     domain: Optional[str] = None
     subdomain: Optional[str] = None

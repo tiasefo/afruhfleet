@@ -518,3 +518,54 @@ stands: no recurring billing, refunds, or automated payouts.
 provisioning, DKIM publish, SPF include, sender authorization, app sender
 flip, DMARC tightening, plus per-journey DKIM/SPF/DMARC evidence required
 to unblock.
+
+## Round 6 — PO gates I1/S2 (post-96436c11)
+
+### I1 — Individual customer journey — IMPLEMENTED + VERIFIED
+
+**Product change** (not a test fix): `/register` now has an
+Individual/Business account-type selector (default Individual).
+- Individual: company field hidden AND not required; tenant provisioned
+  with `account_type='individual'` and workspace named after the person —
+  never a fabricated company.
+- Business: company field shown + required; `account_type='business'`.
+- `RegisterRequest` rejects business signups without `company_name` (422).
+- `tenants.account_type` column added via runtime migration; existing rows
+  backfilled 'business'. Exposed via `/tenants/me` and `/tenant-context/*`.
+- Settings page distinguishes: "Account Information" + "Personal account"
+  badge + Display Name label for individuals (Legal Company Name hidden).
+- Welcome email wording: "your personal Afruheritage account" vs
+  "your freight forwarding platform {company}".
+
+**Browser evidence** (u1-expanded-uat.js, 20/20): toggle present;
+individual hides company field; business exposes it; individual
+registration → plan picker → real Paystack checkout → login →
+`/tenants/me` returns `account_type=individual`. Company registration at
+`/register/company` unchanged and passing.
+
+### S2 — Operational hardening — COMPLETE
+
+- **Migration race eliminated**: `pg_advisory_xact_lock(873421097)` wraps
+  the runtime-migration block — every worker serializes behind the first
+  instead of racing. Post-restart: zero deadlock errors across api,
+  worker, beat (previous boots showed deadlock warnings + self-heal).
+- **Full-stack restart persistence** (`compose down` + `up`):
+  all five published ports still 127.0.0.1-only; redis NOAUTH unauth /
+  PONG authed; worker healthy on authenticated broker; frontend pinned
+  at 172.19.0.100; APP_ENV/ADMIN_APP_ENV/NODE_ENV all production;
+  api+sentinel docs still 404.
+- **Handover links**: now backed by a `uat_handover_links` registry —
+  only sha256(token) stored. `POST /uat-handover/revoke` (staff) revokes
+  all outstanding links; index + download require a live unrevoked DB
+  record (signature alone no longer suffices — forwarded bearer links
+  can be killed). Per-access audit rows record link owner, file, and
+  client IP. Verified: mint → download 200 → revoke → 403.
+- **Config drift audit**: runtime env consistent (production everywhere).
+  Stale unused values documented: `.env.docker` has localhost OAuth
+  redirect URIs (not consumed — runtime `.env` has prod URIs);
+  CORS_ORIGINS includes localhost entries (accepted dev convenience).
+
+### P2 / O2 — unchanged
+
+Flutterwave still BLOCKED on Ops sandbox credentials; G-04 still BLOCKED
+on provider-side sender authorization/DKIM/SPF + header verification.

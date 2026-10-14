@@ -37,6 +37,7 @@ from sentinel_app.db.session import Base, engine
 import sentinel_app.models.admin_user  # noqa: F401
 import sentinel_app.models.audit_log  # noqa: F401
 import sentinel_app.models.feature_control  # noqa: F401
+import sentinel_app.models.uat_handover_link  # noqa: F401
 
 logger = logging.getLogger("sentinel")
 

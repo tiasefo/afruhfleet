@@ -1,6 +1,6 @@
 {
-  "pass": 16,
-  "total": 16,
+  "pass": 20,
+  "total": 20,
   "results": [
     {
       "n": "company registration via UI (success screen)",
@@ -18,10 +18,37 @@
       }
     },
     {
-      "n": "self-serve registration journey reaches post-signup state",
+      "n": "account-type selector present on /register",
+      "ok": true,
+      "d": {}
+    },
+    {
+      "n": "individual mode hides company field",
       "ok": true,
       "d": {
-        "url": "https://checkout.paystack.com/q0lcrv5li4sekka"
+        "companyFieldCount": 0
+      }
+    },
+    {
+      "n": "business mode exposes company field",
+      "ok": true,
+      "d": {
+        "bizCompanyField": 1
+      }
+    },
+    {
+      "n": "individual registration journey reaches post-signup state",
+      "ok": true,
+      "d": {
+        "url": "https://checkout.paystack.com/fvrah2y6xcce1ld"
+      }
+    },
+    {
+      "n": "individual tenant recorded as account_type=individual",
+      "ok": true,
+      "d": {
+        "account_type": "individual",
+        "company_name": "U1 Individual"
       }
     },
     {

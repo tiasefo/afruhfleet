@@ -28,6 +28,7 @@ class SignupOnboardingService:
         user: User,
         company_name: str | None = None,
         plan_code: str = "free_trial",
+        account_type: str = "business",
     ) -> Tenant:
         if user.is_superuser:
             raise ValueError("Superusers are not auto-provisioned into tenant workspaces")
@@ -37,7 +38,7 @@ class SignupOnboardingService:
             if existing:
                 return existing
 
-        normalized_company_name = self._resolve_company_name(user, company_name)
+        normalized_company_name = self._resolve_company_name(user, company_name, account_type)
         unique_company_name = self._unique_company_name(normalized_company_name)
         slug = self._unique_slug(unique_company_name)
         requested_domain = self._unique_requested_domain(slug)
@@ -46,6 +47,7 @@ class SignupOnboardingService:
 
         tenant = Tenant(
             company_name=unique_company_name,
+            account_type='individual' if account_type == 'individual' else 'business',
             slug=slug,
             contact_email=user.email.lower(),
             plan_code=resolved_plan.value,
@@ -121,14 +123,16 @@ class SignupOnboardingService:
         # a subscription is initialized (through the billing endpoints
         # /payments/init and the payment webhook flow).
 
-    def _resolve_company_name(self, user: User, company_name: str | None) -> str:
+    def _resolve_company_name(self, user: User, company_name: str | None, account_type: str = "business") -> str:
         value = (company_name or "").strip()
         if value:
             return value
 
         full_name = (user.full_name or "").strip()
         if full_name:
-            return f"{full_name} Workspace"
+            # Individuals get a workspace named after the person, never a
+            # fabricated company name.
+            return full_name if account_type == 'individual' else f"{full_name} Workspace"
 
         email_prefix = user.email.split("@", 1)[0].strip()
         if email_prefix:
@@ -173,6 +177,7 @@ def ensure_user_tenant_context(
     user: User,
     company_name: str | None = None,
     plan_code: str = "free_trial",
+    account_type: str = "business",
 ) -> User:
     if user.is_superuser or user.tenant_id:
         return user
@@ -182,5 +187,5 @@ def ensure_user_tenant_context(
         return user
 
     service = SignupOnboardingService(db)
-    service.ensure_user_tenant(user=user, company_name=company_name, plan_code=plan_code)
+    service.ensure_user_tenant(user=user, company_name=company_name, plan_code=plan_code, account_type=account_type)
     return user

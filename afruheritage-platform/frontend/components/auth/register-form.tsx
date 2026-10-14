@@ -29,6 +29,7 @@ export function RegisterForm() {
   const { branding } = useBranding()
   const { tenant } = useTenant()
   const [isLoading, setIsLoading] = useState(false)
+  const [accountType, setAccountType] = useState<'individual' | 'business'>('individual')
   const [socialLoading, setSocialLoading] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
@@ -47,7 +48,7 @@ export function RegisterForm() {
     setError('')
 
     const formData = new FormData(e.currentTarget)
-    const companyName = formData.get('company_name') as string
+    const companyName = (formData.get('company_name') as string) || ''
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     const fullName = formData.get('full_name') as string
@@ -70,7 +71,8 @@ export function RegisterForm() {
         email,
         password,
         full_name: fullName,
-        company_name: companyName || fullName,
+        company_name: accountType === 'business' ? companyName : undefined,
+        account_type: accountType,
       })
       // Store portal URL before login so dashboard can show it
       const regData = (regRes as any)?.data ?? regRes
@@ -280,17 +282,39 @@ export function RegisterForm() {
 
                 <FieldGroup>
                   <Field>
-                    <FieldLabel htmlFor="company_name">Company Name</FieldLabel>
-                    <Input
-                      id="company_name"
-                      name="company_name"
-                      type="text"
-                      placeholder="Enter your company name"
-                      required
-                      autoComplete="organization"
-                      className="h-11"
-                    />
+                    <FieldLabel>I am signing up as</FieldLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['individual', 'business'] as const).map((kind) => (
+                        <button
+                          key={kind}
+                          type="button"
+                          onClick={() => setAccountType(kind)}
+                          className={`h-11 rounded-lg border text-sm font-medium transition-colors ${
+                            accountType === kind
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-input text-muted-foreground hover:bg-accent'
+                          }`}
+                        >
+                          {kind === 'individual' ? 'Individual' : 'Business'}
+                        </button>
+                      ))}
+                    </div>
                   </Field>
+
+                  {accountType === 'business' && (
+                    <Field>
+                      <FieldLabel htmlFor="company_name">Company Name</FieldLabel>
+                      <Input
+                        id="company_name"
+                        name="company_name"
+                        type="text"
+                        placeholder="Enter your company name"
+                        required
+                        autoComplete="organization"
+                        className="h-11"
+                      />
+                    </Field>
+                  )}
 
                   <Field>
                     <FieldLabel htmlFor="full_name">Full Name</FieldLabel>
