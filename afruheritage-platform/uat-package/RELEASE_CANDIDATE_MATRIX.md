@@ -1,7 +1,7 @@
 # Afruheritage — Release-Candidate Matrix
 
-**Deployed SHA:** `56234c94` + pending hardening commit (FLW checkout
-gate, provider validation, per-link handover revocation — this round).
+**Deployed SHA:** `e00ce84c` (includes `56234c94` I1/S2 + this round's
+FLW checkout gate, provider validation, per-link handover revocation).
 **Evidence:** `PHASE1_EVIDENCE.md` Rounds 1–6, `prod-ui-cert/` result
 JSONs (p29–p32, u1), `uat-package/` artifacts.
 
