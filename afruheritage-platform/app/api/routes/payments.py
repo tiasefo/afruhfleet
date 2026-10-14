@@ -282,8 +282,14 @@ async def flutterwave_webhook(
     - The body is never trusted: the transaction is re-verified against
       Flutterwave's API by tx_ref before any state changes.
     - Entitlement side-effects are idempotent on the payment reference.
+    - RC-1: while FLUTTERWAVE_ENABLED is false the provider is not
+      certified — events are accepted-and-quarantined (200/ignored) so a
+      disabled provider can never mutate entitlements.
     """
     try:
+        if not settings.flutterwave_enabled:
+            logger.warning("Flutterwave webhook received while provider disabled — quarantined")
+            return WebhookResponse(status="ignored", reason="provider disabled")
         verif_hash = request.headers.get("verif-hash")
         raw_body = await request.body()
         if not verify_flw_webhook_hash(raw_body, verif_hash):

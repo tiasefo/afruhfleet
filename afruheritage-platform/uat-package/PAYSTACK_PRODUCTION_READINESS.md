@@ -50,9 +50,21 @@ items are checked off and a live-payment smoke test is approved by the PO.
       there is NO automatic recurring billing. Plan expiry requires the
       customer to re-initiate payment. This must be stated on the billing
       page before paid launch.
-- [ ] **No automated refunds or payouts** — refund/dispute handling is
-      manual via Paystack dashboard + Sentinel (Sentinel refund controls
-      are a known missing capability, tracked in the defect register).
+- [ ] **Refund & dispute procedure (manual until productized)**:
+      1. Customer disputes a charge → support ticket (D-04 channel).
+      2. Ops verifies the payment in `billing_payments` by reference and
+         in the Paystack dashboard.
+      3. Refund executed manually in the Paystack dashboard; Ops records
+         the refund in Sentinel (`payments` admin + audit trail) and
+         adjusts the wallet/entitlement manually where needed.
+      4. Legally required refunds are never denied on the basis that
+         "refunds are unsupported" — unsupported refers to *automated*
+         processing only.
+      - [ ] Publish a customer-facing refund/dispute statement on the
+            billing page linking to the support channel.
+- [ ] **Customer-facing renewal disclosure**: the billing page must state
+      that subscriptions do NOT auto-renew — renewal is a manual payment
+      — before any paid plan is sold.
 - [ ] Failed-payment behavior: checkout abandonment leaves the payment
       `UNPAID`; the customer can re-initiate from Billing. No automatic
       retry or dunning email exists — flag to PO if required for launch.

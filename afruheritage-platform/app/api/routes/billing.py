@@ -265,6 +265,8 @@ def verify_payment(tenant_id: str | None = None, reference: str = '', db: Sessio
         raise HTTPException(status_code=404, detail='Payment not found')
     if not current_user.is_superuser and str(payment.tenant_id) != str(current_user.tenant_id):
         raise HTTPException(status_code=403, detail='Tenant access denied')
+    if (payment.provider or 'paystack').lower() == 'flutterwave' and not settings.flutterwave_enabled:
+        raise HTTPException(status_code=400, detail='Flutterwave is not enabled on this deployment')
     try:
         if (payment.provider or 'paystack').lower() == 'flutterwave':
             payload = _flw.verify_transaction_by_reference(reference)

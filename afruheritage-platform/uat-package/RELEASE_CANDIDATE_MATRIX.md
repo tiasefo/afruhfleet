@@ -75,3 +75,78 @@ JSONs (p29–p32, u1), `uat-package/` artifacts.
 DKIM published, SPF include updated, `SMTP_FROM_EMAIL` flipped, DMARC
 tightened after observation, then real-header evidence on all five mail
 journeys (`G04_OPS_CHECKLIST.md`).
+
+---
+
+## F. RC round results (post-`e00ce84c`)
+
+### RC-1 — Payment provider enforcement: PASS
+
+Flutterwave disabled across **every** surface, not just the selector:
+
+| Surface | Behavior when disabled | Verified |
+|---|---|---|
+| `/billing/payments/init` | 400 "not enabled" | yes |
+| `payment_provider` unknown value | 400 (was silently Paystack) | yes |
+| `/billing/payments/verify/{ref}` on a FLW payment | 400 | yes |
+| `POST /payments/webhook/flutterwave` | 200 `ignored: provider disabled` — quarantined **before** signature/verify/finalize; valid-signed `charge.completed` left payment UNPAID, 0 wallet credits, 0 subscriptions | yes |
+| Checkout UI | Option removed | yes |
+
+### RC-2 — Pilot email exception: CONDITIONAL (PO decision)
+
+See `PILOT_EMAIL_ASSESSMENT.md`. All four journeys deliver to real
+mailboxes as `Afruheritage <advisory@emidentity.com>`; SPF passes at the
+provider hop; **no DKIM signature on the wire**; DMARC `p=none`.
+Deliverable and traceable, partially authenticated — the assessment lays
+out three options including cheap DKIM-on-`emidentity.com` (option 2)
+which satisfies "authenticated" without waiting for G-04.
+
+### RC-3 — Production payment readiness: CONDITIONAL
+
+`PAYSTACK_PRODUCTION_READINESS.md` complete: live keys via secrets,
+webhook registration, post-deploy verification, reconciliation, manual
+refund/dispute procedure (never a refusal of legally required refunds),
+renewal disclosures. Customer-facing disclosures now live on the billing
+page ("subscriptions do not renew automatically" + refund/dispute pointer)
+in both the current-plan card and the plan-selection dialog. Live charge
+still requires explicit PO authorization.
+
+## G. Remaining work by owner
+
+**Engineering**
+- None required for pilot gates. (Backlog: dedicated migration step, driver
+  portal, Sentinel refund controls — all non-blocking.)
+
+**Operations**
+- G-04: `afruheritage.com` sender authorization + DKIM + SPF + DMARC
+  (OR the cheaper RC-2 option: DKIM on `emidentity.com`).
+- Flutterwave: working sandbox credentials → P2 certification → re-enable.
+- Paystack: execute `PAYSTACK_PRODUCTION_READINESS.md` when paid launch
+  is approved.
+
+**Product Owner**
+- Decide pilot-email exception (option 1/2/3 in the assessment).
+- Authorize live-charge smoke test when ready for paid-launch review.
+- Approve/deny paid commercial launch separately.
+
+## H. Final classifications
+
+| Gate | Classification |
+|---|---|
+| Business registration | PASS |
+| Individual registration | PASS |
+| Staff invitation | PASS |
+| Vendor portal | PASS |
+| Support (central + tenant) | PASS |
+| CRM | PASS |
+| Shipments + tracking + notifications | PASS |
+| Tenant isolation | PASS |
+| Rate limiting | PASS |
+| Security hardening (S1/S2) | PASS |
+| Paystack sandbox | PASS (production = conditional on checklist) |
+| Flutterwave | EXCLUDED — disabled pending certification |
+| Branded email (G-04) | BLOCKED — Ops |
+| Pilot email exception | CONDITIONAL — PO decision |
+| Recurring billing | EXCLUDED — not supported (manual renewal) |
+| Refunds (automated) | EXCLUDED — manual procedure documented |
+| Paid commercial launch | BLOCKED — pending live readiness + PO approval |

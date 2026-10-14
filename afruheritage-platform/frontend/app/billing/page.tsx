@@ -312,6 +312,9 @@ export default function BillingPage() {
                         {subscription.read_only_reason && <li className="flex items-center"><div className="w-1 h-1 bg-red-500 rounded-full mr-2"></div>{subscription.read_only_reason}</li>}
                       </ul>
                     </div>
+                    <p className="text-xs text-gray-500">
+                      Subscriptions do not renew automatically — renewal is a manual payment made from this page before your period ends. For refunds or billing disputes, contact support via the Support page.
+                    </p>
                     
                     <div className="flex space-x-3">
                       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
@@ -433,6 +436,9 @@ export default function BillingPage() {
                                 </ul>
                               </div>
                             )}
+                            <p className="text-xs text-gray-500">
+                              Paid plans are one-period purchases — your subscription does not renew automatically. Renew manually before the period ends. Refund and dispute requests are handled through support.
+                            </p>
                             <div className="flex space-x-3">
                               <Button onClick={handleUpgrade} disabled={!selectedPlan || isProcessing}>
                                 {isProcessing ? 'Processing...' : selectedPlan === 'free_trial' ? 'Start Free Trial' : 'Proceed to Payment'}

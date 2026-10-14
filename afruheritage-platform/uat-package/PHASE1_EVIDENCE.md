@@ -569,3 +569,23 @@ registration → plan picker → real Paystack checkout → login →
 
 Flutterwave still BLOCKED on Ops sandbox credentials; G-04 still BLOCKED
 on provider-side sender authorization/DKIM/SPF + header verification.
+
+## Round 7 — RC gates (post-e00ce84c)
+
+### RC-1 — Flutterwave fully disabled: PASS
+Init→400, verify→400, unknown provider→400, webhook→200 "ignored:
+provider disabled" quarantined BEFORE signature/verify/finalize — a
+valid-signed charge.completed against a real UNPAID payment left it
+UNPAID with zero credits/subscriptions. UI option removed.
+
+### RC-2 — Pilot email exception: CONDITIONAL
+PILOT_EMAIL_ASSESSMENT.md. All 4 journeys (invite, password reset,
+shipment notification, support) delivered to real mailboxes as
+`Afruheritage <advisory@emidentity.com>`; SPF pass at provider hop; no
+DKIM signature on wire; DMARC p=none. PO decision required; option to
+enable DKIM on emidentity.com as interim.
+
+### RC-3 — Paystack readiness: CONDITIONAL
+PAYSTACK_PRODUCTION_READINESS.md completed incl. manual refund/dispute
+procedure + renewal disclosures. Customer-facing "no auto-renewal"
+disclosure added to billing page (current-plan card + plan dialog).
