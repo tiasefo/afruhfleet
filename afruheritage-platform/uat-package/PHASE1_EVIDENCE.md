@@ -622,3 +622,15 @@ G-04 (afruheritage.com sender) remains a separate open workstream.
 - Domain-wide admission deliberately excluded from the tool; requires
   explicit Ops approval per PO policy.
 - PILOT_TESTING_GUIDE.md added for participants.
+
+## Customs duty smoke test (on request)
+
+- Public pages /customs, /duty-calculator, /ghana, /kenya: all 200.
+- Guest calculate (GH vehicle): real breakdown (import duty, VAT, NHIL,
+  GETFund, ECOWAS, EXIM, special levy) — mode=fallback, official=false,
+  "ICUMS-style estimate" (UI labels it estimate throughout — honest).
+- Free-limit enforcement: 2 free checks then paywall — **defect found:
+  3rd call 502'd** (Paystack rejected synthetic @afruheritage.local
+  email). FIXED: during pilot → clean `pilot_closed` register prompt;
+  post-pilot → real email required (422), no more 502.
+- Authenticated /customs/calculate + /countries: 200, real breakdown.

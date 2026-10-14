@@ -64,6 +64,6 @@ submitter, and appear in Sentinel.
 
 | # | Date | Severity | Journey | Tenant | Reproduction | Status |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | _no customer failures yet — invitations not yet sent_ | — |
+| D-001 | 2026-10-14 | S2 | Guest customs paywall | n/a (guest) | 3rd `/customs/guest/calculate` → Cloudflare 502: synthetic `guest-*@afruheritage.local` email rejected by Paystack init | **FIXED** — pilot returns `pilot_closed` register prompt; post-pilot path now requires a real email (422) instead of 502 |
 
 Severity: S1 blocker / S2 workflow-degraded / S3 cosmetic-confusion.

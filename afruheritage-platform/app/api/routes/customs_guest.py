@@ -11,6 +11,7 @@ import requests
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 
+from app.core.config import settings
 from app.services.customs.ghana_rules import ghana_vehicle_fallback, ghana_goods_fallback
 from app.services.customs.providers import calculate_with_fallback
 
@@ -170,9 +171,30 @@ def guest_calculate(body: GuestDutyRequest, request: Request):
         }
 
     currency, amount_minor = price_for(country, commodity)
+
+    # During the invitation-only pilot, guests past the free limit are
+    # directed to register — no payment is initialized (no live charges).
+    if settings.pilot_invite_only:
+        return {
+            "payment_required": False,
+            "free_remaining": 0,
+            "used_count": used_count,
+            "pilot_closed": True,
+            "message": (
+                "You've used your free duty checks. During the invitation-only "
+                "pilot, create an account with your invited email for full access."
+            ),
+        }
+
+    if not body.email:
+        raise HTTPException(
+            status_code=422,
+            detail="An email address is required to purchase additional customs checks",
+        )
+
     result = run_customs(payload)
     reference = f"customs_{country}_{commodity}_{uuid.uuid4().hex[:18]}"
-    email = str(body.email or f"guest-{body.guest_id[:8]}@afruheritage.local")
+    email = str(body.email)
 
     authorization_url = create_paystack_payment(email, amount_minor, currency, reference)
 
