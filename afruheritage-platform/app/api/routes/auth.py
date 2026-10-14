@@ -16,6 +16,7 @@ from app.schemas.auth import BootstrapAdminRequest, LoginRequest, PasswordResetC
 from app.services.signup_onboarding_service import ensure_user_tenant_context
 from app.services.billing_service import normalize_plan_code
 from app.services.notification_service import NotificationService
+from app.services.pilot_access import pilot_registration_allowed, PILOT_DENIED_DETAIL
 from app.api.params import uuid_or_400
 
 router = APIRouter(prefix='/auth', tags=['auth'])
@@ -58,6 +59,8 @@ def bootstrap_admin(payload: BootstrapAdminRequest, response: Response, db: Sess
 
 @router.post('/register', response_model=TokenResponse)
 def register(payload: RegisterRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
+    if not pilot_registration_allowed(payload.email):
+        raise HTTPException(status_code=403, detail=PILOT_DENIED_DETAIL)
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
         raise HTTPException(status_code=409, detail='An account with this email already exists')

@@ -140,6 +140,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, token, logout } = useAuth()
   const { branding } = useBranding()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [pilotNoticeDismissed, setPilotNoticeDismissed] = useState(true)
+
+  useEffect(() => {
+    setPilotNoticeDismissed(localStorage.getItem('pilot-email-notice-dismissed') === '1')
+  }, [])
 
   const shouldRender = !isPublicRoute(pathname) && !!token
 
@@ -309,6 +314,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Page content */}
         <main className="flex-1 overflow-auto">
+          {process.env.NEXT_PUBLIC_PILOT_EMAIL_NOTICE === '1' && !pilotNoticeDismissed && (
+            <div className="flex items-center justify-between gap-3 border-b bg-muted/60 px-4 py-2 text-xs text-muted-foreground">
+              <span>
+                Pilot notice: Afruheritage emails currently arrive from{' '}
+                <span className="font-medium text-foreground">advisory@emidentity.com</span>{' '}
+                while our branded sender is being finalized.
+              </span>
+              <button
+                type="button"
+                aria-label="Dismiss"
+                className="shrink-0 rounded p-1 hover:bg-muted"
+                onClick={() => {
+                  localStorage.setItem('pilot-email-notice-dismissed', '1')
+                  setPilotNoticeDismissed(true)
+                }}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
           {children}
         </main>
       </div>

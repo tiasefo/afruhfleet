@@ -109,6 +109,14 @@ class Settings(BaseSettings):
     # must never be used for browser journeys.
     web_url: str = Field(default='https://afruheritage.com', alias='WEB_URL')
 
+    # Controlled pilot (PO-authorized invitation-only mode)
+    # When on, self-serve registration requires the email to be admitted:
+    # Redis set `pilot:allowed_emails` / `pilot:allowed_domains` (Ops can
+    # SADD without a restart) or the PILOT_ALLOWED_EMAILS env fallback.
+    pilot_invite_only: bool = Field(default=False, alias='PILOT_INVITE_ONLY')
+    pilot_allowed_emails: str = Field(default='', alias='PILOT_ALLOWED_EMAILS')
+    pilot_email_disclosure: bool = Field(default=False, alias='PILOT_EMAIL_DISCLOSURE')
+
     # Payments
     paystack_public_key: str = Field(default='', alias='PAYSTACK_PUBLIC_KEY')
     paystack_secret_key: str = Field(default='', alias='PAYSTACK_SECRET_KEY')

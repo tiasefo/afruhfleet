@@ -151,7 +151,21 @@ still requires explicit PO authorization.
 | Paystack sandbox | PASS (production = conditional on checklist) |
 | Flutterwave | EXCLUDED — disabled pending certification |
 | Branded email (G-04, `afruheritage.com` sender) | BLOCKED — Ops (separate workstream) |
-| Pilot email (temp sender `emidentity.com`) | PASS — authenticated (DKIM+SPF+DMARC aligned); PO disclosure recommended |
+| Pilot email (temp sender `emidentity.com`) | PASS — authenticated; disclosure live in email footer + UI |
+
+## I. Controlled pilot authorization (post-`1639e8fd`)
+
+PO ruling: **invitation-only free pilot — GO**. Controls implemented:
+
+- `PILOT_INVITE_ONLY=true` — `/auth/register` + `/companies/register`
+  return 403 for unlisted emails; Redis allowlist admits participants
+  without restart (verified 403→200). Token-based staff/vendor
+  invitations unaffected by design.
+- `PILOT_EMAIL_DISCLOSURE=true` — every outbound email footer names
+  `advisory@emidentity.com` (verified in decoded MIME); in-app banner +
+  register-page note via `NEXT_PUBLIC_PILOT_EMAIL_NOTICE`.
+- Live payments remain disabled; Paystack live keys absent; Flutterwave
+  stays off. `PILOT_OPERATIONS.md` = admit runbook + real-defect log.
 | Recurring billing | EXCLUDED — not supported (manual renewal) |
 | Refunds (automated) | EXCLUDED — manual procedure documented |
 | Paid commercial launch | BLOCKED — pending live readiness + PO approval |

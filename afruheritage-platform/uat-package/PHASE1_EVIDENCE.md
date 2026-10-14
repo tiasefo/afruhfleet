@@ -598,3 +598,15 @@ real `DKIM-Signature: s=zmail; d=emidentity.com` aligned with From —
 dkim=pass, spf=pass, dmarc=pass. Raw MIME: prod-ui-cert/rc2-mime-*.txt.
 advisory@emidentity.com is suitable as a disclosed temporary pilot sender;
 G-04 (afruheritage.com sender) remains a separate open workstream.
+
+## Round 9 — Controlled-pilot controls (PO authorization)
+
+- PILOT_INVITE_ONLY gate on /auth/register + /companies/register:
+  unlisted → 403; Redis SADD admit → immediate 200; domain admits work.
+- PILOT_EMAIL_DISCLOSURE: footer line appended in SMTPProvider to every
+  outbound message naming advisory@emidentity.com — verified in decoded
+  MIME of a live welcome email (DKIM still s=zmail/d=emidentity.com).
+- UI disclosure: register-page note + dismissible authenticated banner
+  (NEXT_PUBLIC_PILOT_EMAIL_NOTICE).
+- PILOT_OPERATIONS.md: admit runbook + real-defect log (customer
+  failures recorded separately from certified tests).

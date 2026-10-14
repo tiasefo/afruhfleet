@@ -34,6 +34,7 @@ from app.models.tenant import DomainType, LaunchStatus, Tenant
 from app.models.user import User, UserRole
 from app.services.billing_service import create_trial_subscription, ensure_wallet
 from app.services.fleetbase_api_client import fleetbase_client
+from app.services.pilot_access import pilot_registration_allowed, PILOT_DENIED_DETAIL
 from app.services.tenant_ai_service import ensure_tenant_ai_settings
 from app.services.tenant_branding_service import ensure_tenant_branding
 from app.services.dns_provisioning import provision_tenant_subdomain
@@ -105,6 +106,9 @@ async def register_company(request: Request, db: Session = Depends(get_db)):
         payload = CompanyRegisterRequest(**body)
     except Exception as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    if not pilot_registration_allowed(payload.admin_email):
+        raise HTTPException(status_code=403, detail=PILOT_DENIED_DETAIL)
 
     # --- Slug / subdomain ------------------------------------------------
     raw_slug = payload.desired_subdomain or payload.company_name

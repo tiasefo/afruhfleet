@@ -214,6 +214,13 @@ export function RegisterForm() {
             <CardHeader className="space-y-1 px-0 sm:px-6">
               <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
               <CardDescription>Get started with your freight forwarding journey</CardDescription>
+              {process.env.NEXT_PUBLIC_PILOT_EMAIL_NOTICE === '1' && (
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+                  Invitation-only pilot: registration is limited to invited participants.
+                  Afruheritage emails currently arrive from{' '}
+                  <span className="font-medium">advisory@emidentity.com</span>.
+                </p>
+              )}
             </CardHeader>
             <CardContent className="px-0 sm:px-6">
               {/* Social Login Buttons */}

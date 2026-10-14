@@ -60,6 +60,21 @@ class SMTPProvider(NotificationProvider):
         sender_email = from_email or self.default_from
         sender = f"{sender_name} <{sender_email}>"
 
+        # Controlled pilot: disclose the temporary sending domain until
+        # G-04 (afruheritage.com branded sender) lands. PO directive.
+        if getattr(settings, "pilot_email_disclosure", False):
+            note_html = (
+                f'<p style="color:#94a3b8;font-size:11px;margin-top:16px">'
+                f"Pilot notice: Afruheritage emails are currently sent from "
+                f"{sender_email}.</p>"
+            )
+            note_text = (
+                f"\nPilot notice: Afruheritage emails are currently sent from "
+                f"{sender_email}.\n"
+            )
+            html_body += note_html
+            plain_body = (plain_body or "") + note_text
+
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = sender
