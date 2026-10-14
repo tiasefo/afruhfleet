@@ -5,6 +5,8 @@ import requests
 from abc import ABC, abstractmethod
 from typing import Any
 
+from fastapi import HTTPException
+
 
 class CustomsProvider(ABC):
     name: str = "base"
@@ -55,6 +57,14 @@ class EstimateProvider(CustomsProvider):
     def calculate(self, payload: dict[str, Any]) -> dict[str, Any]:
         country = payload["country"]
         commodity_type = payload["commodity_type"]
+
+        if country not in self.RULES:
+            raise HTTPException(status_code=422, detail=f"Customs calculation is not supported for country '{country}'")
+        if commodity_type not in self.RULES[country]:
+            raise HTTPException(status_code=422, detail=f"Commodity type '{commodity_type}' is not supported for {country}")
+        if payload.get("cif_value") is None:
+            raise HTTPException(status_code=422, detail="cif_value is required for this estimate")
+
         cif_value = float(payload["cif_value"])
 
         country_rules = self.RULES[country]

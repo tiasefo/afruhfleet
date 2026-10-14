@@ -107,7 +107,13 @@ def run_customs(payload: dict[str, Any]) -> dict[str, Any]:
         payload["commodity_type"] = "cargo"
         return ghana_goods_fallback(payload)
 
-    # Kenya and any supported future countries flow through shared engine.
+    if country == "KE" and commodity == "vehicle" and not payload.get("cif_value"):
+        # Same KRA CRSP valuation path as the authenticated calculator;
+        # the generic estimate engine requires an explicit cif_value.
+        from app.api.routes.customs import kenya_vehicle_orchestrator
+        return kenya_vehicle_orchestrator(payload)
+
+    # Kenya cargo and any supported future countries flow through shared engine.
     return calculate_with_fallback(payload)
 
 

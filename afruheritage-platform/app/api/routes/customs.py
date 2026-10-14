@@ -162,6 +162,11 @@ def calculate_customs(payload: CustomsCalcRequest):
     if payload.country == "GH" and payload.commodity_type == "cargo":
         return ghana_goods_orchestrator(data)
 
+    # Kenya vehicles go through the KRA CRSP valuation path; the generic
+    # estimate engine requires an explicit cif_value.
+    if payload.country == "KE" and payload.commodity_type == "vehicle" and payload.cif_value is None:
+        return kenya_vehicle_orchestrator(data)
+
     return calculate_with_fallback(data)
 
 
@@ -207,13 +212,10 @@ def ghana_goods_duty(payload: CustomsCalcRequest):
     return ghana_goods_orchestrator(data)
 
 
-@router.post("/kenya/vehicle-duty")
-def kenya_vehicle_duty(payload: KenyaVehicleDutyRequest):
-    data = payload.model_dump()
-
+def kenya_vehicle_orchestrator(data: dict) -> dict:
     decoded = None
-    if payload.vin:
-        decoded = decode_vin(payload.vin)
+    if data.get("vin"):
+        decoded = decode_vin(data["vin"])
         vehicle = decoded.get("vehicle") or {}
         data["make"] = data.get("make") or vehicle.get("make")
         data["model"] = data.get("model") or vehicle.get("model")
@@ -262,3 +264,8 @@ def kenya_vehicle_duty(payload: KenyaVehicleDutyRequest):
     result["customs_value_kes"] = customs_value
     result["notes"].append("Vehicle customs value generated from KRA CRSP lookup before duty calculation.")
     return result
+
+
+@router.post("/kenya/vehicle-duty")
+def kenya_vehicle_duty(payload: KenyaVehicleDutyRequest):
+    return kenya_vehicle_orchestrator(payload.model_dump())
