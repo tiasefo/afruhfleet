@@ -1,0 +1,1800 @@
+{
+  "info": {
+    "name": "Afruheritage \u2014 Pilot E2E",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from real OpenAPI (389 paths) + live verification @ commit ee57ba5d. No secrets embedded."
+  },
+  "item": [
+    {
+      "name": "00 \u00b7 Health & Info",
+      "item": [
+        {
+          "name": "API health (open)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Liveness. Expect 200 {\"status\":\"ok\"}."
+          }
+        },
+        {
+          "name": "OpenAPI (open)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/openapi.json",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "openapi.json"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "01 \u00b7 Authentication",
+      "item": [
+        {
+          "name": "Register individual [STATE-CHANGING, pilot-gated]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers only if {{pilot_email}} is on the Redis allowlist; 403 otherwise. Captures access_token+tenant_id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{pilot_email}}\",\n  \"password\": \"{{pilot_password}}\",\n  \"full_name\": \"Postman Pilot User\",\n  \"account_type\": \"individual\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200 or 403-pilot',()=>pm.expect([200,403]).to.include(pm.response.code));",
+                  "const j=pm.response.json(); if(j.access_token){pm.collectionVariables.set('access_token',j.access_token); pm.collectionVariables.set('tenant_id',j.tenant_id);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{pilot_email}}\",\n  \"password\": \"{{pilot_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200',()=>pm.response.code===200);",
+                  "const j=pm.response.json(); pm.collectionVariables.set('access_token',j.access_token); pm.collectionVariables.set('tenant_id',j.tenant_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Current user; validates token."
+          }
+        },
+        {
+          "name": "Forgot password [email]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/forgot-password",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Sends a real reset email. Reset token must be read from the mailbox \u2014 manual step.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{pilot_email}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset confirm [MANUAL token]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/password-reset/confirm",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "password-reset",
+                "confirm"
+              ]
+            },
+            "description": "reset_token_manual must be pasted from the email; cannot be automated.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{reset_token_manual}}\",\n  \"new_password\": \"{{pilot_password}}\"\n}"
+            }
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "02 \u00b7 Company registration",
+      "item": [
+        {
+          "name": "Register company [STATE-CHANGING, pilot-gated]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/companies/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "companies",
+                "register"
+              ]
+            },
+            "description": "409 if company/email exists; 403 if email not admitted. Creates tenant + portal slug.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company_name\": \"Postman Test Freight\",\n  \"country\": \"GH\",\n  \"city\": \"Accra\",\n  \"admin_full_name\": \"Postman Admin\",\n  \"admin_email\": \"{{pilot_email}}\",\n  \"admin_password\": \"{{pilot_password}}\",\n  \"admin_password_confirm\": \"{{pilot_password}}\"\n}"
+            }
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "03 \u00b7 Tenant context",
+      "item": [
+        {
+          "name": "Tenant context",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tenant-context/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tenant-context",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Feature flags (tenant)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/features",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "features"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Me / whoami",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "04 \u00b7 Shipments",
+      "item": [
+        {
+          "name": "Create shipment [STATE-CHANGING]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": "Captures shipment_id + tracking_number.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sender_name\": \"Postman Sender\",\n  \"receiver_name\": \"Postman Receiver\",\n  \"receiver_email\": \"receiver@example.com\",\n  \"origin_city\": \"Accra\",\n  \"destination_city\": \"Tema\",\n  \"total_cost\": 1.0,\n  \"amount_paid\": 0,\n  \"currency\": \"GHS\",\n  \"description\": \"postman test pkg\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created',()=>pm.expect([200,201]).to.include(pm.response.code));",
+                  "const j=pm.response.json(); if(j.id){pm.collectionVariables.set('shipment_id',j.id);}",
+                  "if(j.tracking_number){pm.collectionVariables.set('tracking_number',j.tracking_number);}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List shipments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get shipment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/{{tenant_id}}/{{shipment_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_id}}",
+                "{{shipment_id}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Public tracking (open)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/public/track/{{tracking_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "public",
+                "track",
+                "{{tracking_number}}"
+              ]
+            },
+            "description": "Public status lookup; if 404, confirm tracking route name in OpenAPI."
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "05 \u00b7 Team invitations",
+      "item": [
+        {
+          "name": "Create invitation [STATE-CHANGING,email]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/team/invitations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations"
+              ]
+            },
+            "description": "Sends real invite email; accept token is read from the mailbox \u2014 manual.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{invitee_email}}\",\n  \"role\": \"member\",\n  \"full_name\": \"Postman Invitee\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List invitations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/team/invitations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Get invitation by token [MANUAL]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/team/invitations/{{invite_token_manual}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations",
+                "{{invite_token_manual}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Accept invitation [MANUAL token]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/team/invitations/{{invite_token_manual}}/accept",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations",
+                "{{invite_token_manual}}",
+                "accept"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Invitee\",\n  \"password\": \"{{pilot_password}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/team/members",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "members"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "06 \u00b7 Customs duty (GH + KE)",
+      "item": [
+        {
+          "name": "Countries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/countries",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "countries"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Ghana vehicle estimate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "calculate"
+              ]
+            },
+            "description": "GHS; ICUMS-style HDV benchmark; official:false; disclaimer applies.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country\": \"GH\",\n  \"commodity_type\": \"vehicle\",\n  \"hdv_usd\": 15000,\n  \"freight_usd\": 1200,\n  \"insurance_usd\": 150,\n  \"vehicle_year\": 2018,\n  \"engine_cc\": 1800,\n  \"fuel_type\": \"petrol\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Kenya vehicle (KRA CRSP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/kenya/vehicle-duty",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "kenya",
+                "vehicle-duty"
+              ]
+            },
+            "description": "KES; real CRSP match; needs_manual_review when no match.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"make\": \"Toyota\",\n  \"model\": \"Corolla Fielder\",\n  \"vehicle_year\": 2017,\n  \"engine_cc\": 1500,\n  \"fuel_type\": \"petrol\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Kenya estimate via generic",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "calculate"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country\": \"KE\",\n  \"commodity_type\": \"vehicle\",\n  \"cif_value\": 8000,\n  \"vehicle_year\": 2017\n}"
+            }
+          }
+        },
+        {
+          "name": "Guest calc 1 [cap]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/guest/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "guest",
+                "calculate"
+              ]
+            },
+            "description": "Free guest check #1 of 2 per fingerprint.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_id\": \"{{guest_id}}\",\n  \"country\": \"GH\",\n  \"commodity_type\": \"vehicle\",\n  \"payload\": {\n    \"hdv_usd\": 15000,\n    \"freight_usd\": 1200,\n    \"insurance_usd\": 150\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Guest calc 2 [cap]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/guest/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "guest",
+                "calculate"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_id\": \"{{guest_id}}\",\n  \"country\": \"GH\",\n  \"commodity_type\": \"vehicle\",\n  \"payload\": {\n    \"hdv_usd\": 15000,\n    \"freight_usd\": 1200,\n    \"insurance_usd\": 150\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Guest calc 3 \u2192 pilot_closed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/guest/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "guest",
+                "calculate"
+              ]
+            },
+            "description": "3rd guest check must NOT compute: expect pilot_closed / 402 / 429 under the free pilot.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"guest_id\": \"{{guest_id}}\",\n  \"country\": \"GH\",\n  \"commodity_type\": \"vehicle\",\n  \"payload\": {\n    \"hdv_usd\": 15000,\n    \"freight_usd\": 1200,\n    \"insurance_usd\": 150\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('cap enforced',()=>{const j=pm.response.json();pm.expect(j.status==='pilot_closed'||pm.response.code===402||pm.response.code===429).to.be.true;});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unsupported country \u2192 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/customs/calculate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "calculate"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"country\": \"NG\",\n  \"commodity_type\": \"vehicle\",\n  \"cif_value\": 10000\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422',()=>pm.response.code===422);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "07 \u00b7 Support",
+      "item": [
+        {
+          "name": "Public ticket [STATE-CHANGING,email]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/support-crm/public/tickets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "public",
+                "tickets"
+              ]
+            },
+            "description": "Creates ticket + sends notification email.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenant_id\": \"{{tenant_id}}\",\n  \"public_submitter_name\": \"Postman Tester\",\n  \"public_submitter_email\": \"{{pilot_email}}\",\n  \"subject\": \"Postman test ticket\",\n  \"description\": \"Created by Postman E2E run.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('created',()=>pm.expect([200,201]).to.include(pm.response.code));",
+                  "const j=pm.response.json(); if(j.public_token)pm.collectionVariables.set('ticket_token',j.public_token); if(j.id)pm.collectionVariables.set('ticket_id',j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Public reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/support-crm/public/tickets/{{ticket_token}}/reply",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "public",
+                "tickets",
+                "{{ticket_token}}",
+                "reply"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"postman follow-up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Tenant tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/support-crm/tickets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "tickets"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "08 \u00b7 CRM",
+      "item": [
+        {
+          "name": "List contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/support-crm/contacts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "contacts"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/crm/customers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "crm",
+                "customers"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List quotes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/support-crm/quotes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "quotes"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "09 \u00b7 Vendors",
+      "item": [
+        {
+          "name": "My vendor profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Vendor marketplace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/marketplace",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "marketplace"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Tenant bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/{{tenant_id}}/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "{{tenant_id}}",
+                "bookings"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Vendor register [STATE-CHANGING, 2/hr]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "register"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Vendor\",\n  \"email\": \"{{vendor_email}}\",\n  \"phone\": \"+233200000000\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Accept vendor invite [MANUAL]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/vendors/invitations/accept",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "invitations",
+                "accept"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{vendor_invite_token_manual}}\"\n}"
+            }
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "10 \u00b7 Billing (pilot = no live charges)",
+      "item": [
+        {
+          "name": "Plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/billing/plans",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "plans"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "My subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/billing/subscriptions/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "subscriptions",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Start trial [STATE-CHANGING]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/billing/subscriptions/trial/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "subscriptions",
+                "trial",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Payments list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/payments/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payments",
+                "balance"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "11 \u00b7 Negative / isolation tests",
+      "item": [
+        {
+          "name": "No token \u2192 401",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/{{tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_id}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401',()=>pm.response.code===401);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cross-tenant shipments \u2192 denied",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shipments/{{other_tenant_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{other_tenant_id}}"
+              ]
+            },
+            "description": "Set {{other_tenant_id}} to a tenant you do NOT own \u2014 must be denied."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403/404',()=>pm.expect([403,404]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bad login \u2192 401/422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{pilot_email}}\",\n  \"password\": \"wrong-password\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('rejected',()=>pm.expect([401,422]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register unadmitted \u2192 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Individual registration from an email NOT on the allowlist must return 403 (pilot gate fires after schema validation \u2014 account_type required).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{unadmitted_email}}\",\n  \"password\": \"{{pilot_password}}\",\n  \"full_name\": \"Nope\",\n  \"account_type\": \"individual\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 pilot_closed',()=>pm.response.code===403);"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "description": ""
+    },
+    {
+      "name": "12 \u00b7 Sentinel admin",
+      "item": [
+        {
+          "name": "Sentinel login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/auth/login",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{sentinel_email}}\",\n  \"password\": \"{{sentinel_password}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j=pm.response.json(); if(j.access_token)pm.collectionVariables.set('sentinel_token',j.access_token);",
+                  "if(j.control_plane_token)pm.collectionVariables.set('cp_token',j.control_plane_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sentinel me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{sentinel_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/auth/me",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "List admin users [super_admin]",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{sentinel_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/auth/users",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "users"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Tenants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{sentinel_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/tenants",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "tenants"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Diagnostics system",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{sentinel_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/diagnostics/system",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "diagnostics",
+                "system"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Audit logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "{{sentinel_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base_url}}/sentinel/diagnostics/audit-logs",
+              "host": [
+                "{{sentinel_base_url}}"
+              ],
+              "path": [
+                "sentinel",
+                "diagnostics",
+                "audit-logs"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ],
+      "description": "Separate admin token via {{sentinel_token}}; most ops need admin, some super_admin."
+    }
+  ],
+  "variable": [
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "tenant_id",
+      "value": ""
+    },
+    {
+      "key": "shipment_id",
+      "value": ""
+    },
+    {
+      "key": "tracking_number",
+      "value": ""
+    },
+    {
+      "key": "ticket_id",
+      "value": ""
+    },
+    {
+      "key": "ticket_token",
+      "value": ""
+    },
+    {
+      "key": "sentinel_token",
+      "value": ""
+    },
+    {
+      "key": "cp_token",
+      "value": ""
+    }
+  ]
+}

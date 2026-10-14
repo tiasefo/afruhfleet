@@ -1,0 +1,41 @@
+Delivered-To: rc2sup-mv7netx8eki7@maxxspace.com
+Return-Path: <advisory@emidentity.com>
+Received: from sender6-of-o56.zoho.com (sender6-of-o56.zoho.com [165.173.180.56]) by in.mail.tm (Haraka/3.1.7) with ESMTPS id 662D9D5B-AB28-4EE3-9E3D-C5077C8DF235.1 envelope-from <advisory@emidentity.com> tls TLS_AES_256_GCM_SHA384; Wed, 14 Oct 2026 05:07:38 +0000
+ARC-Seal: i=1; a=rsa-sha256; t=1791954456; cv=none;  d=zohomail.com; s=zohoarc;  b=brpAgcCP0Ie7rDw2dv04QlfHLl1N5yrSguBehUYievLtEluxoPAO75L/wWGdq2ad7q9k3sCf2W8xlbSrdquHEfpUSW8Km5RH+S3NxrNPAYfsJ3T3ru3h3T6CFZfQJ4BicBLT60ppVBqx0secroBYh6HXkl1Q3fFWftemSpFGACc=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zohomail.com; s=zohoarc;  t=1791954456; h=Content-Type:Date:Date:From:From:MIME-Version:Message-ID:Subject:Subject:To:To:Message-Id:Reply-To:Cc;  bh=wTLRiQal534ltZ0qfZYY2ujAinoyaeicT/Q2vi3JzGM=;  b=CB3o/J9Fwvoiw+ET5AZXdEEoDx2F2Z9Yv3sR2hEySJwYBs4EaSHPR3dcQg5qm+ZfPjgbXRMyjkGO7Pk1sj60/RG23d8bvBMy+HaXGahclN9xeI8Jp7NP+8dKKis3hUngKuG9O6cFPzE6QrZxf1751deKnwB2zRXbuyXk5MVcMPM=
+ARC-Authentication-Results: i=1; mx.zohomail.com; dkim=pass  header.i=emidentity.com; spf=pass  smtp.mailfrom=advisory@emidentity.com; dmarc=pass header.from=<advisory@emidentity.com>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1791954456; s=zmail; d=emidentity.com; i=advisory@emidentity.com; h=Content-Type:MIME-Version:Subject:Subject:From:From:To:To:Message-ID:Date:Date:Message-Id:Reply-To:Cc; bh=wTLRiQal534ltZ0qfZYY2ujAinoyaeicT/Q2vi3JzGM=; b=kSS4AWXPxpxEFW4RLM2ddNmNDagUSOP4123XIEcz9dMsDEt2JjhftjbJtStZ0zsR O7xbQ/0UqKIf6HsOnkk9pUf/TOvZ/Ive6qInzHnRi1YOfdifPCZO025IBGMxT/FXate c4Se4+fvgd0t5to6c0sF0zsot3n6C6z3GjCX6wCA=
+Received: by smtp.zohomail.com with SMTPS id 1791954453620883.8659848440179; Tue, 13 Oct 2026 22:07:33 -0700 (PDT)
+Content-Type: multipart/alternative; boundary="===============4281520480090737548=="
+MIME-Version: 1.0
+Subject: =?utf-8?q?UATCERT_Meridian_Freight_3_=E2=80=94_Support_Ticket_Created=3A_=238f37e740?=
+From: Afruheritage <advisory@emidentity.com>
+To: rc2sup-mv7netx8eki7@maxxspace.com
+Message-ID: <1a138cf047d.6abdb1111216735440.7730542684690842701@zoho.com>
+Date: Tue, 13 Oct 2026 22:07:33 -0700 (PDT)
+X-ZohoMailClient: External
+
+
+--===============4281520480090737548==Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+
+CiAgICAgICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFj
+U3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCBzYW5zLXNlcmlmOyBtYXgtd2lkdGg6IDYw
+MHB4OyBtYXJnaW46IDAgYXV0bzsgcGFkZGluZzogNDBweCAyMHB4OyI+CiAgICAgICAgICAgIDxo
+MSBzdHlsZT0iY29sb3I6ICMxZTI5M2I7IGZvbnQtc2l6ZTogMjRweDsgbWFyZ2luLWJvdHRvbTog
+MTZweDsiPvCfjqsgU3VwcG9ydCBUaWNrZXQgQ3JlYXRlZDwvaDE+CiAgICAgICAgICAgIDxwIHN0
+eWxlPSJjb2xvcjogIzQ3NTU2OTsgZm9udC1zaXplOiAxNnB4OyBsaW5lLWhlaWdodDogMS42OyI+
+CiAgICAgICAgICAgICAgICBZb3VyIHN1cHBvcnQgdGlja2V0IDxzdHJvbmc+IzhmMzdlNzQwPC9z
+dHJvbmc+IGhhcyBiZWVuIGNyZWF0ZWQgc3VjY2Vzc2Z1bGx5LgogICAgICAgICAgICA8L3A+CiAg
+ICAgICAgICAgIDxkaXYgc3R5bGU9ImJhY2tncm91bmQ6ICNmOGZhZmM7IHBhZGRpbmc6IDIwcHg7
+IGJvcmRlci1yYWRpdXM6IDhweDsgbWFyZ2luOiAyNHB4IDA7Ij4KICAgICAgICAgICAgICAgIDxw
+IHN0eWxlPSJtYXJnaW46IDA7IGNvbG9yOiAjNjQ3NDhiOyI+PHN0cm9uZz5UaWNrZXQgSUQ6PC9z
+dHJvbmc+ICM4ZjM3ZTc0MDwvcD4KICAgICAgICAgICAgICAgIDxwIHN0eWxlPSJtYXJnaW46IDhw
+eCAwIDA7IGNvbG9yOiAjNjQ3NDhiOyI+PHN0cm9uZz5TdWJqZWN0Ojwvc3Ryb25nPiBSQzIgc3Vw
+cG9ydCBldmlkZW5jZSAxNzkxOTU0NDUzMDk1PC9wPgogICAgICAgICAgICA8L2Rpdj4KICAgICAg
+ICAgICAgPHAgc3R5bGU9ImNvbG9yOiAjOTRhM2I4OyBmb250LXNpemU6IDE0cHg7Ij4KICAgICAg
+ICAgICAgICAgIE91ciBzdXBwb3J0IHRlYW0gd2lsbCByZXNwb25kIHdpdGhpbiAyNCBob3Vycy4K
+ICAgICAgICAgICAgPC9wPgogICAgICAgIDwvZGl2PgogICAgICAgIA==
+
+--===============4281520480090737548==--

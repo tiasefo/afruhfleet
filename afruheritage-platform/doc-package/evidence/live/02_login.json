@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "access_token": "<REDACTED_JWT>",
+    "token_type": "bearer",
+    "tenant_id": "209738f3-b200-4f25-9182-aede6f154c07",
+    "subdomain": "uatcert-meridian-freight-3",
+    "portal_url": "https://uatcert-meridian-freight-3.afruheritage.com",
+    "requires_subscription": false
+  }
+}

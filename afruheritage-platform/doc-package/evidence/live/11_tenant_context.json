@@ -1,0 +1,98 @@
+{
+  "status": 200,
+  "body": {
+    "id": "209738f3-b200-4f25-9182-aede6f154c07",
+    "slug": "uatcert-meridian-freight-3",
+    "company_name": "UATCERT Meridian Freight 3",
+    "account_type": "business",
+    "tagline": null,
+    "domain": "uatcert-meridian-freight-3.afruheritage.com",
+    "subdomain": "uatcert-meridian-freight-3",
+    "custom_domain": null,
+    "whatsapp_channel_url": null,
+    "default_language": "en",
+    "supported_languages": [
+      "en",
+      "zh"
+    ],
+    "template_code": null,
+    "storefront_config": null,
+    "theme": {
+      "primary_color": "#0ea5e9",
+      "secondary_color": "#64748b",
+      "accent_color": "#f59e0b",
+      "background_color": "#ffffff",
+      "foreground_color": "#0f172a",
+      "success_color": "#22c55e",
+      "warning_color": "#f59e0b",
+      "danger_color": "#ef4444",
+      "font_family": "Inter, sans-serif",
+      "radius": "0.625rem",
+      "logo_url": "/placeholder-logo.svg",
+      "favicon_url": "/favicon.ico",
+      "og_image_url": null
+    },
+    "contact": {
+      "support_email": "support@afruheritage.com",
+      "support_phone": "+233550009911",
+      "support_url": null,
+      "notification_from_name": "UATCERT Meridian Freight 3",
+      "notification_from_email": "stab-mv0j6arnsi4h@maxxspace.com"
+    },
+    "legal": {
+      "legal_company_name": "Afruheritage Logistics Ltd",
+      "legal_footer_text": "\u00a9 2024 Afruheritage. All rights reserved.",
+      "terms_url": null,
+      "privacy_url": null
+    },
+    "features": {
+      "maps_enabled": true,
+      "public_tracking_enabled": true,
+      "csv_import_enabled": true,
+      "group_members_enabled": true,
+      "max_group_members": 5000,
+      "ai_enabled": true,
+      "marketplace_enabled": true,
+      "custom_domains_enabled": false
+    },
+    "subscription": {
+      "plan_code": "free_trial",
+      "status": "trialing",
+      "trial": true,
+      "credits_balance": 0,
+      "features": [
+        "tracking",
+        "csv_import",
+        "maps",
+        "group_members",
+        "fleetbase_full",
+        "ai_basic",
+        "ai_advanced",
+        "custom_domain_preview",
+        "shipping_estimator",
+        "storage_fees",
+        "bus_fleet",
+        "marketplace_basic",
+        "marketplace_gps",
+        "whatsapp_channel"
+      ]
+    },
+    "seo": {
+      "title": "UATCERT Meridian Freight 3 | Logistics & Freight Forwarding",
+      "description": "UATCERT Meridian Freight 3 \u2014 professional logistics and freight forwarding services.",
+      "keywords": [
+        "logistics",
+        "freight forwarding",
+        "shipping",
+        "cargo"
+      ],
+      "og_title": "UATCERT Meridian Freight 3",
+      "og_description": "UATCERT Meridian Freight 3 \u2014 professional logistics and freight forwarding services.",
+      "twitter_card": "summary_large_image",
+      "canonical_url": "https://uatcert-meridian-freight-3",
+      "robots": "index, follow"
+    },
+    "created_at": "2026-10-09T05:49:55.696436",
+    "updated_at": "2026-10-09T06:57:10.529776"
+  }
+}

@@ -1,0 +1,452 @@
+GET    /                                                                      [] open :: Home Page
+GET    /api/v1/admin/billing-config/credit-packs                              [Admin Billing Config] auth :: List Credit Packs
+PUT    /api/v1/admin/billing-config/credit-packs/{code}                       [Admin Billing Config] auth :: Upsert Credit Pack
+GET    /api/v1/admin/billing-config/exchange-rates                            [Admin Billing Config] auth :: List Exchange Rates
+PUT    /api/v1/admin/billing-config/exchange-rates/USD/{target_currency}      [Admin Billing Config] auth :: Update Exchange Rate
+GET    /api/v1/admin/billing-config/features/{plan_code}                      [Admin Billing Config] auth :: List Plan Features
+GET    /api/v1/admin/billing-config/payment-providers                         [Admin Billing Config] auth :: List Payment Providers
+PUT    /api/v1/admin/billing-config/payment-providers/{provider_code}         [Admin Billing Config] auth :: Update Payment Provider
+GET    /api/v1/admin/billing-config/plans                                     [Admin Billing Config] auth :: List Plans
+PUT    /api/v1/admin/billing-config/plans/{plan_code}/features/{feature_code} [Admin Billing Config] auth :: Update Feature
+PUT    /api/v1/admin/billing-config/plans/{plan_code}/price/{currency}        [Admin Billing Config] auth :: Update Plan Price
+GET    /api/v1/admin/billing/addons                                           [Billing Admin] auth :: List Addons
+POST   /api/v1/admin/billing/addons                                           [Billing Admin] auth :: Create Addon
+PATCH  /api/v1/admin/billing/addons/{addon_id}                                [Billing Admin] auth :: Update Addon
+DELETE /api/v1/admin/billing/addons/{addon_id}                                [Billing Admin] auth :: Delete Addon
+POST   /api/v1/admin/billing/credits/grant                                    [Billing Admin] auth :: Grant Credits
+POST   /api/v1/admin/billing/credits/revoke                                   [Billing Admin] auth :: Revoke Credits
+GET    /api/v1/admin/billing/gift-cards                                       [Billing Admin] auth :: List Gift Cards
+POST   /api/v1/admin/billing/gift-cards                                       [Billing Admin] auth :: Create Gift Card
+DELETE /api/v1/admin/billing/gift-cards/{code}                                [Billing Admin] auth :: Delete Gift Card
+POST   /api/v1/admin/billing/gift-cards/{code}/redeem/{tenant_id}             [Billing Admin] auth :: Redeem Gift Card
+GET    /api/v1/admin/billing/invoices                                         [Billing Admin] auth :: List Invoices
+PATCH  /api/v1/admin/billing/invoices/{invoice_id}/branding                   [Billing Admin] auth :: Update Invoice Branding
+POST   /api/v1/admin/billing/invoices/{invoice_id}/payments                   [Billing Admin] auth :: Mark Invoice Paid
+POST   /api/v1/admin/billing/invoices/{invoice_id}/void                       [Billing Admin] auth :: Void Invoice
+GET    /api/v1/admin/billing/plans                                            [Billing Admin] auth :: List Plans
+POST   /api/v1/admin/billing/plans                                            [Billing Admin] auth :: Create Plan
+GET    /api/v1/admin/billing/plans/{plan_code}/effective-price                [Billing Admin] open :: Get Effective Price
+PATCH  /api/v1/admin/billing/plans/{plan_id}                                  [Billing Admin] auth :: Update Plan
+DELETE /api/v1/admin/billing/plans/{plan_id}                                  [Billing Admin] auth :: Delete Plan
+GET    /api/v1/admin/billing/promotions                                       [Billing Admin] auth :: List Promotions
+POST   /api/v1/admin/billing/promotions                                       [Billing Admin] auth :: Create Promotion
+GET    /api/v1/admin/billing/promotions/{promotion_id}                        [Billing Admin] auth :: Get Promotion
+PATCH  /api/v1/admin/billing/promotions/{promotion_id}                        [Billing Admin] auth :: Update Promotion
+DELETE /api/v1/admin/billing/promotions/{promotion_id}                        [Billing Admin] auth :: Delete Promotion
+POST   /api/v1/admin/billing/promotions/{promotion_id}/activate               [Billing Admin] auth :: Activate Promotion
+POST   /api/v1/admin/billing/promotions/{promotion_id}/deactivate             [Billing Admin] auth :: Deactivate Promotion
+GET    /api/v1/admin/billing/subscriptions                                    [Billing Admin] auth :: List Subscriptions
+POST   /api/v1/admin/billing/subscriptions/{subscription_id}/cancel           [Billing Admin] auth :: Cancel Subscription
+POST   /api/v1/admin/billing/subscriptions/{subscription_id}/pause            [Billing Admin] auth :: Pause Subscription
+PATCH  /api/v1/admin/billing/subscriptions/{subscription_id}/plan             [Billing Admin] auth :: Change Subscription Plan
+POST   /api/v1/admin/billing/subscriptions/{subscription_id}/resume           [Billing Admin] auth :: Resume Subscription
+GET    /api/v1/admin/credits/{tenant_id}                                      [Admin Credits] auth :: Tenant Credits
+POST   /api/v1/admin/credits/{tenant_id}/topup/{credits}                      [Admin Credits] auth :: Topup Credits
+POST   /api/v1/admin/dns/ensure-wildcard                                      [Admin DNS] auth :: Ensure Wildcard
+POST   /api/v1/admin/dns/provision/{slug}                                     [Admin DNS] auth :: Provision Dns
+DELETE /api/v1/admin/dns/provision/{slug}                                     [Admin DNS] auth :: Remove Dns
+GET    /api/v1/admin/dns/records                                              [Admin DNS] auth :: Get Dns Records
+GET    /api/v1/admin/features                                                 [Feature Flags] auth :: List Feature Flags
+PATCH  /api/v1/admin/features/{flag_key}                                      [Feature Flags] auth :: Toggle Feature Flag
+GET    /api/v1/admin/marketplace/jobs                                         [Admin Marketplace] auth :: List Jobs
+POST   /api/v1/admin/marketplace/jobs/{job_id}/cancel                         [Admin Marketplace] auth :: Cancel Job
+GET    /api/v1/admin/marketplace/jobs/{job_id}/eligible-drivers               [Admin Marketplace] auth :: Get Eligible Drivers
+POST   /api/v1/admin/marketplace/jobs/{job_id}/reassign/{driver_id}           [Admin Marketplace] auth :: Reassign Job
+POST   /api/v1/admin/subscriptions/demo/activate/{tenant_id}/{plan_code}      [Admin Subscriptions] auth :: Activate Demo Subscription
+GET    /api/v1/admin/subscriptions/{tenant_id}/features/{feature_code}        [Admin Subscriptions] auth :: Check Feature
+GET    /api/v1/admin/tenants/{tenant_id}/fleetbase/{resource}                 [Admin Tenant Preview] auth :: Admin Preview Fleetbase
+GET    /api/v1/admin/tenants/{tenant_id}/products                             [Admin Tenant Preview] auth :: Admin List Tenant Products
+GET    /api/v1/admin/tenants/{tenant_id}/products/categories                  [Admin Tenant Preview] auth :: Admin List Tenant Categories
+POST   /api/v1/ai/chat                                                        [AI] auth :: Ai Chat
+POST   /api/v1/ai/chat/public                                                 [AI] open :: Ai Chat Public
+GET    /api/v1/ai/widget/config                                               [AI Widget] open :: Get Widget Config
+GET    /api/v1/analytics/admin/summary                                        [analytics] auth :: Admin Analytics Summary
+GET    /api/v1/analytics/{tenant_id}/dashboard                                [analytics] auth :: Tenant Analytics Dashboard
+GET    /api/v1/assets/favicon.ico                                             [Tenant Assets] open :: Get Tenant Favicon
+GET    /api/v1/assets/robots.txt                                              [Tenant Assets] open :: Get Tenant Robots Txt
+GET    /api/v1/assets/sitemap.xml                                             [Tenant Assets] open :: Get Tenant Sitemap Xml
+POST   /api/v1/auth/bootstrap                                                 [auth] open :: Bootstrap Admin
+POST   /api/v1/auth/complete-onboarding                                       [auth] auth :: Complete Onboarding
+POST   /api/v1/auth/forgot-password                                           [auth] open :: Forgot Password
+POST   /api/v1/auth/login                                                     [auth] open :: Login
+POST   /api/v1/auth/logout                                                    [auth] open :: Logout
+GET    /api/v1/auth/me                                                        [auth] auth :: Me
+POST   /api/v1/auth/password-reset/confirm                                    [auth] open :: Confirm Password Reset
+POST   /api/v1/auth/register                                                  [auth] open :: Register
+GET    /api/v1/auth/session                                                   [auth] open :: Session
+GET    /api/v1/auth/social/connected                                          [Social Authentication] auth :: Get Connected Social Accounts
+GET    /api/v1/auth/social/disconnect/{provider}                              [Social Authentication] auth :: Disconnect Social Account
+GET    /api/v1/auth/social/providers                                          [Social Authentication] open :: Get Supported Providers
+GET    /api/v1/auth/social/{provider}                                         [Social Authentication] open :: Social Login Url
+GET    /api/v1/auth/social/{provider}/callback                                [Social Authentication] open :: Social Callback
+GET    /api/v1/auth/social/{provider}/login                                   [Social Authentication] open :: Social Login
+POST   /api/v1/auth/social/{provider}/token                                   [Social Authentication] open :: Exchange Code For Token
+POST   /api/v1/billing/admin/credits/adjust                                   [Billing] auth :: Admin Credits Adjust
+POST   /api/v1/billing/admin/read-only                                        [Billing] auth :: Admin Set Read Only
+POST   /api/v1/billing/admin/subscriptions/assign                             [Billing] auth :: Admin Assign Plan
+POST   /api/v1/billing/credits/consume                                        [Billing] auth :: Consume Credits
+POST   /api/v1/billing/payments/init                                          [Billing] auth :: Init Payment
+POST   /api/v1/billing/payments/reinit/{reference}                            [Billing] auth :: Reinit Payment
+POST   /api/v1/billing/payments/verify/{reference}                            [Billing] auth :: Verify Payment
+GET    /api/v1/billing/plans                                                  [Billing] open :: List Plans
+GET    /api/v1/billing/pricing/{plan_code}                                    [Billing] open :: Get Pricing
+POST   /api/v1/billing/subscriptions/trial/{tenant_id}                        [Billing] auth :: Start Trial
+GET    /api/v1/billing/subscriptions/{tenant_id}                              [Billing] auth :: Get Subscription
+POST   /api/v1/billing/subscriptions/{tenant_id}/cancel                       [Billing] auth :: Post Cancel Subscription
+POST   /api/v1/billing/subscriptions/{tenant_id}/pause                        [Billing] auth :: Post Pause Subscription
+POST   /api/v1/billing/subscriptions/{tenant_id}/resume                       [Billing] auth :: Post Resume Subscription
+GET    /api/v1/billing/usage-costs                                            [Billing] auth :: Get Usage Costs
+GET    /api/v1/billing/wallets/{tenant_id}                                    [Billing] auth :: Get Wallet
+GET    /api/v1/billing/wallets/{tenant_id}/transactions                       [Billing] auth :: List Wallet Transactions
+GET    /api/v1/branding/public/{tenant_id}                                    [Tenant Branding] open :: Get Public Branding Route
+GET    /api/v1/branding/{tenant_id}                                           [Tenant Branding] auth :: Get Branding Route
+POST   /api/v1/branding/{tenant_id}                                           [Tenant Branding] auth :: Create Branding Route
+PATCH  /api/v1/branding/{tenant_id}                                           [Tenant Branding] auth :: Update Branding Route
+POST   /api/v1/branding/{tenant_id}/logo                                      [Tenant Branding] auth :: Upload Branding Logo
+PUT    /api/v1/cargo-lifecycle/{tracking_number}/status                       [Cargo Lifecycle] open :: Update Status
+GET    /api/v1/cargo-lifecycle/{tracking_number}/timeline                     [Cargo Lifecycle] open :: Get Timeline
+POST   /api/v1/checkout                                                       [Checkout] auth :: Create Checkout Shipment
+GET    /api/v1/commercial/catalog                                             [Commercial Orchestration] open :: Catalog
+POST   /api/v1/commercial/signup/select-plan                                  [Commercial Orchestration] open :: Select Plan
+POST   /api/v1/commercial/signup/start                                        [Commercial Orchestration] open :: Signup Start
+GET    /api/v1/commercial/signup/{signup_id}                                  [Commercial Orchestration] open :: Signup Status
+POST   /api/v1/commercial/signup/{signup_id}/provision-runtime                [Commercial Orchestration] open :: Provision Signup Runtime
+POST   /api/v1/commercial/signup/{signup_id}/provision-runtime-async          [Commercial Orchestration] open :: Provision Signup Runtime Async
+POST   /api/v1/commercial/signup/{signup_id}/reconcile-runtime                [Commercial Orchestration] open :: Reconcile Signup Runtime
+POST   /api/v1/companies/register                                             [Company Registration] open :: Register Company
+POST   /api/v1/companies/retry-provisioning/{tenant_id}                       [Company Registration] auth :: Retry Fleetbase Provisioning
+GET    /api/v1/crm/customers                                                  [CRM] auth :: List Customers
+POST   /api/v1/crm/customers                                                  [CRM] auth :: Create Customer
+GET    /api/v1/crm/customers/{customer_id}                                    [CRM] auth :: Get Customer
+DELETE /api/v1/crm/customers/{customer_id}                                    [CRM] auth :: Delete Customer
+GET    /api/v1/crm/customers/{customer_id}/activities                         [CRM] auth :: List Customer Activities
+POST   /api/v1/crm/customers/{customer_id}/activities                         [CRM] auth :: Create Activity
+POST   /api/v1/crm/customers/{customer_id}/convert                            [CRM] auth :: Convert Customer
+PATCH  /api/v1/crm/customers/{customer_id}/owner                              [CRM] auth :: Update Customer Owner
+PATCH  /api/v1/crm/customers/{customer_id}/stage                              [CRM] auth :: Update Customer Stage
+GET    /api/v1/customer-cargo/{tenant_slug}/customers/search                  [Customer Cargo Portal] open :: Search Customers
+GET    /api/v1/customer-cargo/{tenant_slug}/my-goods                          [Customer Cargo Portal] open :: My Goods
+GET    /api/v1/customer-cargo/{tenant_slug}/track/{tracking_number}           [Customer Cargo Portal] open :: Track Cargo
+GET    /api/v1/customer-portal/{tenant_id}/shipments                          [] auth :: Get Customer Portal Shipments
+GET    /api/v1/customer-portal/{tenant_id}/tracking                           [] auth :: Get Customer Portal Tracking
+GET    /api/v1/customer/shipments                                             [Customer Shipments] auth :: List Customer Shipments
+POST   /api/v1/customer/shipments                                             [Customer Shipments] auth :: Create Customer Shipment
+GET    /api/v1/customer/shipments/{tracking_number}                           [Customer Shipments] auth :: Get Customer Shipment
+POST   /api/v1/customs/calculate                                              [Customs Engine] open :: Calculate Customs
+GET    /api/v1/customs/countries                                              [Customs Engine] open :: Countries
+POST   /api/v1/customs/ghana/goods-duty                                       [Customs Engine] open :: Ghana Goods Duty
+GET    /api/v1/customs/ghana/sources                                          [Customs Engine] open :: Ghana Sources
+POST   /api/v1/customs/ghana/vehicle-duty                                     [Customs Engine] open :: Ghana Vehicle Duty
+DELETE /api/v1/customs/guest/admin/reset-guest/{guest_id}                     [Customs Guest] open :: Reset Guest Usage
+POST   /api/v1/customs/guest/calculate                                        [Customs Guest] open :: Guest Calculate
+GET    /api/v1/customs/guest/payment/verify/{reference}                       [Customs Guest] open :: Verify Payment
+POST   /api/v1/customs/kenya/vehicle-duty                                     [Customs Engine] open :: Kenya Vehicle Duty
+POST   /api/v1/customs/vehicle-value                                          [Customs Engine] open :: Vehicle Value
+POST   /api/v1/customs/vin-decode                                             [Customs Engine] open :: Vin Decode
+POST   /api/v1/domains/activate                                               [Custom Domains] auth :: Activate Domain Route
+GET    /api/v1/domains/my-domains                                             [Custom Domains] auth :: Get My Domains
+POST   /api/v1/domains/request                                                [Custom Domains] auth :: Request Domain
+POST   /api/v1/domains/request-simple                                         [Custom Domains] auth :: Request Domain Simple
+GET    /api/v1/domains/resolve                                                [Custom Domains] open :: Resolve Hostname
+GET    /api/v1/domains/settings/{tenant_id}                                   [Custom Domains] auth :: Get Tenant Domain Settings
+GET    /api/v1/domains/tenant/{tenant_id}                                     [Custom Domains] auth :: Get Tenant Domains
+GET    /api/v1/domains/{domain_id}/dns-instructions                           [Custom Domains] auth :: Get Domain Dns Instructions
+GET    /api/v1/domains/{domain_id}/events                                     [Custom Domains] auth :: Get Domain Events
+POST   /api/v1/domains/{domain_id}/fail                                       [Custom Domains] auth :: Fail Domain
+GET    /api/v1/domains/{domain_id}/refresh-status                             [Custom Domains] auth :: Refresh Domain Status
+POST   /api/v1/domains/{domain_id}/verify                                     [Custom Domains] auth :: Verify Domain
+POST   /api/v1/estimate                                                       [Shipping Estimate] auth :: Get Shipping Estimate
+GET    /api/v1/fleetbase-proxy/console-url                                    [Fleetbase Proxy] auth :: Console Url
+GET    /api/v1/fleetbase-proxy/drivers                                        [Fleetbase Proxy] auth :: Drivers
+POST   /api/v1/fleetbase-proxy/drivers                                        [Fleetbase Proxy] auth :: Create Driver
+GET    /api/v1/fleetbase-proxy/fleets                                         [Fleetbase Proxy] auth :: Fleets
+GET    /api/v1/fleetbase-proxy/orders                                         [Fleetbase Proxy] auth :: Orders
+GET    /api/v1/fleetbase-proxy/vehicles                                       [Fleetbase Proxy] auth :: Vehicles
+POST   /api/v1/fleetbase-proxy/vehicles                                       [Fleetbase Proxy] auth :: Create Vehicle
+POST   /api/v1/fleetbase-runtime/deploy                                       [Fleetbase Runtime] auth :: Deploy Runtime
+POST   /api/v1/fleetbase-runtime/retry                                        [Fleetbase Runtime] auth :: Retry Runtime Route
+GET    /api/v1/fleetbase-runtime/runners                                      [Fleetbase Runtime] auth :: List Runners
+POST   /api/v1/fleetbase-runtime/runners                                      [Fleetbase Runtime] auth :: Create Runner
+GET    /api/v1/fleetbase-runtime/runtimes                                     [Fleetbase Runtime] auth :: List Runtimes
+POST   /api/v1/fleetbase-runtime/suspend                                      [Fleetbase Runtime] auth :: Suspend Runtime Route
+GET    /api/v1/fleetbase-runtime/tenant/{tenant_id}                           [Fleetbase Runtime] auth :: Get Runtime By Tenant
+GET    /api/v1/fleetbase-runtime/{runtime_id}/events                          [Fleetbase Runtime] auth :: Get Runtime Events
+GET    /api/v1/fleetbase-tenant/drivers                                       [Fleetbase Tenant Proxy] auth :: List Drivers
+POST   /api/v1/fleetbase-tenant/drivers                                       [Fleetbase Tenant Proxy] auth :: Create Driver
+GET    /api/v1/fleetbase-tenant/drivers/{driver_id}/position                  [Fleetbase Tenant Proxy] auth :: Get Driver Position
+GET    /api/v1/fleetbase-tenant/fleets                                        [Fleetbase Tenant Proxy] auth :: List Fleets
+GET    /api/v1/fleetbase-tenant/live-tracking                                 [Fleetbase Tenant Proxy] auth :: Get Live Tracking
+GET    /api/v1/fleetbase-tenant/orders                                        [Fleetbase Tenant Proxy] auth :: List Orders
+POST   /api/v1/fleetbase-tenant/orders                                        [Fleetbase Tenant Proxy] auth :: Create Order
+GET    /api/v1/fleetbase-tenant/orders/{order_id}/track                       [Fleetbase Tenant Proxy] auth :: Track Order
+GET    /api/v1/fleetbase-tenant/positions                                     [Fleetbase Tenant Proxy] auth :: List Positions
+POST   /api/v1/fleetbase-tenant/proxy/{path}                                  [Fleetbase Tenant Proxy] auth :: Proxy Any
+DELETE /api/v1/fleetbase-tenant/proxy/{path}                                  [Fleetbase Tenant Proxy] auth :: Proxy Any
+GET    /api/v1/fleetbase-tenant/proxy/{path}                                  [Fleetbase Tenant Proxy] auth :: Proxy Any
+PATCH  /api/v1/fleetbase-tenant/proxy/{path}                                  [Fleetbase Tenant Proxy] auth :: Proxy Any
+PUT    /api/v1/fleetbase-tenant/proxy/{path}                                  [Fleetbase Tenant Proxy] auth :: Proxy Any
+GET    /api/v1/fleetbase-tenant/tracking                                      [Fleetbase Tenant Proxy] auth :: List Tracking
+GET    /api/v1/fleetbase-tenant/tracking-statuses                             [Fleetbase Tenant Proxy] auth :: List Tracking Statuses
+GET    /api/v1/fleetbase-tenant/vehicles                                      [Fleetbase Tenant Proxy] auth :: List Vehicles
+POST   /api/v1/fleetbase-tenant/vehicles                                      [Fleetbase Tenant Proxy] auth :: Create Vehicle
+GET    /api/v1/gallery                                                        [Gallery] auth :: List Gallery Posts
+POST   /api/v1/gallery                                                        [Gallery] auth :: Create Gallery Post
+POST   /api/v1/gallery/upload                                                 [Gallery] auth :: Upload Gallery Media
+GET    /api/v1/gallery/{post_id}                                              [Gallery] auth :: Get Gallery Post
+PATCH  /api/v1/gallery/{post_id}                                              [Gallery] auth :: Update Gallery Post
+DELETE /api/v1/gallery/{post_id}                                              [Gallery] auth :: Delete Gallery Post
+GET    /api/v1/geo/country/{country}                                          [Geo & Maps] auth :: Get Country Info
+GET    /api/v1/geo/geocode                                                    [Geo & Maps] auth :: Geocode Address
+GET    /api/v1/geo/geocode/city                                               [Geo & Maps] auth :: Geocode City Region
+GET    /api/v1/geo/geocode/priority                                           [Geo & Maps] auth :: Geocode Priority Address
+GET    /api/v1/geo/nearby-cities                                              [Geo & Maps] auth :: Get Nearby Priority Cities
+GET    /api/v1/geo/route                                                      [Geo & Maps] auth :: Calculate Route
+GET    /api/v1/geo/route/priority                                             [Geo & Maps] auth :: Calculate Priority Route
+POST   /api/v1/geo/validate/address                                           [Geo & Maps] auth :: Validate Priority Address
+GET    /api/v1/geo/{tenant_id}/shipment-routes                                [Geo & Maps] auth :: Get Active Shipment Routes
+GET    /api/v1/i18n/detect                                                    [Internationalization] open :: Detect User Language
+GET    /api/v1/i18n/languages                                                 [Internationalization] open :: Get Supported Languages
+GET    /api/v1/i18n/translations/{lang}                                       [Internationalization] open :: Get Translations
+POST   /api/v1/kyc/admin/approve/{kyc_id}                                     [KYC Verification] auth :: Approve Kyc Submission
+GET    /api/v1/kyc/admin/list                                                 [KYC Verification] auth :: List Kyc Submissions
+GET    /api/v1/kyc/admin/pending                                              [KYC Verification] auth :: List Pending Kyc
+POST   /api/v1/kyc/admin/revoke/{kyc_id}                                      [KYC Verification] auth :: Revoke Kyc Submission
+POST   /api/v1/kyc/liveness                                                   [KYC Verification] auth :: Upload Liveness Capture
+POST   /api/v1/kyc/ocr-parse                                                  [KYC Verification] auth :: Ocr Parse Id
+GET    /api/v1/kyc/status                                                     [KYC Verification] auth :: Get Kyc Status
+POST   /api/v1/kyc/submit-manual                                              [KYC Verification] auth :: Submit Manual Kyc
+POST   /api/v1/kyc/upload-id                                                  [KYC Verification] auth :: Upload Id Document
+POST   /api/v1/kyc/{submission_id}/review                                     [KYC Verification] auth :: Review Kyc Submission
+GET    /api/v1/marketplace/dashboard/driver                                   [Delivery Marketplace] auth :: Driver Dashboard
+POST   /api/v1/marketplace/drivers/search                                     [Delivery Marketplace] open :: Search Jobs
+DELETE /api/v1/marketplace/reviews/{review_id}                                [Delivery Marketplace] auth :: Delete Review
+GET    /api/v1/marketplace/shipments                                          [Delivery Marketplace] auth :: List My Shipments
+POST   /api/v1/marketplace/shipments                                          [Delivery Marketplace] open :: Post Shipment
+POST   /api/v1/marketplace/shipments/{job_id}/accept                          [Delivery Marketplace] open :: Accept Job
+POST   /api/v1/marketplace/shipments/{job_id}/gps                             [Delivery Marketplace] open :: Add Gps Ping
+GET    /api/v1/marketplace/shipments/{job_id}/gps                             [Delivery Marketplace] open :: Get Gps History
+POST   /api/v1/marketplace/shipments/{job_id}/tracking/{status}               [Delivery Marketplace] open :: Update Tracking
+GET    /api/v1/marketplace/shipments/{shipment_id}                            [Delivery Marketplace] auth :: Get Shipment
+POST   /api/v1/marketplace/shipments/{shipment_id}/bids                       [Delivery Marketplace] auth :: Submit Bid
+GET    /api/v1/marketplace/shipments/{shipment_id}/bids                       [Delivery Marketplace] auth :: List Bids
+POST   /api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/accept       [Delivery Marketplace] auth :: Accept Bid
+POST   /api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/counter      [Delivery Marketplace] auth :: Counter Bid
+POST   /api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/reject       [Delivery Marketplace] auth :: Reject Bid
+POST   /api/v1/marketplace/shipments/{shipment_id}/bids/{bid_id}/respond-counter [Delivery Marketplace] auth :: Respond To Counter
+GET    /api/v1/navigator/{tenant_id}/drivers                                  [] auth :: Get Navigator Drivers
+POST   /api/v1/navigator/{tenant_id}/drivers                                  [] auth :: Create Navigator Driver
+GET    /api/v1/navigator/{tenant_id}/tracking                                 [] auth :: Get Navigator Tracking
+GET    /api/v1/new-arrivals                                                   [New Arrivals] auth :: List New Arrivals
+POST   /api/v1/new-arrivals                                                   [New Arrivals] auth :: Create New Arrival
+GET    /api/v1/new-arrivals/{arrival_id}                                      [New Arrivals] auth :: Get New Arrival
+PATCH  /api/v1/new-arrivals/{arrival_id}                                      [New Arrivals] auth :: Update New Arrival
+DELETE /api/v1/new-arrivals/{arrival_id}                                      [New Arrivals] auth :: Delete New Arrival
+POST   /api/v1/page-generator/generate                                        [Page Generator] auth :: Generate Missing Pages
+GET    /api/v1/page-generator/required-pages                                  [Page Generator] open :: Get Required Pages
+GET    /api/v1/page-generator/status                                          [Page Generator] auth :: Get Page Status
+GET    /api/v1/page-generator/templates/{template_code}/pages                 [Page Generator] open :: Get Template Pages
+GET    /api/v1/pallet/{tenant_id}/inventory                                   [] auth :: Get Pallet Inventory
+GET    /api/v1/pallet/{tenant_id}/warehouses                                  [] auth :: Get Pallet Warehouses
+POST   /api/v1/payment-hub/initialize                                         [Payment Hub] open :: Initialize Payment
+GET    /api/v1/payment-hub/receipt/{reference}                                [Payment Hub] open :: Payment Receipt
+GET    /api/v1/payment-hub/transactions/{tenant_id}                           [Payment Hub] open :: List Transactions
+GET    /api/v1/payment-hub/verify/{reference}                                 [Payment Hub] open :: Verify Payment
+POST   /api/v1/payment-hub/webhook/paystack                                   [Payment Hub] open :: Paystack Webhook
+GET    /api/v1/payments/admin                                                 [Platform Payments] auth :: Admin List Payments
+GET    /api/v1/payments/admin/{payment_id}                                    [Platform Payments] auth :: Admin Get Payment
+GET    /api/v1/payments/balance                                               [Platform Payments] auth :: Get Account Balance
+POST   /api/v1/payments/credits/purchase                                      [Platform Payments] auth :: Purchase Credits
+POST   /api/v1/payments/initiate                                              [Platform Payments] auth :: Initiate Payment
+GET    /api/v1/payments/methods                                               [Platform Payments] auth :: Get Payment Methods
+GET    /api/v1/payments/statistics                                            [Platform Payments] auth :: Get Payment Statistics
+GET    /api/v1/payments/status/{payment_reference}                            [Platform Payments] auth :: Get Payment Status
+POST   /api/v1/payments/webhook/flutterwave                                   [Platform Payments] open :: Flutterwave Webhook
+POST   /api/v1/payments/webhook/paypal                                        [Platform Payments] open :: Paypal Webhook
+POST   /api/v1/payments/webhook/paystack                                      [Platform Payments] open :: Paystack Webhook
+GET    /api/v1/plugins                                                        [Plugins] auth :: List Plugins
+PATCH  /api/v1/plugins/admin/{plugin_code}                                    [Plugins] auth :: Update Plugin Metadata
+PATCH  /api/v1/plugins/admin/{plugin_code}/activate                           [Plugins] auth :: Activate Plugin Globally
+PATCH  /api/v1/plugins/admin/{plugin_code}/deactivate                         [Plugins] auth :: Deactivate Plugin Globally
+GET    /api/v1/plugins/catalog                                                [Plugins] open :: List Plugin Catalog
+GET    /api/v1/plugins/catalog/{plugin_name}                                  [Plugins] open :: Get Plugin Catalog Detail
+POST   /api/v1/plugins/install                                                [Plugins] auth :: Install Plugin With Consent
+GET    /api/v1/plugins/installed                                              [Plugins] auth :: List Installed Plugins
+GET    /api/v1/plugins/{plugin_name}                                          [Plugins] auth :: Get Plugin Detail
+POST   /api/v1/plugins/{plugin_name}/auto-fix/{tenant_id}                     [Plugins] auth :: Auto Fix Plugin For Tenant
+POST   /api/v1/plugins/{plugin_name}/check/{tenant_id}                        [Plugins] auth :: Check Plugin For Tenant
+POST   /api/v1/plugins/{plugin_name}/disable                                  [Plugins] auth :: Disable Plugin
+POST   /api/v1/plugins/{plugin_name}/enable                                   [Plugins] auth :: Enable Plugin
+POST   /api/v1/plugins/{plugin_name}/uninstall                                [Plugins] auth :: Uninstall Plugin
+POST   /api/v1/products                                                       [Products] auth :: Create Product
+GET    /api/v1/products                                                       [Products] auth :: List Products
+GET    /api/v1/products/categories                                            [Products] auth :: List Categories
+POST   /api/v1/products/categories                                            [Products] auth :: Create Category
+DELETE /api/v1/products/categories/{category_id}                              [Products] auth :: Delete Category
+GET    /api/v1/products/public/{tenant_slug}                                  [Products] open :: Public Products
+GET    /api/v1/products/{product_id}                                          [Products] auth :: Get Product
+PATCH  /api/v1/products/{product_id}                                          [Products] auth :: Update Product
+DELETE /api/v1/products/{product_id}                                          [Products] auth :: Delete Product
+GET    /api/v1/rbac/permissions                                               [RBAC] auth :: List Permissions
+POST   /api/v1/rbac/permissions                                               [RBAC] auth :: Create Permission
+GET    /api/v1/rbac/roles                                                     [RBAC] auth :: List Roles
+POST   /api/v1/rbac/roles                                                     [RBAC] auth :: Create Role
+POST   /api/v1/rbac/roles/{role_id}/permissions                               [RBAC] auth :: Assign Permission To Role
+GET    /api/v1/rbac/roles/{role_id}/permissions                               [RBAC] auth :: List Role Permissions
+DELETE /api/v1/rbac/roles/{role_id}/permissions/{permission_id}               [RBAC] auth :: Remove Permission From Role
+POST   /api/v1/rbac/users/{user_id}/roles                                     [RBAC] auth :: Assign Role To User
+GET    /api/v1/rbac/users/{user_id}/roles                                     [RBAC] auth :: List User Roles
+DELETE /api/v1/rbac/users/{user_id}/roles/{role_id}                           [RBAC] auth :: Remove Role From User
+GET    /api/v1/sentinel/provisioning/alerts                                   [Sentinel] auth :: List Provisioning Alerts
+POST   /api/v1/sentinel/provisioning/alerts/{alert_id}/resolve                [Sentinel] auth :: Resolve Alert
+POST   /api/v1/sentinel/provisioning/retry/{tenant_id}                        [Sentinel] auth :: Retry Provisioning
+GET    /api/v1/sentinel/provisioning/tenants                                  [Sentinel] auth :: List Tenant Provisioning Status
+GET    /api/v1/sentinel/settings/alerts                                       [Sentinel] auth :: Get Alert Settings
+PATCH  /api/v1/sentinel/settings/alerts                                       [Sentinel] auth :: Update Alert Settings
+GET    /api/v1/sentinel/settings/plan-tiers                                   [Sentinel] auth :: List Plan Tiers
+PATCH  /api/v1/sentinel/settings/plan-tiers/{tier_code}                       [Sentinel] auth :: Update Plan Tier
+GET    /api/v1/sentinel/settings/platform                                     [Sentinel] auth :: Get Platform Settings
+PATCH  /api/v1/sentinel/settings/platform                                     [Sentinel] auth :: Update Platform Settings
+GET    /api/v1/shipments/admin                                                [Shipments & Tracking] auth :: Admin List Shipments
+GET    /api/v1/shipments/my-shipments                                         [Shipments & Tracking] auth :: My Shipments
+GET    /api/v1/shipments/public/track/{tenant_id}/{tracking_number}           [Shipments & Tracking] open :: Public Track Route
+GET    /api/v1/shipments/public/track/{tracking_number}                       [Shipments & Tracking] open :: Public Track Global Route
+POST   /api/v1/shipments/{tenant_id}                                          [Shipments & Tracking] auth :: Create Shipment Route
+GET    /api/v1/shipments/{tenant_id}                                          [Shipments & Tracking] auth :: Search Shipments Route
+POST   /api/v1/shipments/{tenant_id}/import/csv                               [Shipments & Tracking] auth :: Import Csv Route
+POST   /api/v1/shipments/{tenant_id}/members                                  [Shipments & Tracking] auth :: Create Member Route
+GET    /api/v1/shipments/{tenant_id}/members                                  [Shipments & Tracking] auth :: List Members Route
+GET    /api/v1/shipments/{tenant_id}/members/{member_id}                      [Shipments & Tracking] auth :: Get Member Route
+PATCH  /api/v1/shipments/{tenant_id}/members/{member_id}                      [Shipments & Tracking] auth :: Update Member Route
+GET    /api/v1/shipments/{tenant_id}/members/{member_id}/shipments            [Shipments & Tracking] auth :: List Member Shipments
+GET    /api/v1/shipments/{tenant_id}/summary                                  [Shipments & Tracking] auth :: Shipment Dashboard Summary Route
+GET    /api/v1/shipments/{tenant_id}/{shipment_id}                            [Shipments & Tracking] auth :: Get Shipment Route
+PATCH  /api/v1/shipments/{tenant_id}/{shipment_id}                            [Shipments & Tracking] auth :: Update Shipment Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/assign                     [Shipments & Tracking] auth :: Assign Shipment Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/events                     [Shipments & Tracking] auth :: Add Event Route
+GET    /api/v1/shipments/{tenant_id}/{shipment_id}/events                     [Shipments & Tracking] auth :: Get Events Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/location                   [Shipments & Tracking] auth :: Update Location Route
+GET    /api/v1/shipments/{tenant_id}/{shipment_id}/tracking/history           [Shipments & Tracking] auth :: Tracking History Route
+GET    /api/v1/shipments/{tenant_id}/{shipment_id}/tracking/latest            [Shipments & Tracking] auth :: Latest Tracking Point Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/tracking/point             [Shipments & Tracking] auth :: Ingest Tracking Point Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/transition                 [Shipments & Tracking] auth :: Transition Shipment Status Route
+POST   /api/v1/shipments/{tenant_id}/{shipment_id}/upload-image               [Shipments & Tracking] auth :: Upload Shipment Image
+GET    /api/v1/storefront-templates                                           [Storefront Templates] auth :: List Templates
+POST   /api/v1/storefront-templates/admin                                     [Storefront Templates] auth :: Create Template
+GET    /api/v1/storefront-templates/admin/all                                 [Storefront Templates] auth :: List All Templates
+GET    /api/v1/storefront-templates/admin/endpoint-health                     [Storefront Templates] auth :: Get Endpoint Health
+GET    /api/v1/storefront-templates/admin/{template_code}/manifest            [Storefront Templates] auth :: Get Template Manifest
+PATCH  /api/v1/storefront-templates/admin/{template_id}                       [Storefront Templates] auth :: Update Template
+DELETE /api/v1/storefront-templates/admin/{template_id}                       [Storefront Templates] auth :: Delete Template
+GET    /api/v1/storefront-templates/catalog                                   [Storefront Templates] open :: List Templates Catalog
+GET    /api/v1/storefront-templates/compatibility/{template_code}             [Storefront Templates] auth :: Check Template Compatibility
+GET    /api/v1/storefront-templates/installations                             [Storefront Templates] auth :: List Tenant Installations
+POST   /api/v1/storefront-templates/publish                                   [Storefront Templates] auth :: Publish Template
+POST   /api/v1/storefront-templates/rollback                                  [Storefront Templates] auth :: Rollback Template
+POST   /api/v1/storefront-templates/select                                    [Storefront Templates] auth :: Select Template
+GET    /api/v1/storefront/{tenant_id}/customers                               [] auth :: Get Storefront Customers
+GET    /api/v1/storefront/{tenant_id}/orders                                  [] auth :: Get Storefront Orders
+POST   /api/v1/support-crm/accounts                                           [Support & CRM] auth :: Create Account
+GET    /api/v1/support-crm/accounts                                           [Support & CRM] auth :: List Accounts
+GET    /api/v1/support-crm/admin/tickets                                      [Support & CRM] auth :: List Admin Tickets
+GET    /api/v1/support-crm/admin/tickets/{ticket_id}/messages                 [Support & CRM] auth :: List Admin Ticket Messages
+POST   /api/v1/support-crm/admin/tickets/{ticket_id}/reply                    [Support & CRM] auth :: Reply Admin Ticket
+PATCH  /api/v1/support-crm/admin/tickets/{ticket_id}/status                   [Support & CRM] auth :: Update Admin Ticket Status
+GET    /api/v1/support-crm/contacts                                           [Support & CRM] auth :: List Contacts
+POST   /api/v1/support-crm/contacts                                           [Support & CRM] auth :: Create Contact
+GET    /api/v1/support-crm/opportunities                                      [Support & CRM] auth :: List Opportunities
+POST   /api/v1/support-crm/opportunities                                      [Support & CRM] auth :: Create Opportunity Route
+POST   /api/v1/support-crm/public/tickets                                     [Support & CRM] open :: Create Public Ticket Route
+GET    /api/v1/support-crm/public/tickets/{public_token}                      [Support & CRM] open :: Get Public Ticket
+GET    /api/v1/support-crm/public/tickets/{public_token}/messages             [Support & CRM] open :: Get Public Ticket Messages
+POST   /api/v1/support-crm/public/tickets/{public_token}/reply                [Support & CRM] open :: Reply Public Ticket
+GET    /api/v1/support-crm/quotes                                             [Support & CRM] auth :: List Quotes
+POST   /api/v1/support-crm/quotes                                             [Support & CRM] auth :: Create Quote Route
+GET    /api/v1/support-crm/tickets                                            [Support & CRM] auth :: List Tenant Tickets
+GET    /api/v1/support-crm/tickets/{ticket_id}/messages                       [Support & CRM] auth :: List Tenant Ticket Messages
+POST   /api/v1/support-crm/tickets/{ticket_id}/reply                          [Support & CRM] auth :: Reply Tenant Ticket
+PATCH  /api/v1/support-crm/tickets/{ticket_id}/status                         [Support & CRM] auth :: Update Tenant Ticket Status
+POST   /api/v1/team/invitations                                               [Team] auth :: Create Invitation
+GET    /api/v1/team/invitations                                               [Team] auth :: List Invitations
+GET    /api/v1/team/invitations/{token}                                       [Team] open :: Get Invitation By Token
+POST   /api/v1/team/invitations/{token}/accept                                [Team] open :: Accept Invitation
+POST   /api/v1/team/invitations/{token}/decline                               [Team] open :: Decline Invitation
+GET    /api/v1/team/members                                                   [Team] auth :: List Members
+GET    /api/v1/tenant-context/resolve/host                                    [Tenant Context] open :: Resolve Tenant By Host
+GET    /api/v1/tenant-context/subdomain/{subdomain}                           [Tenant Context] open :: Resolve Tenant By Subdomain
+GET    /api/v1/tenant-context/{identifier}                                    [Tenant Context] open :: Get Public Tenant Context
+GET    /api/v1/tenants                                                        [tenants] auth :: List Tenants
+POST   /api/v1/tenants                                                        [tenants] auth :: Create Tenant
+POST   /api/v1/tenants/auto-provision                                         [Tenant Creation] auth :: Auto Provision Tenant
+POST   /api/v1/tenants/create                                                 [Tenant Creation] auth :: Create Tenant
+GET    /api/v1/tenants/jobs/{job_id}                                          [tenants] auth :: Get Job
+POST   /api/v1/tenants/jobs/{job_id}/retry                                    [tenants] auth :: Retry Job
+GET    /api/v1/tenants/lookup                                                 [tenants] auth :: Lookup Tenant
+GET    /api/v1/tenants/me                                                     [tenants] auth :: Get My Tenant
+POST   /api/v1/tenants/register-request                                       [Tenant Requests] open :: Create Tenant Registration Request
+GET    /api/v1/tenants/register-requests                                      [Tenant Requests] auth :: List Registration Requests
+PATCH  /api/v1/tenants/register-requests/{request_id}                         [Tenant Requests] auth :: Review Registration Request
+GET    /api/v1/tenants/registration-status/{request_id}                       [Tenant Requests] open :: Get Registration Status
+PATCH  /api/v1/tenants/{tenant_id}                                            [tenants] auth :: Update Tenant
+DELETE /api/v1/tenants/{tenant_id}                                            [tenants] auth :: Delete Tenant
+POST   /api/v1/tenants/{tenant_id}/activate                                   [tenants] auth :: Activate Tenant
+POST   /api/v1/tenants/{tenant_id}/approve                                    [tenants] auth :: Approve Tenant
+POST   /api/v1/tenants/{tenant_id}/launch                                     [tenants] auth :: Launch Tenant
+GET    /api/v1/tenants/{tenant_id}/portal-url                                 [Tenant Creation] auth :: Get Tenant Portal Url
+POST   /api/v1/tenants/{tenant_id}/provision                                  [tenants] auth :: Provision Tenant Fleetbase
+POST   /api/v1/tenants/{tenant_id}/resend-portal-url                          [tenants] auth :: Resend Portal Url
+POST   /api/v1/tenants/{tenant_id}/restore                                    [tenants] auth :: Restore Tenant
+POST   /api/v1/tenants/{tenant_id}/runtime-auth                               [tenants] auth :: Update Tenant Runtime Auth
+POST   /api/v1/tenants/{tenant_id}/setup-infrastructure                       [Tenant Creation] auth :: Setup Tenant Infrastructure
+GET    /api/v1/tenants/{tenant_id}/status                                     [Tenant Creation] auth :: Get Tenant Status
+POST   /api/v1/tenants/{tenant_id}/suspend                                    [tenants] auth :: Suspend Tenant
+GET    /api/v1/tenants/{tenant_id}/users                                      [tenants] auth :: List Tenant Users
+POST   /api/v1/tenants/{tenant_id}/users                                      [tenants] auth :: Create Tenant User
+DELETE /api/v1/tenants/{tenant_id}/users/{user_id}                            [tenants] auth :: Delete Tenant User
+PATCH  /api/v1/tenants/{tenant_id}/users/{user_id}/role                       [tenants] auth :: Update Tenant User Role
+GET    /api/v1/users                                                          [User Directory] auth :: List Users
+POST   /api/v1/users                                                          [User Directory] auth :: Create User
+GET    /api/v1/users/audit                                                    [User Directory] auth :: List User Audit Events
+POST   /api/v1/users/bulk-import                                              [User Directory] auth :: Bulk Import Users
+POST   /api/v1/users/bulk-import/preview                                      [User Directory] auth :: Bulk Import Preview
+DELETE /api/v1/users/{user_id}                                                [User Directory] auth :: Delete User
+PATCH  /api/v1/users/{user_id}/role                                           [User Directory] auth :: Update User Role
+POST   /api/v1/users/{user_id}/send-reset-link                                [User Directory] auth :: Send User Reset Link
+PATCH  /api/v1/users/{user_id}/status                                         [User Directory] auth :: Update User Status
+GET    /api/v1/vendors/admin                                                  [Delivery Vendors] auth :: List Vendors Admin
+GET    /api/v1/vendors/admin/{vendor_id}                                      [Delivery Vendors] auth :: Get Vendor Admin
+POST   /api/v1/vendors/admin/{vendor_id}/documents                            [Delivery Vendors] auth :: Upload Vendor Documents Route
+GET    /api/v1/vendors/admin/{vendor_id}/members                              [Delivery Vendors] auth :: List Vendor Members
+POST   /api/v1/vendors/admin/{vendor_id}/members                              [Delivery Vendors] auth :: Link Vendor Member
+DELETE /api/v1/vendors/admin/{vendor_id}/members/{membership_id}              [Delivery Vendors] auth :: Unlink Vendor Member
+POST   /api/v1/vendors/admin/{vendor_id}/review                               [Delivery Vendors] auth :: Review Vendor Route
+POST   /api/v1/vendors/admin/{vendor_id}/suspend                              [Delivery Vendors] auth :: Suspend Vendor Route
+POST   /api/v1/vendors/invitations/accept                                     [Delivery Vendors] open :: Accept Vendor Invitation
+GET    /api/v1/vendors/marketplace                                            [Delivery Vendors] auth :: Search Vendor Marketplace
+GET    /api/v1/vendors/marketplace/{vendor_id}                                [Delivery Vendors] auth :: Get Marketplace Vendor
+GET    /api/v1/vendors/me                                                     [Delivery Vendors] auth :: Get My Vendor Profile
+PATCH  /api/v1/vendors/me/availability                                        [Delivery Vendors] auth :: Update My Availability Route
+GET    /api/v1/vendors/me/bookings                                            [Delivery Vendors] auth :: List My Bookings
+POST   /api/v1/vendors/me/bookings/{booking_id}/accept                        [Delivery Vendors] auth :: Accept My Booking Route
+POST   /api/v1/vendors/me/bookings/{booking_id}/reject                        [Delivery Vendors] auth :: Reject My Booking Route
+POST   /api/v1/vendors/me/documents                                           [Delivery Vendors] auth :: Submit My Vendor Documents Route
+POST   /api/v1/vendors/register                                               [Delivery Vendors] open :: Register Vendor Route
+POST   /api/v1/vendors/{tenant_id}/bookings                                   [Delivery Vendors] auth :: Create Booking Route
+GET    /api/v1/vendors/{tenant_id}/bookings                                   [Delivery Vendors] auth :: List Tenant Bookings
+GET    /api/v1/vendors/{tenant_id}/bookings/{booking_id}                      [Delivery Vendors] auth :: Get Booking Route
+PATCH  /api/v1/vendors/{tenant_id}/bookings/{booking_id}                      [Delivery Vendors] auth :: Update Booking Route
+POST   /api/v1/vendors/{tenant_id}/dispatch/auto                              [Delivery Vendors] auth :: Auto Dispatch Route
+POST   /api/v1/vendors/{tenant_id}/marketplace/match                          [Delivery Vendors] auth :: Suggest Marketplace Matches
+POST   /api/v1/warehouse-notices                                              [Warehouse Notices] open :: Create Notice
+GET    /api/v1/warehouse-notices/{tenant_slug}                                [Warehouse Notices] open :: List Notices
+POST   /api/v1/whatsapp-csv/upload                                            [WhatsApp CSV Upload] auth :: Upload Csv And Notify
+POST   /api/v1/whatsapp/configure-groups                                      [WhatsApp Notifications] auth :: Configure Whatsapp Groups
+POST   /api/v1/whatsapp/send-customer-notification                            [WhatsApp Notifications] auth :: Send Customer Notification
+POST   /api/v1/whatsapp/send-shipment-update                                  [WhatsApp Notifications] auth :: Send Shipment Update
+GET    /api/v1/whatsapp/status                                                [WhatsApp Notifications] auth :: Get Whatsapp Status
+POST   /api/v1/whatsapp/test-connection                                       [WhatsApp Notifications] auth :: Test Whatsapp Connection
+GET    /dashboard                                                             [] auth :: Dashboard Page
+GET    /forgot-password                                                       [] open :: Forgot Password Page
+GET    /health                                                                [] open :: Health
+GET    /login                                                                 [] open :: Login Page
+GET    /register                                                              [] open :: Register Page
+GET    /reset-password                                                        [] open :: Reset Password Page

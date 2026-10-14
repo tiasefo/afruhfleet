@@ -1,0 +1,94 @@
+{
+  "status": 200,
+  "body": {
+    "provider": "afruheritage_ghana_engine",
+    "mode": "fallback",
+    "official": false,
+    "country": "GH",
+    "commodity_type": "vehicle",
+    "make": null,
+    "model": null,
+    "vehicle_year": 2018,
+    "engine_cc": 1800,
+    "hdv_usd": 6800.0,
+    "freight_usd": 1200.0,
+    "insurance_usd": 68.0,
+    "cif_usd": 8068.0,
+    "exchange_rate": 15.0,
+    "customs_value_ghs": 121020.0,
+    "total_duty": 41449.35,
+    "charges_total": 41449.35,
+    "estimated_total_landed_cost": 41449.35,
+    "breakdown": [
+      {
+        "code": "import_duty",
+        "label": "Import Duty",
+        "rate": 0.1,
+        "amount": 12102.0,
+        "currency": "GHS"
+      },
+      {
+        "code": "vat",
+        "label": "Import VAT",
+        "rate": 0.15,
+        "amount": 18153.0,
+        "currency": "GHS"
+      },
+      {
+        "code": "nhil",
+        "label": "Import NHIL",
+        "rate": 0.025,
+        "amount": 3025.5,
+        "currency": "GHS"
+      },
+      {
+        "code": "getfund",
+        "label": "GETFund Import Levy",
+        "rate": 0.025,
+        "amount": 3025.5,
+        "currency": "GHS"
+      },
+      {
+        "code": "ecowas",
+        "label": "ECOWAS Levy",
+        "rate": 0.005,
+        "amount": 605.1,
+        "currency": "GHS"
+      },
+      {
+        "code": "exim",
+        "label": "EXIM Bank Levy",
+        "rate": 0.0075,
+        "amount": 907.65,
+        "currency": "GHS"
+      },
+      {
+        "code": "special_import_levy",
+        "label": "Special Import Levy",
+        "rate": 0.02,
+        "amount": 2420.4,
+        "currency": "GHS"
+      },
+      {
+        "code": "overage_penalty",
+        "label": "Overage Penalty",
+        "rate": 0.0,
+        "amount": 0.0,
+        "currency": "GHS"
+      },
+      {
+        "code": "processing",
+        "label": "Processing / Examination Estimate",
+        "rate": 0.01,
+        "amount": 1210.2,
+        "currency": "GHS"
+      }
+    ],
+    "confidence": "ghana_fallback_estimate",
+    "notes": [
+      "Fallback Ghana engine used because ICUMS public lookup was unavailable or incomplete.",
+      "Vehicle value is HDV-style estimate, not official GRA payable duty.",
+      "Overage penalty is estimated for vehicles older than 10 years."
+    ]
+  }
+}

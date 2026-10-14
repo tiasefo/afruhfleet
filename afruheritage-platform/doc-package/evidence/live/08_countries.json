@@ -1,0 +1,25 @@
+{
+  "status": 200,
+  "body": {
+    "countries": {
+      "GH": {
+        "name": "Ghana",
+        "currency": "GHS",
+        "system": "ICUMS-style estimate mode",
+        "supports": [
+          "vehicle",
+          "cargo"
+        ]
+      },
+      "KE": {
+        "name": "Kenya",
+        "currency": "KES",
+        "system": "iCMS-style estimate mode",
+        "supports": [
+          "vehicle",
+          "cargo"
+        ]
+      }
+    }
+  }
+}

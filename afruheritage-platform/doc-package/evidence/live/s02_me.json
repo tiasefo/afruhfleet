@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "body": {
+    "id": "31a50bdd-3f19-4bfd-bba3-0782fa20cc85",
+    "email": "uat-sentinel@afruheritage.com",
+    "full_name": "UAT Sentinel Admin",
+    "role": "super_admin",
+    "is_active": true
+  }
+}

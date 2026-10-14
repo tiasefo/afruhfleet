@@ -1,0 +1,57 @@
+{
+  "01_health": {
+    "method": "GET",
+    "path": "/health",
+    "status": 200
+  },
+  "02_login": {
+    "method": "POST",
+    "path": "/api/v1/auth/login",
+    "status": 200
+  },
+  "03_me": {
+    "method": "GET",
+    "path": "/api/v1/auth/me",
+    "status": 200
+  },
+  "04_shipments_list": {
+    "method": "GET",
+    "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07",
+    "status": 200
+  },
+  "05_ghana_vehicle": {
+    "method": "POST",
+    "path": "/api/v1/customs/calculate",
+    "status": 200
+  },
+  "06_kenya_crsp": {
+    "method": "POST",
+    "path": "/api/v1/customs/kenya/vehicle-duty",
+    "status": 200
+  },
+  "07_ng_unsupported": {
+    "method": "POST",
+    "path": "/api/v1/customs/calculate",
+    "status": 422
+  },
+  "08_countries": {
+    "method": "GET",
+    "path": "/api/v1/customs/countries",
+    "status": 200
+  },
+  "09_no_token_401": {
+    "method": "GET",
+    "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07",
+    "status": 401
+  },
+  "10_register_unadmitted": {
+    "method": "POST",
+    "path": "/api/v1/auth/register",
+    "status": 422
+  },
+  "11_tenant_context": {
+    "method": "GET",
+    "path": "/api/v1/tenant-context/209738f3-b200-4f25-9182-aede6f154c07",
+    "status": 200
+  }
+}

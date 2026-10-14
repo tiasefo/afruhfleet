@@ -1,0 +1,37 @@
+{
+  "status": 200,
+  "body": {
+    "items": [
+      {
+        "id": "26141d01-7c5b-4d51-8846-bd170a6ec67a",
+        "tracking_number": "AFR-209738-20261009-90797B",
+        "receiver_name": "Final Receiver",
+        "sender_name": "Final Sender",
+        "status": "draft",
+        "payment_status": "unpaid",
+        "shipped_date": null,
+        "estimated_arrival": null,
+        "total_cost": 1.0,
+        "balance_due": 1.0,
+        "currency": "GHS"
+      },
+      {
+        "id": "3ca3e742-d23a-42bc-8949-48379037743d",
+        "tracking_number": "AFR-209738-20261009-240669",
+        "receiver_name": "Stability Receiver",
+        "sender_name": "Stability Sender",
+        "status": "draft",
+        "payment_status": "unpaid",
+        "shipped_date": null,
+        "estimated_arrival": null,
+        "total_cost": 1.0,
+        "balance_due": 1.0,
+        "currency": "GHS"
+      }
+    ],
+    "total": 2,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  }
+}

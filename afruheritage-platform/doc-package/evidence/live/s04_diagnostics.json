@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "body": {
+    "admin_console": {
+      "platform": "Linux",
+      "platform_release": "6.8.0-136-generic",
+      "platform_version": "#136~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul  3 16:29:11 UTC ",
+      "architecture": "x86_64",
+      "processor": "",
+      "hostname": "7e3b3fa591ed",
+      "cpu_count": 4,
+      "cpu_percent": 40.7,
+      "memory_total": 12433760256,
+      "memory_available": 1139658752,
+      "memory_percent": 90.8,
+      "disk_total": 7937302708224,
+      "disk_used": 80550289408,
+      "disk_percent": 1.1,
+      "boot_time": "2026-08-16T02:42:42"
+    },
+    "control_plane_status": "unhealthy",
+    "timestamp": "2026-10-14T22:45:27.059756"
+  }
+}

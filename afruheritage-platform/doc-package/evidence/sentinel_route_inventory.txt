@@ -1,0 +1,125 @@
+GET    /sentinel/analytics/summary                                  Get Summary
+POST   /sentinel/auth/bootstrap                                     Bootstrap First Admin
+POST   /sentinel/auth/login                                         Admin Login
+GET    /sentinel/auth/me                                            Admin Me
+GET    /sentinel/auth/users                                         List Admin Users
+POST   /sentinel/auth/users                                         Create Admin User
+POST   /sentinel/billing/adjust-credits                             Adjust Credits
+POST   /sentinel/billing/assign-plan                                Assign Plan
+GET    /sentinel/billing/plans                                      List Plans
+PATCH  /sentinel/billing/plans/{plan_id}                            Update Plan
+DELETE /sentinel/billing/plans/{plan_id}                            Delete Plan
+GET    /sentinel/billing/promotions                                 List Promotions
+POST   /sentinel/billing/promotions                                 Create Promotion
+PATCH  /sentinel/billing/promotions/{promotion_id}                  Update Promotion
+DELETE /sentinel/billing/promotions/{promotion_id}                  Delete Promotion
+POST   /sentinel/billing/set-read-only                              Set Read Only
+GET    /sentinel/billing/subscriptions/{tenant_id}                  Get Subscription
+GET    /sentinel/billing/wallets/{tenant_id}                        Get Wallet
+GET    /sentinel/control-center/features                            List Features
+PATCH  /sentinel/control-center/features/{feature_code}             Update Feature
+GET    /sentinel/control-center/summary                             Get Summary
+POST   /sentinel/control-center/tenant-features                     Create Tenant Assignment
+GET    /sentinel/control-center/tenant-features                     List Tenant Assignments
+PATCH  /sentinel/control-center/tenant-features/{assignment_id}     Update Tenant Assignment
+DELETE /sentinel/control-center/tenant-features/{assignment_id}     Delete Tenant Assignment
+GET    /sentinel/dashboard/health                                   Get System Health
+GET    /sentinel/dashboard/performance                              Get Performance Metrics
+GET    /sentinel/dashboard/stats                                    Get Dashboard Stats
+GET    /sentinel/diagnostics/audit-logs                             Get Audit Logs
+GET    /sentinel/diagnostics/endpoints                              Get Endpoint Health
+GET    /sentinel/diagnostics/system                                 Get System Diagnostics
+POST   /sentinel/domains/activate                                   Activate Domain
+GET    /sentinel/domains/tenant/{tenant_id}                         List Tenant Domains
+GET    /sentinel/feature-flags/global                               Get Global Flags
+PATCH  /sentinel/feature-flags/global                               Update Global Flags
+PATCH  /sentinel/feature-flags/global/{flag_key}                    Update Global Flag
+GET    /sentinel/feature-flags/tenant/{tenant_id}                   Get Tenant Flags
+PATCH  /sentinel/feature-flags/tenant/{tenant_id}                   Update Tenant Flags
+POST   /sentinel/fleetbase/tenant/{tenant_id}/debug                 Debug Tenant
+GET    /sentinel/fleetbase/tenant/{tenant_id}/health                Check Tenant Health
+GET    /sentinel/fleetbase/tenant/{tenant_id}/logs                  Get Tenant Logs
+POST   /sentinel/fleetbase/tenant/{tenant_id}/restart               Restart Tenant
+GET    /sentinel/fleetbase/tenant/{tenant_id}/status                Get Tenant Status
+GET    /sentinel/health                                             Health
+POST   /sentinel/kyc/approve/{kyc_id}                               Kyc Approve
+GET    /sentinel/kyc/list                                           Kyc List
+POST   /sentinel/kyc/revoke/{kyc_id}                                Kyc Revoke
+GET    /sentinel/oauth/providers                                    List Providers
+GET    /sentinel/oauth/{provider}/callback                          Oauth Callback
+GET    /sentinel/oauth/{provider}/login                             Oauth Login
+GET    /sentinel/payments                                           List Payments
+POST   /sentinel/payments/manual                                    Create Manual Payment
+GET    /sentinel/payments/{payment_id}                              Get Payment
+POST   /sentinel/payments/{payment_id}/dispute                      Handle Dispute
+POST   /sentinel/payments/{payment_id}/refund                       Refund Payment
+GET    /sentinel/payments/{payment_id}/status                       Check Payment Status
+GET    /sentinel/runners                                            List Runners
+POST   /sentinel/runners                                            Create Runner
+GET    /sentinel/runners/{runner_id}                                Get Runner
+DELETE /sentinel/runners/{runner_id}                                Delete Runner
+GET    /sentinel/runners/{runner_id}/metrics                        Get Runner Metrics
+POST   /sentinel/runners/{runner_id}/restart                        Restart Runner
+POST   /sentinel/runners/{runner_id}/shutdown                       Shutdown Runner
+POST   /sentinel/runtime/deploy                                     Deploy Runtime
+POST   /sentinel/runtime/retry                                      Retry Runtime
+POST   /sentinel/runtime/suspend                                    Suspend Runtime
+GET    /sentinel/runtime/tenant/{tenant_id}                         Get Tenant Runtime
+GET    /sentinel/shipments                                          List Shipments
+GET    /sentinel/shipments/{shipment_id}                            Get Shipment
+PATCH  /sentinel/shipments/{shipment_id}                            Update Shipment
+POST   /sentinel/shipments/{shipment_id}/cancel                     Cancel Shipment
+POST   /sentinel/shipments/{shipment_id}/notes                      Add Notes
+POST   /sentinel/shipments/{shipment_id}/reroute                    Reroute Shipment
+GET    /sentinel/shipments/{shipment_id}/tracking                   Get Tracking
+GET    /sentinel/templates                                          List Templates
+POST   /sentinel/templates/admin                                    Create Template
+GET    /sentinel/templates/admin/all                                List All Templates
+PATCH  /sentinel/templates/admin/{template_id}                      Update Template
+DELETE /sentinel/templates/admin/{template_id}                      Delete Template
+GET    /sentinel/templates/branding/{tenant_id}                     Get Branding
+PATCH  /sentinel/templates/branding/{tenant_id}                     Update Branding
+POST   /sentinel/templates/select                                   Select Template
+GET    /sentinel/tenants                                            List Tenants
+POST   /sentinel/tenants                                            Create Tenant
+GET    /sentinel/tenants/jobs/{job_id}                              Get Job
+GET    /sentinel/tenants/lookup                                     Lookup Tenant
+GET    /sentinel/tenants/requests                                   List Tenant Requests
+PATCH  /sentinel/tenants/requests/{request_id}                      Review Tenant Request
+POST   /sentinel/tenants/requests/{request_id}/auto-provision       Auto Provision Tenant Request
+DELETE /sentinel/tenants/{tenant_id}                                Delete Tenant
+POST   /sentinel/tenants/{tenant_id}/activate                       Activate Tenant
+POST   /sentinel/tenants/{tenant_id}/approve                        Approve Tenant
+GET    /sentinel/tenants/{tenant_id}/fleetbase/{resource}           Preview Tenant Fleetbase
+POST   /sentinel/tenants/{tenant_id}/launch                         Launch Tenant
+GET    /sentinel/tenants/{tenant_id}/products                       List Tenant Products
+GET    /sentinel/tenants/{tenant_id}/products/categories            List Tenant Product Categories
+POST   /sentinel/tenants/{tenant_id}/provision                      Provision Tenant
+POST   /sentinel/tenants/{tenant_id}/resend-portal-url              Resend Portal Url
+POST   /sentinel/tenants/{tenant_id}/suspend                        Suspend Tenant
+GET    /sentinel/tickets                                            List Tickets
+GET    /sentinel/tickets/{ticket_id}/messages                       List Ticket Messages
+POST   /sentinel/tickets/{ticket_id}/reply                          Reply Ticket
+PATCH  /sentinel/tickets/{ticket_id}/status                         Update Ticket Status
+GET    /sentinel/tracking/public                                    Track Public
+GET    /sentinel/uat-handover/                                      Index
+GET    /sentinel/uat-handover/download/{name}                       Download
+GET    /sentinel/uat-handover/links                                 List Links
+POST   /sentinel/uat-handover/mint                                  Mint Link
+POST   /sentinel/uat-handover/revoke                                Revoke Links
+POST   /sentinel/uat-handover/revoke/{link_id}                      Revoke Link
+GET    /sentinel/users/                                             List Users
+POST   /sentinel/users/                                             Create User
+GET    /sentinel/users/{user_id}                                    Get User
+PUT    /sentinel/users/{user_id}                                    Update User
+DELETE /sentinel/users/{user_id}                                    Delete User
+POST   /sentinel/users/{user_id}/activate                           Activate User
+POST   /sentinel/users/{user_id}/deactivate                         Deactivate User
+GET    /sentinel/vendors                                            List Vendors
+GET    /sentinel/vendors/{vendor_id}                                Get Vendor
+GET    /sentinel/vendors/{vendor_id}/members                        List Vendor Members
+POST   /sentinel/vendors/{vendor_id}/members                        Link Vendor Member
+DELETE /sentinel/vendors/{vendor_id}/members/{membership_id}        Unlink Vendor Member
+POST   /sentinel/vendors/{vendor_id}/review                         Review Vendor
+POST   /sentinel/vendors/{vendor_id}/suspend                        Suspend Vendor
+GET    /sentinel/{full_path}                                        Serve Frontend

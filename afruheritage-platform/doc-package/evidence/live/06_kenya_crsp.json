@@ -1,0 +1,163 @@
+{
+  "status": 200,
+  "body": {
+    "provider": "kenya_kra_crsp_engine",
+    "mode": "kra_crsp_estimate",
+    "country": "KE",
+    "commodity_type": "vehicle",
+    "currency": "KES",
+    "cif_value": 1186612.05,
+    "total_duty": 551774.6,
+    "charges_total": 551774.6,
+    "estimated_total_landed_cost": 1738386.65,
+    "breakdown": [
+      {
+        "code": "import_duty",
+        "label": "Import Duty",
+        "rate": 0.25,
+        "amount": 296653.01,
+        "currency": "KES"
+      },
+      {
+        "code": "vat",
+        "label": "Vat",
+        "rate": 0.16,
+        "amount": 189857.93,
+        "currency": "KES"
+      },
+      {
+        "code": "import_declaration_fee",
+        "label": "Import Declaration Fee",
+        "rate": 0.035,
+        "amount": 41531.42,
+        "currency": "KES"
+      },
+      {
+        "code": "railway_development_levy",
+        "label": "Railway Development Levy",
+        "rate": 0.02,
+        "amount": 23732.24,
+        "currency": "KES"
+      }
+    ],
+    "confidence": "estimate",
+    "official": false,
+    "notes": [
+      "Estimate mode: uses AfruHeritage configurable country rules.",
+      "Official payable duty requires validation through ICUMS/GRA or KRA iCMS.",
+      "Vehicle customs value generated from KRA CRSP lookup before duty calculation."
+    ],
+    "vin_decode": null,
+    "valuation": {
+      "matched": true,
+      "source": "KRA CRSP July 2025",
+      "make": "TOYOTA",
+      "model": "COROLLA FIELDER EX",
+      "engine_cc": 1496,
+      "fuel_type": "GASOLINE",
+      "body_type": "WAGON",
+      "crsp_kes": 3955373.5157999997,
+      "year": 2017,
+      "estimated_depreciation_rate": 0.7,
+      "estimated_customs_value_kes": 1186612.05,
+      "match_score": 0.91,
+      "matches": [
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FIELDER EX",
+          "crsp_kes": 3955373.5157999997,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.91
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FIELDER EX",
+          "crsp_kes": 3907419.43248,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.91
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FIELDER HYBRID EX",
+          "crsp_kes": 3843704.2168799997,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.91
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FIELDER HYBRID G",
+          "crsp_kes": 3938606.3538,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.91
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA MID 1ZR",
+          "crsp_kes": 4368000.0,
+          "engine_cc": 1800,
+          "fuel_type": "GASOLINE",
+          "body_type": "SEDAN",
+          "score": 0.84
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA MID 1ZR",
+          "crsp_kes": 4620000.0,
+          "engine_cc": 1800,
+          "fuel_type": "GASOLINE",
+          "body_type": "SEDAN",
+          "score": 0.84
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FILEDER HYBRID G",
+          "crsp_kes": 3958726.9482000005,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.8308
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FILEDER HYBRID EX",
+          "crsp_kes": 3477509.3988,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.82
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA FILEDER HYBRID WX",
+          "crsp_kes": 3477509.3988,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "WAGON",
+          "score": 0.82
+        },
+        {
+          "make": "TOYOTA",
+          "model": "COROLLA  AXIO",
+          "crsp_kes": 3236062.266,
+          "engine_cc": 1496,
+          "fuel_type": "GASOLINE",
+          "body_type": "SALOON",
+          "score": 0.8
+        }
+      ],
+      "notes": [
+        "Matched against official KRA CRSP July 2025 spreadsheet.",
+        "Depreciation is estimated until the official valuation template is fully encoded."
+      ]
+    },
+    "customs_value_kes": 1186612.05
+  }
+}

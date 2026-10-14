@@ -1,0 +1,19 @@
+{
+  "status": 422,
+  "body": {
+    "detail": [
+      {
+        "type": "literal_error",
+        "loc": [
+          "body",
+          "country"
+        ],
+        "msg": "Input should be 'GH' or 'KE'",
+        "input": "NG",
+        "ctx": {
+          "expected": "'GH' or 'KE'"
+        }
+      }
+    ]
+  }
+}

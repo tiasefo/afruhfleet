@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "body": {
+    "id": "862f9c38-89b6-46af-aa35-2cc46bf24a11",
+    "email": "stab-mv0j6arnsi4h@maxxspace.com",
+    "full_name": "UAT Cert Owner Alpha",
+    "role": "company_admin",
+    "is_tenant_admin": true,
+    "is_superuser": false,
+    "onboarding_complete": true,
+    "tenant_id": "209738f3-b200-4f25-9182-aede6f154c07"
+  }
+}

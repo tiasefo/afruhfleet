@@ -1,0 +1,8 @@
+{
+  "status": 200,
+  "body": {
+    "access_token": "<REDACTED_JWT>",
+    "token_type": "bearer",
+    "control_plane_token": "<REDACTED_JWT>"
+  }
+}
