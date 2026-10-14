@@ -1,9 +1,11 @@
 # Afruheritage — Release-Candidate Matrix
 
-**Deployed SHA:** `e00ce84c` (includes `56234c94` I1/S2 + this round's
-FLW checkout gate, provider validation, per-link handover revocation).
-**Evidence:** `PHASE1_EVIDENCE.md` Rounds 1–6, `prod-ui-cert/` result
-JSONs (p29–p32, u1), `uat-package/` artifacts.
+**Deployed commit:** `cdbdc043` (running build — pilot controls, customs
+fixes, and this document's current state).
+**Document revision:** rounds through RC + pilot-ops + customs review;
+earlier rounds were evaluated against `e00ce84c`→`07e798c7` baselines.
+**Evidence:** `PHASE1_EVIDENCE.md`, `prod-ui-cert/` result JSONs,
+`uat-package/` artifacts, `CUSTOMS_DUTY_REPORT.md`.
 
 ## A. Verified and usable
 

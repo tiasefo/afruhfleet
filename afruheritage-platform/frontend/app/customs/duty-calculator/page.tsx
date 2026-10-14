@@ -292,6 +292,13 @@ export default function DutyCalculatorPage() {
                     ))}
                   </tbody>
                 </table>
+
+                <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 border border-amber-200">
+                  <strong>Estimate only.</strong> This is an indicative calculation, not an
+                  official customs assessment. Ghana results use ICUMS-style benchmark valuation;
+                  Kenya results use KRA CRSP matching with estimated depreciation. Actual payable
+                  duty is determined by GRA/KRA at clearance and may differ.
+                </p>
               </div>
             )}
           </div>
