@@ -152,6 +152,8 @@ still requires explicit PO authorization.
 | Flutterwave | EXCLUDED — disabled pending certification |
 | Branded email (G-04, `afruheritage.com` sender) | BLOCKED — Ops (separate workstream) |
 | Pilot email (temp sender `emidentity.com`) | PASS — authenticated; disclosure live in email footer + UI |
+| Customs duty checker (GH/KE) | CONDITIONAL — engines execute & label estimates honestly; **not certified for paid reliance**: GH uses static FX 15.0 USD→GHS, KE CRSP depreciation is estimated; country tax rules/valuation need independent validation before paid use |
+| Customs guest paid-check flow | BLOCKED pending post-pilot certification — paywall path modified while payments disabled; must be re-certified with live payment rules |
 
 ## I. Controlled pilot authorization (post-`1639e8fd`)
 

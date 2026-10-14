@@ -634,3 +634,12 @@ G-04 (afruheritage.com sender) remains a separate open workstream.
   email). FIXED: during pilot → clean `pilot_closed` register prompt;
   post-pilot → real email required (422), no more 502.
 - Authenticated /customs/calculate + /countries: 200, real breakdown.
+
+## Customs duty — PO disposition (2026-10-14)
+
+- Calculation execution verified; NOT certified for paid customer
+  reliance — GH static FX 15.0 and KE estimated depreciation require
+  independent validation of tax rules, valuation method, currencies,
+  and effective dates.
+- Guest paid-check flow to be re-certified post-pilot (paywall was
+  modified while payments were disabled).
