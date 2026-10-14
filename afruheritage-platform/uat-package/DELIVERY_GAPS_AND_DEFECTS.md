@@ -120,3 +120,18 @@ subpage routing, mock dashboard metrics, fake plan fallbacks, auth chain.
 | D-NEW-09 | FLW sandbox credential rejected by provider (401) | BLOCKER | OPS ACTION — fresh FLWSECK_TEST needed |
 | D-NEW-10 | Historical pg/redis exposure cannot be ruled out (no durable logs) | INFO | OPEN — recorded visibility gap |
 | D-NEW-11 | Vendor resolver picks first active membership (multi-vendor users) | LOW | DEFERRED — deterministic context; PO decision |
+
+## Round 6 additions (I1/S2 + readiness review)
+
+- FIXED — `/register` forced a company name on individuals: account-type
+  selector added; personal accounts get `account_type='individual'`
+  workspaces named after the person.
+- FIXED — `payment_provider` accepted arbitrary values and silently
+  defaulted to Paystack; unknown providers now 400.
+- FLUTTERWAVE DISABLED — `FLUTTERWAVE_ENABLED=false`; checkout option
+  removed; init returns clean 400 until P2 cert.
+- FIXED (S2) — runtime migration race across concurrent workers: all
+  migrations now serialize behind `pg_advisory_xact_lock`; zero deadlock
+  errors on latest full restart.
+- IMPROVED (S2) — handover links registry-backed; per-link revoke
+  (`POST /uat-handover/revoke/{id}`) + revoke-all + per-access audit.

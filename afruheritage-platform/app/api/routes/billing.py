@@ -206,8 +206,12 @@ def init_payment(tenant_id: str | None = None, request: PaymentInitRequest=Body(
             logging.getLogger('afruheritage.billing').warning('Auto-provisioning result: %s', result)
         return PaymentInitResponse(reference=payment.reference, authorization_url='', access_code='', status=payment.status.value)
 
+    provider = (request.payment_provider or "paystack").lower()
+    if provider not in ("paystack", "flutterwave"):
+        raise HTTPException(status_code=400, detail=f'Unsupported payment provider: {provider}')
+    if provider == "flutterwave" and not settings.flutterwave_enabled:
+        raise HTTPException(status_code=400, detail='Flutterwave checkout is not enabled on this deployment')
     try:
-        provider = (request.payment_provider or "paystack").lower()
         if provider == "flutterwave":
             payload = _flw.initialize_transaction(
                 email=request.email,

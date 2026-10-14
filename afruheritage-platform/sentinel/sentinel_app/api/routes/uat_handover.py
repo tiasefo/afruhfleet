@@ -110,6 +110,58 @@ def mint_link(
     return {"url": url, "expires_at": exp, "ttl_hours": hours}
 
 
+@router.get("/links")
+def list_links(
+    current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """List minted handover links (id, owner, expiry, revocation state)."""
+    now = int(time.time())
+    rows = db.query(UatHandoverLink).order_by(UatHandoverLink.created_at.desc()).limit(100).all()
+    return [
+        {
+            "id": str(r.id),
+            "created_by": r.created_by,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "expires_at": r.expires_at,
+            "expired": r.expires_at <= now,
+            "revoked": r.revoked_at is not None,
+            "revoked_by": r.revoked_by,
+        }
+        for r in rows
+    ]
+
+
+@router.post("/revoke/{link_id}")
+def revoke_link(
+    link_id: str,
+    current_admin: AdminUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    """Revoke a single handover link by id."""
+    import uuid as _uuid
+    try:
+        lid = _uuid.UUID(link_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid link id")
+    link = db.get(UatHandoverLink, lid)
+    if not link:
+        raise HTTPException(status_code=404, detail="Link not found")
+    if link.revoked_at is None:
+        link.revoked_at = datetime.utcnow()
+        link.revoked_by = current_admin.email
+    record_admin_audit(
+        db,
+        admin_email=current_admin.email,
+        action="uat_handover_link_revoked",
+        entity_type="uat_handover",
+        entity_id=str(link.id),
+        details={"link_owner": link.created_by},
+    )
+    db.commit()
+    return {"revoked": 1, "link_id": str(link.id)}
+
+
 @router.post("/revoke")
 def revoke_links(
     current_admin: AdminUser = Depends(get_current_admin),

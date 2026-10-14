@@ -113,6 +113,11 @@ class Settings(BaseSettings):
     paystack_public_key: str = Field(default='', alias='PAYSTACK_PUBLIC_KEY')
     paystack_secret_key: str = Field(default='', alias='PAYSTACK_SECRET_KEY')
     paystack_webhook_secret: str = Field(default='', alias='PAYSTACK_WEBHOOK_SECRET')
+    # Flutterwave is NOT sandbox-certified (configured test key returns
+    # provider 401). PO ruling: keep it disabled in customer-facing checkout
+    # until genuine certification — enable only via FLUTTERWAVE_ENABLED=true
+    # after credentials are replaced and P2 evidence is green.
+    flutterwave_enabled: bool = Field(default=False, alias='FLUTTERWAVE_ENABLED')
     payment_webhook_url: str = Field(default='', alias='PAYMENT_WEBHOOK_URL')
     payment_webhook_secret: str = Field(default='', alias='PAYMENT_WEBHOOK_SECRET')
     zuri_payment_webhook_secret: str = Field(default='', alias='ZURI_PAYMENT_WEBHOOK_SECRET')

@@ -352,7 +352,7 @@ export default function BillingPage() {
                                   <SelectTrigger><SelectValue /></SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="paystack">Paystack (Ghana — GHS)</SelectItem>
-                                    <SelectItem value="flutterwave">Flutterwave (Kenya — KES / GHS)</SelectItem>
+                                    {/* Flutterwave disabled until sandbox certification completes (P2) */}
                                   </SelectContent>
                                 </Select>
                               </div>
