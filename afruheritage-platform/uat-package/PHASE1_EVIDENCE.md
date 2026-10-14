@@ -610,3 +610,15 @@ G-04 (afruheritage.com sender) remains a separate open workstream.
   (NEXT_PUBLIC_PILOT_EMAIL_NOTICE).
 - PILOT_OPERATIONS.md: admit runbook + real-defect log (customer
   failures recorded separately from certified tests).
+
+## Round 10 — Pilot ops persistence + admission audit
+
+- Redis allowlist survives `compose restart redis` AND
+  `up -d --force-recreate redis` (AOF + redis_data volume);
+  gate still 403/200 after full api/worker/beat restart.
+- scripts/pilot_admit.sh: admit + audit JSONL (who/when/why) to
+  durable logs/ volume; --invite sends branded DKIM-signed pilot
+  invitation — verified to a real mailbox (register link + disclosure).
+- Domain-wide admission deliberately excluded from the tool; requires
+  explicit Ops approval per PO policy.
+- PILOT_TESTING_GUIDE.md added for participants.

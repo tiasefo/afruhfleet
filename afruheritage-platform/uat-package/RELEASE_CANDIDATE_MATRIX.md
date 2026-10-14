@@ -166,6 +166,19 @@ PO ruling: **invitation-only free pilot — GO**. Controls implemented:
   register-page note via `NEXT_PUBLIC_PILOT_EMAIL_NOTICE`.
 - Live payments remain disabled; Paystack live keys absent; Flutterwave
   stays off. `PILOT_OPERATIONS.md` = admit runbook + real-defect log.
+
+**Pilot-ops hardening (post-`07e798c7`)** — verified:
+
+- Allowlist persistence: AOF + named volume survives `compose restart`
+  AND `--force-recreate`; post-restart gate re-verified (403/200).
+- Admission audit: `scripts/pilot_admit.sh` records
+  `{ts, action, email, by, reason}` to durable `logs/` volume; audit
+  log doubles as recovery source. Domain-wide admission deliberately
+  excluded from tooling — explicit Ops approval required.
+- Pilot invitation: `--invite` sends a branded, DKIM-signed invite with
+  /register link + sender disclosure — verified end-to-end to a real
+  mailbox.
+- `PILOT_TESTING_GUIDE.md` — participant-facing test guide.
 | Recurring billing | EXCLUDED — not supported (manual renewal) |
 | Refunds (automated) | EXCLUDED — manual procedure documented |
 | Paid commercial launch | BLOCKED — pending live readiness + PO approval |

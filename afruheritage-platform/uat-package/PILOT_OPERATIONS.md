@@ -1,58 +1,69 @@
 # Controlled Pilot — Operations Runbook
 
-**Baseline:** `1639e8fd` + pilot controls. **Classification:** Invitation-only free pilot — GO.
+**Baseline:** `1639e8fd` + `07e798c7` + pilot-controls round.
+**Classification:** Invitation-only free pilot — GO.
 
 ## Active pilot controls
 
 | Control | Mechanism | Verified |
 |---|---|---|
-| Invitation-only registration | `PILOT_INVITE_ONLY=true` gates `/auth/register` and `/companies/register`; unlisted emails → 403 with pilot message | yes — 403 unlisted, 200 after admit |
-| Admit list (no restart) | Redis sets `pilot:allowed_emails` / `pilot:allowed_domains` | yes — SADD → 200 same request |
-| Temporary-sender disclosure | Email footer line appended to every outbound message + dismissible in-app banner + register-page note | yes — decoded MIME confirmed |
-| Live payments | Paystack live keys absent; only sandbox path certified | standing |
-| Flutterwave | Disabled at init/verify/webhook (RC-1) | standing |
-| Credential authority | PO-only; developer takes no rotation action | standing |
+| Invitation-only registration | `PILOT_INVITE_ONLY=true` gates `/auth/register` and `/companies/register`; unlisted emails → 403 | yes — 403 unlisted, 200 after admit |
+| Admit list | Redis sets `pilot:allowed_emails` / `pilot:allowed_domains` | yes |
+| Allowlist persistence | AOF + `redis_data` named volume | **verified across `compose restart redis` AND `--force-recreate`** |
+| Post-restart enforcement | Gate + allowlist re-verified after full `compose restart` of api/worker/beat | yes — still 403, allowlist intact |
+| Sender disclosure | Email footer + dismissible in-app banner + register-page note | yes — decoded MIME confirmed |
+| Live payments | No live keys; sandbox path only | standing |
+| Flutterwave | Disabled at init/verify/webhook | standing |
 
-## Admitting a pilot participant
+## Admitting a pilot participant — `scripts/pilot_admit.sh`
 
 ```bash
-docker exec afruheritage-redis redis-cli -a "$REDIS_PASSWORD" \
-  SADD pilot:allowed_emails customer@example.com
-# or a whole domain:
-docker exec afruheritage-redis redis-cli -a "$REDIS_PASSWORD" \
-  SADD pilot:allowed_domains example.org
+./scripts/pilot_admit.sh \
+  --email customer@example.com \
+  --by "<your-name>" \
+  --reason "<why this participant>" \
+  --invite "Customer Firstname"     # optional: sends branded invite email
 ```
 
-Admission takes effect immediately — no restart. Remove with `SREM`.
-Staff/vendor invitations sent from inside a tenant bypass this gate by
-design (they are already invitations).
+- SADDs the email (immediate effect, no restart)
+- Appends a JSON audit line to `logs/pilot_admissions.log` —
+  `{ts, action, email, by, reason}` — durable on the host-mounted
+  `logs/` volume
+- `--invite` sends the branded pilot invitation (register link + pilot
+  explanation) through the real NotificationService — DKIM-signed,
+  disclosure footer included (verified end-to-end)
 
-## Disclosure shown to participants
+**Who may admit:** Operations and the Product Owner only. Every
+admission MUST go through this script so `who/when/why` is recorded —
+do not run bare `SADD` for participants.
 
-- Every outbound email footer: "Pilot notice: Afruheritage emails are
-  currently sent from advisory@emidentity.com."
-- Registration page: invitation-only + sender note.
-- Authenticated pages: dismissible banner naming the sender.
+**Domain admission:** deliberately not in the script. Requires explicit
+Operations approval; if approved, run
+`SADD pilot:allowed_domains <domain>` manually and log it yourself in
+`logs/pilot_admissions.log`. Default is always individual emails.
 
-## Support channel for pilot participants
+**Revoking:** `SREM pilot:allowed_emails <email>` + an audit line.
 
-Public ticket portal (`/support/ticket/…` links in notification emails)
-and in-app support both create real tickets that notify
-`advisory@emidentity.com`-addressed mailboxes and appear in Sentinel.
+## Persistence & recovery
 
-## Pilot defect log — format
+- Redis runs `--appendonly yes` on named volume `redis_data` —
+  verified: entries survive `compose restart redis` and
+  `up -d --force-recreate redis`.
+- Worst case (volume loss): allowlist rebuild = re-run
+  `pilot_admit.sh` per line of `logs/pilot_admissions.log` (the audit
+  log IS the recovery source).
+- Caveat: `maxmemory-policy allkeys-lru` could evict under extreme
+  memory pressure — the audit log covers recovery.
 
-Real customer failures are recorded here, **distinct from certified
-engineering tests**. New entries appended below.
+## Support channel
+
+Public ticket portal + in-app support create real tickets, notify the
+submitter, and appear in Sentinel.
+
+## Pilot defect log — real customer failures (distinct from certified tests)
 
 | # | Date | Severity | Journey | Tenant | Reproduction | Status |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | _no customer failures recorded yet — pilot starting_ | — |
+| — | — | — | — | — | _no customer failures yet — invitations not yet sent_ | — |
 
 Severity: S1 blocker / S2 workflow-degraded / S3 cosmetic-confusion.
-
-## Pilot journey coverage to observe
-
-Registration, login, password recovery, shipment creation, tracking,
-notifications, vendor workflows, support, subscription/billing state
-(no charges — manual state only during pilot).
