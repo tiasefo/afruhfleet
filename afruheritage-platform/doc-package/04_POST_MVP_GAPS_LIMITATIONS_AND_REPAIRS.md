@@ -1,7 +1,7 @@
 # 04 — Post-MVP Gaps, Defects, Limitations and Repairs
 
 **Document status:** Source-verified draft for joint PO + architecture review. **Not approved.**
-**Source:** commit `ee57ba5d`, live deployment verified 2026-10-14. Evidence files referenced inline.
+**Source:** baseline `ee57ba5d` + Round-1 authorization fixes `2b4c7a0a`, live deployment verified 2026-10-14/15. Evidence files referenced inline.
 **Classification key:** BROKEN · PARTIAL · DISABLED-PILOT · NEEDS-PROVIDER · NOT-IMPL · DEFERRED · RISK
 
 Every row: *current behavior → expected → evidence → impact → severity → remediation → blocks?*
@@ -48,10 +48,21 @@ Every row: *current behavior → expected → evidence → impact → severity �
 
 ## E. Security / tenant-isolation / operational risks
 
-| ID | Item | Current → Expected | Evidence | Sev | Blocks |
-|---|---|---|---|---|---|
-| R-001 | **Open marketplace mutations** | `POST /marketplace/shipments`, `…/accept`, `…/tracking/{status}`, `…/gps`, `drivers/search` have **no auth dependency** — only `require_feature_or_raise`+credits on post. Anyone can post a shipment against any `tenant_id`, accept jobs, and rewrite tracking status | `app/api/routes/marketplace.py:211,272,288` (no `Depends` auth) | **S1** | Add auth + tenant ownership check; keep only genuinely-public read paths open | **free pilot** if marketplace is exposed |
-| R-002 | Open `warehouse-notices` create | `POST /api/v1/warehouse-notices` is `open` in the spec — unauthenticated notice creation | inventory | S2 | Verify intent; require auth if writes should be tenant-scoped | investigate |
+**PO Review Round 1 — authorization fixes (commit `2b4c7a0a`; live-verified in `evidence/live/r1_security_round.json`):**
+
+| ID | Item | Resolution | Verified |
+|---|---|---|---|
+| R-001 | **Open marketplace mutations** — `POST /shipments`, `/accept`, `/tracking/{status}`, `/gps`, `GET /gps`, `POST /drivers/search` | **FIXED.** All six now require auth. `post_shipment` requires `require_active_subscription` + caller's `tenant_id` must match payload; `accept_job` restricted to the driver themselves or platform admin; `tracking`/`gps`/`gps-history` via `_can_operate_job` (assigned driver / owning-tenant member / platform admin); `drivers/search` requires auth + driver-identity match | `app/api/routes/marketplace.py`; live: 6×401 unauth, 403 cross-tenant post, legit authed ops unaffected |
+| R-002 | Open `POST /warehouse-notices` | **FIXED — was a real defect, not intentional public intake** (anyone could inject public notices into any tenant's storefront). Now requires auth + owning-tenant/superuser. `GET /{slug}` remains intentionally public (storefront display reads `is_public` notices only) | `app/api/routes/warehouse_notices.py`; live: 401 unauth, 403 cross-tenant slug, 200 own-tenant |
+| R-007 | **Open customs calculate endpoints** — `/customs/calculate`, `/ghana/vehicle-duty`, `/ghana/goods-duty`, `/kenya/vehicle-duty`, `/vehicle-value` accepted unauthenticated calls, **bypassing the 2-free-check guest cap entirely** | **FIXED.** All now require `get_current_user`. Public `/customs/duty-calculator` page updated to route guests through the capped `/customs/guest/calculate` (localStorage guest_id fingerprint) and signed-in users through the authed endpoints. `vin-decode` stays public (utility, not a duty check) | `app/api/routes/customs.py`, `frontend/app/customs/duty-calculator/page.tsx`; live: 3×401 unauth, 200 authed, guest path 200 |
+| R-008 | Open `PUT /cargo-lifecycle/{tracking}/status` — unauthenticated status/history writes on any cargo record | **FIXED.** Auth + owning-tenant/superuser | `app/api/routes/cargo_lifecycle.py`; live: 401 unauth |
+| R-009 | Open `payment-hub` — `POST /initialize` (unauth Paystack ref minting) + `GET /transactions/{tenant_id}` (**any tenant's payment history readable**) | **FIXED.** Both require auth; transactions additionally enforce tenant match/superuser. `verify`/`receipt`/webhook stay public-by-design (callback flow / signature-verified / opaque-reference receipt) | `app/api/routes/payment_hub.py`; live: 401 init+tx, 403 cross-tenant tx |
+| R-010 | Open `commercial_orchestration` signup provision endpoints | **Contained, not changed.** `provision_signup_runtime` is internally gated by `payment_not_completed` — cannot fire while no payment completes. Public signup orchestration is intentional; revisit at paid launch | inspected |
+
+**Other security / operational risks (unchanged):**
+
+| ID | Item | Current → Expected | Evidence | Sev | Remediation | Blocks |
+|---|---|---|---|---|---|---|
 | R-003 | Sentinel bootstrap | `POST /sentinel/auth/bootstrap` is open but **guarded** (409 once a super_admin exists) — acceptable today; consider disabling in prod env | `sentinel_app/api/routes/auth.py:115` | S3 | Env-gate bootstrap | none |
 | R-004 | Sentinel image drift | Sentinel container image built 2026-08-25 while backend code is bind-mounted at `ee57ba5d` — frontend assets may lag newer backend endpoints | `docker image inspect` vs compose mounts | S3 | Rebuild sentinel image per release; record image digest in deploy evidence | release hygiene |
 | R-005 | Pilot admission = CLI only | No Sentinel UI for allowlist; depends on `pilot_admit.sh` + Redis. Audit via `logs/pilot_admissions.log` | `PILOT_OPERATIONS.md` | S3 | Post-MVP: Sentinel admission UI | accepted for pilot (PO) |
@@ -75,7 +86,7 @@ Every row: *current behavior → expected → evidence → impact → severity �
 3. **Paystack live** key configuration + a real-charge certification round.
 4. Decide Flutterwave disposition.
 5. **G-04** permanent branded sender.
-6. Close **R-001/R-002** unauthenticated-write findings.
+6. ~~Close **R-001/R-002** unauthenticated-write findings~~ — **CLOSED** (Round-1 fix; also closed same-class R-007/R-008/R-009).
 7. Paid subscription lifecycle testing.
 8. Sentinel image rebuild + per-release digest evidence.
 

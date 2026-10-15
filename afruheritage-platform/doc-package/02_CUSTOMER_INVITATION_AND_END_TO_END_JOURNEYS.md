@@ -72,7 +72,7 @@ After registration you are the **tenant admin** — you see Team Members, Billin
 - **Ghana (GHS):** vehicle via HDV benchmark repricing; cargo via CIF — ICUMS-*style* estimate, `official:false`.
 - **Kenya (KES):** vehicle via **KRA CRSP** matching + estimated depreciation; `needs_manual_review` when no CRSP match.
 - **Every result shows the disclaimer:** "Estimate only … Actual payable duty is determined by GRA/KRA at clearance." **[TESTED — rendered on results]**
-- **Guest path:** `/customs` allows **2 free checks** per browser fingerprint; afterwards it shows a "register" prompt under the pilot (paid checks are blocked). **[TESTED: calls 1–2 → 200; call 3 → `pilot_closed`]**
+- **Guest path:** `/customs` allows **2 free checks** per browser fingerprint via `/api/v1/customs/guest/calculate` — the only public duty-check route (authenticated `/customs/*` endpoints now require login, closing a former bypass). Afterwards it shows a "register" prompt under the pilot (paid checks are blocked). **[TESTED: calls 1–2 → 200; call 3 → `pilot_closed`; unauthenticated `/customs/calculate` → 401]**
 
 ### 4.5 Support — [TESTED]
 - Logged-in: **Support** → `/support` → create a ticket. Screenshot `c13-support.png`.

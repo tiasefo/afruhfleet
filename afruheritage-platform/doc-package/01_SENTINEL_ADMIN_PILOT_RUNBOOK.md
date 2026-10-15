@@ -1,7 +1,7 @@
 # 01 — Sentinel Administrator Pilot Runbook
 
 **Document status:** Source-verified draft for joint PO + architecture review. Not yet approved for operational handoff.
-**Generated from:** Repository `afruheritage-platform`, branch `amooskco-storefront-v2`, commit `ee57ba5d` (deployed; API/worker/beat run bind-mounted source; frontend/sentinel images built from the same tree).
+**Generated from:** Repository `afruheritage-platform`, branch `amooskco-storefront-v2`, commit `ee57ba5d` + Round-1 authorization fixes. **Deployment truth:** `api`/`worker`/`beat` run bind-mounted repo source (deployed = working tree); the customer `frontend` image is rebuilt per change; the **Sentinel UI image was last built 2026-08-25** while its backend (`sentinel_app`) is bind-mounted — see `EVIDENCE_INDEX.md` and Doc 4 R-004. Do not assume all components run the same revision.
 **Verified against:** Live deployment `https://admin.afruheritage.com/sentinel` on 2026-10-14. Screenshots in `screenshots/`.
 
 > **How to read this document.** Every workflow is marked:

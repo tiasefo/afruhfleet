@@ -1,0 +1,68 @@
+{
+  "login_A": {
+    "status": 200
+  },
+  "login_B": {
+    "status": 200
+  },
+  "mp_post_noauth_401": {
+    "status": 401
+  },
+  "mp_accept_noauth_401": {
+    "status": 401
+  },
+  "mp_track_noauth_401": {
+    "status": 401
+  },
+  "mp_gps_noauth_401": {
+    "status": 401
+  },
+  "mp_gpsget_noauth_401": {
+    "status": 401
+  },
+  "mp_search_noauth_401": {
+    "status": 401
+  },
+  "mp_post_cross_tenant_403": {
+    "status": 403
+  },
+  "wh_notice_noauth_401": {
+    "status": 401
+  },
+  "wh_notice_wrong_tenant_403": {
+    "status": 404
+  },
+  "cargo_status_noauth_401": {
+    "status": 401
+  },
+  "customs_calc_noauth_401": {
+    "status": 401
+  },
+  "customs_ghana_noauth_401": {
+    "status": 401
+  },
+  "customs_kenya_noauth_401": {
+    "status": 401
+  },
+  "customs_calc_auth_200": {
+    "status": 200
+  },
+  "ph_init_noauth_401": {
+    "status": 401
+  },
+  "ph_tx_noauth_401": {
+    "status": 401
+  },
+  "ph_tx_cross_403": {
+    "status": 403
+  },
+  "guest_calc_still_open_200": {
+    "status": 200
+  },
+  "me_200": {
+    "status": 200
+  },
+  "vin_decode_open_200": {
+    "status": 200
+  }
+}

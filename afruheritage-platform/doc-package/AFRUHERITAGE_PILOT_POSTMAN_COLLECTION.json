@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Afruheritage \u2014 Pilot E2E",
+    "name": "Afruheritage \u2014 Pilot API Testing (scoped)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Generated from real OpenAPI (389 paths) + live verification @ commit ee57ba5d. No secrets embedded."
+    "description": "Pilot-scoped collection: 53 requests covering the documented pilot journeys, generated from live OpenAPI (389 paths/452 ops) @ commit ee57ba5d + R1 authz fixes. NOT complete API coverage \u2014 remaining endpoints are catalogued in evidence/api_route_inventory.txt. No secrets embedded."
   },
   "item": [
     {

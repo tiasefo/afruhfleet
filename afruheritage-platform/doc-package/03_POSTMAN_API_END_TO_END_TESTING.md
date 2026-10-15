@@ -2,7 +2,7 @@
 
 **Document status:** Source-verified draft for joint review.
 **Source of truth:** live `GET /openapi.json` (389 paths, 452 operations) + `sentinel_openapi.json` (107 paths / 125 ops) at commit `ee57ba5d`. Every request path below was validated against those specs — no invented endpoints.
-**Files:** `AFRUHERITAGE_COMPLETE_POSTMAN_COLLECTION.json`, `AFRUHERITAGE_PILOT_POSTMAN_ENVIRONMENT.json`. Full inventories: `evidence/api_route_inventory.txt`, `evidence/sentinel_route_permissions.txt`.
+**Files:** `AFRUHERITAGE_PILOT_POSTMAN_COLLECTION.json`, `AFRUHERITAGE_PILOT_POSTMAN_ENVIRONMENT.json`. Full inventories: `evidence/api_route_inventory.txt`, `evidence/sentinel_route_permissions.txt`.
 
 ---
 
@@ -80,5 +80,6 @@ Marked `[STATE-CHANGING]` in the request name: register, company register, creat
 
 ## 8. Verification status
 
-- **Tested live this round:** auth login/me, tenant context, shipments list/create/track, customs GH/KE/guest-cap/NG-422, support public ticket, Sentinel login/me/tenants/diagnostics (see `evidence/live_api_results.md`).
-- **Inspected only:** team-invite accept, vendor accept, billing trial, cross-tenant deny (relies on an `other_tenant_id` you provide), Sentinel write ops.
+- **Tested live:** auth login/me, tenant context, shipments list/track, customs GH/KE/guest-cap/NG-422, Sentinel login/me/tenants/diagnostics — and the **Round-1 authorization battery** (`evidence/live/r1_security_round.json`): all six marketplace mutations 401 unauthenticated, 403 cross-tenant post, warehouse-notice 401/403/200, cargo-status 401, customs authed endpoints 401/200, payment-hub 401/403, guest customs path still 200.
+- **Inspected only:** team-invite accept, vendor accept, billing trial, Sentinel write ops, marketplace driver-role accept (no `delivery_driver` test account).
+- **Scope:** pilot journeys only — this collection is **not** complete API coverage; the remaining ~330 paths are catalogued in `evidence/api_route_inventory.txt`.

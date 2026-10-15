@@ -1,7 +1,8 @@
 # Evidence Index — Source-Verified Pilot Documentation Package
 
-**Repository:** `afruheritage-platform` · **Branch:** `amooskco-storefront-v2` · **Commit:** `ee57ba5d0a0860d7a705d18baa5b7f9eca6b87a2` (`ee57ba5d`)
-**Deployment model:** `api`/`worker`/`beat` run bind-mounted `./app:/app/app` → running Python = working tree at `ee57ba5d`. `frontend` image built 2026-10-14 19:20 UTC from same tree; `sentinel` backend bind-mounted `sentinel/sentinel_app:ro`, sentinel UI image built 2026-08-25 (see Doc 4, R-004).
+**Repository:** `afruheritage-platform` · **Branch:** `amooskco-storefront-v2` · **Baseline commit:** `ee57ba5d` · **Round-1 authorization fix commit:** `2b4c7a0a` (deployed; verified by the r1 battery)
+**Deployment model:** `api`/`worker`/`beat` run bind-mounted `./app:/app/app` → running Python = working tree. `frontend` image rebuilt per frontend change (last 2026-10-14/15). `sentinel` backend bind-mounted `sentinel/sentinel_app:ro`; **Sentinel UI image last built 2026-08-25** — components do NOT all run the same revision (Doc 4, R-004).
+**Round-1 update:** authorization fixes for R-001/R-002/R-007/R-008/R-009 applied in working tree (commit in this package's header); verified by `live/r1_security_round.json`.
 **Verified live:** 2026-10-14 against `api.afruheritage.com`, `afruheritage.com`, `admin.afruheritage.com`.
 
 ## Inventory artifacts (generated, not hand-written)
@@ -31,6 +32,7 @@
 | `live/10_register_unadmitted.json` | 403 pilot-closed (individual type) |
 | `live/11_tenant_context.json` | 200 |
 | `live/s01_login.json` … `s05_no_token_401.json` | Sentinel 200/200/200/200/401 |
+| `live/r1_security_round.json` | Round-1 authorization battery: 21 checks — 401 unauth on all fixed mutations, 403 cross-tenant, 200 legitimate flows |
 
 ## Screenshots (`screenshots/`)
 
