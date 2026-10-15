@@ -18,12 +18,24 @@ You do **not** need to build requests, copy tokens, or know the API. The suite s
 4. Open the collection → click **Run** (or Runner → select it) → **Run Afruheritage UAT**.
 5. Wait ~5 minutes (the suite pauses between sign-ins because the system allows 5 per minute). Every request should show **PASS** — the final state is **79 requests / 94 checks, all passing**.
 
-## What it does for you
+## What it does for you — section by section
 
-- Signs in as 9 different UAT identities (business owner, second tenant, individual, staff, driver, vendor, platform admin, and two Sentinel admins).
-- Captures every token and generated ID automatically — no copy-paste.
-- Runs a real journey: invite a staff member → they accept → create a shipment → track it publicly → post a marketplace job → the driver accepts it → customs estimates for Ghana and Kenya → open a support ticket → vendor and billing reads → Sentinel admin checks.
-- Runs negative checks too: wrong password, no credentials, and tenant A vs tenant B isolation.
+The collection has 10 sections that run in order. Each sign-in section automatically saves that user's token; later requests reuse it — you never copy anything.
+
+| # | Section | Which account it uses | What it proves |
+|---|---|---|---|
+| 00 | Authentication | All 9 UAT identities, one after another | Each role can sign in; a wrong password is correctly refused (expected 401 — that request *passing* means the system rejected it) |
+| 01 | Identity | Business owner A, staff, driver | "Who am I" returns the right role and company for each account |
+| 02 | Team invitations | Business owner A (sends), a fresh invitee (accepts) | A staff invite is created, emailed, looked up, and accepted; the invitee then appears in tenant A's member list. The invitee email is generated fresh each run (`uat-inv-<timestamp>@maxxspace.com`) |
+| 03 | Shipments | Business owner A, then tenant B for the denial checks | A shipment is created (tracking number like `AFR-2026-000006` is captured automatically), its status is advanced, anyone can track it publicly, and tenant B is refused access (expected 403/404) |
+| 04 | Marketplace | Tenant A posts a job; the driver accepts it | Driver search → accept → tracking update → GPS ping → GPS history all work; unauthenticated and cross-tenant writes are refused |
+| 05 | Customs | Guest (capped), then signed-in user | Ghana and Kenya duty estimates return real breakdowns; unauthenticated use of the signed-in endpoints is refused |
+| 06 | Support & CRM | Public ticket creator, then staff | A support ticket is opened publicly, tracked by token, and visible internally; CRM records are created |
+| 07 | Vendor | The approved vendor account | Vendor profile and bookings are readable; tenant users are refused vendor-admin data |
+| 08 | Billing | Business owner A | Plans, subscription, wallet, transactions read correctly. No money moves — live charges are excluded |
+| 09 | Sentinel admin | Sentinel super-admin and viewer | Admin dashboard, tenants, diagnostics, shipments/tickets, audit logs work; the read-only viewer is refused admin writes |
+
+**How to read the results:** green `PASS` next to every request = expected. Some requests *expect* a failure code — e.g. "NEG — wrong password" passing means the server answered **401** as it should. A red `FAIL` means the response did not match what the system is supposed to do.
 
 ## Command line (Newman)
 

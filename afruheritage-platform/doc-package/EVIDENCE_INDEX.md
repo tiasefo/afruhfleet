@@ -53,6 +53,8 @@ Vendor e2e, team-invite accept, Sentinel write ops, per-route isolation sweep, R
 | Artifact | What it proves |
 |---|---|
 | `evidence/live/uat_newman_execution.json` | The 79-request automated run — redacted, every request/assertion with status and time |
+| `evidence/live/uat_newman_report.html` | Same run as a visual HTML report (Newman htmlextra) — open in a browser |
+| `evidence/live/r2_registration_login_journey.md` | PO-requested browser demo: fresh admitted identity → register → plan modal → welcome email → login → onboarding → dashboard, with per-step screenshots (incl. U-004 defect capture) |
 | `evidence/live/r1_driver_flow.json` | Full marketplace driver lifecycle after the authz fix (accept/tracking/GPS 200, cross-tenant 403) |
 | `evidence/api_coverage_matrix.json` | All 577 operations classified: automated pass / manual pass / manual / excluded |
 | `AFRUHERITAGE_UAT.postman_collection.json` | Executable dependency-ordered suite (replaces the pilot-scoped collection for UAT) |

@@ -157,22 +157,73 @@
 </section>
 
 <section id="individual">
-  <h2>Individual Customer</h2>
+  <h2>Individual Customer — full journey, verified live</h2>
+  <p>Every screen below was captured during a real registration and sign-in on the pilot system.</p>
   <div class="card">
-    <h3>Create your account</h3>
+    <h3>Step A — Open the registration page</h3>
     <div class="row"><div class="col">
       <ol class="steps">
-        <li>Open <code>https://afruheritage.com</code> and click <b class="click">Get Started</b> (top right), or go straight to <code>/register</code>.</li>
-        <li>Under <b>"I am signing up as"</b> choose <b class="click">Individual</b>.</li>
-        <li>Fill in <b>Full Name</b>, <b>Email</b> (must be your invited email), <b>Password</b> (at least 8 characters), and <b>Confirm Password</b>.</li>
-        <li>Click the create-account button at the bottom of the form.</li>
-        <li>Your account is created immediately. Check your inbox — a welcome email arrives with your sign-in link.</li>
-        <li>Sign in at <code>/login</code> (or <code>/sign-in</code>) with your email and password.</li>
+        <li>Open <code>https://afruheritage.com</code> and click <b class="click">Get Started</b>, or go straight to <code>https://afruheritage.com/register</code>.</li>
+        <li>You see the page "Start Your Freight Forwarding Journey" with social buttons on top ("Continue with Google / Instagram / TikTok") and, below the divider <b>"OR REGISTER WITH EMAIL"</b>, the email form.</li>
       </ol>
-      <div class="ok"><b>It worked when:</b> your dashboard opens showing the home screen with quick links (New Shipment, Track Shipment, Support, Settings).</div>
-      <div class="ifwrong"><b>If you see "registration is limited to invited participants":</b> your email is not on the pilot list. Ask your Afruheritage contact to admit it, then try again.</div>
-      <div class="ifwrong"><b>If you get an error before the invite check:</b> make sure you chose <b>Individual</b> — the form needs a company name when "Business" is selected.</div>
-    </div><div class="col"><img class="shot" src="../screenshots/j01-register.png" alt="Create Account page with Individual selected"></div></div>
+    </div><div class="col"><img class="shot" src="../screenshots/j01-register-form.png" alt="Registration page before filling"></div></div>
+
+    <h3>Step B — Fill the form</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Under <b>"I am signing up as"</b> click <b class="click">Individual</b> (it stays highlighted). Choosing <b>Business</b> adds a required <b>Company Name</b> field.</li>
+        <li>Type your <b>Full Name</b>.</li>
+        <li>Type the <b>Email</b> that was admitted to the pilot — it must be the same address.</li>
+        <li>Type a <b>Password</b> (at least 8 characters) and repeat it in <b>Confirm Password</b>. The eye icon toggles visibility.</li>
+        <li>Click <b class="click">Create Account</b> — the button shows "Creating account…" while it works.</li>
+      </ol>
+      <div class="ifwrong"><b>"Passwords do not match"</b> — retype both password fields identically. <b>"at least 8 characters"</b> — use a longer password. <b>"registration is limited to invited participants"</b> — your email is not admitted; ask your Afruheritage contact. <b>"account already exists"</b> — sign in instead, or use Forgot password.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j02-register-filled.png" alt="Registration form filled in"></div></div>
+
+    <h3>Step C — Choose your plan</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>A dialog titled <b>"Choose Your Plan"</b> appears — your account is already created at this point. Four cards are offered: <b>Free Trial (14 days) — 0 GHS</b>, <b>Starter — 1,000 GHS/month</b>, <b>Growth — 2,500 GHS/month</b>, <b>Enterprise — 6,000 GHS/month</b>.</li>
+        <li>Click the <b class="click">Free Trial</b> card (a filled radio dot marks it), then click <b class="click">Continue</b> at the bottom right.</li>
+        <li>For the free trial, a second dialog offers a storefront template — pick one and click <b class="click">Launch Storefront</b>, or click <b class="click">Skip</b>.</li>
+      </ol>
+      <div class="warn"><b>Known pilot defect (U-004):</b> during the verified run, clicking Continue on the plan step briefly showed an error banner (<i>"Failed to initialize payment: Unexpected token…"</i>) instead of the template step. <b>Your account is still created.</b> If this happens, close the dialog (Cancel), sign in normally, and continue — the free trial can be activated by support. Paid plans are excluded from the free pilot.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j03-choose-plan.png" alt="Choose Your Plan dialog"><img class="shot" src="../screenshots/j04-choose-template.png" alt="Plan step error state"></div></div>
+
+    <h3>Step D — Check your welcome email</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>An email arrives from <code>advisory@emidentity.com</code> with the subject <b>"Welcome to Afruheritage — Your Account is Ready!"</b>. It confirms your sign-in email and portal address. No code is needed — Afruheritage does not use one-time passcodes.</li>
+      </ol>
+      <div class="ifwrong"><b>No email after a few minutes:</b> check spam. Still nothing? Your account still works — go sign in.</div>
+    </div><div class="col"></div></div>
+
+    <h3>Step E — Sign in</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <code>https://afruheritage.com/login</code>. You see "Welcome Back".</li>
+        <li>Enter your <b>Email</b> and <b>Password</b>, then click <b class="click">Sign In</b>. ("Remember me" is optional.)</li>
+        <li>The button shows "Signing in…" for a few seconds, then the page changes.</li>
+      </ol>
+      <div class="ifwrong"><b>"Incorrect email or password"</b> — retype carefully or use <b>Forgot password?</b> (top right of the password field). <b>"Too many login attempts"</b> — wait about a minute and try again.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/l01-login-page.png" alt="Sign-in page"><img class="shot" src="../screenshots/l02-login-filled.png" alt="Sign-in form filled in"></div></div>
+
+    <h3>Step F — First-time setup wizard</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>New accounts land on <b>"Welcome to Afruheritage"</b> with a progress bar: <b>1 Welcome → 2 Your Role → 3 Profile → 4 Done</b>. Click <b class="click">Get Started</b>.</li>
+        <li>On "What brings you to Afruheritage?", click the card that fits you — <b>Personal Shipper</b> (Free), <b>Delivery Driver</b> (KYC Required), or <b>Freight Company</b> (Subscription) — then click <b class="click">Continue</b>.</li>
+        <li>On "Complete your profile", confirm your <b>Full Name</b> (your sign-in email is shown above it) and click <b class="click">Finish Setup</b>.</li>
+      </ol>
+    </div><div class="col"><img class="shot" src="../screenshots/l05-onb-role.png" alt="Role selection step"><img class="shot" src="../screenshots/l07-onb-profile.png" alt="Profile confirmation step"></div></div>
+
+    <h3>Step G — Your dashboard</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>The dashboard greets you: <b>"Welcome back, &lt;your name&gt;"</b>.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> you see quick-action cards (My Shipments, Create Shipment, Track Package, Support, Settings, Storefront Templates) and the left sidebar menu. You are fully registered and signed in.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/l08-dashboard.png" alt="Dashboard after first sign-in"></div></div>
   </div>
 </section>
 
@@ -185,8 +236,9 @@
         <li>Open <code>https://afruheritage.com/register</code>.</li>
         <li>Choose <b class="click">Business</b> under "I am signing up as".</li>
         <li>Fill in your name, email, and password, plus the company details the form asks for (company name and related fields).</li>
-        <li>Submit the form. Your company workspace is created, and you get a company portal address (for example <code>your-company.afruheritage.com</code>) in your welcome email and on your dashboard.</li>
-        <li>Sign in — your sidebar shows: Dashboard, Products, Shipments, Fleet, CRM, Customs Duty, Team Members, KYC, Support, Billing, Settings, Templates, Plugins, Gallery, Storefront, Profile.</li>
+        <li>Submit the form. The <b>"Choose Your Plan"</b> dialog appears — pick <b class="click">Free Trial</b> and click <b class="click">Continue</b> (see the U-004 note in Individual Customer if it errors; your account is still created).</li>
+        <li>Your company workspace is created, and you get a company portal address (for example <code>your-company.afruheritage.com</code>) in your welcome email and on your dashboard.</li>
+        <li>Sign in — the first sign-in runs the same Welcome → Your Role → Profile → Done wizard as Individual, then your sidebar shows: Dashboard, Products, Shipments, Fleet, CRM, Customs Duty, Team Members, KYC, Support, Billing, Settings, Templates, Plugins, Gallery, Storefront, Profile.</li>
       </ol>
       <div class="ok"><b>It worked when:</b> the dashboard greets you by name and the sidebar shows the company menu.</div>
     </div><div class="col"><img class="shot" src="../screenshots/j09-after-login.png" alt="Business dashboard after sign-in"></div></div>
@@ -331,7 +383,22 @@
       <li>Click <b class="click">Run collection</b> → <b class="click">Run Afruheritage UAT</b>. Requests run in order; sign-ins and IDs are handled automatically.</li>
       <li>Check the results — every request should show <b>PASS</b>. Anything else is a defect to report.</li>
     </ol>
-    <div class="note"><b>Already proven:</b> the pack was executed against the pilot system before delivery — 79 requests, 94 checks, all passing. See <code>POSTMAN_EXECUTION_REPORT.md</code>.</div>
+    <h3>Which account does what?</h3>
+    <table>
+      <tr><th>Section</th><th>Signs in as</th><th>What it proves</th></tr>
+      <tr><td>00 Authentication</td><td>All 9 UAT accounts, one by one</td><td>Every role can sign in; a wrong password is refused (expected 401)</td></tr>
+      <tr><td>01 Identity</td><td>Business owner A, staff, driver</td><td>"Who am I" shows the right role and company</td></tr>
+      <tr><td>02 Team invitations</td><td>Owner A sends; a generated invitee accepts</td><td>Invite → email → accept → member list. The invitee email is created fresh each run</td></tr>
+      <tr><td>03 Shipments</td><td>Owner A creates; tenant B tests denial</td><td>Create → status changes → public tracking; tenant B refused (expected 403/404)</td></tr>
+      <tr><td>04 Marketplace</td><td>Tenant A posts; the driver accepts</td><td>Job post → driver search → accept → tracking → GPS; unauth/cross-tenant writes refused</td></tr>
+      <tr><td>05 Customs</td><td>Guest (capped), then signed-in user</td><td>Ghana and Kenya estimates; signed-in endpoints refuse guests</td></tr>
+      <tr><td>06 Support &amp; CRM</td><td>Public ticket creator, then staff</td><td>Ticket opened publicly, tracked by token, visible internally</td></tr>
+      <tr><td>07 Vendor</td><td>Approved vendor account</td><td>Vendor profile and bookings readable; tenant users refused admin data</td></tr>
+      <tr><td>08 Billing</td><td>Business owner A</td><td>Plans, subscription, wallet, transactions — reads only, no charges</td></tr>
+      <tr><td>09 Sentinel admin</td><td>Sentinel super-admin and viewer</td><td>Tenants, diagnostics, audit logs; viewer refused admin writes</td></tr>
+    </table>
+    <div class="note"><b>How to read results:</b> a green PASS can mean "the server correctly refused" — negative checks (marked NEG) pass when they return 401/403/404. A red FAIL is always a real defect to report.</div>
+    <div class="note"><b>Already proven:</b> the pack was executed against the pilot system before delivery — 79 requests, 94 checks, all passing in 3m 36s. See <code>POSTMAN_EXECUTION_REPORT.md</code> and the visual report at <code>evidence/live/uat_newman_report.html</code>.</div>
   </div>
 </section>
 
@@ -348,6 +415,7 @@
       <tr><td>Sentinel pilot-admission</td><td>Adding an email to the invite list is a developer-run command today; a Sentinel screen is planned.</td></tr>
       <tr><td>WhatsApp updates</td><td>Not enabled yet.</td></tr>
       <tr><td>Known defect</td><td>Submitting a support ticket with an invalid priority value returns a server error instead of a clean message (valid values work).</td></tr>
+      <tr><td>Known defect (U-004)</td><td>At registration, the "Choose Your Plan" Continue button can show a payment-initialization error for the free trial. Your account is still created — cancel the dialog, sign in, and the free trial is activated by support. Fix is in the repair list.</td></tr>
     </table>
   </div>
 </section>

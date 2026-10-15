@@ -2,7 +2,8 @@
 
 **Collection:** `AFRUHERITAGE_UAT.postman_collection.json` (79 requests, 94 assertions)
 **Runner:** Newman 6.2.3 against the authorized UAT environment (`https://api.afruheritage.com`, `https://admin.afruheritage.com`)
-**Result:** 79 requests executed — **79 PASS / 0 FAIL** (94/94 assertions)
+**Result:** 79 requests executed — **79 PASS / 0 FAIL** (94/94 assertions); run duration 3m 36s
+**Artifacts:** `evidence/live/uat_newman_execution.json` (machine-readable, secrets redacted) and `evidence/live/uat_newman_report.html` (open in a browser for the visual report — request/response detail per row)
 
 Every request below was actually executed. Tokens, shipment IDs, tracking numbers, invitation tokens, and ticket tokens were captured automatically by test scripts — nothing was copied by hand.
 
