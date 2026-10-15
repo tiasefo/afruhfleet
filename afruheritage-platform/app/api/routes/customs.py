@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from typing import Literal
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+from app.api.deps import get_current_user
+from app.models.user import User
 from app.services.vin_decoder import decode_vin
 from app.services.customs.providers import calculate_with_fallback
 from app.services.customs.vehicle_valuation import search_kra_crsp, ghana_icums_public_metadata, estimate_ghana_from_vehicle_details
@@ -153,7 +155,7 @@ def countries():
 
 
 @router.post("/calculate")
-def calculate_customs(payload: CustomsCalcRequest):
+def calculate_customs(payload: CustomsCalcRequest, current_user: User = Depends(get_current_user)):
     data = payload.model_dump()
 
     if payload.country == "GH" and payload.commodity_type == "vehicle":
@@ -176,7 +178,7 @@ def vin_decode(payload: VINDecodeRequest):
 
 
 @router.post("/vehicle-value")
-def vehicle_value(payload: VehicleValueRequest):
+def vehicle_value(payload: VehicleValueRequest, current_user: User = Depends(get_current_user)):
     data = payload.model_dump()
 
     if payload.country == "KE":
@@ -201,13 +203,13 @@ def ghana_sources():
 
 
 @router.post("/ghana/vehicle-duty")
-def ghana_vehicle_duty(payload: GhanaVehicleDutyRequest):
+def ghana_vehicle_duty(payload: GhanaVehicleDutyRequest, current_user: User = Depends(get_current_user)):
     data = payload.model_dump()
     return ghana_vehicle_orchestrator(data)
 
 
 @router.post("/ghana/goods-duty")
-def ghana_goods_duty(payload: CustomsCalcRequest):
+def ghana_goods_duty(payload: CustomsCalcRequest, current_user: User = Depends(get_current_user)):
     data = payload.model_dump()
     return ghana_goods_orchestrator(data)
 
@@ -267,5 +269,5 @@ def kenya_vehicle_orchestrator(data: dict) -> dict:
 
 
 @router.post("/kenya/vehicle-duty")
-def kenya_vehicle_duty(payload: KenyaVehicleDutyRequest):
+def kenya_vehicle_duty(payload: KenyaVehicleDutyRequest, current_user: User = Depends(get_current_user)):
     return kenya_vehicle_orchestrator(payload.model_dump())

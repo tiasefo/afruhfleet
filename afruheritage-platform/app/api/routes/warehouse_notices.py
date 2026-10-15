@@ -4,6 +4,8 @@ from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
 from app.db.session import get_db
+from app.api.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/warehouse-notices", tags=["Warehouse Notices"])
 
@@ -27,8 +29,14 @@ def get_tenant_id(db: Session, slug: str):
     return row["id"]
 
 @router.post("")
-def create_notice(payload: NoticeCreate, db: Session = Depends(get_db)):
+def create_notice(payload: NoticeCreate,
+                  current_user: User = Depends(get_current_user),
+                  db: Session = Depends(get_db)):
     tenant_id = get_tenant_id(db, payload.tenant_slug)
+    # Only the owning tenant (or platform superuser) may publish notices —
+    # public unauthenticated creation allowed content injection into any storefront.
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(tenant_id):
+        raise HTTPException(403, "Not authorized to post notices for this tenant")
 
     row = db.execute(text("""
         INSERT INTO warehouse_notices (

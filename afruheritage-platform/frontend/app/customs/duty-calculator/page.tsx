@@ -123,14 +123,44 @@ export default function DutyCalculatorPage() {
         }
       }
 
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
 
-      if (!res.ok) throw new Error(await res.text())
-      setResult(await res.json())
+      if (token) {
+        // Signed-in users use the authenticated customs endpoints.
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        })
+        if (!res.ok) throw new Error(await res.text())
+        setResult(await res.json())
+      } else {
+        // Guests use the fingerprint-capped guest endpoint (2 free checks).
+        let guestId = localStorage.getItem('customs_guest_id')
+        if (!guestId) {
+          guestId = (crypto.randomUUID ? crypto.randomUUID() : `g-${Date.now()}-${Math.random().toString(36).slice(2)}`)
+          localStorage.setItem('customs_guest_id', guestId)
+        }
+        const res = await fetch('/api/v1/customs/guest/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guest_id: guestId,
+            country: payload.country,
+            commodity_type: payload.commodity_type,
+            payload,
+          }),
+        })
+        if (!res.ok) throw new Error(await res.text())
+        const data = await res.json()
+        if (data.pilot_closed) {
+          throw new Error(data.message || 'Free checks used. Register with your invited email to continue.')
+        }
+        if (data.payment_required) {
+          throw new Error('Free checks used. Please sign in or register to continue.')
+        }
+        setResult(data.result ?? data)
+      }
     } catch (err: any) {
       setError(err?.message || 'Calculation failed.')
     } finally {

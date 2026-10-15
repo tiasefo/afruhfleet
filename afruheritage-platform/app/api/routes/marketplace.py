@@ -208,7 +208,12 @@ def get_shipment(
 
 
 @router.post("/shipments")
-def post_shipment(payload: ShipmentPost):
+def post_shipment(payload: ShipmentPost,
+                  current_user: User = Depends(require_active_subscription),
+                  db: Session = Depends(get_db)):
+    # Authenticated only. The caller must belong to the tenant being charged.
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(payload.tenant_id):
+        raise HTTPException(status_code=403, detail="tenant_mismatch")
     with _db_session() as db:
         require_feature_or_raise(db, payload.tenant_id, "marketplace_basic")
 
@@ -222,6 +227,7 @@ def post_shipment(payload: ShipmentPost):
         job = MarketplaceShipment(
             tracking_number=tracking_number,
             tenant_id=payload.tenant_id,
+            created_by_user_id=current_user.id,
             customer_name=payload.customer_name,
             title=payload.title,
             description=payload.description,
@@ -253,7 +259,12 @@ def post_shipment(payload: ShipmentPost):
         return serialize(job)
 
 @router.post("/drivers/search")
-def search_jobs(payload: DriverSearch):
+def search_jobs(payload: DriverSearch,
+                current_user: User = Depends(get_current_user),
+                db: Session = Depends(get_db)):
+    # Drivers may only search as themselves.
+    if current_user.role == UserRole.delivery_driver and str(payload.driver_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="driver_identity_mismatch")
     with _db_session() as db:
         rows = db.query(MarketplaceShipment).filter(MarketplaceShipment.status == "open").all()
         results = []
@@ -269,7 +280,15 @@ def search_jobs(payload: DriverSearch):
         return {"jobs": results}
 
 @router.post("/shipments/{job_id}/accept")
-def accept_job(job_id: str, payload: AcceptJob):
+def accept_job(job_id: str, payload: AcceptJob,
+               current_user: User = Depends(get_current_user),
+               db: Session = Depends(get_db)):
+    # Only platform_admin may assign someone else; drivers accept for themselves.
+    if not current_user.is_superuser and current_user.role != UserRole.platform_admin:
+        if str(payload.driver_id) != str(current_user.id):
+            raise HTTPException(status_code=403, detail="driver_identity_mismatch")
+        if current_user.role != UserRole.delivery_driver:
+            raise HTTPException(status_code=403, detail="only_drivers_can_accept_jobs")
     with _db_session() as db:
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
         if not job:
@@ -285,7 +304,9 @@ def accept_job(job_id: str, payload: AcceptJob):
         return serialize(job)
 
 @router.post("/shipments/{job_id}/tracking/{status}")
-def update_tracking(job_id: str, status: str):
+def update_tracking(job_id: str, status: str,
+                    current_user: User = Depends(get_current_user),
+                    db: Session = Depends(get_db)):
     allowed = ["driver_assigned", "pickup_started", "picked_up", "in_transit", "delivered", "cancelled"]
     if status not in allowed:
         raise HTTPException(status_code=400, detail={"error": "invalid_status", "allowed": allowed})
@@ -294,6 +315,9 @@ def update_tracking(job_id: str, status: str):
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="job_not_found")
+        # Only the assigned driver, a member of the owning tenant, or platform admin may update tracking.
+        if not _can_operate_job(current_user, job):
+            raise HTTPException(status_code=403, detail="not_authorized_for_job")
         job.tracking_status = status
         if status == "delivered":
             job.status = "completed"
@@ -315,12 +339,30 @@ class GpsPingRequest(BaseModel):
     heading_degrees: float | None = None
 
 
+def _can_operate_job(user: User, job: MarketplaceShipment) -> bool:
+    """Assigned driver, owning-tenant member, or platform admin."""
+    if user.is_superuser or user.role == UserRole.platform_admin:
+        return True
+    if job.assigned_driver_id and str(job.assigned_driver_id) == str(user.id):
+        return True
+    if user.tenant_id and str(user.tenant_id) == str(job.tenant_id):
+        return True
+    if job.created_by_user_id and str(job.created_by_user_id) == str(user.id):
+        return True
+    return False
+
+
 @router.post("/shipments/{job_id}/gps")
-def add_gps_ping(job_id: str, payload: GpsPingRequest):
+def add_gps_ping(job_id: str, payload: GpsPingRequest,
+                 current_user: User = Depends(get_current_user),
+                 db: Session = Depends(get_db)):
     with _db_session() as db:
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="job_not_found")
+
+        if not _can_operate_job(current_user, job):
+            raise HTTPException(status_code=403, detail="not_authorized_for_job")
 
         if job.assigned_driver_id and job.assigned_driver_id != payload.driver_id:
             raise HTTPException(status_code=403, detail="driver_not_assigned_to_this_job")
@@ -374,11 +416,15 @@ def add_gps_ping(job_id: str, payload: GpsPingRequest):
 
 
 @router.get("/shipments/{job_id}/gps")
-def get_gps_history(job_id: str):
+def get_gps_history(job_id: str,
+                    current_user: User = Depends(get_current_user),
+                    db: Session = Depends(get_db)):
     with _db_session() as db:
         job = db.query(MarketplaceShipment).filter(MarketplaceShipment.id == job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="job_not_found")
+        if not _can_operate_job(current_user, job):
+            raise HTTPException(status_code=403, detail="not_authorized_for_job")
 
         rows = (
             db.query(MarketplaceGpsPing)

@@ -6,12 +6,14 @@ import uuid
 from datetime import datetime, timedelta
 
 import requests
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.api.deps import get_current_user
 from app.core.config import settings
+from app.models.user import User
 from app.models.payment_hub import PaymentTransaction
 from app.models.saas_subscription import TenantSubscription
 from app.models.billing import Payment as BillingPayment, PaymentStatus as BillingPaymentStatus
@@ -161,7 +163,7 @@ class InitializePaymentRequest(BaseModel):
 
 
 @router.post("/initialize")
-def initialize_payment(payload: InitializePaymentRequest):
+def initialize_payment(payload: InitializePaymentRequest, current_user: User = Depends(get_current_user)):
     if payload.provider != "paystack":
         raise HTTPException(status_code=400, detail="only_paystack_provider_is_enabled_currently")
 
@@ -357,7 +359,9 @@ def verify_payment(reference: str):
 
 
 @router.get("/transactions/{tenant_id}")
-def list_transactions(tenant_id: str):
+def list_transactions(tenant_id: str, current_user: User = Depends(get_current_user)):
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(tenant_id):
+        raise HTTPException(status_code=403, detail="Not authorized to view this tenant's transactions")
     db = SessionLocal()
     try:
         # Canonical source: billing_payments (where successful Paystack/PayPal

@@ -4,6 +4,8 @@ from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
 from app.db.session import get_db
+from app.api.deps import get_current_user
+from app.models.user import User
 
 router = APIRouter(prefix="/cargo-lifecycle", tags=["Cargo Lifecycle"])
 
@@ -31,7 +33,9 @@ class StatusUpdate(BaseModel):
     changed_by: Optional[str] = "admin"
 
 @router.put("/{tracking_number}/status")
-def update_status(tracking_number: str, payload: StatusUpdate, db: Session = Depends(get_db)):
+def update_status(tracking_number: str, payload: StatusUpdate,
+                  current_user: User = Depends(get_current_user),
+                  db: Session = Depends(get_db)):
     if payload.status not in VALID_STATUSES:
         raise HTTPException(400, f"Invalid status: {payload.status}")
 
@@ -44,6 +48,11 @@ def update_status(tracking_number: str, payload: StatusUpdate, db: Session = Dep
 
     if not cargo:
         raise HTTPException(404, "Cargo record not found")
+
+    # Only the owning tenant (or platform superuser) may change cargo status —
+    # this endpoint previously allowed unauthenticated status writes.
+    if not current_user.is_superuser and str(current_user.tenant_id) != str(cargo["tenant_id"]):
+        raise HTTPException(403, "Not authorized to update this cargo record")
 
     db.execute(text("""
         UPDATE cargo_records
