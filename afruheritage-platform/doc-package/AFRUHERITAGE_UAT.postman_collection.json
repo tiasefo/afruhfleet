@@ -1,0 +1,4323 @@
+{
+  "info": {
+    "name": "Afruheritage UAT — Executable Regression Pack",
+    "description": "Executed against the authorized UAT environment. Run top-to-bottom; tokens and IDs are captured automatically. Credentials are NOT included — supply them via the environment file.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 — Authentication (all roles)",
+      "item": [
+        {
+          "name": "01 Login — business owner A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_BIZ_A_EMAIL}}\",\"password\":\"{{UAT_BIZ_A_PASSWORD}}\"}"
+            },
+            "description": "Establishes the primary tenant session. Every later request reuses {{biz_token}} automatically."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"biz_token\", j.access_token);",
+                  "pm.collectionVariables.set(\"tenant_a_id\", j.tenant_id);",
+                  "pm.test(\"token captured\", function(){ pm.expect(pm.collectionVariables.get(\"biz_token\")).to.be.a(\"string\").with.length.above(50); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Login — tenant B owner (isolation)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_BIZ_B_EMAIL}}\",\"password\":\"{{UAT_BIZ_B_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"biz_b_token\", j.access_token);",
+                  "pm.collectionVariables.set(\"tenant_b_id\", j.tenant_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Login — individual customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_IND_EMAIL}}\",\"password\":\"{{UAT_IND_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"ind_token\", j.access_token);",
+                  "pm.collectionVariables.set(\"tenant_ind_id\", j.tenant_id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Login — company staff",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_STAFF_EMAIL}}\",\"password\":\"{{UAT_STAFF_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"staff_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Login — driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_DRIVER_EMAIL}}\",\"password\":\"{{UAT_DRIVER_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"drv_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Login — vendor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_VENDOR_EMAIL}}\",\"password\":\"{{UAT_VENDOR_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"vend_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Login — platform admin (UAT superuser)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_ADMIN_EMAIL}}\",\"password\":\"{{UAT_ADMIN_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"admin_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 NEG — wrong password rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/login",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_BIZ_A_EMAIL}}\",\"password\":\"WrongPassword!999\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "setTimeout(function(){}, 13000); // login endpoint is rate-limited to 5/min per client"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Sentinel login — super admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/auth/login",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_SENTINEL_EMAIL}}\",\"password\":\"{{UAT_SENTINEL_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"sentinel_token\", j.access_token);",
+                  "pm.collectionVariables.set(\"cp_token\", j.control_plane_token);",
+                  "pm.test(\"control-plane token captured\", function(){ pm.expect(pm.collectionVariables.get(\"cp_token\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 Sentinel login — admin viewer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/auth/login",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{UAT_VIEWER_EMAIL}}\",\"password\":\"{{UAT_VIEWER_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"sentinel_viewer_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 Logout — clear session cookie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/logout",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "The API also sets an HttpOnly session cookie on login. Logging out clears it so the no-credential negative tests below are genuinely unauthenticated."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "12 NEG — profile without credentials rejected",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Runs after logout so no session cookie is attached — proves header-level unauthenticated rejection."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 — Identity & Tenant Context",
+      "item": [
+        {
+          "name": "01 Who am I — business owner",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"biz_user_id\", j.id);",
+                  "pm.test(\"tenant matches login\", function(){ pm.expect(j.tenant_id).to.eql(pm.collectionVariables.get(\"tenant_a_id\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Who am I — driver (role + id check)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"driver_user_id\", j.id);",
+                  "pm.test(\"driver role\", function(){ pm.expect(j.role).to.eql(\"delivery_driver\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Who am I — staff (not admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staff_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"staff is not tenant admin\", function(){ pm.expect(j.is_tenant_admin).to.eql(false); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Resolve tenant portal subdomain",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/tenant-context/subdomain/uatcert-meridian-freight-3",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tenant-context",
+                "subdomain",
+                "uatcert-meridian-freight-3"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 — Team Invitations",
+      "item": [
+        {
+          "name": "01 Invite a new staff member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"{{invitee_email}}\",\"full_name\":\"UAT Invited Staff\",\"role\":\"customer\"}"
+            },
+            "description": "Generates a fresh invitee identity each run so the suite is idempotent. The token is captured here so acceptance runs unattended; real email delivery to a mailbox was verified separately in UAT evidence."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const em = \"uat-inv-\" + Date.now() + \"@maxxspace.com\"; pm.collectionVariables.set(\"invitee_email\", em);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 201\", function(){ pm.expect(pm.response.code).to.eql(201); });",
+                  "pm.collectionVariables.set(\"invitation_token\", j.token);",
+                  "pm.collectionVariables.set(\"invitation_id\", j.id);",
+                  "pm.test(\"invitation token captured\", function(){ pm.expect(pm.collectionVariables.get(\"invitation_token\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 List team invitations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Look up invitation by token (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations/{{invitation_token}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations",
+                "{{invitation_token}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"email matches\", function(){ pm.expect(j.email).to.eql(pm.collectionVariables.get(\"invitee_email\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Invitee accepts with password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations/{{invitation_token}}/accept",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations",
+                "{{invitation_token}}",
+                "accept"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"full_name\":\"UAT Invited Staff\",\"password\":\"{{UAT_INVITEE_PASSWORD}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.collectionVariables.set(\"invitee_token\", j.access_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Invitee profile — joined tenant A",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/auth/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{invitee_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"invitee joined tenant A\", function(){ pm.expect(j.tenant_id).to.eql(pm.collectionVariables.get(\"tenant_a_id\")); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 List team members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/members",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "members"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 NEG — staff cannot invite",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staff_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"nope-uat@example.com\",\"role\":\"customer\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 NEG — bogus invitation token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/team/invitations/not-a-real-token-12345",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "team",
+                "invitations",
+                "not-a-real-token-12345"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", function(){ pm.expect(pm.response.code).to.eql(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 — Shipments & Tracking",
+      "item": [
+        {
+          "name": "01 Create shipment (tenant A)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"sender_name\":\"UAT Sender\",\"sender_phone\":\"+233240000100\",\"sender_address\":\"1 Test Ave, Accra\",\"receiver_name\":\"UAT Receiver\",\"receiver_phone\":\"+233240000200\",\"receiver_address\":\"2 Port Rd, Tema\",\"origin_country\":\"Ghana\",\"origin_city\":\"Accra\",\"destination_country\":\"Ghana\",\"destination_city\":\"Tema\",\"weight_kg\":12.5,\"package_count\":2,\"description\":\"UAT parcels\",\"cargo_type\":\"general\",\"currency\":\"GHS\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "pm.collectionVariables.set(\"shipment_id\", j.id);",
+                  "pm.collectionVariables.set(\"tracking_number\", j.tracking_number);",
+                  "pm.test(\"tracking number issued\", function(){ pm.expect(pm.collectionVariables.get(\"tracking_number\")).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 List tenant shipments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Advance status → booked",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}/{{shipment_id}}/transition",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}",
+                "{{shipment_id}}",
+                "transition"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "booked"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"status booked\", function(){ pm.expect(j.status).to.eql(\"booked\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Advance status → in_transit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}/{{shipment_id}}/transition",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}",
+                "{{shipment_id}}",
+                "transition"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "in_transit"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Shipment event history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}/{{shipment_id}}/events",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}",
+                "{{shipment_id}}",
+                "events"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Public tracking (no login)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/public/track/{{tracking_number}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "public",
+                "track",
+                "{{tracking_number}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 NEG — tenant B cannot read tenant A shipments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403 or 404\", function(){ pm.expect(pm.response.code).to.be.oneOf([403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 NEG — tenant B cannot mutate tenant A shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/{{tenant_a_id}}/{{shipment_id}}/transition",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "{{tenant_a_id}}",
+                "{{shipment_id}}",
+                "transition"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "delivered"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403 or 404\", function(){ pm.expect(pm.response.code).to.be.oneOf([403,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 NEG — invalid tracking number (public)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/shipments/public/track/AFR-NOPE-000000",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "shipments",
+                "public",
+                "track",
+                "AFR-NOPE-000000"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404 or 422\", function(){ pm.expect(pm.response.code).to.be.oneOf([404,422]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 — Marketplace (authorization regression)",
+      "item": [
+        {
+          "name": "01 Post marketplace shipment (tenant A)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"customer_name\":\"UAT Marketplace Customer\",\"title\":\"UAT R1 verification job\",\"description\":\"Automated UAT shipment posting\",\"pickup\":{\"label\":\"Accra\",\"latitude\":5.6037,\"longitude\":-0.187},\"dropoff\":{\"label\":\"Tema\",\"latitude\":5.6698,\"longitude\":-0.0166},\"weight_kg\":10}"
+            },
+            "description": "Consumes 5 marketplace credits — funded via the audited Sentinel credit adjustment (no payment)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "pm.collectionVariables.set(\"job_id\", j.id || j.job_id);",
+                  "pm.collectionVariables.set(\"job_tracking\", j.tracking_number);",
+                  "pm.test(\"status open\", function(){ pm.expect([\"open\",\"posted\"]).to.include(j.status); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Driver searches open jobs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/drivers/search",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "drivers",
+                "search"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driver_id\":\"{{driver_user_id}}\",\"current_latitude\":5.6,\"current_longitude\":-0.19,\"max_distance_km\":50}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Driver accepts the job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/accept",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "accept"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driver_id\":\"{{driver_user_id}}\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"job assigned\", function(){ pm.expect(j.status).to.eql(\"assigned\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Driver updates tracking → in_transit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/tracking/in_transit",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "tracking",
+                "in_transit"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Driver sends GPS ping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/gps",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "gps"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driver_id\":\"{{driver_user_id}}\",\"latitude\":5.62,\"longitude\":-0.15}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Driver reads GPS history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/gps",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "gps"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 NEG — post without credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"customer_name\":\"x\",\"title\":\"x\",\"pickup\":{\"label\":\"a\",\"latitude\":5.6,\"longitude\":-0.19},\"dropoff\":{\"label\":\"b\",\"latitude\":5.67,\"longitude\":-0.02}}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 NEG — tenant B posts into tenant A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"customer_name\":\"x\",\"title\":\"x\",\"pickup\":{\"label\":\"a\",\"latitude\":5.6,\"longitude\":-0.19},\"dropoff\":{\"label\":\"b\",\"latitude\":5.67,\"longitude\":-0.02}}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 NEG — tenant B cannot update A job tracking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/tracking/delivered",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "tracking",
+                "delivered"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 NEG — driver cannot accept as someone else",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/accept",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "accept"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{drv_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"driver_id\":\"some-other-driver\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403 or 409\", function(){ pm.expect(pm.response.code).to.be.oneOf([403,409]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 NEG — tenant B cannot read A job GPS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/marketplace/shipments/{{job_id}}/gps",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "marketplace",
+                "shipments",
+                "{{job_id}}",
+                "gps"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 — Customs Calculators (GH & KE)",
+      "item": [
+        {
+          "name": "01 Guest — Ghana vehicle estimate (capped)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/customs/guest/calculate",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "guest",
+                "calculate"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"guest_id\":\"{{guest_id}}\",\"country\":\"GH\",\"commodity_type\":\"vehicle\",\"payload\":{\"country\":\"GH\",\"commodity_type\":\"vehicle\",\"make\":\"Toyota\",\"model\":\"Corolla\",\"vehicle_year\":2018,\"engine_cc\":1800,\"fuel_type\":\"petrol\",\"cif_value\":8000,\"currency\":\"USD\"}}"
+            },
+            "description": "Public path used by the duty-calculator page. Capped at 2 free checks per guest fingerprint."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const gid = pm.collectionVariables.get(\"guest_id\") || (\"uat-\" + Date.now()); pm.collectionVariables.set(\"guest_id\", gid);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Signed-in — Ghana vehicle duty",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/customs/ghana/vehicle-duty",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "ghana",
+                "vehicle-duty"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ind_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"country\":\"GH\",\"commodity_type\":\"vehicle\",\"make\":\"Toyota\",\"model\":\"Corolla\",\"vehicle_year\":2018,\"engine_cc\":1800,\"fuel_type\":\"petrol\",\"cif_value\":8000,\"currency\":\"USD\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Signed-in — Kenya vehicle duty (CRSP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/customs/kenya/vehicle-duty",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "kenya",
+                "vehicle-duty"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ind_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"country\":\"KE\",\"commodity_type\":\"vehicle\",\"make\":\"Toyota\",\"model\":\"Corolla\",\"vehicle_year\":2018,\"engine_cc\":1800,\"fuel_type\":\"petrol\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 NEG — calculator without credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/customs/ghana/vehicle-duty",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "ghana",
+                "vehicle-duty"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"country\":\"GH\",\"commodity_type\":\"vehicle\",\"make\":\"Toyota\",\"model\":\"Corolla\",\"vehicle_year\":2018,\"engine_cc\":1800,\"fuel_type\":\"petrol\",\"cif_value\":8000,\"currency\":\"USD\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 NEG — unsupported country rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/customs/calculate",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "customs",
+                "calculate"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ind_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"country\":\"NG\",\"commodity_type\":\"vehicle\",\"make\":\"Toyota\",\"model\":\"Corolla\",\"vehicle_year\":2018}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400 or 422\", function(){ pm.expect(pm.response.code).to.be.oneOf([400,422]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 — Support & CRM",
+      "item": [
+        {
+          "name": "01 Open a public support ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/public/tickets",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "public",
+                "tickets"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"public_submitter_name\":\"UAT Customer\",\"public_submitter_email\":\"{{UAT_IND_EMAIL}}\",\"subject\":\"UAT ticket — where is my shipment?\",\"description\":\"Automated UAT support request.\",\"category\":\"tracking\",\"priority\":\"medium\"}"
+            },
+            "description": "priority must be one of low|medium|high|critical — an invalid value currently returns 500 (logged as defect U-001)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "pm.collectionVariables.set(\"ticket_public_token\", j.public_token || j.token);",
+                  "pm.collectionVariables.set(\"ticket_id\", j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Read ticket by public token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/public/tickets/{{ticket_public_token}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "public",
+                "tickets",
+                "{{ticket_public_token}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Customer replies on ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/public/tickets/{{ticket_public_token}}/reply",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "public",
+                "tickets",
+                "{{ticket_public_token}}",
+                "reply"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"body\":\"Adding more detail from UAT.\",\"author_type\":\"customer\",\"author_name\":\"UAT Customer\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Tenant sees the ticket internally",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/tickets",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "tickets"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Create CRM account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/accounts",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "accounts"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"account_type\":\"customer\",\"company_name\":\"UAT CRM Account Ltd\",\"email\":\"uat-crm@example.com\",\"country\":\"Ghana\",\"city\":\"Accra\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "pm.collectionVariables.set(\"crm_account_id\", j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 List CRM accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/support-crm/accounts",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "support-crm",
+                "accounts"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Create CRM customer record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/crm/customers",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "crm",
+                "customers"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"UAT CRM Customer\",\"email\":\"uat-crm-customer@example.com\",\"company\":\"UAT CRM Co\",\"stage\":\"lead\",\"currency\":\"GHS\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 201\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+                  "pm.collectionVariables.set(\"crm_customer_id\", j.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 NEG — CRM without credentials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/crm/customers",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "crm",
+                "customers"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 — Vendors",
+      "item": [
+        {
+          "name": "01 Vendor profile (approved vendor)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/vendors/me",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vend_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"vendor approved\", function(){ pm.expect(j.vendor.status).to.eql(\"approved\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Vendor bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/vendors/me/bookings",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "me",
+                "bookings"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{vend_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Public vendor marketplace list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/vendors/marketplace",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "marketplace"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Admin — list vendors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/vendors/admin",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "admin"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 NEG — tenant user blocked from vendor admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/vendors/admin",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "vendors",
+                "admin"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 — Billing (read-only, no charges)",
+      "item": [
+        {
+          "name": "01 List plans",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/billing/plans",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "plans"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Tenant subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/billing/subscriptions/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "subscriptions",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200 or 404\", function(){ pm.expect(pm.response.code).to.be.oneOf([200,404]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Tenant wallet balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/billing/wallets/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "wallets",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Wallet transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/billing/wallets/{{tenant_a_id}}/transactions",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "billing",
+                "wallets",
+                "{{tenant_a_id}}",
+                "transactions"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 NEG — payment-hub initialize without credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/payment-hub/initialize",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payment-hub",
+                "initialize"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"tenant_id\":\"{{tenant_a_id}}\",\"amount\":1,\"currency\":\"GHS\",\"email\":\"uat@example.com\",\"purpose\":\"credit_topup\"}"
+            },
+            "description": "Live-charge surface — must never execute unauthenticated. UAT never creates a real charge."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401 or 422\", function(){ pm.expect(pm.response.code).to.be.oneOf([401,422]); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 NEG — cross-tenant transaction history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{api_base}}/api/v1/payment-hub/transactions/{{tenant_a_id}}",
+              "host": [
+                "{{api_base}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "payment-hub",
+                "transactions",
+                "{{tenant_a_id}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{biz_b_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401 or 403\", function(){ pm.expect(pm.response.code).to.be.oneOf([401,403]); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 — Sentinel Administration",
+      "item": [
+        {
+          "name": "01 Sentinel — who am I (super admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/auth/me",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"super_admin\", function(){ pm.expect(j.role).to.eql(\"super_admin\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 Sentinel — who am I (viewer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/auth/me",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_viewer_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });",
+                  "pm.test(\"admin role\", function(){ pm.expect(j.role).to.eql(\"admin\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 Sentinel — tenant list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/tenants",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "tenants"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 Sentinel — dashboard stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/dashboard/stats",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "dashboard",
+                "stats"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 Sentinel — system diagnostics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/diagnostics/system",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "diagnostics",
+                "system"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "06 Sentinel — shipments list (control-plane)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              },
+              {
+                "key": "X-CP-Token",
+                "value": "{{cp_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/shipments",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "shipments"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Proxied route — requires the X-CP-Token returned by Sentinel login in addition to the admin token."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 Sentinel — tickets list (control-plane)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              },
+              {
+                "key": "X-CP-Token",
+                "value": "{{cp_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/tickets",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "tickets"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 Sentinel — audit logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/diagnostics/audit-logs",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "diagnostics",
+                "audit-logs"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "09 Sentinel — admin users (super only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/users/",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "users"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = (()=>{try{return pm.response.json()}catch(e){return {}}})();",
+                  "pm.test(\"HTTP 200\", function(){ pm.expect(pm.response.code).to.eql(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "10 NEG — viewer cannot create admin user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/auth/users",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "auth",
+                "users"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{sentinel_viewer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"nope@example.com\",\"full_name\":\"x\",\"password\":\"xxxxxxxxxxxx\",\"role\":\"admin\"}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 403\", function(){ pm.expect(pm.response.code).to.eql(403); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "11 NEG — Sentinel without credentials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "User-Agent",
+                "value": "Afruheritage-UAT/1.0"
+              }
+            ],
+            "url": {
+              "raw": "{{sentinel_base}}/sentinel/tenants",
+              "host": [
+                "{{sentinel_base}}"
+              ],
+              "path": [
+                "sentinel",
+                "tenants"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", function(){ pm.expect(pm.response.code).to.eql(401); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_base",
+      "value": "https://api.afruheritage.com"
+    },
+    {
+      "key": "sentinel_base",
+      "value": "https://admin.afruheritage.com"
+    },
+    {
+      "key": "tenant_a_id",
+      "value": ""
+    },
+    {
+      "key": "tenant_b_id",
+      "value": ""
+    },
+    {
+      "key": "tenant_ind_id",
+      "value": ""
+    },
+    {
+      "key": "biz_token",
+      "value": ""
+    },
+    {
+      "key": "biz_b_token",
+      "value": ""
+    },
+    {
+      "key": "ind_token",
+      "value": ""
+    },
+    {
+      "key": "staff_token",
+      "value": ""
+    },
+    {
+      "key": "drv_token",
+      "value": ""
+    },
+    {
+      "key": "vend_token",
+      "value": ""
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "sentinel_token",
+      "value": ""
+    },
+    {
+      "key": "sentinel_viewer_token",
+      "value": ""
+    },
+    {
+      "key": "cp_token",
+      "value": ""
+    },
+    {
+      "key": "invitee_token",
+      "value": ""
+    },
+    {
+      "key": "biz_user_id",
+      "value": ""
+    },
+    {
+      "key": "driver_user_id",
+      "value": ""
+    },
+    {
+      "key": "invitation_token",
+      "value": ""
+    },
+    {
+      "key": "invitation_id",
+      "value": ""
+    },
+    {
+      "key": "invitee_email",
+      "value": ""
+    },
+    {
+      "key": "shipment_id",
+      "value": ""
+    },
+    {
+      "key": "tracking_number",
+      "value": ""
+    },
+    {
+      "key": "job_id",
+      "value": ""
+    },
+    {
+      "key": "job_tracking",
+      "value": ""
+    },
+    {
+      "key": "guest_id",
+      "value": ""
+    },
+    {
+      "key": "ticket_public_token",
+      "value": ""
+    },
+    {
+      "key": "ticket_id",
+      "value": ""
+    },
+    {
+      "key": "crm_account_id",
+      "value": ""
+    },
+    {
+      "key": "crm_customer_id",
+      "value": ""
+    }
+  ]
+}

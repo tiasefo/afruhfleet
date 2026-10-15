@@ -47,3 +47,24 @@
 ## Unresolved verification gaps
 
 Vendor e2e, team-invite accept, Sentinel write ops, per-route isolation sweep, Redis-outage fail-closed, all paid paths — listed in Doc 4 §H.
+
+## UAT round additions (post R-1)
+
+| Artifact | What it proves |
+|---|---|
+| `evidence/live/uat_newman_execution.json` | The 79-request automated run — redacted, every request/assertion with status and time |
+| `evidence/live/r1_driver_flow.json` | Full marketplace driver lifecycle after the authz fix (accept/tracking/GPS 200, cross-tenant 403) |
+| `evidence/api_coverage_matrix.json` | All 577 operations classified: automated pass / manual pass / manual / excluded |
+| `AFRUHERITAGE_UAT.postman_collection.json` | Executable dependency-ordered suite (replaces the pilot-scoped collection for UAT) |
+| `AFRUHERITAGE_UAT.postman_environment.json` | Environment template — emails only, no passwords |
+| `POSTMAN_EXECUTION_REPORT.md` | 79/79 PASS result table |
+| `POSTMAN_SIMPLE_START_GUIDE.md` | Click-by-click Postman instructions |
+| `UAT_CREDENTIALS_HANDOVER.md` | Account inventory + secure delivery instructions (no passwords) |
+| `guide/index.html` | Plain-English persona dashboard with inline screenshots |
+| `API_COVERAGE_MATRIX.md` | Coverage summary + totals |
+
+### Deployment evidence for this run
+- Newman run executed 2026-10-15 against `api.afruheritage.com` / `admin.afruheritage.com`.
+- API/worker/beat run bind-mounted repo code at commit `655e7f1c` (security fixes `2b4c7a0a` included).
+- Frontend image `66bfd578a698` built 2026-10-15 01:22 UTC (post R-1 rebuild).
+- Sentinel UI image `af4c75ae2ba4` built 2026-08-25 — R-004 drift stands.

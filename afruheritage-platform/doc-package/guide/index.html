@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afruheritage User Guide — Pilot Edition</title>
+<style>
+  :root { --ink:#14323d; --teal:#0a5768; --bg:#f7f9fa; --card:#ffffff; --line:#dde6ea; --ok:#1c7c4d; --warn:#a05c00; --note:#e8f2f5; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:var(--teal); color:#fff; padding:22px 24px; }
+  header h1 { margin:0 0 4px; font-size:22px; }
+  header p { margin:0; opacity:.85; font-size:14px; }
+  .layout { display:flex; max-width:1200px; margin:0 auto; }
+  nav { width:230px; flex-shrink:0; padding:18px 0; position:sticky; top:0; height:100vh; overflow:auto; background:var(--card); border-right:1px solid var(--line); }
+  nav a { display:block; padding:9px 20px; color:var(--ink); text-decoration:none; font-size:14px; border-left:3px solid transparent; }
+  nav a:hover { background:var(--note); }
+  nav a.active { border-left-color:var(--teal); background:var(--note); font-weight:600; }
+  main { flex:1; padding:26px 30px 80px; min-width:0; }
+  section { margin-bottom:44px; }
+  h2 { font-size:20px; border-bottom:2px solid var(--teal); padding-bottom:8px; }
+  h3 { font-size:16px; margin:26px 0 10px; color:var(--teal); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:14px 0; }
+  .steps { counter-reset:s; list-style:none; padding:0; margin:0; }
+  .steps li { counter-increment:s; padding:10px 0 10px 44px; position:relative; border-bottom:1px dashed var(--line); }
+  .steps li:last-child { border-bottom:none; }
+  .steps li::before { content:counter(s); position:absolute; left:0; top:9px; width:28px; height:28px; border-radius:50%; background:var(--teal); color:#fff; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; }
+  .steps b.click { color:var(--teal); }
+  img.shot { max-width:100%; border:1px solid var(--line); border-radius:8px; margin:10px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .row { display:flex; gap:20px; align-items:flex-start; flex-wrap:wrap; }
+  .row .col { flex:1; min-width:280px; }
+  .ok { background:#eaf6ef; border-left:4px solid var(--ok); padding:10px 14px; border-radius:6px; margin:10px 0; font-size:14px; }
+  .warn { background:#fdf3e6; border-left:4px solid var(--warn); padding:10px 14px; border-radius:6px; margin:10px 0; font-size:14px; }
+  .note { background:var(--note); border-left:4px solid var(--teal); padding:10px 14px; border-radius:6px; margin:10px 0; font-size:14px; }
+  .ifwrong { background:#fff; border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin:8px 0; font-size:14px; }
+  .ifwrong b { color:var(--warn); }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { background:var(--note); }
+  code { background:#eef3f5; padding:1px 5px; border-radius:4px; font-size:13px; }
+  @media (max-width:800px) { .layout{flex-direction:column} nav{width:100%;height:auto;position:static;display:flex;flex-wrap:wrap} nav a{border-left:none;border-bottom:3px solid transparent} nav a.active{border-bottom-color:var(--teal)} }
+</style>
+</head>
+<body>
+<header>
+  <h1>Afruheritage User Guide — Pilot Edition</h1>
+  <p>Plain-English instructions for every role. Each step was verified on the live pilot system.</p>
+</header>
+<div class="layout">
+<nav>
+  <a href="#start">Start here</a>
+  <a href="#sentinel">Sentinel Administrator</a>
+  <a href="#individual">Individual Customer</a>
+  <a href="#business">Business Owner</a>
+  <a href="#staff">Company Staff</a>
+  <a href="#vendor">Vendor</a>
+  <a href="#driver">Driver</a>
+  <a href="#tracking">Shipments &amp; Tracking</a>
+  <a href="#customs">Customs Calculators</a>
+  <a href="#support">Support &amp; Recovery</a>
+  <a href="#postman">Postman API Testing</a>
+  <a href="#limits">Pilot Limits &amp; Roadmap</a>
+</nav>
+<main>
+
+<section id="start">
+  <h2>Start here</h2>
+  <div class="card">
+    <p><b>What this is.</b> Afruheritage is a freight-forwarding platform. During the pilot it is <b>invitation-only</b>: you can only create an account with an email address the Afruheritage team has invited.</p>
+    <p><b>Where things live.</b></p>
+    <table>
+      <tr><th>What you want</th><th>Where</th></tr>
+      <tr><td>Customer website (register, sign in, ship, track, calculate duties)</td><td><code>https://afruheritage.com</code></td></tr>
+      <tr><td>Your company portal (after registering a business)</td><td>Shown in your welcome email and on your dashboard</td></tr>
+      <tr><td>Internal admin console (Afruheritage staff only)</td><td><code>https://admin.afruheritage.com/sentinel</code></td></tr>
+    </table>
+    <div class="warn"><b>Pilot note:</b> account emails currently arrive from <code>advisory@emidentity.com</code> while the Afruheritage sender address is being finalized. Those emails are genuine.</div>
+    <div class="note"><b>No codes to type.</b> Afruheritage does not send one-time codes (OTP). You either sign in with your password, or you click a link in an email (invitations and password resets).</div>
+  </div>
+</section>
+
+<section id="sentinel">
+  <h2>Sentinel Administrator <small style="font-weight:400;color:#666">(internal staff only)</small></h2>
+  <div class="card">
+    <h3>Sign in</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <code>https://admin.afruheritage.com/sentinel/login</code>.</li>
+        <li>Enter your <b>Email</b> and <b>Password</b>, then click <b class="click">Sign in</b>.</li>
+        <li>You land on the <b>Dashboard</b> — a summary of tenants, vendors, and shipments.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> you see the dashboard cards and the left-hand menu (Dashboard, Tenants, Shipments, Tickets, Tracking, Vendors, Users, Billing, Payments, Control Center, Feature Flags, Domains, Diagnostics, Analytics).</div>
+    </div><div class="col"><img class="shot" src="../screenshots/s01-sentinel-login.png" alt="Sentinel sign-in page"><img class="shot" src="../screenshots/s02-sentinel-dashboard.png" alt="Sentinel dashboard"></div></div>
+
+    <h3>Admit and invite a pilot customer</h3>
+    <div class="row"><div class="col">
+      <div class="warn"><b>Important:</b> adding an email to the invitation-only list is currently a <b>developer-run command</b>, not a Sentinel button. Ask the platform team to admit the customer's email; they record it in the admissions log. There is <b>no screen in Sentinel today</b> for this step — do not look for one.</div>
+      <p>Once the email is admitted, the customer registers themselves on <code>afruheritage.com</code> (see "Individual Customer" or "Business Owner" below). Sentinel does not create the account for them.</p>
+    </div></div>
+
+    <h3>Check whether a customer registered</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Click <b class="click">Tenants</b> in the left menu.</li>
+        <li>Use the search box to type the customer's company name or email.</li>
+        <li>The row shows their status (for example pending approval, active) and their portal address.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> the tenant appears in the list with the expected company name and portal URL.</div>
+      <div class="ifwrong"><b>If the tenant is missing:</b> the customer has not finished registering, or they used a different email. Check with them first; check the admissions log if you suspect the email was never admitted.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/s-tenants.png" alt="Sentinel tenants list"></div></div>
+
+    <h3>Approve an account</h3>
+    <ol class="steps">
+      <li>In <b class="click">Tenants</b>, find the tenant and open their row.</li>
+      <li>Use the <b class="click">Approve</b> action where the tenant is waiting for review. The tenant's status changes and their portal is prepared.</li>
+    </ol>
+
+    <h3>Manage staff (admin users)</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Click <b class="click">Users</b> in the left menu (super administrators only).</li>
+        <li>Click <b class="click">Add user</b> (or the create control shown) and enter the staff member's name, email, password, and role (<code>admin</code> or <code>super_admin</code>).</li>
+        <li>To disable someone, open their row and deactivate them.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> the new user appears in the list. Viewer-level admins can see this page but get "Forbidden" if they try to create users — that is expected.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/s-users.png" alt="Sentinel admin users"></div></div>
+
+    <h3>Review shipments</h3>
+    <ol class="steps">
+      <li>Click <b class="click">Shipments</b> in the left menu to see shipments across the platform.</li>
+      <li>Open a shipment to see its tracking history and notes.</li>
+    </ol>
+    <img class="shot" src="../screenshots/s-shipments.png" alt="Sentinel shipments">
+
+    <h3>Handle support tickets</h3>
+    <ol class="steps">
+      <li>Click <b class="click">Tickets</b> in the left menu.</li>
+      <li>Open a ticket to read the conversation, then write a reply and send it.</li>
+      <li>Change the ticket status (for example to resolved) with the status control.</li>
+    </ol>
+    <img class="shot" src="../screenshots/s-tickets.png" alt="Sentinel tickets">
+
+    <h3>Review vendors</h3>
+    <ol class="steps">
+      <li>Click <b class="click">Vendors</b> in the left menu to see delivery vendors who registered.</li>
+      <li>Open a vendor to review their details, then approve or reject their application.</li>
+    </ol>
+    <img class="shot" src="../screenshots/s-vendors.png" alt="Sentinel vendors">
+
+    <h3>Check problems (diagnostics and audit)</h3>
+    <ol class="steps">
+      <li>Click <b class="click">Diagnostics</b> to see system health and the audit log — who did what and when.</li>
+      <li>Click <b class="click">Analytics</b> for platform usage summaries.</li>
+    </ol>
+    <img class="shot" src="../screenshots/s-diagnostics.png" alt="Sentinel diagnostics">
+  </div>
+</section>
+
+<section id="individual">
+  <h2>Individual Customer</h2>
+  <div class="card">
+    <h3>Create your account</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <code>https://afruheritage.com</code> and click <b class="click">Get Started</b> (top right), or go straight to <code>/register</code>.</li>
+        <li>Under <b>"I am signing up as"</b> choose <b class="click">Individual</b>.</li>
+        <li>Fill in <b>Full Name</b>, <b>Email</b> (must be your invited email), <b>Password</b> (at least 8 characters), and <b>Confirm Password</b>.</li>
+        <li>Click the create-account button at the bottom of the form.</li>
+        <li>Your account is created immediately. Check your inbox — a welcome email arrives with your sign-in link.</li>
+        <li>Sign in at <code>/login</code> (or <code>/sign-in</code>) with your email and password.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> your dashboard opens showing the home screen with quick links (New Shipment, Track Shipment, Support, Settings).</div>
+      <div class="ifwrong"><b>If you see "registration is limited to invited participants":</b> your email is not on the pilot list. Ask your Afruheritage contact to admit it, then try again.</div>
+      <div class="ifwrong"><b>If you get an error before the invite check:</b> make sure you chose <b>Individual</b> — the form needs a company name when "Business" is selected.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j01-register.png" alt="Create Account page with Individual selected"></div></div>
+  </div>
+</section>
+
+<section id="business">
+  <h2>Business Owner</h2>
+  <div class="card">
+    <h3>Register your company</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <code>https://afruheritage.com/register</code>.</li>
+        <li>Choose <b class="click">Business</b> under "I am signing up as".</li>
+        <li>Fill in your name, email, and password, plus the company details the form asks for (company name and related fields).</li>
+        <li>Submit the form. Your company workspace is created, and you get a company portal address (for example <code>your-company.afruheritage.com</code>) in your welcome email and on your dashboard.</li>
+        <li>Sign in — your sidebar shows: Dashboard, Products, Shipments, Fleet, CRM, Customs Duty, Team Members, KYC, Support, Billing, Settings, Templates, Plugins, Gallery, Storefront, Profile.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> the dashboard greets you by name and the sidebar shows the company menu.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j09-after-login.png" alt="Business dashboard after sign-in"></div></div>
+
+    <h3>Invite team members</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Click <b class="click">Team Members</b> in the sidebar.</li>
+        <li>Click <b class="click">Invite Member</b> (top right).</li>
+        <li>Enter the person's <b>email</b>, <b>name</b>, and choose their <b>role</b> (for example Customer — read-only, or Driver).</li>
+        <li>Send the invitation. They receive an email titled <i>"You've been invited to join [your company] on Afruheritage"</i>.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> the invitation shows as pending in your team list, and the person appears as a member after they accept.</div>
+      <div class="note">There is also a <b>Bulk Import CSV</b> button for inviting many people at once.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j12-members.png" alt="Team Members page with Invite Member button"></div></div>
+  </div>
+</section>
+
+<section id="staff">
+  <h2>Company Staff (accepting an invitation)</h2>
+  <div class="card">
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open the invitation email (from <code>advisory@emidentity.com</code> during the pilot) and click the <b class="click">accept</b> link.</li>
+        <li>The accept page opens. Enter your <b>full name</b> and choose a <b>password</b> (at least 8 characters).</li>
+        <li>Submit — your account is activated and you are signed in to your company's workspace.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> you see the company dashboard. Staff see the workspace but cannot invite other people.</div>
+      <div class="ifwrong"><b>If the link says the invitation is invalid or expired:</b> ask the person who invited you to send a new one — invitation links expire and can only be used once.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j06-invite-accept.png" alt="Invitation accept page"></div></div>
+  </div>
+</section>
+
+<section id="vendor">
+  <h2>Vendor (delivery provider)</h2>
+  <div class="card">
+    <h3>Apply to become a vendor</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <code>https://afruheritage.com/vendor/register</code>.</li>
+        <li>Complete the four sections:
+          <br>• <b>Personal details</b> — full name, email, phone, ID type (for example Ghana Card), ID number.
+          <br>• <b>Vehicle</b> — tick your vehicle types (Truck, Car, Motorbike, Bicycle), registration number, make/model, year.
+          <br>• <b>Business</b> — business name, type, regions you operate in, experience.
+          <br>• <b>Agreement</b> — tick the terms, insurance, and background-check boxes.</li>
+        <li>Submit. You see a confirmation — applications are reviewed by the Afruheritage team (they aim for 2–3 business days).</li>
+        <li>When approved, you get an email with a <b class="click">vendor-accept</b> link. Click it, set your password, and your vendor account activates.</li>
+        <li>Sign in — your vendor area shows your profile and bookings.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> signing in opens your vendor profile showing "approved" status and an empty bookings list to start.</div>
+      <div class="ifwrong"><b>If your registration is rejected:</b> the review email explains why. Fix the issue and register again.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j03-vendor-register.png" alt="Vendor registration form"></div></div>
+  </div>
+</section>
+
+<section id="driver">
+  <h2>Driver</h2>
+  <div class="card">
+    <p>Drivers join a company through a team invitation (the owner invites you with the <b>Driver</b> role) — same steps as <a href="#staff">Company Staff</a> above.</p>
+    <p>Once in, drivers can see open marketplace jobs near them, accept a job, update its tracking status, and share GPS position from the field. During the pilot the driver experience is exercised through the API and the marketplace flow; a dedicated driver app is on the roadmap (see Pilot Limits).</p>
+  </div>
+</section>
+
+<section id="tracking">
+  <h2>Shipments &amp; Tracking</h2>
+  <div class="card">
+    <h3>Create a shipment (signed-in business or individual)</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Sign in and click <b class="click">Shipments</b> in the sidebar, then <b class="click">New Shipment</b>.</li>
+        <li>Fill the form — <b>Tracking Number</b> can stay blank ("Leave blank to auto-generate"), plus cargo type, package count, weight, and addresses.</li>
+        <li>Save. The shipment appears in your list with an auto-generated tracking number like <code>AFR-2026-000006</code>.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> the shipment is listed and shows its tracking number and current status.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j11-create-shipment.png" alt="Create Shipment form"></div></div>
+
+    <h3>Track a shipment (anyone — no account needed)</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open the tracking page (linked from the home page or <code>/track</code>).</li>
+        <li>Type the tracking number into <b>"Enter tracking number"</b> and click <b class="click">Track</b>.</li>
+        <li>The page shows the shipment's current status, location updates, and estimated delivery.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> you see the status timeline. If the number is wrong you get a "not found" message — check the number with the sender.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j05-track.png" alt="Public tracking page"></div></div>
+  </div>
+</section>
+
+<section id="customs">
+  <h2>Customs Duty Calculators (Ghana &amp; Kenya)</h2>
+  <div class="card">
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open <b class="click">Customs Duty</b> in the sidebar (signed in), or the public duty-calculator page.</li>
+        <li>Pick the <b>country</b> — Ghana or Kenya — and what you're importing (vehicle or goods).</li>
+        <li>Fill in the details (for a vehicle: make, model, year, engine size, fuel type, value). Click the calculate button.</li>
+        <li>The estimate shows the duty breakdown in local currency (GHS or KES).</li>
+      </ol>
+      <div class="warn"><b>Pilot rules:</b> guests (not signed in) get <b>2 free estimates</b> per browser — after that you'll be asked to sign in. These are <b>estimates only</b>; they are not certified for paid reliance during the pilot. Ghana repricing data and the Kenya CRSP vehicle values are live but exchange rates are set manually.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/c05-duty-calc.png" alt="Duty calculator"></div></div>
+  </div>
+</section>
+
+<section id="support">
+  <h2>Support &amp; Account Recovery</h2>
+  <div class="card">
+    <h3>Open a support ticket</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>Open the <b class="click">Support</b> page (from the site menu, or <b>Support</b> in the sidebar when signed in).</li>
+        <li>Under <b>"Create a Support Ticket"</b> enter your name, email, subject, and what's wrong, then submit.</li>
+        <li>You get a <b>tracking token</b> — keep it. Under <b>"Track Your Ticket"</b> paste the token any time to see replies and the status.</li>
+      </ol>
+    </div><div class="col"><img class="shot" src="../screenshots/j04-support.png" alt="Support page"></div></div>
+
+    <h3>Reset a forgotten password</h3>
+    <div class="row"><div class="col">
+      <ol class="steps">
+        <li>On the sign-in page click <b class="click">Forgot password</b> (or open <code>/forgot-password</code>).</li>
+        <li>Enter your email and submit. If the account exists, a <b>Password Reset</b> email arrives.</li>
+        <li>Click the link in the email, choose a new password, and sign in.</li>
+      </ol>
+      <div class="ok"><b>It worked when:</b> after setting the new password you can sign in normally.</div>
+    </div><div class="col"><img class="shot" src="../screenshots/j02-forgot.png" alt="Forgot password page"></div></div>
+  </div>
+</section>
+
+<section id="postman">
+  <h2>Postman API Testing</h2>
+  <div class="card">
+    <p>For testers. The UAT pack contains three files — import all of them:</p>
+    <table>
+      <tr><th>File</th><th>What it is</th></tr>
+      <tr><td><code>AFRUHERITAGE_UAT.postman_collection.json</code></td><td>The test suite (79 requests in dependency order)</td></tr>
+      <tr><td><code>AFRUHERITAGE_UAT.postman_environment.json</code></td><td>Environment with account emails — <b>passwords are blank</b></td></tr>
+      <tr><td><code>POSTMAN_SIMPLE_START_GUIDE.md</code></td><td>Step-by-step instructions</td></tr>
+    </table>
+    <ol class="steps">
+      <li>Get the UAT passwords from the secure credential handover (delivered separately — never in this package).</li>
+      <li>In Postman, import the collection and the environment.</li>
+      <li>Select the <b>Afruheritage UAT Environment</b>, open it, and paste each password into the matching field.</li>
+      <li>Click <b class="click">Run collection</b> → <b class="click">Run Afruheritage UAT</b>. Requests run in order; sign-ins and IDs are handled automatically.</li>
+      <li>Check the results — every request should show <b>PASS</b>. Anything else is a defect to report.</li>
+    </ol>
+    <div class="note"><b>Already proven:</b> the pack was executed against the pilot system before delivery — 79 requests, 94 checks, all passing. See <code>POSTMAN_EXECUTION_REPORT.md</code>.</div>
+  </div>
+</section>
+
+<section id="limits">
+  <h2>Pilot Limits &amp; What's Coming</h2>
+  <div class="card">
+    <table>
+      <tr><th>Area</th><th>Status during the pilot</th></tr>
+      <tr><td>Who can register</td><td>Invitation-only. Uninvited emails are refused at sign-up.</td></tr>
+      <tr><td>Payments</td><td>Card payments are not live. Paystack is in test mode; the other provider is switched off. No real charges can occur.</td></tr>
+      <tr><td>Customs estimates</td><td>Ghana and Kenya calculators are free-pilot estimates, not certified for paid reliance. Other countries are not supported yet.</td></tr>
+      <tr><td>Email sender</td><td>Emails come from advisory@emidentity.com while the branded address is finalized.</td></tr>
+      <tr><td>Driver app</td><td>Driver journeys run through invitations and the marketplace; a dedicated driver app is planned.</td></tr>
+      <tr><td>Sentinel pilot-admission</td><td>Adding an email to the invite list is a developer-run command today; a Sentinel screen is planned.</td></tr>
+      <tr><td>WhatsApp updates</td><td>Not enabled yet.</td></tr>
+      <tr><td>Known defect</td><td>Submitting a support ticket with an invalid priority value returns a server error instead of a clean message (valid values work).</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+</div>
+<script>
+  const links=[...document.querySelectorAll('nav a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  addEventListener('scroll',()=>{let i=secs.findIndex(s=>s.getBoundingClientRect().top>120);i=i<0?secs.length-1:Math.max(0,i-1);links.forEach((a,j)=>a.classList.toggle('active',i===j));});
+</script>
+</body>
+</html>

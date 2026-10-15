@@ -1,0 +1,1219 @@
+{
+ "collection": "Afruheritage UAT \u2014 Executable Regression Pack",
+ "run_at": 1792089574228,
+ "stats": {
+  "iterations": {
+   "total": 1,
+   "pending": 0,
+   "failed": 0
+  },
+  "items": {
+   "total": 79,
+   "pending": 0,
+   "failed": 0
+  },
+  "scripts": {
+   "total": 88,
+   "pending": 0,
+   "failed": 0
+  },
+  "prerequests": {
+   "total": 79,
+   "pending": 0,
+   "failed": 0
+  },
+  "requests": {
+   "total": 79,
+   "pending": 0,
+   "failed": 0
+  },
+  "tests": {
+   "total": 79,
+   "pending": 0,
+   "failed": 0
+  },
+  "assertions": {
+   "total": 94,
+   "pending": 0,
+   "failed": 0
+  },
+  "testScripts": {
+   "total": 79,
+   "pending": 0,
+   "failed": 0
+  },
+  "prerequestScripts": {
+   "total": 9,
+   "pending": 0,
+   "failed": 0
+  }
+ },
+ "executions": [
+  {
+   "name": "01 Login \u2014 business owner A",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 12520,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "token captured",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Login \u2014 tenant B owner (isolation)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 10340,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Login \u2014 individual customer",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 560,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Login \u2014 company staff",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 10273,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Login \u2014 driver",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 486,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 Login \u2014 vendor",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 42474,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 Login \u2014 platform admin (UAT superuser)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 200,
+   "time": 41241,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 NEG \u2014 wrong password rejected",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/login",
+   "code": 401,
+   "time": 2503,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "09 Sentinel login \u2014 super admin",
+   "method": "POST",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/auth/login",
+   "code": 200,
+   "time": 29770,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "control-plane token captured",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "10 Sentinel login \u2014 admin viewer",
+   "method": "POST",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/auth/login",
+   "code": 200,
+   "time": 5680,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "11 Logout \u2014 clear session cookie",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/logout",
+   "code": 200,
+   "time": 220,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "12 NEG \u2014 profile without credentials rejected",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/me",
+   "code": 401,
+   "time": 283,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Who am I \u2014 business owner",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/me",
+   "code": 200,
+   "time": 3553,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "tenant matches login",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Who am I \u2014 driver (role + id check)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/me",
+   "code": 200,
+   "time": 169,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "driver role",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Who am I \u2014 staff (not admin)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/me",
+   "code": 200,
+   "time": 173,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "staff is not tenant admin",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Resolve tenant portal subdomain",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/tenant-context/subdomain/uatcert-meridian-freight-3",
+   "code": 200,
+   "time": 3847,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Invite a new staff member",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations",
+   "code": 201,
+   "time": 17769,
+   "assertions": [
+    {
+     "assertion": "HTTP 201",
+     "passed": true
+    },
+    {
+     "assertion": "invitation token captured",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 List team invitations",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations",
+   "code": 200,
+   "time": 630,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Look up invitation by token (public)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations/z3lPFvtHNVHq4I877IF-e9fh_2_b71QV",
+   "code": 200,
+   "time": 195,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "email matches",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Invitee accepts with password",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations/z3lPFvtHNVHq4I877IF-e9fh_2_b71QV/accept",
+   "code": 200,
+   "time": 1810,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Invitee profile \u2014 joined tenant A",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/auth/me",
+   "code": 200,
+   "time": 91,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "invitee joined tenant A",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 List team members",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/members",
+   "code": 200,
+   "time": 506,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 NEG \u2014 staff cannot invite",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations",
+   "code": 403,
+   "time": 100,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 NEG \u2014 bogus invitation token",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/team/invitations/not-a-real-token-12345",
+   "code": 404,
+   "time": 66,
+   "assertions": [
+    {
+     "assertion": "HTTP 404",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Create shipment (tenant A)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 200,
+   "time": 11261,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    },
+    {
+     "assertion": "tracking number issued",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 List tenant shipments",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 200,
+   "time": 21937,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Advance status \u2192 booked",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07/f1dc8541-14b7-496d-b708-9c72a22d696a/transition",
+   "code": 200,
+   "time": 4340,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "status booked",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Advance status \u2192 in_transit",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07/f1dc8541-14b7-496d-b708-9c72a22d696a/transition",
+   "code": 200,
+   "time": 5827,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Shipment event history",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07/f1dc8541-14b7-496d-b708-9c72a22d696a/events",
+   "code": 200,
+   "time": 4440,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 Public tracking (no login)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/public/track/AFR-209738-20261015-E79754",
+   "code": 200,
+   "time": 5923,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 NEG \u2014 tenant B cannot read tenant A shipments",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 403,
+   "time": 653,
+   "assertions": [
+    {
+     "assertion": "HTTP 403 or 404",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 NEG \u2014 tenant B cannot mutate tenant A shipment",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/209738f3-b200-4f25-9182-aede6f154c07/f1dc8541-14b7-496d-b708-9c72a22d696a/transition",
+   "code": 403,
+   "time": 54,
+   "assertions": [
+    {
+     "assertion": "HTTP 403 or 404",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "09 NEG \u2014 invalid tracking number (public)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/shipments/public/track/AFR-NOPE-000000",
+   "code": 404,
+   "time": 387,
+   "assertions": [
+    {
+     "assertion": "HTTP 404 or 422",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Post marketplace shipment (tenant A)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments",
+   "code": 200,
+   "time": 67706,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    },
+    {
+     "assertion": "status open",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Driver searches open jobs",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/drivers/search",
+   "code": 200,
+   "time": 955,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Driver accepts the job",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/accept",
+   "code": 200,
+   "time": 1216,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "job assigned",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Driver updates tracking \u2192 in_transit",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/tracking/in_transit",
+   "code": 200,
+   "time": 850,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Driver sends GPS ping",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/gps",
+   "code": 200,
+   "time": 2151,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 Driver reads GPS history",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/gps",
+   "code": 200,
+   "time": 369,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 NEG \u2014 post without credentials",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments",
+   "code": 401,
+   "time": 60,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 NEG \u2014 tenant B posts into tenant A",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments",
+   "code": 403,
+   "time": 101,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "09 NEG \u2014 tenant B cannot update A job tracking",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/tracking/delivered",
+   "code": 403,
+   "time": 81,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "10 NEG \u2014 driver cannot accept as someone else",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/accept",
+   "code": 403,
+   "time": 117,
+   "assertions": [
+    {
+     "assertion": "HTTP 403 or 409",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "11 NEG \u2014 tenant B cannot read A job GPS",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/marketplace/shipments/416f96b6-9e18-4825-8c18-6801e7196958/gps",
+   "code": 403,
+   "time": 50,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Guest \u2014 Ghana vehicle estimate (capped)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/customs/guest/calculate",
+   "code": 200,
+   "time": 9582,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Signed-in \u2014 Ghana vehicle duty",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/customs/ghana/vehicle-duty",
+   "code": 200,
+   "time": 11705,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Signed-in \u2014 Kenya vehicle duty (CRSP)",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/customs/kenya/vehicle-duty",
+   "code": 200,
+   "time": 9458,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 NEG \u2014 calculator without credentials",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/customs/ghana/vehicle-duty",
+   "code": 401,
+   "time": 71,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 NEG \u2014 unsupported country rejected",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/customs/calculate",
+   "code": 422,
+   "time": 162,
+   "assertions": [
+    {
+     "assertion": "HTTP 400 or 422",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Open a public support ticket",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/public/tickets",
+   "code": 200,
+   "time": 4754,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Read ticket by public token",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/public/tickets/RtsHvLfJYy4-qs4Hz_kil-dyjxqyaXAO",
+   "code": 200,
+   "time": 161,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Customer replies on ticket",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/public/tickets/RtsHvLfJYy4-qs4Hz_kil-dyjxqyaXAO/reply",
+   "code": 200,
+   "time": 622,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Tenant sees the ticket internally",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/tickets",
+   "code": 200,
+   "time": 385,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Create CRM account",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/accounts",
+   "code": 200,
+   "time": 4390,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 List CRM accounts",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/support-crm/accounts",
+   "code": 200,
+   "time": 172,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 Create CRM customer record",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/crm/customers",
+   "code": 200,
+   "time": 1098,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 201",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 NEG \u2014 CRM without credentials",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/crm/customers",
+   "code": 401,
+   "time": 77,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Vendor profile (approved vendor)",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/vendors/me",
+   "code": 200,
+   "time": 1495,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "vendor approved",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Vendor bookings",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/vendors/me/bookings",
+   "code": 200,
+   "time": 769,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Public vendor marketplace list",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/vendors/marketplace",
+   "code": 200,
+   "time": 298,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Admin \u2014 list vendors",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/vendors/admin",
+   "code": 200,
+   "time": 300,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 NEG \u2014 tenant user blocked from vendor admin",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/vendors/admin",
+   "code": 403,
+   "time": 55,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 List plans",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/billing/plans",
+   "code": 200,
+   "time": 912,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Tenant subscription",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/billing/subscriptions/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 200,
+   "time": 127,
+   "assertions": [
+    {
+     "assertion": "HTTP 200 or 404",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Tenant wallet balance",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/billing/wallets/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 200,
+   "time": 113,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Wallet transactions",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/billing/wallets/209738f3-b200-4f25-9182-aede6f154c07/transactions",
+   "code": 200,
+   "time": 772,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 NEG \u2014 payment-hub initialize without credentials",
+   "method": "POST",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/payment-hub/initialize",
+   "code": 401,
+   "time": 112,
+   "assertions": [
+    {
+     "assertion": "HTTP 401 or 422",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 NEG \u2014 cross-tenant transaction history",
+   "method": "GET",
+   "host": "api.afruheritage.com",
+   "path": "/api/v1/payment-hub/transactions/209738f3-b200-4f25-9182-aede6f154c07",
+   "code": 403,
+   "time": 50,
+   "assertions": [
+    {
+     "assertion": "HTTP 401 or 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "01 Sentinel \u2014 who am I (super admin)",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/auth/me",
+   "code": 200,
+   "time": 2581,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "super_admin",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "02 Sentinel \u2014 who am I (viewer)",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/auth/me",
+   "code": 200,
+   "time": 229,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    },
+    {
+     "assertion": "admin role",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "03 Sentinel \u2014 tenant list",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/tenants",
+   "code": 200,
+   "time": 163,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "04 Sentinel \u2014 dashboard stats",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/dashboard/stats",
+   "code": 200,
+   "time": 20674,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "05 Sentinel \u2014 system diagnostics",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/diagnostics/system",
+   "code": 200,
+   "time": 1168,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "06 Sentinel \u2014 shipments list (control-plane)",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/shipments",
+   "code": 200,
+   "time": 2965,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "07 Sentinel \u2014 tickets list (control-plane)",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/tickets",
+   "code": 200,
+   "time": 3530,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "08 Sentinel \u2014 audit logs",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/diagnostics/audit-logs",
+   "code": 200,
+   "time": 388,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "09 Sentinel \u2014 admin users (super only)",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/users",
+   "code": 200,
+   "time": 298,
+   "assertions": [
+    {
+     "assertion": "HTTP 200",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "10 NEG \u2014 viewer cannot create admin user",
+   "method": "POST",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/auth/users",
+   "code": 403,
+   "time": 227,
+   "assertions": [
+    {
+     "assertion": "HTTP 403",
+     "passed": true
+    }
+   ]
+  },
+  {
+   "name": "11 NEG \u2014 Sentinel without credentials",
+   "method": "GET",
+   "host": "admin.afruheritage.com",
+   "path": "/sentinel/tenants",
+   "code": 401,
+   "time": 61,
+   "assertions": [
+    {
+     "assertion": "HTTP 401",
+     "passed": true
+    }
+   ]
+  }
+ ]
+}

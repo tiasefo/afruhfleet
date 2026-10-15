@@ -92,11 +92,18 @@ Every row: *current behavior → expected → evidence → impact → severity �
 
 ## H. What could NOT be verified this round
 
-- Vendor end-to-end booking/accept flows (surface only).
-- Team-invite accept token flow (needs mailbox).
-- Cross-tenant isolation for every route — the certified 19/19 R2 suite stands; not re-run.
+- Vendor end-to-end booking/accept flows (surface only — vendor profile, approval, and membership were verified live).
+- Cross-tenant isolation for every route — the 79-request UAT suite covers the key surfaces; not every route re-run.
 - Sentinel **write** ops (approve/launch/suspend) — deliberately not executed against real tenants.
 - Paid payment paths — excluded by policy.
 - `PILOT_INVITE_ONLY` behavior under Redis outage — fail-closed was verified earlier, not re-run.
 
-**Tested vs inspected statement:** the only features claimed *verified* are those with entries in `evidence/live/` + the 28 screenshots; everything else is explicitly *inspected* and marked as such.
+## I. Defects found during the UAT suite build
+
+| ID | Defect | Evidence | Severity | Recommendation |
+|---|---|---|---|---|
+| U-001 | `POST /support-crm/public/tickets` returns HTTP 500 when `priority` is an invalid value (e.g. `normal`) instead of a 4xx validation error. Valid values (`low|medium|high|critical`) work | reproduced live; `app/models/support_crm.py` enum | S3 | Validate `priority` before persisting; return 422 |
+| U-002 | Sentinel wallet detail read returned HTTP 500 after a credit adjustment (the adjustment itself succeeded, balance confirmed via customer API) | live response | S3 | Diagnose the Sentinel wallet endpoint |
+| U-003 | Kenya vehicle-duty endpoint latency occasionally exceeds 60 s (external CRSP data source); passed on retry | Newman run | S3 | Add a timeout/retry policy + cached fallback |
+
+**Tested vs inspected statement:** the features claimed *verified* are those executed live — the 79-request automated UAT run (`evidence/live/uat_newman_execution.json`), the manual account-provisioning evidence, and the journey screenshots; everything else is explicitly *inspected* and marked as such in `API_COVERAGE_MATRIX.md`.

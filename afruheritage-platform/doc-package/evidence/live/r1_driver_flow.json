@@ -1,0 +1,15 @@
+{
+ "flow": "marketplace driver lifecycle post-authz-fix",
+ "results": {
+  "tenantA_post_job": 200,
+  "driver_search_jobs": "200 (3 open jobs)",
+  "driver_accept_self": "200 status=assigned",
+  "driver_tracking_update": 200,
+  "driver_gps_ping": 200,
+  "tenantB_tracking_on_A_job": "403 not_authorized_for_job",
+  "driver_accept_foreign_id": "403 driver_identity_mismatch",
+  "tenantB_gps_read": 403,
+  "driver_gps_read": 200
+ },
+ "note": "Full legitimate driver workflow works; all unauthorized mutations denied."
+}
