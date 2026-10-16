@@ -37,6 +37,15 @@ The collection has 10 sections that run in order. Each sign-in section automatic
 
 **How to read the results:** green `PASS` next to every request = expected. Some requests *expect* a failure code — e.g. "NEG — wrong password" passing means the server answered **401** as it should. A red `FAIL` means the response did not match what the system is supposed to do.
 
+## Running a single request by hand
+
+You can also send individual requests instead of the whole run:
+
+1. First run section **00 — Authentication** alone (Runner → tick only that folder). That signs in every account and saves each token into the environment automatically.
+2. Open any request — e.g. `03 — Shipments → 01 Create shipment (tenant A)`. Look at the **URL** (`{{api_base}}/api/v1/shipments/{{tenant_a_id}}`), the **Headers** (the saved `Authorization: Bearer {{owner_a_token}}` is filled in for you), and the **Body** (a real example payload).
+3. Click **Send**. The response appears at the bottom and the **Test Results** tab shows a plain PASS/FAIL — the test also saves the new `shipment_id` and `tracking_number` for the requests that come after it.
+4. `02 — Team invitations` can be run alone the same way — it creates a fresh invitee email each time, so it never collides with earlier runs.
+
 ## Command line (Newman)
 
 ```bash

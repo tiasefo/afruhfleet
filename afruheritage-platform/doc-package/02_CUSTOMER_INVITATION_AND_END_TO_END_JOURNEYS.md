@@ -54,12 +54,13 @@ Four plan cards are shown:
 | **Growth** | 2,500 GHS/month |
 | **Enterprise** | 6,000 GHS/month |
 
-1. Click a plan card — a filled radio dot marks your choice.
+1. Click a plan card — a filled radio dot marks your choice. For the pilot, choose **Free Trial (14 days)**.
 2. Click **Continue** (bottom right). **Cancel Registration** (bottom left) exits to the home page.
-   *Screenshot: `screenshots/j03-choose-plan.png`*
-
-> **⚠ Known pilot defect (U-004):** during the verified demo run, clicking **Continue** produced a red error banner reading `Failed to initialize payment: Unexpected token 'I', "Internal S"... is not valid JSON`. This means the plan step failed silently in the background. **What to do if this happens:** your account has still been created — close the dialog (Cancel), sign in normally, and continue. The free-trial subscription can be activated by the support team (or via the API) without payment. Paid plans are not part of the free pilot.
-> *Screenshot of the failure state: `screenshots/j04-choose-template.png`*
+   *Screenshot: `screenshots/f03-choose-plan.png`*
+3. The free trial activates immediately — no payment is involved. A second dialog appears: **"Choose Your Storefront Template"**.
+   *Screenshot: `screenshots/f04-template-picker.png`*
+4. Click a design (e.g. **Meridian Freight**) and click **Launch Storefront** — or click **Skip** to decide later.
+5. You are then sent to the sign-in page to log in with the email and password you just registered.
 
 ### Step 6 — Check your email
 

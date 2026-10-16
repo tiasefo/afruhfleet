@@ -23,3 +23,21 @@
 ## Honest notes
 - Step 4 is a real defect (U-004), not a pass: the plan modal's Continue failed in the browser. The journey still completed because registration precedes plan selection.
 - No OTP exists in this flow — welcome email is informational; password login + email links only.
+
+---
+
+## Post-fix verification run (U-004 closed) — 2026-10-15
+
+**Identity:** `uatdemo3-mva5x4srir5p@maxxspace.com` — fresh mailbox, admitted via `pilot_admit.sh`. **Frontend image:** `861c9672c23e` (register-form fix deployed).
+
+| Step | Result | Screenshot |
+|---|---|---|
+| Register form → Create Account | "Choose Your Plan" modal | `f01–f03` |
+| Free Trial → **Continue** | `POST /billing/subscriptions/trial/{tenant}` → 200 `trialing` — **"Choose Your Storefront Template" modal opened** (U-004 fixed, no payment call) | `f04-template-picker.png` |
+| Launch Storefront | → sign-in page | `f05/f06` |
+| Sign In | → `/onboarding` wizard → Personal Shipper → Finish Setup | `f07/f08` |
+| Dashboard | "Welcome back, UAT Demo Person Three" | `f09-final.png` |
+| Welcome email | Received: "Welcome to Afruheritage — Your Account is Ready!" | mail.tm |
+| API state | `requires_subscription: false`; subscription `status: trialing`, `plan_code: free_trial`, 14-day period | verified |
+
+The full journey now completes **entirely through the browser UI** — no API workaround.

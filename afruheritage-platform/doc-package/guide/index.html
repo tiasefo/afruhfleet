@@ -184,11 +184,12 @@
     <div class="row"><div class="col">
       <ol class="steps">
         <li>A dialog titled <b>"Choose Your Plan"</b> appears — your account is already created at this point. Four cards are offered: <b>Free Trial (14 days) — 0 GHS</b>, <b>Starter — 1,000 GHS/month</b>, <b>Growth — 2,500 GHS/month</b>, <b>Enterprise — 6,000 GHS/month</b>.</li>
-        <li>Click the <b class="click">Free Trial</b> card (a filled radio dot marks it), then click <b class="click">Continue</b> at the bottom right.</li>
-        <li>For the free trial, a second dialog offers a storefront template — pick one and click <b class="click">Launch Storefront</b>, or click <b class="click">Skip</b>.</li>
+        <li>Click the <b class="click">Free Trial</b> card (a filled radio dot marks it), then click <b class="click">Continue</b> at the bottom right. The trial activates immediately — no payment is involved.</li>
+        <li>A second dialog appears: <b>"Choose Your Storefront Template"</b>. Click a design (e.g. <b>Meridian Freight</b>) and click <b class="click">Launch Storefront</b>, or click <b class="click">Skip</b> to decide later.</li>
+        <li>You are then taken to the sign-in page — log in with the email and password you just registered.</li>
       </ol>
-      <div class="warn"><b>Known pilot defect (U-004):</b> during the verified run, clicking Continue on the plan step briefly showed an error banner (<i>"Failed to initialize payment: Unexpected token…"</i>) instead of the template step. <b>Your account is still created.</b> If this happens, close the dialog (Cancel), sign in normally, and continue — the free trial can be activated by support. Paid plans are excluded from the free pilot.</div>
-    </div><div class="col"><img class="shot" src="../screenshots/j03-choose-plan.png" alt="Choose Your Plan dialog"><img class="shot" src="../screenshots/j04-choose-template.png" alt="Plan step error state"></div></div>
+      <div class="note">This exact sequence — register → plan → template → sign-in → setup wizard → dashboard — was exercised end-to-end in a real browser after a defect fix (see defect register U-004, now closed).</div>
+    </div><div class="col"><img class="shot" src="../screenshots/f03-choose-plan.png" alt="Choose Your Plan dialog"><img class="shot" src="../screenshots/f04-template-picker.png" alt="Choose Your Storefront Template dialog"></div></div>
 
     <h3>Step D — Check your welcome email</h3>
     <div class="row"><div class="col">
@@ -415,7 +416,7 @@
       <tr><td>Sentinel pilot-admission</td><td>Adding an email to the invite list is a developer-run command today; a Sentinel screen is planned.</td></tr>
       <tr><td>WhatsApp updates</td><td>Not enabled yet.</td></tr>
       <tr><td>Known defect</td><td>Submitting a support ticket with an invalid priority value returns a server error instead of a clean message (valid values work).</td></tr>
-      <tr><td>Known defect (U-004)</td><td>At registration, the "Choose Your Plan" Continue button can show a payment-initialization error for the free trial. Your account is still created — cancel the dialog, sign in, and the free trial is activated by support. Fix is in the repair list.</td></tr>
+      <tr><td>Registration plan step</td><td>Fixed (was U-004): choosing Free Trial now activates instantly and opens the storefront-template picker — verified live in a browser run.</td></tr>
     </table>
   </div>
 </section>

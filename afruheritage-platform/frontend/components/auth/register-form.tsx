@@ -126,48 +126,66 @@ export function RegisterForm() {
     }
   }
 
+  const openTemplatePicker = async () => {
+    setShowSubscriptionModal(false)
+    try {
+      const res = await fetch('/api/v1/storefront-templates', {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setTemplates(data)
+        if (data.length > 0) setSelectedTemplate(data[0].template_code)
+      }
+    } catch (e) { /* ignore — picker still opens with Skip */ }
+    setShowTemplatePicker(true)
+  }
+
   const handleSelectSubscription = async () => {
     setSubscriptionLoading(true)
+    setError('')
     try {
-      // Get tenant_id from localStorage (set during registration)
       const tenantId = localStorage.getItem('tenant_id') || ''
-      // Initialize payment for selected plan
+      if (selectedPlan === 'free_trial') {
+        // Free trial needs no payment — activate the trial subscription directly.
+        const res = await fetch(`/api/v1/billing/subscriptions/trial/${tenantId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+        })
+        if (!res.ok) {
+          const body = await res.json().catch(() => null)
+          throw new Error(body?.detail || `Trial activation failed (${res.status})`)
+        }
+        await openTemplatePicker()
+        return
+      }
+      // Paid plans: initialize payment for the selected plan
       const selectedPlanObj = PLANS.find(p => p.code === selectedPlan)
       const res = await fetch('/api/v1/billing/payments/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           tenant_id: tenantId,
-          amount_major: selectedPlan === 'free_trial' ? 0 : 1000,
+          amount_major: selectedPlanObj ? parseInt(selectedPlanObj.price.replace(/[^0-9]/g, ''), 10) : 1000,
           email: registeredEmail,
           purpose: 'subscription',
           plan_code: selectedPlan,
           currency: 'GHS',
         }),
       })
-      const paymentData = await res.json()
-      
-      if (paymentData.authorization_url) {
+      const paymentData = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(paymentData?.detail || `Payment initialization failed (${res.status})`)
+      }
+      if (paymentData?.authorization_url) {
         // Redirect to Paystack checkout
         window.location.href = paymentData.authorization_url
-      } else if (selectedPlan === 'free_trial') {
-        // Free trial: show template picker before dashboard
-        setShowSubscriptionModal(false)
-        // Fetch templates
-        try {
-          const res = await fetch('/api/v1/storefront-templates', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`, 'Content-Type': 'application/json' }
-          })
-          if (res.ok) {
-            const data = await res.json()
-            setTemplates(data)
-            if (data.length > 0) setSelectedTemplate(data[0].template_code)
-          }
-        } catch (e) { /* ignore */ }
-        setShowTemplatePicker(true)
       }
     } catch (err: any) {
-      setError('Failed to initialize payment: ' + (err.message || 'Unknown error'))
+      setError(err?.message || 'Something went wrong. Please try again.')
     } finally {
       setSubscriptionLoading(false)
     }
@@ -176,11 +194,15 @@ export function RegisterForm() {
   const handleSelectTemplate = async () => {
     setTemplateLoading(true)
     try {
-      await fetch('/api/v1/storefront-templates/select', {
+      const selRes = await fetch('/api/v1/storefront-templates/select', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`, 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ template_code: selectedTemplate }),
       })
+      if (!selRes.ok) {
+        throw new Error(`Template selection failed (${selRes.status})`)
+      }
       setShowTemplatePicker(false)
       router.push('/dashboard')
     } catch (err: any) {
